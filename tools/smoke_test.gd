@@ -125,6 +125,14 @@ func _ready() -> void:
 	await wait(1.0)
 	ok(main.dialog.visible, "мысли при пробуждении")
 	await close_dialogs()
+	ok(Game.hero.owned.has("pistol") and Game.hero.owned.has("knife"), "с начала есть пистолет и нож")
+	ok(not main.hud._bar.visible, "нижней панели нет до мини-компьютера")
+	# свободная ходьба: герой встаёт ровно в точку клика, а не в центр гекса
+	var start: Vector3 = main.player.global_position
+	var spot := start + Vector3(1.37, 0, 0.61)
+	main._walk_to_hex(grid.from_world(spot), Callable(), spot)
+	await wait(1.5)
+	ok(main.player.global_position.distance_to(spot) < 0.05, "свободная ходьба в точку клика")
 
 	# --- дед: утренние дела ---
 	main.talk_to(main.location.character("Ded"))
@@ -156,8 +164,7 @@ func _ready() -> void:
 	await choose(find_opt("Всё сделал"))
 	await choose(0)
 	await close_dialogs()
-	ok(Game.hero.owned.has("knife"), "нож получен")
-	ok(Game.hero_wkey() == "knife", "нож в руке")
+	ok(Game.quest_stage("chores") == 3, "дед отправил в лес")
 	ok(Game.quest_stage("forest") == 1, "задание «Лес» взято")
 
 	# --- граница утром ---
@@ -201,6 +208,7 @@ func _ready() -> void:
 	await wait(0.3)
 	await close_dialogs()
 	ok(Game.item_count("minicomputer") == 1, "мини-компьютер найден")
+	ok(main.hud._bar.visible, "нижняя панель появилась с мини-компьютером")
 	ok(Game.hero.owned.has("pistol"), "пистолет найден")
 	Game.hero.hands = ["pistol", "knife"]
 	Game.hero.active = 0

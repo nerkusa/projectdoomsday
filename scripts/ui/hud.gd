@@ -27,6 +27,9 @@ var _toast: Label
 var _hurt: ColorRect
 var _floats: Control
 var _combat: CombatManager
+## Нижняя панель: появляется, когда у героя есть мини-компьютер (или уже собран КПК).
+## В бою видна всегда — без неё не видно ОД и кнопок хода.
+var _bar: PanelContainer
 
 
 func setup(m: Node, cm: CombatManager) -> void:
@@ -106,6 +109,7 @@ func _build() -> void:
 
 	# ---- нижняя панель ----
 	var bar := UITheme.panel(UITheme.plastic(8))
+	_bar = bar
 	bar.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_WIDE)
 	bar.offset_left = 8
 	bar.offset_right = -8
@@ -199,7 +203,7 @@ func _build() -> void:
 	grid.add_theme_constant_override("h_separation", 6)
 	grid.add_theme_constant_override("v_separation", 6)
 	row.add_child(grid)
-	for pair in [["kpk", "КПК  [I]"], ["sheet", "Дело  [C]"], ["reload", "Перезар. [R]"], ["sneak", "Красться"], ["give", "Сдаться"], ["end", "В бой"]]:
+	for pair in [["kpk", "КПК  [I]"], ["sheet", "Дело  [C]"], ["reload", "Перезар. [R]"], ["sneak", "Красться [Z]"], ["give", "Сдаться"], ["end", "В бой"]]:
 		var b := UITheme.key(pair[1], "primary" if pair[0] == "end" else "normal", 11)
 		b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		b.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -274,6 +278,7 @@ func refresh() -> void:
 	_hp_bar.value = Game.hero_hp()
 	_hp_lbl.text = "%d/%d" % [Game.hero_hp(), Game.hero_max()]
 	var on := _combat.on
+	_bar.visible = on or Game.flag("kpk") or Game.item_count("minicomputer") > 0
 	for c in _ap_row.get_children():
 		c.queue_free()
 	if on:
