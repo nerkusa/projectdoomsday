@@ -70,6 +70,9 @@ const ZONES := [
 	{"r": 5, "name": "Пах", "mult": 2, "slot": "body", "ignore_armor": true},
 	{"r": 6, "name": "Ноги", "mult": 1, "slot": "body", "ignore_armor": false},
 ]
+## Атака из скрытности (бой начат, пока герой крался): первая атака героя
+## умножает модификатор попадания и урон
+const SNEAK_MULT := 5
 const AIM_PEN := {"Голова": 6, "Шея": 4, "Пах": 4, "Торс": 2, "Руки": 2, "Ноги": 2}
 
 const LEVEL_REWARDS := {

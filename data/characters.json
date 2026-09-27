@@ -41,9 +41,9 @@
 
   "wolf": {
     "name": "Одичавший пёс",
-    "stats": {"INT": 1, "PRC": 7, "REF": 4, "DEX": 5, "BODY": 2, "EMP": 1, "CRA": 1, "WILL": 3},
-    "skills": {"Рукопашный бой": 2, "Уклонение": 2}, "hp_roll": 2, "weapon": "bite", "xp": 60,
-    "flee_below": 0.4, "will_dc": 12,
+    "stats": {"INT": 1, "PRC": 6, "REF": 3, "DEX": 3, "BODY": 2, "EMP": 1, "CRA": 1, "WILL": 2},
+    "skills": {"Рукопашный бой": 1}, "hp_roll": 1, "weapon": "bite", "xp": 60,
+    "flee_below": 0.5, "will_dc": 13,
     "look": {"skin": "#5a4a3a", "top": "#5a4a3a", "pants": "#4a3a2a", "hair": "#3a2a1a", "boots": "#3a2a1a"},
     "scale": 0.62
   },
@@ -71,18 +71,20 @@
 
   "soldier_a": {
     "name": "Боец в маске",
-    "stats": {"INT": 5, "PRC": 6, "REF": 5, "DEX": 4, "BODY": 5, "EMP": 3, "CRA": 3, "WILL": 6},
-    "skills": {"Дальний бой": 3, "Уклонение": 2, "Рукопашный бой": 2},
-    "hp_roll": 5, "weapon": "pistol", "mag": 8, "ammo": 8, "xp": 120,
-    "armor": {"type": "light", "max": 6, "name": "лёгкий бронежилет"},
+    "stats": {"INT": 5, "PRC": 5, "REF": 3, "DEX": 3, "BODY": 3, "EMP": 3, "CRA": 3, "WILL": 3},
+    "skills": {"Дальний бой": 1, "Рукопашный бой": 1},
+    "hp_roll": 2, "weapon": "pistol", "mag": 4, "ammo": 4, "xp": 120,
+    "flee_below": 0.5, "will_dc": 14,
+    "armor": {"type": "light", "max": 3, "name": "лёгкий бронежилет"},
     "loot": {"bandage": 1, "raider_token": 1},
     "look": {"skin": "#b58a66", "top": "#3a3f3a", "pants": "#2e2f30", "vest": "#d9622b", "helmet": "#2b2b28", "mask": true}
   },
   "soldier_b": {
     "name": "Боец с мачете",
-    "stats": {"INT": 4, "PRC": 5, "REF": 5, "DEX": 5, "BODY": 6, "EMP": 3, "CRA": 3, "WILL": 5},
-    "skills": {"Ближний бой": 3, "Уклонение": 2},
-    "hp_roll": 6, "weapon": "machete", "xp": 120, "hp_frac": 0.55,
+    "stats": {"INT": 4, "PRC": 4, "REF": 3, "DEX": 3, "BODY": 4, "EMP": 3, "CRA": 3, "WILL": 3},
+    "skills": {"Ближний бой": 1},
+    "hp_roll": 2, "weapon": "machete", "xp": 120, "hp_frac": 0.5,
+    "flee_below": 0.5, "will_dc": 14,
     "loot": {"medkit": 1},
     "look": {"skin": "#c0906a", "top": "#3a3f3a", "pants": "#2e2f30", "vest": "#d9622b", "helmet": "#2b2b28", "mask": true}
   }

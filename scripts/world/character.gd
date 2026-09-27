@@ -30,7 +30,8 @@ extends Node3D
 @export var use_hero_model := false
 ## Манекен из Universal Animation Library с готовыми анимациями
 ## (ходьба, удар, выстрел, смерть...). Главнее, чем use_hero_model.
-@export var use_anim_model := false:
+## Выключи, чтобы вернуть процедурного человечка из брусков.
+@export var use_anim_model := true:
 	set(v):
 		use_anim_model = v
 		if Engine.is_editor_hint() and is_inside_tree():
@@ -107,7 +108,7 @@ func _rebuild_preview() -> void:
 	if use_anim_model:
 		var ab := AnimBody.new()
 		holder.add_child(ab)
-		if ab.build():
+		if ab.build(t.get("look", {})):
 			if start_dead:
 				ab.play("Death01", 0.0, 1.0, false, true)
 			elif start_pose in ["sit", "down"]:
@@ -131,7 +132,7 @@ func _build_visual() -> void:
 	if use_anim_model:
 		var ab := AnimBody.new()
 		rig.add_child(ab)
-		if ab.build():
+		if ab.build(tpl.get("look", {})):
 			body = ab
 		else:
 			ab.queue_free()
@@ -401,9 +402,10 @@ func _animate(delta: float) -> void:
 
 
 # ---------------- готовые анимации (AnimBody) ----------------
-## Скорость (м/с), с которой клип ходьбы/бега выглядит естественно
+## Скорость (м/с), с которой клип ходьбы/бега/крадучись выглядит естественно
 const WALK_CLIP_SPEED := 1.4
 const JOG_CLIP_SPEED := 3.4
+const CROUCH_CLIP_SPEED := 1.2
 var _clip_started := false
 
 
@@ -426,7 +428,12 @@ func _animate_clips(delta: float) -> void:
 		"yield":
 			ab.play("Crouch_Idle", 0.3)
 		_:
-			if moving:
+			var sneak := is_player and bool(Game.hero.get("sneak", false))
+			if sneak and moving:
+				ab.play("Crouch_Fwd", 0.2, clampf(speed / CROUCH_CLIP_SPEED, 0.6, 1.8))
+			elif sneak:
+				ab.play("Crouch_Idle", 0.3)
+			elif moving:
 				if speed < 2.2:
 					ab.play("Walk", 0.2, clampf(speed / WALK_CLIP_SPEED, 0.6, 1.8))
 				else:

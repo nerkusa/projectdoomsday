@@ -17,7 +17,8 @@ var current := ""
 var _hand: Node3D
 
 
-func build() -> bool:
+## look — цвета из шаблона персонажа: top красит тело манекена, pants — суставы.
+func build(look := {}) -> bool:
 	if not ResourceLoader.exists(MODEL):
 		return false
 	var ps: PackedScene = load(MODEL)
@@ -38,7 +39,23 @@ func build() -> bool:
 		att.add_child(_hand)
 	for mi in _meshes(inst):
 		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
+		_tint(mi, look)
 	return true
+
+
+func _tint(mi: MeshInstance3D, look: Dictionary) -> void:
+	if mi.mesh == null:
+		return
+	for i in mi.mesh.get_surface_count():
+		var src := mi.mesh.surface_get_material(i)
+		var joints := src != null and src.resource_name.contains("Joints")
+		var key := "pants" if joints else "top"
+		if not look.has(key):
+			continue
+		var m := StandardMaterial3D.new()
+		m.albedo_color = Color(look[key])
+		m.roughness = 0.8
+		mi.set_surface_override_material(i, m)
 
 
 func hand() -> Node3D:

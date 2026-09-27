@@ -23,6 +23,8 @@ var pending: Dictionary = {}
 var reach: Dictionary = {}
 var hero_f: Fighter
 var hero_init := 0
+## Первая атака героя после нападения из скрытности (Rules.SNEAK_MULT)
+var sneak_attack := false
 
 
 func setup(m: Node) -> void:
@@ -115,6 +117,7 @@ func start(foe_chars: Array, opts := {}) -> void:
 	main.player.fighter = hero_f
 	units = [hero_f]
 	units.append_array(foes)
+	sneak_attack = bool(opts.get("ambush", false))
 	Game.hero.sneak = false
 	for f in foes:
 		f.node.set_held(f.wkey)
@@ -176,6 +179,9 @@ func begin_turn() -> void:
 	if not u.active():
 		end_turn(true)
 		return
+	if not u.is_hero:
+		# враги пришли в себя — внезапность упущена
+		sneak_attack = false
 	u.ap = Rules.ap_for(u.stats, u.hp, u.max_hp if not u.is_hero else Game.hero_max())
 	u.ap_max = u.ap
 	u.db = 0
@@ -452,6 +458,7 @@ func exec_attack(cost: int, dist: int, zone: String, t: Fighter) -> void:
 	paint()
 	main.player.face_towards(t.node.global_position)
 	var after := func():
+		sneak_attack = false
 		await get_tree().create_timer(0.48, false).timeout
 		busy = false
 		if check_end():
@@ -703,12 +710,15 @@ func resolve_attack(att: Fighter, dfn: Fighter, w: Dictionary, aim_z, dist: int,
 	var R := Rules.roll_hit()
 	var A := Rules.atk_mods(att, w, aim_z, dist, extra)
 	var D := Rules.def_mods(dfn)
-	var t: int = R.d + A.total
+	var sneak := att.is_hero and sneak_attack
+	var at: int = maxi(1, A.total) * Rules.SNEAK_MULT if sneak else A.total
+	var t: int = R.d + at
 	var show: bool = Game.settings.get("show_rolls", true)
-	clog("%s: %s%s%s%s" % [att.name, w.name, (" » " + aim_z) if aim_z != null else "", note, " · КРИТ" if R.crit else (" · ПРОВАЛ" if R.fumble else "")],
-		"атака d10(%d) + %s(%d) + %s(%d)%s%s%s%s = %d" % [R.d, A.st_k, A.rv, A.sk, A.sv,
+	clog("%s: %s%s%s%s%s" % [att.name, w.name, (" » " + aim_z) if aim_z != null else "", note, " · ИЗ СКРЫТНОСТИ" if sneak else "", " · КРИТ" if R.crit else (" · ПРОВАЛ" if R.fumble else "")],
+		"атака d10(%d) + (%s(%d) + %s(%d)%s%s%s%s)%s = %d" % [R.d, A.st_k, A.rv, A.sk, A.sv,
 		(" + бонус(%d)" % A.b) if A.b else "", (" − прицел(%d)" % A.ap) if A.ap else "",
-		(" − дальность(%d)" % A.rp) if A.rp else "", (" − очередь(%d)" % A.ex) if A.ex else "", t] if show else "")
+		(" − дальность(%d)" % A.rp) if A.rp else "", (" − очередь(%d)" % A.ex) if A.ex else "",
+		(" ×%d скрытность" % Rules.SNEAK_MULT) if sneak else "", t] if show else "")
 	var Q := Rules.roll_hit()
 	var dt: int = Q.d + D.total
 	clog("%s уклоняется%s" % [dfn.name, " · КРИТ" if Q.crit else (" · ПРОВАЛ" if Q.fumble else "")],
@@ -728,6 +738,8 @@ func resolve_attack(att: Fighter, dfn: Fighter, w: Dictionary, aim_z, dist: int,
 	var wp := Rules.wound_dmg_penalty(att.hp, mx)
 	var raw := maxi(0, Rules.sum_arr(dice) + int(w.get("bonus", 0)) - wp)
 	var mul := int(floor(raw * float(z.mult)))
+	if sneak:
+		mul *= Rules.SNEAK_MULT
 	var armor_type := "none"
 	if not dfn.armor.is_empty() and z.slot == "body":
 		armor_type = dfn.armor.get("type", "none")
@@ -749,7 +761,7 @@ func resolve_attack(att: Fighter, dfn: Fighter, w: Dictionary, aim_z, dist: int,
 	clog("» Попадание: %s ×%d, −%d ХП" % [z.name, z.mult, ae.hd],
 		"%s · урон %s(%s)%s%s = %d ×%d = %d · %s%s · ХП %d, стало %d" % ["прицельно" if aim_z != null else "зона 1d6=%d" % zr, w.dmg,
 		"+".join(dice.map(func(x): return str(x))), (" + %d" % int(w.bonus)) if int(w.get("bonus", 0)) else "",
-		(" − раны(%d)" % wp) if wp else "", raw, z.mult, mul, ae.desc, armor_note, before, after] if show else "", "hit")
+		(" − раны(%d)" % wp) if wp else "", raw, z.mult * (Rules.SNEAK_MULT if sneak else 1), mul, ae.desc, armor_note, before, after] if show else "", "hit")
 	if not dfn.is_hero:
 		if dfn.hp <= 0 and dfn.lethal:
 			kill(dfn)

@@ -6,6 +6,11 @@ const LOCATIONS := {
 }
 const CAM_DIR := Vector3(1, 1, 1)
 const CAM_DIST := 60.0
+## Скорость героя вне боя (м/с) и до какого расстояния он идёт шагом, а не бежит
+const WALK_SPEED := 1.8
+const RUN_SPEED := 4.2
+const SNEAK_SPEED := 1.4
+const WALK_MAX_DIST := 5.0
 
 var location: Location
 var player: Character
@@ -313,6 +318,18 @@ func _open_pause() -> void:
 	get_tree().paused = true
 
 
+## Крадучись — медленно; к близкой точке — шагом; далеко — бегом
+func _move_speed(pts: Array) -> float:
+	if Game.hero.get("sneak", false):
+		return SNEAK_SPEED
+	var dist := 0.0
+	var prev := player.global_position
+	for p in pts:
+		dist += Vector2(p.x - prev.x, p.z - prev.z).length()
+		prev = p
+	return WALK_SPEED if dist <= WALK_MAX_DIST else RUN_SPEED
+
+
 func _sneak_radius(base: float) -> float:
 	if not Game.hero.get("sneak", false):
 		return base
@@ -501,7 +518,7 @@ func _walk_to_hex(h: Vector2i, cb := Callable()) -> bool:
 	var pts := []
 	for x in path:
 		pts.append(g.to_world(x))
-	player.move_along(pts, cb, 4.2)
+	player.move_along(pts, cb, _move_speed(pts))
 	return true
 
 
