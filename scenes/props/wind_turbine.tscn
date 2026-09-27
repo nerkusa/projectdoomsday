@@ -1,0 +1,32 @@
+[gd_scene format=3]
+
+[ext_resource type="Material" path="res://assets/materials/metal_dark.tres" id="1_mj1y4"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/wind_turbine_metal_dark.res" id="2_07sui"]
+[ext_resource type="Material" path="res://assets/materials/planks_old.tres" id="3_mocdx"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/wind_turbine_planks_old.res" id="4_c7vfg"]
+[ext_resource type="Material" path="res://assets/materials/blade.tres" id="5_cvdgs"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/wind_turbine_blade.res" id="6_7n7j2"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_p4kuk"]
+size = Vector3(1.2, 3, 1.2)
+
+[node name="WindTurbine" type="Node3D" unique_id=850953850]
+
+[node name="Mesh_metal_dark" type="MeshInstance3D" parent="." unique_id=800183802]
+material_override = ExtResource("1_mj1y4")
+mesh = ExtResource("2_07sui")
+
+[node name="Mesh_planks_old" type="MeshInstance3D" parent="." unique_id=1164869044]
+material_override = ExtResource("3_mocdx")
+mesh = ExtResource("4_c7vfg")
+
+[node name="Mesh_blade" type="MeshInstance3D" parent="." unique_id=447076287]
+material_override = ExtResource("5_cvdgs")
+mesh = ExtResource("6_7n7j2")
+
+[node name="Collision" type="StaticBody3D" parent="." unique_id=673594238]
+collision_mask = 0
+
+[node name="@CollisionShape3D@18" type="CollisionShape3D" parent="Collision" unique_id=416515817]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 0)
+shape = SubResource("BoxShape3D_p4kuk")

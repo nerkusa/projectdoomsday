@@ -120,8 +120,8 @@ func _ready() -> void:
 		if grid.free[h]:
 			free += 1
 	print("  гексов: ", grid.free.size(), ", проходимых: ", free)
-	ok(free > 1500, "сетка проходимости построена")
-	ok(not grid.is_free(grid.from_world(Vector3(30, 0, 33.5))), "изба деда непроходима")
+	ok(free > 5000, "сетка проходимости построена")
+	ok(not grid.is_free(grid.from_world(Vector3(44, 0, 41))), "изба деда непроходима")
 	await wait(1.0)
 	ok(main.dialog.visible, "мысли при пробуждении")
 	await close_dialogs()
@@ -196,7 +196,7 @@ func _ready() -> void:
 	ok(Game.flag_value("phase") == "raid", "начался налёт")
 	ok(main.dialog.visible and main.dialog.node_id == "shots", "мысли: выстрелы")
 	await close_dialogs()
-	await tp(Vector3(34, 0, 22))
+	await tp(Vector3(62, 0, 28))
 	await wait(0.6)
 	ok(Game.flag("fire_seen"), "увидел пожар")
 	await close_dialogs()
@@ -217,7 +217,7 @@ func _ready() -> void:
 	print("  патроны: магазин ", Game.hero.mag.get("pistol", 0), ", запас ", Game.hero.ammo)
 
 	# --- бой у амбара ---
-	await tp(Vector3(35.5, 0, 31.0))
+	await tp(Vector3(65.5, 0, 60.0))
 	await wait(0.8)
 	ok(main.dialog.visible and main.dialog.node_id == "ded_seen", "увидел деда у амбара (%s, бой=%s)" % [main.dialog.node_id, main.combat.on])
 	await choose(0)
@@ -240,6 +240,9 @@ func _ready() -> void:
 		main.loot(r)
 		await wait(0.3)
 		await close_dialogs()
+		if main.combat.on:
+			await fight()
+			await close_dialogs()
 	ok(Game.item_count("module_carrier") == 1, "модуль носителя найден")
 	main.talk_to(main.location.character("DedRaid"), "last")
 	await frames(2)

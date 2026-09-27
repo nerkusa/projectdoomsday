@@ -24,6 +24,8 @@ extends Node3D
 @export var squad := ""
 ## Лежит мёртвым с начала (труп, который можно обыскать)
 @export var start_dead := false
+## Держит оружие из шаблона, даже если не враг (часовые, защитники)
+@export var armed := false
 ## Поза с начала: "", "sit", "down", "yield"
 @export var start_pose := ""
 ## Показывать героя моделью из hero.glb
@@ -86,7 +88,7 @@ func _ready() -> void:
 	elif start_pose != "":
 		pose = start_pose
 	if not is_player and tpl.has("weapon") and pose == "":
-		set_held(tpl.weapon if hostile else "")
+		set_held(tpl.weapon if hostile or armed else "")
 
 
 func uid() -> String:

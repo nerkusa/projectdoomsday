@@ -1,0 +1,14 @@
+[gd_resource type="StandardMaterial3D" format=3]
+
+[ext_resource type="Texture2D" path="res://assets/textures/meadow.png" id="1_kfboa"]
+[ext_resource type="Texture2D" path="res://assets/textures/meadow_n.png" id="2_r17x8"]
+
+[resource]
+resource_name = "ground_meadow"
+albedo_texture = ExtResource("1_kfboa")
+normal_enabled = true
+normal_texture = ExtResource("2_r17x8")
+uv1_scale = Vector3(0.15, 0.15, 0.15)
+uv1_triplanar = true
+uv1_triplanar_sharpness = 4.0
+uv1_world_triplanar = true

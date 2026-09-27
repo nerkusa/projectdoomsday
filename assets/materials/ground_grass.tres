@@ -1,0 +1,14 @@
+[gd_resource type="StandardMaterial3D" format=3]
+
+[ext_resource type="Texture2D" path="res://assets/textures/grass_dark.png" id="1_qqafo"]
+[ext_resource type="Texture2D" path="res://assets/textures/grass_dark_n.png" id="2_f7pcv"]
+
+[resource]
+resource_name = "ground_grass"
+albedo_texture = ExtResource("1_qqafo")
+normal_enabled = true
+normal_texture = ExtResource("2_f7pcv")
+uv1_scale = Vector3(0.18, 0.18, 0.18)
+uv1_triplanar = true
+uv1_triplanar_sharpness = 4.0
+uv1_world_triplanar = true

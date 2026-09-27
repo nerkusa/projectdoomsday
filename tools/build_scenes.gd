@@ -4,6 +4,9 @@ extends Node
 ## Пригодится, если захочешь пересобрать деревню с нуля:
 ##   godot --headless --path . res://tools/build.tscn
 ## ВНИМАНИЕ: перезапишет scenes/locations/nakharro.tscn и scenes/props/*.
+## УСТАРЕЛ для деревни и построек: их теперь собирают tools/build_props.gd и
+## tools/build_nakharro.gd (этот файл нужен им как набор помощников и для мелких
+## пропов — колодец, стол, трактор, грибы и т. п.).
 
 const MAT_DIR := "res://assets/materials/"
 const PROP_DIR := "res://scenes/props/"

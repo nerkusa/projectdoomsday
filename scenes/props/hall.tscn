@@ -1,0 +1,50 @@
+[gd_scene format=3]
+
+[ext_resource type="Material" path="res://assets/materials/stone_wall.tres" id="1_374fv"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/hall_stone_wall.res" id="2_hyxue"]
+[ext_resource type="Material" path="res://assets/materials/log_weathered.tres" id="3_0sqiy"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/hall_log_weathered.res" id="4_eten3"]
+[ext_resource type="Material" path="res://assets/materials/planks_old.tres" id="5_ngjx3"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/hall_planks_old.res" id="6_63fve"]
+[ext_resource type="Material" path="res://assets/materials/window.tres" id="7_ws2cf"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/hall_window.res" id="8_iajl7"]
+[ext_resource type="Material" path="res://assets/materials/trim.tres" id="9_0slyu"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/hall_trim.res" id="10_myr0u"]
+[ext_resource type="Material" path="res://assets/materials/metal_roof.tres" id="11_6at6q"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/hall_metal_roof.res" id="12_sbugu"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_ng1di"]
+size = Vector3(14.8, 3.2, 7.8)
+
+[node name="Hall" type="Node3D" unique_id=1107472246]
+
+[node name="Mesh_stone_wall" type="MeshInstance3D" parent="." unique_id=2062127357]
+material_override = ExtResource("1_374fv")
+mesh = ExtResource("2_hyxue")
+
+[node name="Mesh_log_weathered" type="MeshInstance3D" parent="." unique_id=1277006953]
+material_override = ExtResource("3_0sqiy")
+mesh = ExtResource("4_eten3")
+
+[node name="Mesh_planks_old" type="MeshInstance3D" parent="." unique_id=1199542585]
+material_override = ExtResource("5_ngjx3")
+mesh = ExtResource("6_63fve")
+
+[node name="Mesh_window" type="MeshInstance3D" parent="." unique_id=292512514]
+material_override = ExtResource("7_ws2cf")
+mesh = ExtResource("8_iajl7")
+
+[node name="Mesh_trim" type="MeshInstance3D" parent="." unique_id=1425510374]
+material_override = ExtResource("9_0slyu")
+mesh = ExtResource("10_myr0u")
+
+[node name="Mesh_metal_roof" type="MeshInstance3D" parent="." unique_id=2146720889]
+material_override = ExtResource("11_6at6q")
+mesh = ExtResource("12_sbugu")
+
+[node name="Collision" type="StaticBody3D" parent="." unique_id=1762826239]
+collision_mask = 0
+
+[node name="@CollisionShape3D@8" type="CollisionShape3D" parent="Collision" unique_id=1740501781]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.6, 0)
+shape = SubResource("BoxShape3D_ng1di")

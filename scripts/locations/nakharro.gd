@@ -4,8 +4,11 @@ extends Location
 ## Узлы с группой phase_morning видны только утром, phase_raid — во время и после налёта.
 
 const NEED_FOOD := 5
+## Где кончается северный лес: выйдя из него во время налёта, герой видит пожар
+const FOREST_EDGE_Z := 26.0
 
 var _kpk_busy := false
+var _volley_t := 2.0
 
 
 func _ready() -> void:
@@ -106,9 +109,31 @@ func objective() -> String:
 	return "Идти на запад по старой просеке, к старой черте."
 
 
+# ---------------- перестрелка у ворот ----------------
+## Пока «чистильщики» у амбара живы, защитники у ворот отстреливаются
+## от остатков нападавших в лесу: вспышки и выстрелы то тут, то там.
+func _process(delta: float) -> void:
+	if main == null or phase() != "raid" or Game.flag("ded_shot") or main.combat.on:
+		return
+	_volley_t -= delta
+	if _volley_t > 0.0:
+		return
+	_volley_t = randf_range(0.8, 2.6)
+	var shooters := []
+	for n in get_tree().get_nodes_in_group("defenders"):
+		var ch := n as Character
+		if ch and ch.visible and ch.pose == "" and not ch.moving:
+			ch.aim_pose = true
+			shooters.append(ch)
+	if shooters.is_empty():
+		return
+	var ch: Character = shooters.pick_random()
+	ch.act("fire", Callable(), {"n": randi_range(1, 2)})
+
+
 # ---------------- события ----------------
 func on_hero_moved(pos: Vector3) -> void:
-	if phase() == "raid" and not Game.flag("fire_seen") and pos.z > 20.0:
+	if phase() == "raid" and not Game.flag("fire_seen") and pos.z > FOREST_EDGE_Z:
 		Game.set_flag("fire_seen")
 		Game.set_quest("forest", 3)
 		Game.set_quest("fire", 1)

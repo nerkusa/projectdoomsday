@@ -149,8 +149,62 @@ def stone() -> None:
 	save("stone_wall", base, h, 4.0)
 
 
+def grass() -> None:
+	"""Тёмная трава с бурыми проплешинами (для земли вокруг деревни)."""
+	big = fbm(60, 4)
+	mid = noise(6)
+	blades = noise(0.7)
+	g = lerp(col("2f3a22"), col("4a5230"), np.clip(mid * 1.2 - 0.1, 0, 1))
+	g = lerp(g, col("5a4a32"), np.clip((big - 0.55) * 3.0, 0, 0.7))
+	g *= (0.85 + blades[..., None] * 0.3)
+	save("grass_dark", g, blades * 0.3 + mid * 0.3, 2.0)
+
+
+def meadow() -> None:
+	"""Выгоревший луг: оливково-жёлтый."""
+	big = fbm(50, 4)
+	blades = noise(0.7)
+	g = lerp(col("5a5a34"), col("7d7244"), np.clip(big * 1.4 - 0.2, 0, 1))
+	g *= (0.85 + blades[..., None] * 0.3)
+	save("meadow", g, blades * 0.3, 2.0)
+
+
+def dirt() -> None:
+	"""Утоптанная земля дорог с камешками и колеями."""
+	big = fbm(40, 4)
+	fine = noise(1.0)
+	pebble = np.clip((noise(1.5) - 0.72) * 6, 0, 1)
+	d = lerp(col("3e3226"), col("6a5640"), np.clip(big * 1.3 - 0.15, 0, 1))
+	d *= (0.88 + fine[..., None] * 0.24)
+	d = lerp(d, col("8a8070"), pebble * 0.7)
+	save("dirt_road", d, big * 0.4 + pebble * 0.5 + fine * 0.2, 3.0)
+
+
+def needles() -> None:
+	"""Хвоя: тёмно-зелёная, пятнистая, с просветами."""
+	clump = fbm(8, 4)
+	fine = noise(0.6)
+	n = lerp(col("15201a"), col("33462b"), np.clip(clump * 1.5 - 0.25, 0, 1))
+	n *= (0.8 + fine[..., None] * 0.4)
+	save("needles", n, clump * 0.6 + fine * 0.3, 4.0)
+
+
+def bark() -> None:
+	"""Кора хвойных: тёмная, с вертикальными бороздами."""
+	groove = fbm(30, 3, aspect=0.03)
+	fine = noise(0.8)
+	b = lerp(col("1f1812"), col("4a3a2c"), np.clip(groove * 1.5 - 0.2, 0, 1))
+	b *= (0.85 + fine[..., None] * 0.3)
+	save("bark_dark", b, groove * 0.8 + fine * 0.2, 4.0)
+
+
 if __name__ == "__main__":
 	logs()
 	metal_roof()
 	planks()
 	stone()
+	grass()
+	meadow()
+	dirt()
+	needles()
+	bark()

@@ -96,7 +96,7 @@ func _ready() -> void:
 	Game.set_flag("phase", "raid")
 	Game.set_flag("fire_seen")
 	main.location._apply_phase()
-	main.player.global_position = Vector3(34, 0, 34)
+	main.player.global_position = Vector3(62, 0, 44)
 	main.cam_target = main.player.global_position
 	main.zoom = 20.0
 	await wait(2.0)

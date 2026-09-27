@@ -1,0 +1,13 @@
+[gd_resource type="StandardMaterial3D" format=3]
+
+[ext_resource type="Texture2D" path="res://assets/textures/needles.png" id="1_q5jaj"]
+[ext_resource type="Texture2D" path="res://assets/textures/needles_n.png" id="2_gkg2k"]
+
+[resource]
+resource_name = "needles_tex"
+albedo_texture = ExtResource("1_q5jaj")
+normal_enabled = true
+normal_texture = ExtResource("2_gkg2k")
+uv1_scale = Vector3(0.9, 0.9, 0.9)
+uv1_triplanar = true
+uv1_triplanar_sharpness = 4.0

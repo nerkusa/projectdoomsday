@@ -1,0 +1,26 @@
+[gd_scene format=3]
+
+[ext_resource type="Material" path="res://assets/materials/bark_dark.tres" id="1_mrxsc"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/pine_bark_dark.res" id="2_e8o3n"]
+[ext_resource type="Material" path="res://assets/materials/needles_tex.tres" id="3_evvqy"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/pine_needles_tex.res" id="4_rotcp"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_u1a3d"]
+size = Vector3(0.6, 2, 0.6)
+
+[node name="Pine" type="Node3D" unique_id=179242580]
+
+[node name="Mesh_bark_dark" type="MeshInstance3D" parent="." unique_id=534273990]
+material_override = ExtResource("1_mrxsc")
+mesh = ExtResource("2_e8o3n")
+
+[node name="Mesh_needles_tex" type="MeshInstance3D" parent="." unique_id=923521148]
+material_override = ExtResource("3_evvqy")
+mesh = ExtResource("4_rotcp")
+
+[node name="Collision" type="StaticBody3D" parent="." unique_id=526974728]
+collision_mask = 0
+
+[node name="@CollisionShape3D@20" type="CollisionShape3D" parent="Collision" unique_id=465655475]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+shape = SubResource("BoxShape3D_u1a3d")

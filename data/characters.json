@@ -69,6 +69,39 @@
     "look": {"skin": "#b58a66", "top": "#3a3f3a", "pants": "#2e2f30", "vest": "#d9622b", "helmet": "#2b2b28", "mask": true}
   },
 
+  "defender": {
+    "name": "Защитник",
+    "stats": {"INT": 4, "PRC": 6, "REF": 5, "DEX": 4, "BODY": 5, "EMP": 5, "CRA": 4, "WILL": 6},
+    "skills": {"Дальний бой": 3}, "hp_roll": 5, "weapon": "rifle", "lethal": false,
+    "look": {"skin": "#c0906a", "top": "#4a4a36", "pants": "#33332a", "vest": "#5a4a2a", "cap": "#3a3a2e"}
+  },
+  "defender_f": {
+    "name": "Защитница",
+    "stats": {"INT": 5, "PRC": 7, "REF": 5, "DEX": 5, "BODY": 4, "EMP": 5, "CRA": 4, "WILL": 6},
+    "skills": {"Дальний бой": 3}, "hp_roll": 4, "weapon": "rifle", "lethal": false,
+    "look": {"skin": "#c9a07a", "top": "#5a3a3a", "pants": "#33332a", "hair": "#2a1a12"}
+  },
+
+  "raider": {
+    "name": "Мародёр",
+    "stats": {"INT": 3, "PRC": 4, "REF": 3, "DEX": 3, "BODY": 3, "EMP": 2, "CRA": 2, "WILL": 2},
+    "skills": {"Ближний бой": 1}, "hp_roll": 2, "weapon": "pipe", "xp": 70,
+    "flee_below": 0.5, "will_dc": 14, "loot": {"bandage": 1},
+    "look": {"skin": "#b58a66", "top": "#3a3f3a", "pants": "#2e2f30", "vest": "#d9622b", "helmet": "#2b2b28", "mask": true}
+  },
+  "raider_gun": {
+    "name": "Мародёр с пистолетом",
+    "stats": {"INT": 3, "PRC": 4, "REF": 3, "DEX": 3, "BODY": 3, "EMP": 2, "CRA": 2, "WILL": 2},
+    "skills": {"Дальний бой": 1}, "hp_roll": 2, "weapon": "pistol", "mag": 3, "ammo": 3, "xp": 80,
+    "flee_below": 0.5, "will_dc": 14, "loot": {"ammo9": 4},
+    "look": {"skin": "#c0906a", "top": "#3a3f3a", "pants": "#2e2f30", "vest": "#d9622b", "helmet": "#2b2b28"}
+  },
+  "raider_dead": {
+    "name": "Нападавший",
+    "weapon": "fists", "loot": {"ammo9": 2},
+    "look": {"skin": "#b58a66", "top": "#3a3f3a", "pants": "#2e2f30", "vest": "#d9622b", "helmet": "#2b2b28", "mask": true}
+  },
+
   "soldier_a": {
     "name": "Боец в маске",
     "stats": {"INT": 5, "PRC": 5, "REF": 3, "DEX": 3, "BODY": 3, "EMP": 3, "CRA": 3, "WILL": 3},
