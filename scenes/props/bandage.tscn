@@ -1,0 +1,20 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/interactable.gd" id="1_fopgc"]
+[ext_resource type="Material" path="res://assets/materials/paint_white.tres" id="2_gmhvb"]
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_o577k"]
+top_radius = 0.08
+bottom_radius = 0.08
+height = 0.1
+radial_segments = 10
+rings = 1
+
+[node name="Bandage" type="Node3D" unique_id=364173616]
+script = ExtResource("1_fopgc")
+item_id = "bandage"
+
+[node name="@MeshInstance3D@176" type="MeshInstance3D" parent="." unique_id=689104482]
+transform = Transform3D(-4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 0, 0, 1, 0, 0.05, 0)
+material_override = ExtResource("2_gmhvb")
+mesh = SubResource("CylinderMesh_o577k")

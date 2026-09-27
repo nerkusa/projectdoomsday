@@ -1,0 +1,79 @@
+[gd_scene format=3]
+
+[ext_resource type="Material" path="res://assets/materials/stone.tres" id="1_w28ct"]
+[ext_resource type="Material" path="res://assets/materials/ash.tres" id="2_xuu3x"]
+[ext_resource type="Material" path="res://assets/materials/log_dark.tres" id="3_2gddb"]
+[ext_resource type="Material" path="res://assets/materials/log.tres" id="4_1nnxo"]
+[ext_resource type="Material" path="res://assets/materials/roof.tres" id="5_omnvh"]
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_1llpu"]
+top_radius = 0.8
+bottom_radius = 0.85
+height = 0.8
+radial_segments = 12
+rings = 1
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_hdqn7"]
+top_radius = 0.62
+bottom_radius = 0.62
+height = 0.82
+radial_segments = 12
+rings = 1
+
+[sub_resource type="BoxMesh" id="BoxMesh_82o2m"]
+size = Vector3(0.12, 1.8, 0.12)
+
+[sub_resource type="BoxMesh" id="BoxMesh_pdvls"]
+size = Vector3(0.12, 1.8, 0.12)
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_1bhae"]
+top_radius = 0.1
+bottom_radius = 0.1
+height = 1.6
+radial_segments = 10
+rings = 1
+
+[sub_resource type="PrismMesh" id="PrismMesh_p1cxi"]
+size = Vector3(1.8, 0.6, 1.3)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_c78hp"]
+size = Vector3(1.7, 1.2, 1.7)
+
+[node name="Well" type="Node3D" unique_id=1621479228]
+
+[node name="@MeshInstance3D@61" type="MeshInstance3D" parent="." unique_id=1825511982]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.4, 0)
+material_override = ExtResource("1_w28ct")
+mesh = SubResource("CylinderMesh_1llpu")
+
+[node name="@MeshInstance3D@62" type="MeshInstance3D" parent="." unique_id=1413386077]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.42, 0)
+material_override = ExtResource("2_xuu3x")
+mesh = SubResource("CylinderMesh_hdqn7")
+
+[node name="@MeshInstance3D@63" type="MeshInstance3D" parent="." unique_id=1441535084]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.75, 0.9, 0)
+material_override = ExtResource("3_2gddb")
+mesh = SubResource("BoxMesh_82o2m")
+
+[node name="@MeshInstance3D@64" type="MeshInstance3D" parent="." unique_id=618799723]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.75, 0.9, 0)
+material_override = ExtResource("3_2gddb")
+mesh = SubResource("BoxMesh_pdvls")
+
+[node name="@MeshInstance3D@65" type="MeshInstance3D" parent="." unique_id=13504884]
+transform = Transform3D(-4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 0, 0, 1, 0, 1.4, 0)
+material_override = ExtResource("4_1nnxo")
+mesh = SubResource("CylinderMesh_1bhae")
+
+[node name="@MeshInstance3D@66" type="MeshInstance3D" parent="." unique_id=1407731626]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 0, 2.1, 0)
+material_override = ExtResource("5_omnvh")
+mesh = SubResource("PrismMesh_p1cxi")
+
+[node name="Collision" type="StaticBody3D" parent="." unique_id=37344463]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.6, 0)
+collision_mask = 0
+
+[node name="@CollisionShape3D@67" type="CollisionShape3D" parent="Collision" unique_id=1858740893]
+shape = SubResource("BoxShape3D_c78hp")

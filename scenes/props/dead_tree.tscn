@@ -1,0 +1,51 @@
+[gd_scene format=3]
+
+[ext_resource type="Material" path="res://assets/materials/ash.tres" id="1_8kd72"]
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_vxyy4"]
+top_radius = 0.06
+bottom_radius = 0.18
+height = 4.5
+radial_segments = 6
+rings = 1
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_hbx2q"]
+top_radius = 0.03
+bottom_radius = 0.06
+height = 1.4
+radial_segments = 5
+rings = 1
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_4ddtw"]
+top_radius = 0.03
+bottom_radius = 0.06
+height = 1.1
+radial_segments = 5
+rings = 1
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_ff44h"]
+size = Vector3(0.5, 2, 0.5)
+
+[node name="DeadTree" type="Node3D" unique_id=219316805]
+
+[node name="@MeshInstance3D@95" type="MeshInstance3D" parent="." unique_id=436301705]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.25, 0)
+material_override = ExtResource("1_8kd72")
+mesh = SubResource("CylinderMesh_vxyy4")
+
+[node name="@MeshInstance3D@96" type="MeshInstance3D" parent="." unique_id=364562723]
+transform = Transform3D(0.6967067, 0.7173561, 0, -0.7173561, 0.6967067, 0, 0, 0, 1, 0.4, 3.2, 0)
+material_override = ExtResource("1_8kd72")
+mesh = SubResource("CylinderMesh_hbx2q")
+
+[node name="@MeshInstance3D@97" type="MeshInstance3D" parent="." unique_id=564722417]
+transform = Transform3D(0.62161, -0.7833269, 0, 0.76771253, 0.6092192, -0.19866933, 0.15562303, 0.12349484, 0.9800666, -0.3, 2.6, 0.1)
+material_override = ExtResource("1_8kd72")
+mesh = SubResource("CylinderMesh_4ddtw")
+
+[node name="Collision" type="StaticBody3D" parent="." unique_id=1639105165]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+collision_mask = 0
+
+[node name="@CollisionShape3D@98" type="CollisionShape3D" parent="Collision" unique_id=354903030]
+shape = SubResource("BoxShape3D_ff44h")

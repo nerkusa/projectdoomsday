@@ -1,0 +1,6 @@
+[gd_resource type="StandardMaterial3D" format=3]
+
+[resource]
+resource_name = "leaves_dark"
+albedo_color = Color(0.24705882, 0.3529412, 0.18039216, 1)
+roughness = 0.9

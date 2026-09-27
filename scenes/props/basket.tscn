@@ -1,0 +1,46 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/interactable.gd" id="1_uem72"]
+[ext_resource type="Material" path="res://assets/materials/plank.tres" id="2_4xx5h"]
+[ext_resource type="Material" path="res://assets/materials/cloth.tres" id="3_psqna"]
+[ext_resource type="Material" path="res://assets/materials/log_dark.tres" id="4_fxv42"]
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_iqmyk"]
+top_radius = 0.24
+bottom_radius = 0.18
+height = 0.26
+radial_segments = 10
+rings = 1
+
+[sub_resource type="SphereMesh" id="SphereMesh_360ak"]
+radius = 0.18
+height = 0.36
+radial_segments = 8
+rings = 5
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_lexn3"]
+top_radius = 0.2
+bottom_radius = 0.2
+height = 0.03
+radial_segments = 12
+rings = 1
+
+[node name="Basket" type="Node3D" unique_id=1101835179]
+script = ExtResource("1_uem72")
+item_id = "basket"
+label = "Корзина с едой"
+
+[node name="@MeshInstance3D@173" type="MeshInstance3D" parent="." unique_id=958650701]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.13, 0)
+material_override = ExtResource("2_4xx5h")
+mesh = SubResource("CylinderMesh_iqmyk")
+
+[node name="@MeshInstance3D@174" type="MeshInstance3D" parent="." unique_id=606969837]
+transform = Transform3D(1, 0, 0, 0, 0.4, 0, 0, 0, 1, 0, 0.27, 0)
+material_override = ExtResource("3_psqna")
+mesh = SubResource("SphereMesh_360ak")
+
+[node name="@MeshInstance3D@175" type="MeshInstance3D" parent="." unique_id=378385631]
+transform = Transform3D(1, 0, 0, 0, -4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 0.36, 0)
+material_override = ExtResource("4_fxv42")
+mesh = SubResource("CylinderMesh_lexn3")

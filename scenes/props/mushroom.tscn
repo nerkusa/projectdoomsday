@@ -1,0 +1,79 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/interactable.gd" id="1_uc1t2"]
+[ext_resource type="Material" path="res://assets/materials/mushroom_leg.tres" id="2_ijpn6"]
+[ext_resource type="Material" path="res://assets/materials/mushroom_cap.tres" id="3_qfdv3"]
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_edu4o"]
+top_radius = 0.03
+bottom_radius = 0.04
+height = 0.16
+radial_segments = 6
+rings = 1
+
+[sub_resource type="SphereMesh" id="SphereMesh_yj6hv"]
+radius = 0.1
+height = 0.2
+radial_segments = 8
+rings = 5
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_j7hhu"]
+top_radius = 0.03
+bottom_radius = 0.04
+height = 0.16
+radial_segments = 6
+rings = 1
+
+[sub_resource type="SphereMesh" id="SphereMesh_jf3wn"]
+radius = 0.1
+height = 0.2
+radial_segments = 8
+rings = 5
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_s35l0"]
+top_radius = 0.03
+bottom_radius = 0.04
+height = 0.16
+radial_segments = 6
+rings = 1
+
+[sub_resource type="SphereMesh" id="SphereMesh_60lu8"]
+radius = 0.1
+height = 0.2
+radial_segments = 8
+rings = 5
+
+[node name="Mushroom" type="Node3D" unique_id=1855058242]
+script = ExtResource("1_uc1t2")
+item_id = "mushroom"
+label = "Грибы"
+
+[node name="@MeshInstance3D@154" type="MeshInstance3D" parent="." unique_id=1860975769]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.08, 0)
+material_override = ExtResource("2_ijpn6")
+mesh = SubResource("CylinderMesh_edu4o")
+
+[node name="@MeshInstance3D@155" type="MeshInstance3D" parent="." unique_id=169750168]
+transform = Transform3D(1, 0, 0, 0, 0.55, 0, 0, 0, 1, 0, 0.17, 0)
+material_override = ExtResource("3_qfdv3")
+mesh = SubResource("SphereMesh_yj6hv")
+
+[node name="@MeshInstance3D@156" type="MeshInstance3D" parent="." unique_id=1877188239]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.2, 0.08, 0.1)
+material_override = ExtResource("2_ijpn6")
+mesh = SubResource("CylinderMesh_j7hhu")
+
+[node name="@MeshInstance3D@157" type="MeshInstance3D" parent="." unique_id=7106049]
+transform = Transform3D(1, 0, 0, 0, 0.55, 0, 0, 0, 1, 0.2, 0.17, 0.1)
+material_override = ExtResource("3_qfdv3")
+mesh = SubResource("SphereMesh_jf3wn")
+
+[node name="@MeshInstance3D@158" type="MeshInstance3D" parent="." unique_id=128653068]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.15, 0.08, 0.15)
+material_override = ExtResource("2_ijpn6")
+mesh = SubResource("CylinderMesh_s35l0")
+
+[node name="@MeshInstance3D@159" type="MeshInstance3D" parent="." unique_id=1876841485]
+transform = Transform3D(1, 0, 0, 0, 0.55, 0, 0, 0, 1, -0.15, 0.17, 0.15)
+material_override = ExtResource("3_qfdv3")
+mesh = SubResource("SphereMesh_60lu8")

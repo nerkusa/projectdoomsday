@@ -1,0 +1,6 @@
+[gd_resource type="StandardMaterial3D" format=3]
+
+[resource]
+resource_name = "plank"
+albedo_color = Color(0.56078434, 0.45882353, 0.3137255, 1)
+roughness = 0.9

@@ -1,0 +1,8 @@
+# Godot
+.godot/
+*.import.tmp
+export_presets.cfg
+/android/
+# системное
+.DS_Store
+Thumbs.db

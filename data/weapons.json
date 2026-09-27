@@ -1,0 +1,14 @@
+{
+  "_help": "Оружие. type: Brawl (рукопашное), Simple (простое), Battle (боевое), Guns (огнестрел), Archery (стрельба), Thrown (метательное). dmg — кубики урона, dmg_type: Д дробящий, Р режущий, К колющий, П пуля. ap — очки действия на удар/выстрел. range — дальность в гексах (1 = вплотную), eff_range — до скольки гексов без штрафа. mag — магазин, ammo — калибр. burst — очередь: n пуль, ap, pen штраф.",
+  "fists": {"name": "Кулаки", "type": "Brawl", "dmg": "1d4", "dmg_type": "Д", "bonus": 0, "ap": 3, "range": 1},
+  "knife": {"name": "Нож", "type": "Simple", "dmg": "1d6", "dmg_type": "К", "bonus": 0, "hit_bonus": 1, "ap": 3, "range": 1, "desc": "Дедов нож с наборной ручкой. Грибы резать — самое то."},
+  "axe": {"name": "Топор", "type": "Battle", "dmg": "2d6", "dmg_type": "Р", "bonus": 0, "ap": 4, "range": 1, "desc": "Колун из дровяника."},
+  "crowbar": {"name": "Монтировка", "type": "Simple", "dmg": "1d6", "dmg_type": "Д", "bonus": 1, "ap": 4, "range": 1},
+  "machete": {"name": "Мачете", "type": "Battle", "dmg": "2d6", "dmg_type": "Р", "bonus": 0, "ap": 4, "range": 1},
+  "pipe": {"name": "Труба", "type": "Simple", "dmg": "1d6", "dmg_type": "Д", "bonus": 1, "ap": 4, "range": 1},
+  "wrench": {"name": "Разводной ключ", "type": "Simple", "dmg": "1d6", "dmg_type": "Д", "bonus": 0, "ap": 4, "range": 1},
+  "pistol": {"name": "Пистолет ТК-9", "type": "Guns", "dmg": "2d6", "dmg_type": "П", "bonus": 0, "ap": 4, "range": 20, "eff_range": 6, "mag": 8, "ammo": "9мм", "desc": "Довоенный, ухоженный. Не то, что бывает у бродяг."},
+  "rifle": {"name": "Винтовка «Тайга»", "type": "Guns", "dmg": "3d6", "dmg_type": "П", "bonus": 0, "ap": 5, "range": 40, "eff_range": 14, "mag": 5, "ammo": "7.62", "two": true},
+  "smg": {"name": "Автомат «Ураган»", "type": "Guns", "dmg": "2d6", "dmg_type": "П", "bonus": 1, "ap": 4, "range": 30, "eff_range": 9, "mag": 30, "ammo": "7.62", "two": true, "burst": {"n": 3, "ap": 6, "pen": 2}},
+  "bite": {"name": "Клыки", "type": "Brawl", "dmg": "1d6", "dmg_type": "К", "bonus": 0, "ap": 3, "range": 1, "natural": true}
+}

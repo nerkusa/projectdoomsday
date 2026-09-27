@@ -1,0 +1,89 @@
+{
+  "_help": "Шаблоны персонажей. stats — характеристики (INT PRC REF DEX BODY EMP CRA WILL), skills — навыки, hp_roll — d10 к здоровью, weapon — ключ из weapons.json, armor — броня тела {type: light/heavy, max, name}, lethal: false — сдаётся на 25% ХП вместо смерти, xp — опыт за победу, loot — что лежит в карманах, look — цвета внешности (skin, top, pants, vest, hair, beard, cap, helmet, boots, glasses, mask), hp_frac — с какой долей здоровья начинает.",
+
+  "hero": {"name": "Герой", "look": {"skin": "#c49a74", "top": "#6b5a2e", "pants": "#3a4552", "hair": "#1c1612"}},
+
+  "ded": {
+    "name": "Дед Уйбаан",
+    "stats": {"INT": 7, "PRC": 6, "REF": 4, "DEX": 3, "BODY": 4, "EMP": 7, "CRA": 7, "WILL": 8},
+    "skills": {"Простое оружие": 3, "Огнестрельное оружие": 4, "Уклонение": 2},
+    "hp_roll": 5, "weapon": "fists", "lethal": false,
+    "look": {"skin": "#b8906c", "top": "#5a4a3a", "pants": "#3a3a2e", "hair": "#d8d4cc", "beard": "#d8d4cc"}
+  },
+  "stepan": {
+    "name": "Степан",
+    "stats": {"INT": 4, "PRC": 5, "REF": 5, "DEX": 4, "BODY": 7, "EMP": 4, "CRA": 6, "WILL": 5},
+    "skills": {"Рукопашный бой": 3, "Уклонение": 2}, "hp_roll": 6, "weapon": "axe", "lethal": false,
+    "look": {"skin": "#c0906a", "top": "#6b3a2a", "pants": "#3a3a2e", "hair": "#3a2a1a", "beard": "#3a2a1a"}
+  },
+  "varvara": {
+    "name": "Тётка Варвара",
+    "stats": {"INT": 6, "PRC": 6, "REF": 3, "DEX": 4, "BODY": 4, "EMP": 7, "CRA": 5, "WILL": 6},
+    "skills": {}, "hp_roll": 4, "weapon": "fists", "lethal": false,
+    "look": {"skin": "#c9a07a", "top": "#7a3a4a", "pants": "#4a3a3a", "hair": "#5a4a3a", "cap": "#a33a2a"}
+  },
+  "kid": {
+    "name": "Мичил",
+    "stats": {"INT": 5, "PRC": 7, "REF": 6, "DEX": 7, "BODY": 2, "EMP": 5, "CRA": 3, "WILL": 4},
+    "skills": {}, "hp_roll": 3, "weapon": "fists", "lethal": false, "scale": 0.75,
+    "look": {"skin": "#c9a07a", "top": "#3f6f73", "pants": "#3a4552", "hair": "#121010"}
+  },
+  "villager": {
+    "name": "Житель",
+    "stats": {"REF": 4, "DEX": 4, "BODY": 4}, "hp_roll": 4, "weapon": "fists",
+    "look": {"skin": "#c49a74", "top": "#5a5a4a", "pants": "#3a3a3a", "hair": "#2a2a22"}
+  },
+  "villager_f": {
+    "name": "Жительница",
+    "stats": {"REF": 4, "DEX": 4, "BODY": 3}, "hp_roll": 4, "weapon": "fists",
+    "look": {"skin": "#c9a07a", "top": "#6a4a5a", "pants": "#4a3a3a", "hair": "#3a2a1a", "cap": "#8a6a3a"}
+  },
+
+  "wolf": {
+    "name": "Одичавший пёс",
+    "stats": {"INT": 1, "PRC": 7, "REF": 4, "DEX": 5, "BODY": 2, "EMP": 1, "CRA": 1, "WILL": 3},
+    "skills": {"Рукопашный бой": 2, "Уклонение": 2}, "hp_roll": 2, "weapon": "bite", "xp": 60,
+    "flee_below": 0.4, "will_dc": 12,
+    "look": {"skin": "#5a4a3a", "top": "#5a4a3a", "pants": "#4a3a2a", "hair": "#3a2a1a", "boots": "#3a2a1a"},
+    "scale": 0.62
+  },
+
+  "raider_dead_1": {
+    "name": "Нападавший без руки",
+    "weapon": "pistol", "mag": 3, "ammo": 6, "loot": {"minicomputer": 1},
+    "look": {"skin": "#b58a66", "top": "#3a3f3a", "pants": "#2e2f30", "vest": "#d9622b", "helmet": "#2b2b28", "mask": true}
+  },
+  "raider_dead_2": {
+    "name": "Нападавший",
+    "weapon": "fists", "loot": {"module_carrier": 1, "bandage": 1},
+    "look": {"skin": "#c0906a", "top": "#3a3f3a", "pants": "#2e2f30", "vest": "#d9622b", "helmet": "#2b2b28", "mask": true}
+  },
+  "raider_dead_3": {
+    "name": "Нападавший",
+    "weapon": "fists", "loot": {"module_inventory": 1, "raider_token": 1},
+    "look": {"skin": "#c9a07a", "top": "#3a3f3a", "pants": "#2e2f30", "vest": "#d9622b", "helmet": "#2b2b28"}
+  },
+  "raider_dead_4": {
+    "name": "Нападавший",
+    "weapon": "fists", "loot": {"module_map": 1, "module_radio": 1, "bandage": 2},
+    "look": {"skin": "#b58a66", "top": "#3a3f3a", "pants": "#2e2f30", "vest": "#d9622b", "helmet": "#2b2b28", "mask": true}
+  },
+
+  "soldier_a": {
+    "name": "Боец в маске",
+    "stats": {"INT": 5, "PRC": 6, "REF": 5, "DEX": 4, "BODY": 5, "EMP": 3, "CRA": 3, "WILL": 6},
+    "skills": {"Огнестрельное оружие": 3, "Уклонение": 2, "Рукопашный бой": 2},
+    "hp_roll": 5, "weapon": "pistol", "mag": 8, "ammo": 8, "xp": 120,
+    "armor": {"type": "light", "max": 6, "name": "лёгкий бронежилет"},
+    "loot": {"bandage": 1, "raider_token": 1},
+    "look": {"skin": "#b58a66", "top": "#3a3f3a", "pants": "#2e2f30", "vest": "#d9622b", "helmet": "#2b2b28", "mask": true}
+  },
+  "soldier_b": {
+    "name": "Боец с мачете",
+    "stats": {"INT": 4, "PRC": 5, "REF": 5, "DEX": 5, "BODY": 6, "EMP": 3, "CRA": 3, "WILL": 5},
+    "skills": {"Боевое оружие": 3, "Уклонение": 2},
+    "hp_roll": 6, "weapon": "machete", "xp": 120, "hp_frac": 0.55,
+    "loot": {"medkit": 1},
+    "look": {"skin": "#c0906a", "top": "#3a3f3a", "pants": "#2e2f30", "vest": "#d9622b", "helmet": "#2b2b28", "mask": true}
+  }
+}
