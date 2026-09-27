@@ -28,6 +28,13 @@ extends Node3D
 @export var start_pose := ""
 ## Показывать героя моделью из hero.glb
 @export var use_hero_model := false
+## Манекен из Universal Animation Library с готовыми анимациями
+## (ходьба, удар, выстрел, смерть...). Главнее, чем use_hero_model.
+@export var use_anim_model := false:
+	set(v):
+		use_anim_model = v
+		if Engine.is_editor_hint() and is_inside_tree():
+			_rebuild_preview()
 
 signal arrived
 
@@ -97,6 +104,16 @@ func _rebuild_preview() -> void:
 	var holder := Node3D.new()
 	holder.name = "_Preview"
 	add_child(holder)
+	if use_anim_model:
+		var ab := AnimBody.new()
+		holder.add_child(ab)
+		if ab.build():
+			if start_dead:
+				ab.play("Death01", 0.0, 1.0, false, true)
+			elif start_pose in ["sit", "down"]:
+				ab.play("Sitting_Idle", 0.0)
+			return
+		ab.queue_free()
 	var hb := HumanBody.new()
 	holder.add_child(hb)
 	hb.build(t.get("look", {}))
@@ -111,7 +128,14 @@ func _build_visual() -> void:
 	rig = Node3D.new()
 	rig.name = "Rig"
 	add_child(rig)
-	if use_hero_model:
+	if use_anim_model:
+		var ab := AnimBody.new()
+		rig.add_child(ab)
+		if ab.build():
+			body = ab
+		else:
+			ab.queue_free()
+	if body == null and use_hero_model:
 		var hb := HeroBody.new()
 		rig.add_child(hb)
 		if hb.build():
@@ -178,7 +202,10 @@ func _process(delta: float) -> void:
 			var dn := d.normalized()
 			global_position += Vector3(dn.x, 0, dn.y) * st
 			rotation.y = lerp_angle(rotation.y, atan2(dn.x, dn.y), 0.3)
-	_animate(delta)
+	if body is AnimBody:
+		_animate_clips(delta)
+	else:
+		_animate(delta)
 
 
 # ---------------- действия (анимации с обратным вызовом) ----------------
@@ -200,6 +227,8 @@ func set_held(wkey: String) -> void:
 	if hnd == null:
 		return
 	_held_node = _make_weapon_mesh(wkey)
+	if body is AnimBody:
+		_held_node.transform = body.grip(DB.is_gun(wkey))
 	hnd.add_child(_held_node)
 
 
@@ -369,6 +398,92 @@ func _animate(delta: float) -> void:
 	rig.rotation.x = rig_rot_x
 	rig.position.y = rig_y
 	body.apply(a)
+
+
+# ---------------- готовые анимации (AnimBody) ----------------
+## Скорость (м/с), с которой клип ходьбы/бега выглядит естественно
+const WALK_CLIP_SPEED := 1.4
+const JOG_CLIP_SPEED := 3.4
+var _clip_started := false
+
+
+func _animate_clips(delta: float) -> void:
+	var ab: AnimBody = body
+	if not _act.is_empty():
+		_act.t += delta
+		_clip_act(ab, _act.t)
+		if not _act.is_empty():
+			return
+	var gun := _held_key != "" and DB.is_gun(_held_key)
+	var first := not _clip_started
+	_clip_started = true
+	match pose:
+		"dead":
+			# труп с начала уровня не должен падать у игрока на глазах
+			ab.play("Death01", 0.25, 1.0, false, first)
+		"sit", "down":
+			ab.play("Sitting_Idle", 0.3)
+		"yield":
+			ab.play("Crouch_Idle", 0.3)
+		_:
+			if moving:
+				if speed < 2.2:
+					ab.play("Walk", 0.2, clampf(speed / WALK_CLIP_SPEED, 0.6, 1.8))
+				else:
+					ab.play("Jog_Fwd", 0.2, clampf(speed / JOG_CLIP_SPEED, 0.6, 1.8))
+			elif aim_pose and gun:
+				ab.play("Pistol_Idle", 0.25)
+			else:
+				ab.play("Idle", 0.3)
+
+
+## Клип для действия: [имя, скорость, момент срабатывания (с), конец (с)]
+func _act_clip(type: String) -> Array:
+	match type:
+		"swing":
+			if _held_key == "" or _held_key == "fists":
+				return ["Punch_Jab", 1.2, 0.3, 0.7]
+			return ["Sword_Attack", 1.4, 0.45, 1.0]
+		"hit":
+			return ["Hit_Chest", 1.0, 0.35, 0.35]
+		"pickup":
+			return ["PickUp_Table", 1.0, 0.45, 0.8]
+		"wave":
+			return ["Interact", 1.3, 1.2, 1.2]
+		"reload":
+			return ["Pistol_Reload", 1.4, 1.15, 1.15]
+	return []
+
+
+func _clip_act(ab: AnimBody, t: float) -> void:
+	if _act.type == "fire":
+		var n := int(_act.extra.get("n", 1))
+		var shots := int(_act.get("shots", 0))
+		var next_at := 0.15 + shots * 0.28
+		if shots < n and t >= next_at:
+			_act["shots"] = shots + 1
+			ab.play("Pistol_Shoot", 0.05, 1.3, true)
+			muzzle_flash()
+			var per: Callable = _act.extra.get("per_shot", Callable())
+			if per.is_valid():
+				per.call(shots)
+		elif shots == 0:
+			ab.play("Pistol_Idle", 0.1)
+		if shots >= n and t > next_at + 0.3:
+			_end_act()
+		return
+	var c := _act_clip(_act.type)
+	if c.is_empty() or not ab.has(c[0]):
+		_fire_cb_once()
+		_end_act()
+		return
+	if not _act.has("clip_on"):
+		_act["clip_on"] = true
+		ab.play(c[0], 0.1, c[1], true)
+	if t >= c[2]:
+		_fire_cb_once()
+	if t >= c[3]:
+		_end_act()
 
 
 func _fire_cb_once() -> void:

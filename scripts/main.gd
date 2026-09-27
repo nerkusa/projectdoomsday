@@ -184,6 +184,7 @@ func load_location(id: String, spawn := "Start", pos = null) -> void:
 		player = Character.new()
 		player.name = "Player"
 		player.use_hero_model = true
+		player.use_anim_model = true
 		player.is_player = true
 		player.char_id = "hero"
 	location.add_child(player)
