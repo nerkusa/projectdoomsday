@@ -102,7 +102,11 @@ transform = Transform3D(-0.50000006, 0.64358234, -0.57948405, 0, 0.66913056, 0.7
 light_color = Color(1, 0.94509804, 0.8392157, 1)
 light_energy = 1.05
 shadow_enabled = true
-directional_shadow_max_distance = 80.0
+shadow_bias = 0.04
+shadow_normal_bias = 0.8
+shadow_blur = 0.6
+directional_shadow_blend_splits = true
+directional_shadow_max_distance = 70.0
 
 [node name="Ground" type="Node3D" parent="." unique_id=204106784]
 

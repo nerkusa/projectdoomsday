@@ -5,7 +5,9 @@ const LOCATIONS := {
 	"nakharro": "res://scenes/locations/nakharro.tscn",
 }
 const CAM_DIR := Vector3(1, 1, 1)
-const CAM_DIST := 60.0
+## Камера ортогональная: расстояние не меняет картинку, но от него зависит
+## качество теней (чем дальше, тем грубее каскад теней солнца)
+const CAM_DIST := 32.0
 ## Скорость героя вне боя (м/с) и до какого расстояния он идёт шагом, а не бежит
 const WALK_SPEED := 1.8
 const RUN_SPEED := 4.2
