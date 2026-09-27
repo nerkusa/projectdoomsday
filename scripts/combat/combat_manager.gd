@@ -706,7 +706,7 @@ func resolve_attack(att: Fighter, dfn: Fighter, w: Dictionary, aim_z, dist: int,
 	var t: int = R.d + A.total
 	var show: bool = Game.settings.get("show_rolls", true)
 	clog("%s: %s%s%s%s" % [att.name, w.name, (" » " + aim_z) if aim_z != null else "", note, " · КРИТ" if R.crit else (" · ПРОВАЛ" if R.fumble else "")],
-		"атака d10(%d) + %s(%d) + %s(%d)%s%s%s%s = %d" % [R.d, A.st_k, A.rv, Rules.skill_label(A.sk), A.sv,
+		"атака d10(%d) + %s(%d) + %s(%d)%s%s%s%s = %d" % [R.d, A.st_k, A.rv, A.sk, A.sv,
 		(" + бонус(%d)" % A.b) if A.b else "", (" − прицел(%d)" % A.ap) if A.ap else "",
 		(" − дальность(%d)" % A.rp) if A.rp else "", (" − очередь(%d)" % A.ex) if A.ex else "", t] if show else "")
 	var Q := Rules.roll_hit()
@@ -759,10 +759,12 @@ func resolve_attack(att: Fighter, dfn: Fighter, w: Dictionary, aim_z, dist: int,
 			clog("%s поднимает руки: «Хватит, хватит!»" % dfn.name)
 		elif dfn.lethal and dfn.hp < dfn.max_hp * dfn.flee_threshold and not dfn.fleeing:
 			var W := Rules.roll_hit()
-			var v: int = W.d + int(dfn.stats.get("WILL", 0))
+			var wv := int(dfn.stats.get("WILL", 0))
+			var fear := int(dfn.skills.get("Сопротивление страху", 0))
+			var v: int = W.d + wv + fear
 			if v < dfn.will_dc:
 				dfn.fleeing = true
-				clog("%s дрогнул" % dfn.name, "воля d10(%d) + WILL(%d) = %d < %d" % [W.d, dfn.stats.get("WILL", 0), v, dfn.will_dc])
+				clog("%s дрогнул" % dfn.name, "воля d10(%d) + WILL(%d) + Сопротивление страху(%d) = %d < %d" % [W.d, wv, fear, v, dfn.will_dc])
 	return {"hit": true, "dmg": ae.hd, "zone": z.name}
 
 

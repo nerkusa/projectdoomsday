@@ -98,8 +98,8 @@ func _ready() -> void:
 	Game.hero.name = "Тестер"
 	Game.hero.stats.REF = 7
 	Game.hero.stats.DEX = 6
-	Game.hero.skills["Огнестрельное оружие"] = 5
-	Game.hero.skills["Простое оружие"] = 4
+	Game.hero.skills["Дальний бой"] = 5
+	Game.hero.skills["Ближний бой"] = 4
 	main.sheet.close()
 	await frames(2)
 	ok(main.slides.visible, "вступление показывается")
@@ -258,6 +258,14 @@ func _ready() -> void:
 	var lvl: int = Game.hero.level
 	var ok_load: bool = Game.load_game("auto")
 	ok(ok_load and Game.flag("kpk") and int(Game.hero.level) == lvl, "сохранение/загрузка")
+
+	# --- навыки и человечность ---
+	var old := Rules.normalize_skills({"Простое оружие": 2, "Боевое оружие": 4, "Этикет": 3, "Ловкость рук": 1})
+	ok(old.get("Ближний бой") == 4 and old.get("Воровство") == 1 and not old.has("Этикет"), "старые навыки переводятся в новые")
+	var hum := Game.humanity()
+	Game.change_humanity(-15, "проверка")
+	ok(Game.humanity() == hum - 15, "человечность меняется")
+	Game.change_humanity(15)
 
 	# --- уход ---
 	main.interact(main.location.item("BorderExit"))

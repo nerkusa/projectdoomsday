@@ -69,10 +69,7 @@ static func for_npc(n: Character, tpl: Dictionary) -> Fighter:
 		if not f.stats.has(k.key):
 			f.stats[k.key] = 1
 		f.stats[k.key] = int(f.stats[k.key])
-	f.skills = {}
-	var sk: Dictionary = tpl.get("skills", {})
-	for k in sk:
-		f.skills[k] = int(sk[k])
+	f.skills = Rules.normalize_skills(tpl.get("skills", {}))
 	f.hp_roll = int(tpl.get("hp_roll", 5))
 	f.max_hp = Rules.max_hp(f.stats, f.hp_roll)
 	f._hp = int(round(f.max_hp * float(tpl.get("hp_frac", 1.0))))

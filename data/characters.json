@@ -6,7 +6,7 @@
   "ded": {
     "name": "Дед Уйбаан",
     "stats": {"INT": 7, "PRC": 6, "REF": 4, "DEX": 3, "BODY": 4, "EMP": 7, "CRA": 7, "WILL": 8},
-    "skills": {"Простое оружие": 3, "Огнестрельное оружие": 4, "Уклонение": 2},
+    "skills": {"Ближний бой": 3, "Дальний бой": 4, "Уклонение": 2},
     "hp_roll": 5, "weapon": "fists", "lethal": false,
     "look": {"skin": "#b8906c", "top": "#5a4a3a", "pants": "#3a3a2e", "hair": "#d8d4cc", "beard": "#d8d4cc"}
   },
@@ -72,7 +72,7 @@
   "soldier_a": {
     "name": "Боец в маске",
     "stats": {"INT": 5, "PRC": 6, "REF": 5, "DEX": 4, "BODY": 5, "EMP": 3, "CRA": 3, "WILL": 6},
-    "skills": {"Огнестрельное оружие": 3, "Уклонение": 2, "Рукопашный бой": 2},
+    "skills": {"Дальний бой": 3, "Уклонение": 2, "Рукопашный бой": 2},
     "hp_roll": 5, "weapon": "pistol", "mag": 8, "ammo": 8, "xp": 120,
     "armor": {"type": "light", "max": 6, "name": "лёгкий бронежилет"},
     "loot": {"bandage": 1, "raider_token": 1},
@@ -81,7 +81,7 @@
   "soldier_b": {
     "name": "Боец с мачете",
     "stats": {"INT": 4, "PRC": 5, "REF": 5, "DEX": 5, "BODY": 6, "EMP": 3, "CRA": 3, "WILL": 5},
-    "skills": {"Боевое оружие": 3, "Уклонение": 2},
+    "skills": {"Ближний бой": 3, "Уклонение": 2},
     "hp_roll": 6, "weapon": "machete", "xp": 120, "hp_frac": 0.55,
     "loot": {"medkit": 1},
     "look": {"skin": "#c0906a", "top": "#3a3f3a", "pants": "#2e2f30", "vest": "#d9622b", "helmet": "#2b2b28", "mask": true}

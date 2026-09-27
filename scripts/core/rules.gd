@@ -16,37 +16,51 @@ const STATS := [
 	{"key": "WILL", "full": "Воля"},
 ]
 
-# ---------- навыки по характеристикам (x2 = стоит 2 очка) ----------
+# ---------- навыки по характеристикам (каждый уровень навыка стоит 1 очко) ----------
 const SKILLS := {
-	"INT": [["Уличные знания", false], ["Знания", false], ["Азартные игры", false], ["Оккультизм", true], ["Расследование", true], ["Медицина", true]],
-	"PRC": [["Внимательность", false], ["Выживание", true], ["Навигация", false], ["Слежка", false], ["Первая помощь", true]],
-	"REF": [["Боевое оружие", true], ["Простое оружие", false], ["Огнестрельное оружие", true], ["Стрельба", true], ["Метательное оружие", true]],
-	"DEX": [["Акробатика", false], ["Ловкость рук", true], ["Скрытность", true], ["Уклонение", true], ["Взлом замков", false], ["Верховая езда", false]],
-	"BODY": [["Рукопашный бой", true], ["Сопротивление", false], ["Атлетика", false], ["Запугивание", false]],
-	"EMP": [["Убеждение", true], ["Обман", false], ["Выступление", false], ["Обольщение", true], ["Проницательность", false], ["Этикет", true]],
-	"CRA": [["Алхимия", false], ["Кузнечное дело", true], ["Механика", false]],
-	"WILL": [["Чародейство", true], ["Сопротивление магии", true], ["Самообладание", true], ["Чутьё на чудеса", true]],
+	"INT": ["Азартные игры", "Расследование", "Медицина", "Наука"],
+	"PRC": ["Внимательность", "Выживание", "Навигация", "Слежка", "Первая помощь"],
+	"REF": ["Ближний бой", "Дальний бой"],
+	"DEX": ["Акробатика", "Воровство", "Скрытность", "Уклонение", "Взлом замков"],
+	"BODY": ["Рукопашный бой", "Сопротивление", "Атлетика", "Запугивание"],
+	"EMP": ["Убеждение", "Обман", "Выступление", "Обольщение", "Проницательность"],
+	"CRA": ["Химия", "Слесарное дело", "Механика"],
+	"WILL": ["Самообладание", "Стойкость", "Сопротивление страху"],
 }
 
-## Подписи под сеттинг: ключ навыка тот же, меняется только то, что видит игрок.
-const SKILL_LABEL := {
-	"Оккультизм": "Довоенная техника",
-	"Верховая езда": "Вождение",
-	"Кузнечное дело": "Слесарное дело",
+## Старые навыки -> новые (для старых сохранений и шаблонов). Чего нет ни здесь,
+## ни в SKILLS — навык убран, его очки пропадают.
+const OLD_SKILLS := {
+	"Боевое оружие": "Ближний бой",
+	"Простое оружие": "Ближний бой",
+	"Огнестрельное оружие": "Дальний бой",
+	"Стрельба": "Дальний бой",
+	"Метательное оружие": "Дальний бой",
+	"Ловкость рук": "Воровство",
 	"Алхимия": "Химия",
-	"Чародейство": "Чудотворство",
-	"Сопротивление магии": "Сопротивление чудотворству",
+	"Кузнечное дело": "Слесарное дело",
 }
 
 ## Тип оружия -> навык
 const WEAPON_SKILL := {
-	"Battle": "Боевое оружие",
-	"Simple": "Простое оружие",
-	"Guns": "Огнестрельное оружие",
-	"Archery": "Стрельба",
-	"Thrown": "Метательное оружие",
+	"Battle": "Ближний бой",
+	"Simple": "Ближний бой",
+	"Guns": "Дальний бой",
+	"Archery": "Дальний бой",
+	"Thrown": "Дальний бой",
 	"Brawl": "Рукопашный бой",
 }
+
+# ---------- человечность ----------
+## Шкала 0..100, меняется от поступков героя (эффект "humanity" в диалогах,
+## Game.change_humanity() в скриптах). Не вкладывается очками.
+const HUMANITY_START := 60
+const HUMANITY_LEVELS := [
+	[80, "Человек"],
+	[55, "Держится"],
+	[30, "Очерствел"],
+	[0, "Зверь"],
+]
 
 const ZONES := [
 	{"r": 1, "name": "Голова", "mult": 3, "slot": "head", "ignore_armor": false},
@@ -64,29 +78,35 @@ const LEVEL_REWARDS := {
 	8: {"stat": 0, "skill": 4}, 9: {"stat": 2, "skill": 0}, 10: {"stat": 1, "skill": 5},
 }
 const STAT_POOL := 40
-const SKILL_POOL := 60
+const SKILL_POOL := 30
 
 const DMG_TYPE_NAMES := {"Д": "дробящий", "Р": "режущий", "К": "колющий", "П": "пуля"}
-
-
-static func skill_label(n: String) -> String:
-	return SKILL_LABEL.get(n, n)
 
 
 static func all_skills() -> Array:
 	var out := []
 	for k in SKILLS:
-		for s in SKILLS[k]:
-			out.append({"name": s[0], "x2": s[1], "stat": k})
+		for n in SKILLS[k]:
+			out.append({"name": n, "stat": k})
 	return out
 
 
-static func skill_cost(n: String) -> int:
-	for k in SKILLS:
-		for s in SKILLS[k]:
-			if s[0] == n:
-				return 2 if s[1] else 1
-	return 1
+## Навыки из шаблона или сохранения: старые имена переводятся в новые,
+## убранные навыки выкидываются, недостающие заполняются нулями.
+static func normalize_skills(src: Dictionary) -> Dictionary:
+	var out := empty_skills()
+	for k in src:
+		var n: String = OLD_SKILLS.get(k, k)
+		if out.has(n):
+			out[n] = maxi(int(out[n]), int(src[k]))
+	return out
+
+
+static func humanity_label(v: int) -> String:
+	for lv in HUMANITY_LEVELS:
+		if v >= int(lv[0]):
+			return lv[1]
+	return HUMANITY_LEVELS[-1][1]
 
 
 static func weapon_stat(type: String) -> String:
@@ -117,7 +137,7 @@ static func sum_stats(s: Dictionary) -> int:
 static func sum_skill_points(s: Dictionary) -> int:
 	var t := 0
 	for x in all_skills():
-		t += (2 if x.x2 else 1) * int(s.get(x.name, 0))
+		t += int(s.get(x.name, 0))
 	return t
 
 
@@ -239,13 +259,13 @@ static func random_core(s_pool := STAT_POOL, k_pool := SKILL_POOL, cap := 8) -> 
 		guard += 1
 		var c2 := []
 		for x in all:
-			if sk[x.name] < 6 and (2 if x.x2 else 1) <= left:
+			if sk[x.name] < 6:
 				c2.append(x)
 		if c2.is_empty():
 			break
 		var n: Dictionary = c2.pick_random()
 		sk[n.name] += 1
-		left -= 2 if n.x2 else 1
+		left -= 1
 	return {"stats": st, "skills": sk}
 
 
