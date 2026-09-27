@@ -1,0 +1,15 @@
+[gd_resource type="StandardMaterial3D" format=3]
+
+[ext_resource type="Texture2D" path="res://assets/textures/planks_old.png" id="1_7hitr"]
+[ext_resource type="Texture2D" path="res://assets/textures/planks_old_n.png" id="2_dbxld"]
+
+[resource]
+resource_name = "trim"
+albedo_color = Color(0.7882353, 0.7490196, 0.65882355, 1)
+albedo_texture = ExtResource("1_7hitr")
+roughness = 0.9
+normal_enabled = true
+normal_texture = ExtResource("2_dbxld")
+uv1_scale = Vector3(1.6, 1.6, 1.6)
+uv1_triplanar = true
+uv1_triplanar_sharpness = 4.0

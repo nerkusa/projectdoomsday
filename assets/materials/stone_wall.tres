@@ -1,0 +1,14 @@
+[gd_resource type="StandardMaterial3D" format=3]
+
+[ext_resource type="Texture2D" path="res://assets/textures/stone_wall.png" id="1_3e45p"]
+[ext_resource type="Texture2D" path="res://assets/textures/stone_wall_n.png" id="2_0h765"]
+
+[resource]
+resource_name = "stone_wall"
+albedo_texture = ExtResource("1_3e45p")
+roughness = 0.95
+normal_enabled = true
+normal_texture = ExtResource("2_0h765")
+uv1_scale = Vector3(0.6, 0.6, 0.6)
+uv1_triplanar = true
+uv1_triplanar_sharpness = 4.0
