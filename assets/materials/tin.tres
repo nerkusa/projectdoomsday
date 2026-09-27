@@ -1,0 +1,6 @@
+[gd_resource type="StandardMaterial3D" format=3]
+
+[resource]
+resource_name = "tin"
+albedo_color = Color(0.654902, 0.6431373, 0.6039216, 1)
+roughness = 0.4

@@ -101,12 +101,58 @@ func objective() -> String:
 		if Game.quest_stage("fire") <= 1:
 			return "Нахарро горит. Найти деда."
 		return "Помочь деду у амбара!"
+	var pack := pack_line()
 	if not Game.flag("kpk"):
 		var need := []
 		if Game.item_count("minicomputer") <= 0:
 			need.append("коробочку с экраном")
-		return "Обыскать тела нападавших%s. Потом — на запад, к старой черте." % ((": найти " + ", ".join(need)) if not need.is_empty() else "")
-	return "Идти на запад по старой просеке, к старой черте."
+		return "Обыскать тела нападавших%s. Потом — на запад, к старой черте.%s" % [(": найти " + ", ".join(need)) if not need.is_empty() else "", pack]
+	return "Идти на запад по старой просеке, к старой черте." + pack
+
+
+# ---------------- сборы в дорогу ----------------
+## Что нужно взять за черту: категория -> подпись. Еды — FOOD_NEED порций.
+const PACK := {"water": "вода", "fire": "спички", "sleep": "одеяло", "rope": "верёвка"}
+const FOOD_NEED := 2
+
+
+func food_portions() -> int:
+	var n := 0
+	for k in DB.items:
+		if DB.items[k] is Dictionary and DB.items[k].get("travel", "") == "food":
+			n += Game.item_count(k)
+	return n
+
+
+func has_travel(cat: String) -> bool:
+	for k in DB.items:
+		if DB.items[k] is Dictionary and DB.items[k].get("travel", "") == cat and Game.item_count(k) > 0:
+			return true
+	return false
+
+
+func pack_ready() -> bool:
+	for c in PACK:
+		if not has_travel(c):
+			return false
+	return food_portions() >= FOOD_NEED
+
+
+## Строка для цели на экране, пока задание «Собраться в дорогу» не выполнено
+func pack_line() -> String:
+	if Game.quest_stage("pack") != 1:
+		return ""
+	var parts := []
+	for c in PACK:
+		parts.append("%s %s" % ["[x]" if has_travel(c) else "[ ]", PACK[c]])
+	parts.append("%s еда %d/%d" % ["[x]" if food_portions() >= FOOD_NEED else "[ ]", mini(food_portions(), FOOD_NEED), FOOD_NEED])
+	return "\nВ дорогу: " + " · ".join(parts)
+
+
+func _check_pack() -> void:
+	if Game.quest_stage("pack") == 1 and pack_ready():
+		Game.set_quest("pack", 2)
+		Game.add_note("Собрался в дорогу: вода, огонь, одеяло, верёвка, еда. Дед бы одобрил — «в тайгу без спичек не ходят».")
 
 
 # ---------------- перестрелка у ворот ----------------
@@ -162,6 +208,7 @@ func on_picked(it: Interactable) -> void:
 		if phase() == "morning" and food_count() >= NEED_FOOD:
 			_start_raid()
 	else:
+		_check_pack()
 		main.hud.refresh_objective()
 
 
@@ -224,6 +271,8 @@ func on_dialog_action(a: String, _sp: Character) -> bool:
 			Game.set_flag("phase", "after")
 			Game.set_quest("bootur", 1)
 			Game.set_quest("who", 1)
+			Game.set_quest("pack", 1)
+			_check_pack()
 			Game.log_line("Дед Уйбаан умер.", "", "miss")
 			main.hud.refresh_objective()
 			_check_kpk()

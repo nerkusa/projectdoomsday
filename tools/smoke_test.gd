@@ -121,7 +121,22 @@ func _ready() -> void:
 			free += 1
 	print("  гексов: ", grid.free.size(), ", проходимых: ", free)
 	ok(free > 5000, "сетка проходимости построена")
-	ok(not grid.is_free(grid.from_world(Vector3(44, 0, 41))), "изба деда непроходима")
+	ok(not grid.is_free(grid.from_world(Vector3(44, 0, 38.6))), "стена избы деда непроходима")
+	# в каждую постройку можно войти через дверь
+	var closed := []
+	for hs in get_tree().get_nodes_in_group("houses"):
+		var a := grid.nearest_free(hs.door_point(1.5))
+		var reach := false
+		for h in grid.free:
+			if not grid.free[h]:
+				continue
+			var l: Vector3 = hs.to_local(grid.to_world(h))
+			if absf(l.x) < hs.inner.x / 2.0 and absf(l.z) < hs.inner.y / 2.0 and not grid.explore_path(a, h).is_empty():
+				reach = true
+				break
+		if not reach:
+			closed.append(String(hs.name))
+	ok(closed.is_empty() and get_tree().get_nodes_in_group("houses").size() >= 17, "во все дома можно войти (%d; закрыты: %s)" % [get_tree().get_nodes_in_group("houses").size(), closed])
 	await wait(1.0)
 	ok(main.dialog.visible, "мысли при пробуждении")
 	await close_dialogs()
@@ -133,6 +148,14 @@ func _ready() -> void:
 	main._walk_to_hex(grid.from_world(spot), Callable(), spot)
 	await wait(1.5)
 	ok(main.player.global_position.distance_to(spot) < 0.05, "свободная ходьба в точку клика")
+	# зайти в избу деда: крыша прячется
+	var izba: House = main.location.get_node("Village/IzbaDed")
+	main._walk_to_hex(grid.from_world(izba.door_point(-1.2)), Callable(), izba.door_point(-1.2))
+	await wait(4.0)
+	ok(izba.inside and not izba.get_node("Upper").visible, "вошёл в избу — крыша спрятана")
+	main._walk_to_hex(grid.from_world(izba.door_point(3.0)), Callable(), izba.door_point(3.0))
+	await wait(4.0)
+	ok(not izba.inside and izba.get_node("Upper").visible, "вышел — крыша на месте")
 
 	# --- дед: утренние дела ---
 	main.talk_to(main.location.character("Ded"))
@@ -251,6 +274,7 @@ func _ready() -> void:
 		await choose(0)
 		guard += 1
 	ok(Game.flag("ded_dead"), "дед умер")
+	ok(Game.quest_stage("pack") == 1, "задание «Собраться в дорогу»")
 	ok(Game.quest_stage("bootur") == 1, "задание «Найти Боотура»")
 	ok(Game.flag("kpk"), "КПК собран из браслета и коробочки")
 	var mods: Dictionary = Game.hero.flags.get("modules", {})
@@ -263,6 +287,15 @@ func _ready() -> void:
 		await frames(2)
 		ok(main.kpk.tab == tb, "вкладка КПК: " + tb)
 	main.kpk.close()
+
+	# --- сборы в дорогу ---
+	for n in ["Take_IzbaDed_table", "Take_IzbaDed_stove", "Take_IzbaDed_bed", "Take_Izba3_chest", "Take_Izba2_table", "Take_Hall_table2"]:
+		var it: Interactable = main.location.item(n)
+		await tp(Vector3(it.global_position.x + 0.5, 0, it.global_position.z + 0.5))
+		main.interact(it)
+		await wait(2.0)
+		await close_dialogs()
+	ok(Game.quest_stage("pack") == 2, "собрался в дорогу (%s)" % main.location.pack_line())
 
 	# --- сохранение и загрузка ---
 	main.autosave()

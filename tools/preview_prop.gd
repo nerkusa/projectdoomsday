@@ -1,8 +1,8 @@
 extends Node3D
 ## Превью одного пропа: тот же свет, что в деревне, изометрическая камера.
 ## Запуск (нужен рендер, не --headless):
-##   godot --path . res://tools/preview_prop.tscn -- out.png res://scenes/props/izba.tscn 11 [поворот]
-## 11 — размер кадра в метрах, поворот — в радианах.
+##   godot --path . res://tools/preview_prop.tscn -- out.png res://scenes/props/izba.tscn 11 [поворот] [cut]
+## 11 — размер кадра в метрах, поворот — в радианах, cut — без крыши (вид изнутри).
 func _ready() -> void:
 	var a := OS.get_cmdline_user_args()
 	var loc: Node = load("res://scenes/locations/nakharro.tscn").instantiate()
@@ -13,6 +13,8 @@ func _ready() -> void:
 	g.material_override = load("res://assets/materials/dirt.tres"); add_child(g)
 	var h: Node3D = load(a[1]).instantiate(); add_child(h)
 	h.rotation.y = float(a[3]) if a.size() > 3 else 0.0
+	if a.size() > 4 and a[4] == "cut" and h.has_node("Upper"):
+		h.get_node("Upper").visible = false
 	var cam := Camera3D.new(); add_child(cam)
 	cam.projection = Camera3D.PROJECTION_ORTHOGONAL; cam.size = float(a[2])
 	cam.position = Vector3(1, 1, 1).normalized() * 32.0 + Vector3(0, 1.5, 0)

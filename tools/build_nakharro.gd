@@ -24,7 +24,9 @@ func _ready() -> void:
 	for n in ["izba", "izba_long", "izba_tall", "izba_lean", "izba_small", "hall", "tower", "barn", "shed", "workshop",
 			"palisade", "gate", "barricade", "greenhouse", "wind_turbine", "spruce", "pine", "birch", "dead_tree", "bush",
 			"rock", "fire", "well", "woodpile", "table", "tractor", "garden", "fence", "fence_broken", "border_post", "sign",
-			"planks", "basket", "mushroom", "berries", "bandage"]:
+			"planks", "basket", "mushroom", "berries", "bandage",
+			"item_flask", "item_matches", "item_blanket", "item_rope", "item_compass", "item_rusks",
+			"item_dried_fish", "item_canned", "item_herbs"]:
 		P[n] = load(PROP_DIR + n + ".tscn")
 	_build()
 	print("Деревня собрана.")
@@ -198,7 +200,7 @@ func _village() -> void:
 	# кусты и берёзы во дворах
 	for p in [Vector3(58, 0, 51), Vector3(69, 0, 50), Vector3(55, 0, 74), Vector3(70, 0, 78), Vector3(30, 0, 72), Vector3(97, 0, 78)]:
 		put(P.bush, vil, p, randf() * TAU)
-	for p in [Vector3(57, 0, 47.5), Vector3(67.5, 0, 69), Vector3(42, 0, 64)]:
+	for p in [Vector3(57, 0, 47.5), Vector3(72.5, 0, 67.5), Vector3(42, 0, 64)]:
 		put(P.birch, vil, p, randf() * TAU, "", 1.1)
 	# граница на западе
 	var border := group(root, "Border")
@@ -332,6 +334,19 @@ func _items() -> void:
 		item(items, P.berries, "Berries%d" % bi, p)
 	item(items, P.bandage, "BandageRaid", Vector3(61.5, 0, 58.8), ["phase_raid"])
 	item(items, P.bandage, "BandageGate", Vector3(63.2, 0, 40.4), ["phase_raid"])
+	# вещи в дорогу — по избам, в доме собраний и в амбаре (метки Slot_* внутри построек)
+	for it in [["IzbaDed", "table", "flask"], ["IzbaDed", "stove", "matches"], ["IzbaDed", "bed", "blanket"],
+			["IzbaDed", "chest", "compass"], ["Izba2", "table", "rusks"], ["Izba3", "chest", "rope"],
+			["IzbaStepan", "table", "dried_fish"], ["Izba5", "chest", "canned"], ["Izba7", "table", "herbs"],
+			["Izba8", "bed", "rusks"], ["Izba9", "floor", "rope"], ["Izba10", "table", "canned"],
+			["Izba12", "chest", "dried_fish"], ["Izba13", "stove", "matches"], ["Izba15", "bed", "blanket"],
+			["Hall", "table", "bandage"], ["Hall", "table2", "rusks"], ["Hall", "chest", "canned"],
+			["Barn", "sacks", "rusks"], ["Barn", "chest", "canned"], ["Barn", "floor", "herbs"]]:
+		var house: Node3D = root.get_node("Village/" + it[0])
+		var slot: Node3D = house.get_node("Slot_" + it[1])
+		var pos: Vector3 = house.transform * slot.position
+		var ps: PackedScene = P.bandage if it[2] == "bandage" else P["item_" + it[2]]
+		item(items, ps, "Take_%s_%s" % [it[0], it[1]], pos)
 	var ex := _item_base("BorderExit")
 	ex.set("kind", "use")
 	ex.set("label", "Старая черта")

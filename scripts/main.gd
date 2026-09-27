@@ -190,6 +190,7 @@ func load_location(id: String, spawn := "Start", pos = null) -> void:
 	if player == null:
 		player = Character.new()
 		player.name = "Player"
+		player.add_to_group("player")
 		player.use_hero_model = true
 		player.use_anim_model = true
 		player.is_player = true
@@ -736,7 +737,7 @@ func _update_xray() -> void:
 			var col: Object = r.collider
 			excl.append(r.rid)
 			var prop: Node = (col as Node).get_parent()
-			if prop and prop != location and not hits.has(prop):
+			if prop and prop != location and not hits.has(prop) and not prop.get_meta("inside", false):
 				hits.append(prop)
 	for p in _xray:
 		if is_instance_valid(p) and not hits.has(p):

@@ -1,0 +1,20 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/interactable.gd" id="1_ptp8i"]
+[ext_resource type="Material" path="res://assets/materials/tin.tres" id="2_ldcee"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/item_canned_tin.res" id="3_lhcy2"]
+[ext_resource type="Material" path="res://assets/materials/rust.tres" id="4_n1grm"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/item_canned_rust.res" id="5_4nhtq"]
+
+[node name="Item" type="Node3D" unique_id=877733115]
+script = ExtResource("1_ptp8i")
+item_id = "canned"
+pick_size = Vector3(0.4, 0.3, 0.4)
+
+[node name="Mesh_tin" type="MeshInstance3D" parent="." unique_id=1497361071]
+material_override = ExtResource("2_ldcee")
+mesh = ExtResource("3_lhcy2")
+
+[node name="Mesh_rust" type="MeshInstance3D" parent="." unique_id=836374909]
+material_override = ExtResource("4_n1grm")
+mesh = ExtResource("5_4nhtq")
