@@ -77,12 +77,17 @@ func hand_l() -> Node3D:
 
 ## Как оружие лежит в кисти. Ось Y кости кисти идёт вдоль ладони к пальцам,
 ## ось Z — в сторону большого пальца. Оружие строится стволом/лезвием по +Z, верхом по +Y.
-func grip(gun: bool) -> Transform3D:
+## swing — во время удара холодное оружие смотрит вперёд из кулака;
+## в остальное время опущено головкой вниз, вдоль ноги.
+func grip(gun: bool, swing := false) -> Transform3D:
 	if gun:
 		# ствол вдоль ладони, рукоять вниз
 		return Transform3D(Basis(Vector3(-1, 0, 0), Vector3(0, 0, 1), Vector3(0, 1, 0)), Vector3(0, 0.07, 0))
 	# рукоять зажата в кулаке, лезвие торчит со стороны большого пальца
-	return Transform3D(Basis(Vector3(-1, 0, 0), Vector3(0, -1, 0), Vector3(0, 0, 1)), Vector3(0, 0.07, 0))
+	var t := Transform3D(Basis(Vector3(-1, 0, 0), Vector3(0, -1, 0), Vector3(0, 0, 1)), Vector3(0, 0.07, 0))
+	if swing:
+		return t
+	return t * Transform3D(Basis(Vector3.RIGHT, deg_to_rad(78.0)), Vector3.ZERO)
 
 
 func has(clip: String) -> bool:

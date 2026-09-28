@@ -662,6 +662,10 @@ func _clip_act(ab: AnimBody, t: float) -> void:
 			_end_act()
 		return
 	var c := _act_clip(_act.type)
+	# на время удара оружие — вперёд из кулака, потом снова вниз
+	if _act.type == "swing" and _held_node and not DB.is_gun(_held_key) and not _act.has("swing_grip"):
+		_act["swing_grip"] = true
+		_held_node.transform = ab.grip(false, true)
 	if c.is_empty() or not ab.has(c[0]):
 		_fire_cb_once()
 		_end_act()
@@ -685,6 +689,8 @@ func _fire_cb_once() -> void:
 
 
 func _end_act() -> void:
+	if _act.get("swing_grip", false) and _held_node and body is AnimBody:
+		_held_node.transform = (body as AnimBody).grip(false)
 	var cb: Callable = _act.get("cb", Callable())
 	var typ: String = _act.get("type", "")
 	var was_done: bool = _act.get("done", false)
