@@ -1107,6 +1107,34 @@ func small_props() -> void:
 		box("log_weathered", Vector3(0.12, 0.42, 0.3), Vector3(sx, 0.21, 0))
 	finish("bench", "Bench")
 
+	# забор-штакетник: столбы, две жерди, доски разной высоты; сломанный — с дырой
+	for broken in [false, true]:
+		begin()
+		_rng.seed = 733 if broken else 731
+		var ln := 4.0
+		for i in 3:
+			var px := -ln / 2.0 + i * ln / 2.0
+			cyl("log_weathered", 0.065, 0.075, 1.35, Vector3(px, 0.62, 0), Vector3(_rng.randf_range(-0.04, 0.04), 0, _rng.randf_range(-0.04, 0.04)), 7)
+		for y in [0.35, 0.95]:
+			if broken and y == 0.95:
+				box("planks_old", Vector3(2.1, 0.07, 0.05), Vector3(-1.0, y, -0.05))
+				# оторванная жердь висит одним концом
+				box("planks_old", Vector3(2.0, 0.07, 0.05), Vector3(0.95, 0.55, -0.05), Vector3(0, 0, 0.42))
+			else:
+				box("planks_old", Vector3(ln, 0.07, 0.05), Vector3(0, y, -0.05), Vector3(0, 0, _rng.randf_range(-0.015, 0.015)))
+		var n := 22
+		for i in n:
+			var px := -ln / 2.0 + 0.1 + i * (ln - 0.2) / float(n - 1)
+			if broken and px > 0.2 and px < 1.6 and i % 4 != 0:
+				continue
+			var h := _rng.randf_range(1.0, 1.18)
+			var tilt := _rng.randf_range(-0.05, 0.05)
+			if broken and px > 0.2 and px < 1.6:
+				tilt = 0.35
+			box("planks_old", Vector3(0.1, h, 0.025), Vector3(px, h / 2.0, 0.0), Vector3(0, 0, tilt))
+		solid(Vector3(ln, 1.2, 0.3), Vector3(0, 0.6, 0))
+		finish("fence_broken" if broken else "fence", "FenceBroken" if broken else "Fence")
+
 	# длинный стол со скамейками по обе стороны — за ним сидят старики и картёжник
 	begin()
 	box("planks_old", Vector3(2.4, 0.07, 0.9), Vector3(0, 0.78, 0))

@@ -29,7 +29,7 @@ const W := {
 	"oyun": {"file": "knife/knife.obj", "rot": Vector3(0, 90, 0), "length": 0.3, "grip": Vector2(0.18, 0.5),
 		"tex": {"albedo": "knife.png", "normal": "knife_normal.png"}},
 	"knife": {"same": "oyun"},
-	"axe": {"file": "axe/axe.obj", "rot": Vector3(-90, 0, 0), "flip": true, "length": 0.62, "grip": Vector2(0.12, 0.2),
+	"axe": {"file": "axe/axe.obj", "rot": Vector3(-90, 0, 0), "flip": true, "up": true, "length": 0.62, "grip": Vector2(0.12, 0.8),
 		"tex": {"albedo": "axe_albedo.png", "normal": "axe_normal.png", "rough": "axe_rough.png", "metal": "axe_metal.png"}},
 	"crowbar": {"file": "crowbar/crowbar.fbx", "rot": Vector3(-90, 0, 0), "flip": true, "length": 0.75, "grip": Vector2(0.12, 0.5),
 		"tex": {"albedo": "crowbar_albedo.png"}},

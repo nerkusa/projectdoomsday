@@ -7,16 +7,16 @@
 [ext_resource type="Material" path="res://assets/materials/moss.tres" id="5_kfngf"]
 [ext_resource type="ArrayMesh" path="res://assets/models/props/stump_moss.res" id="6_ikytp"]
 
-[node name="Stump" type="Node3D" unique_id=2008195397]
+[node name="Stump" type="Node3D" unique_id=587814528]
 
-[node name="Mesh_bark_dark" type="MeshInstance3D" parent="." unique_id=1882487878]
+[node name="Mesh_bark_dark" type="MeshInstance3D" parent="." unique_id=2145621167]
 material_override = ExtResource("1_3lvlk")
 mesh = ExtResource("2_7uwoy")
 
-[node name="Mesh_planks_old" type="MeshInstance3D" parent="." unique_id=1694855503]
+[node name="Mesh_planks_old" type="MeshInstance3D" parent="." unique_id=2092708053]
 material_override = ExtResource("3_8w2fx")
 mesh = ExtResource("4_quqtn")
 
-[node name="Mesh_moss" type="MeshInstance3D" parent="." unique_id=1955786716]
+[node name="Mesh_moss" type="MeshInstance3D" parent="." unique_id=2002417024]
 material_override = ExtResource("5_kfngf")
 mesh = ExtResource("6_ikytp")

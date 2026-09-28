@@ -318,10 +318,11 @@ func _village() -> void:
 	for gx in range(4):
 		for gz in range(2):
 			put(P.garden, vil, Vector3(72 + gx * 5.5, 0, 84.5 + gz * 3.8), 0.0)
-	# забор Степана: целые пролёты и дыра
-	put(P.fence, vil, Vector3(67.8, 0, 35.8), PI / 2.0, "Fence1")
-	put(P.fence_broken, vil, Vector3(67.8, 0, 39.6), PI / 2.0, "FenceGap")
-	put(P.fence, vil, Vector3(67.8, 0, 43.2), PI / 2.0, "Fence3")
+	# забор Степана вдоль улицы перед его двором: целые пролёты и дыра
+	# (перед дверью избы, x ≈ 73.9, — проход)
+	put(P.fence, vil, Vector3(70.4, 0, 44.1), 0.0, "Fence1")
+	put(P.fence_broken, vil, Vector3(77.4, 0, 44.1), 0.0, "FenceGap")
+	put(P.fence, vil, Vector3(81.2, 0, 44.1), 0.0, "Fence3")
 	# частокол с воротами (север и запад) и вышками
 	var pal := group(root, "Palisade")
 	var x := PAL.position.x + 2.0
@@ -658,6 +659,43 @@ func _clear_overlaps() -> void:
 				t.free()
 				removed += 1
 	print("  убрано деревьев/кустов из построек: ", removed)
+	var gone := []
+	for f in root.get_node("Village").get_children():
+		var fp := String(f.scene_file_path)
+		if not (fp.ends_with("/fence.tscn") or fp.ends_with("/fence_broken.tscn")):
+			continue
+		# если пролёт задевает постройку — отодвигаем его от домов (вдоль его нормали)
+		var ok := false
+		var base: Vector3 = f.position
+		for step in 12:
+			f.position = base + f.transform.basis.z * (0.15 * step)
+			var hit := false
+			for dx in [-1.9, -1.0, 0.0, 1.0, 1.9]:
+				if _inside(boxes, f.transform * Vector3(dx, 0, 0), 0.15):
+					hit = true
+					break
+			if not hit:
+				ok = true
+				break
+		if not ok:
+			f.position = base
+			push_warning("забор заходит в постройку: " + String(f.name))
+		# пролёт напротив двери убираем — остаётся проход-калитка
+		for h in root.get_node("Village").get_children():
+			if not ("door" in h and "inner" in h):
+				continue
+			var dp: Vector3 = h.transform * (h.get("door") + Vector3(0, 0, 1.2))
+			var a: Vector3 = f.transform * Vector3(-2.0, 0, 0)
+			var b: Vector3 = f.transform * Vector3(2.0, 0, 0)
+			var ab := b - a
+			var t := clampf((dp - a).dot(ab) / ab.length_squared(), 0.0, 1.0)
+			if (a + ab * t).distance_to(dp) < 1.0:
+				gone.append(f)
+				break
+	for f in gone:
+		print("  пролёт забора перед дверью убран: ", f.name)
+		f.get_parent().remove_child(f)
+		f.free()
 	for ch in root.get_node("Characters").get_children():
 		if _inside(boxes, ch.position, 0.0) and ch.position.y < 0.2:
 			push_warning("персонаж в стене: " + String(ch.name))

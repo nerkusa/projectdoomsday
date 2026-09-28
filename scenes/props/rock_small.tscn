@@ -3,8 +3,8 @@
 [ext_resource type="Material" path="res://assets/materials/rock_tex.tres" id="1_asi4r"]
 [ext_resource type="ArrayMesh" path="res://assets/models/props/rock_small_rock_tex.res" id="2_vlp1m"]
 
-[node name="Rock" type="Node3D" unique_id=1142210212]
+[node name="Rock" type="Node3D" unique_id=1847764947]
 
-[node name="Mesh_rock_tex" type="MeshInstance3D" parent="." unique_id=1184725676]
+[node name="Mesh_rock_tex" type="MeshInstance3D" parent="." unique_id=2091477507]
 material_override = ExtResource("1_asi4r")
 mesh = ExtResource("2_vlp1m")
