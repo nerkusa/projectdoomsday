@@ -6,3 +6,6 @@ export_presets.cfg
 # системное
 .DS_Store
 Thumbs.db
+
+# сборки игры
+build/
