@@ -4,5 +4,5 @@
 resource_name = "water"
 transparency = 1
 albedo_color = Color(0.06, 0.07, 0.04, 0.92)
-metallic_specular = 0.35
-roughness = 0.25
+metallic_specular = 0.25
+roughness = 0.55

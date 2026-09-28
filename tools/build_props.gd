@@ -80,6 +80,23 @@ func _tex_mat(n: String, tex: String, scale: float, rough := 0.95, metal := 0.0,
 	M[n] = load(MAT_DIR + n + ".tres")
 
 
+## Плоское пятно на земле: текстура с прозрачными краями, гладкость по карте _r
+func _decal_mat(n: String, tex: String) -> void:
+	var m := StandardMaterial3D.new()
+	m.resource_name = n
+	m.albedo_texture = load(TEX_DIR + tex + ".png")
+	m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	m.roughness = 1.0
+	m.roughness_texture = load(TEX_DIR + tex + "_r.png")
+	m.roughness_texture_channel = BaseMaterial3D.TEXTURE_CHANNEL_RED
+	m.normal_enabled = true
+	m.normal_texture = load(TEX_DIR + tex + "_n.png")
+	m.normal_scale = 0.6
+	m.metallic_specular = 0.6
+	ResourceSaver.save(m, MAT_DIR + n + ".tres")
+	M[n] = load(MAT_DIR + n + ".tres")
+
+
 func _plain_mat(n: String, c: Color, rough := 0.8, alpha := false) -> void:
 	var m := StandardMaterial3D.new()
 	m.resource_name = n
@@ -118,6 +135,9 @@ func _materials() -> void:
 	_plain_mat("blade", Color("b8b0a0"), 0.6)
 	_plain_mat("cloth_red", Color("7a2e24"), 1.0)
 	_plain_mat("tire", Color("1c1b1a"), 0.9)
+	_decal_mat("swamp_patch", "swamp")
+	_decal_mat("puddle_patch", "puddle")
+	_decal_mat("mud_patch", "mud_patch")
 	_plain_mat("glass", Color(0.25, 0.3, 0.3, 0.55), 0.1, true)
 	_plain_mat("wire", Color("5a5550"), 0.5)
 	_plain_mat("grass_blade", Color("6a6a38"), 1.0)
@@ -128,9 +148,9 @@ func _materials() -> void:
 	water.resource_name = "water"
 	water.albedo_color = Color(0.06, 0.07, 0.04, 0.92)
 	water.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	water.roughness = 0.25
+	water.roughness = 0.55
 	water.metallic = 0.0
-	water.metallic_specular = 0.35
+	water.metallic_specular = 0.25
 	ResourceSaver.save(water, MAT_DIR + "water.tres")
 	M["water"] = load(MAT_DIR + "water.tres")
 	_plain_mat("hay", Color("6e6232"), 1.0)
@@ -1132,30 +1152,25 @@ func scatter_meshes() -> void:
 	save_mesh("scatter_reeds")
 
 	begin()
-	add("moss", rough(rsphere(0.35, 8, 5), 0.08, 9), Vector3(0, 0.05, 0), Vector3.ZERO, Vector3(1.0, 0.55, 1.0))
-	for i in 5:
-		var a := i * 1.25
-		cyl("grass_blade", 0.0, 0.03, 0.4, Vector3(cos(a) * 0.15, 0.3, sin(a) * 0.15), Vector3(sin(a) * 0.4, 0, -cos(a) * 0.4), 3)
+	# кочка: низкий травяной бугорок, а не шар
+	add("moss", rough(rsphere(0.4, 9, 4), 0.1, 9), Vector3(0, -0.02, 0), Vector3.ZERO, Vector3(1.0, 0.22, 0.85))
+	for i in 9:
+		var a := i * 0.7
+		cyl("grass_blade" if i % 3 else "grass_green", 0.0, 0.025, _rng.randf_range(0.35, 0.6),
+			Vector3(cos(a) * 0.18, 0.2, sin(a) * 0.15), Vector3(sin(a) * 0.45, 0, -cos(a) * 0.45), 3)
 	save_mesh("scatter_hummock")
 
+	# лужа и пятно грязи — плоские квадраты с прозрачными рваными краями
 	begin()
-	var pool := CylinderMesh.new()
-	pool.top_radius = 1.0
-	pool.bottom_radius = 1.0
-	pool.height = 0.02
-	pool.radial_segments = 14
-	pool.rings = 1
-	add("water", rough(pool, 0.25, 21, 1.2, 0.0), Vector3(0, 0.02, 0))
+	var q := PlaneMesh.new()
+	q.size = Vector2(2.0, 2.0)
+	add("puddle_patch", q, Vector3(0, 0.024, 0))
 	save_mesh("scatter_puddle")
 
 	begin()
-	var disk := CylinderMesh.new()
-	disk.top_radius = 1.0
-	disk.bottom_radius = 1.0
-	disk.height = 0.02
-	disk.radial_segments = 14
-	disk.rings = 1
-	add("mud_tex", rough(disk, 0.3, 23, 1.0, 0.0), Vector3(0, 0.01, 0))
+	var q2 := PlaneMesh.new()
+	q2.size = Vector2(2.4, 2.4)
+	add("mud_patch", q2, Vector3(0, 0.02, 0))
 	save_mesh("scatter_mud")
 
 
