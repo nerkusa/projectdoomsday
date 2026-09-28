@@ -31,6 +31,13 @@ const PLAZA := Rect2(53, 53, 18, 14)
 ## Болота на лугу у опушки и разбитая колея перед северным мостом
 const SWAMPS := [Rect2(82, 20, 20, 7.5), Rect2(24, 20, 22, 7.5)]
 const GATE_MUD := Rect2(58, 18, 8, 10)
+## Пять находок в лесу: последняя запускает засаду. Рядом с каждой — густой куст-укрытие.
+const FOOD := [["Mushroom1", Vector3(44, 0, 6)], ["Berries1", Vector3(55, 0, -3)], ["Mushroom2", Vector3(71, 0, -8)],
+	["Berries2", Vector3(84, 0, 1)], ["Mushroom3", Vector3(60, 0, -14)]]
+const HIDE_OFF := Vector2(2.6, 1.8)
+## Лесные тропинки (без деревьев)
+const TRAILS := [[Vector2(62, 22), Vector2(56, 4)], [Vector2(56, 4), Vector2(46, 8)], [Vector2(56, 4), Vector2(60, -12)],
+	[Vector2(56, 4), Vector2(72, -6)], [Vector2(72, -6), Vector2(84, 2)], [Vector2(50, 20), Vector2(78, 20)]]
 
 
 func _ready() -> void:
@@ -60,7 +67,7 @@ func _build() -> void:
 	root.set_script(load("res://scripts/locations/nakharro.gd"))
 	root.set("location_id", "nakharro")
 	root.set("title", "Нахарро")
-	root.set("map_rect", Rect2(2, 2, 116, 104))
+	root.set("map_rect", Rect2(2, -22, 116, 128))
 	root.set("camera_start", Vector3(44, 0, 47))
 	_env()
 	_ground()
@@ -346,18 +353,27 @@ func _forest() -> void:
 	var forest := group(root, "Forest")
 	var trees := [P.spruce, P.spruce_b, P.spruce, P.spruce_b, P.pine, P.pine_b, P.birch, P.birch_b, P.dead_tree]
 	var moat_zone := PAL.grow(DITCH_OUT + 1.0)
-	var keep := [Vector2(40, 14), Vector2(52, 10), Vector2(64, 16), Vector2(76, 8), Vector2(88, 14),
-		Vector2(70, 12), Vector2(58, 6), Vector2(84, 10), Vector2(92, 10)]
+	var keep := [Vector2(92, 10)]
+	for f in FOOD:
+		keep.append(Vector2(f[1].x, f[1].z))
+		keep.append(Vector2(f[1].x, f[1].z) + HIDE_OFF)
 	var n := 0
-	for i in 5000:
+	for i in 8000:
 		var x := randf_range(3, 117)
-		var z := randf_range(3, 105)
+		var z := randf_range(-20, 105)
 		var north := z < 23.5
 		var edge := x < 19 or x > 105 or z > 97
 		if not (north or edge):
 			continue
 		# тропа в лес и дорога к черте
 		if absf(x - N_GATE_X) < 2.8 and z > 14:
+			continue
+		# лесные тропинки, по которым ходят стража и жители
+		var on_trail := false
+		for tr in TRAILS:
+			if _seg_dist(Vector2(x, z), tr[0], tr[1]) < 1.6:
+				on_trail = true
+		if on_trail:
 			continue
 		if Vector2(x, z).distance_to(Vector2(64, 8)) < 3.0 or (z < 16 and absf(x - (N_GATE_X + (16 - z) * 0.25)) < 2.0):
 			continue
@@ -378,10 +394,10 @@ func _forest() -> void:
 			continue
 		put(trees[randi() % trees.size()], forest, Vector3(x, 0, z), randf() * TAU, "", randf_range(0.8, 1.3))
 		n += 1
-		if n > 620:
+		if n > 950:
 			break
-	for i in 20:
-		put([P.rock, P.rock_big, P.rock][i % 3], forest, Vector3(randf_range(6, 114), 0, randf_range(4, 21)), randf() * TAU, "", randf_range(0.7, 1.2))
+	for i in 30:
+		put([P.rock, P.rock_big, P.rock][i % 3], forest, Vector3(randf_range(6, 114), 0, randf_range(-18, 21)), randf() * TAU, "", randf_range(0.7, 1.2))
 
 
 # ---------------- налёт ----------------
@@ -433,8 +449,21 @@ func _characters() -> void:
 	# начальные задания: разговоры, проверки навыков, драка, стрельбище
 	character(chars, "Nyurguyana", "girl", Vector3(70.3, 0, 54.2), -0.9, {"dialog": "girl", "groups": M_})
 	character(chars, "Gambler", "gambler", Vector3(56.4, 0, 57.8), -2.1, {"dialog": "gambler", "start_pose": "sit", "groups": M_})
-	character(chars, "Hunter", "hunter", Vector3(46, 0, 16), 0.5, {"dialog": "hunter", "groups": M_})
-	character(chars, "Shooter", "shooter", Vector3(74, 0, 26.0), PI, {"dialog": "shooter", "armed": true, "groups": M_})
+	var F_ := ["phase_morning", "forest_folk"]
+	character(chars, "Hunter", "hunter", Vector3(46, 0, 16), 0.5, {"dialog": "hunter", "groups": F_})
+	character(chars, "Shooter", "shooter", Vector3(74, 0, 26.0), PI, {"dialog": "shooter", "armed": true, "groups": F_})
+	# в лесу днём людно: стража обходит опушку, жители собирают ягоды и хворост.
+	# К вечеру все уходят домой.
+	character(chars, "ForestGuard1", "defender", Vector3(50, 0, 20), PI / 2.0, {"display_name": "Дозорный Айхал", "dialog": "rumors", "armed": true,
+		"groups": F_, "patrol": PackedVector3Array([Vector3(50, 0, 20), Vector3(78, 0, 20)]), "patrol_wait": 6.0})
+	character(chars, "ForestGuard2", "defender_f", Vector3(56, 0, 4), 0.0, {"display_name": "Дозорная Кэрэчээнэ", "dialog": "rumors", "armed": true,
+		"groups": F_, "patrol": PackedVector3Array([Vector3(56, 0, 4), Vector3(60, 0, -11), Vector3(56, 0, 4), Vector3(72, 0, -6), Vector3(83, 0, 1.5)]), "patrol_wait": 5.0})
+	character(chars, "Woodcutter", "villager", Vector3(47, 0, 8), 1.0, {"display_name": "Дровосек", "dialog": "rumors",
+		"groups": F_, "patrol": PackedVector3Array([Vector3(47, 0, 8), Vector3(55, 0, 4.5)]), "patrol_wait": 8.0})
+	character(chars, "BerryWoman", "villager_f", Vector3(79, 0, -3.5), -0.6, {"display_name": "Ягодница", "dialog": "rumors",
+		"groups": F_, "patrol": PackedVector3Array([Vector3(79, 0, -3.5), Vector3(73, 0, -7), Vector3(68, 0, -4)]), "patrol_wait": 7.0})
+	# засада: нападавший с монтировкой появится, когда герой возьмёт последнюю находку
+	character(chars, "Prowler", "prowler", Vector3(100, 0, -18), 0.0, {"groups": ["ambush"]})
 	var izba9: Node3D = root.get_node("Village/Izba9")
 	character(chars, "Sick", "sick", izba9.transform * Vector3(1.0, 0, -0.4), -1.2, {"dialog": "sick", "start_pose": "down", "groups": M_})
 	var ti := 0
@@ -442,7 +471,7 @@ func _characters() -> void:
 		ti += 1
 		character(chars, "Target%d" % ti, "target", p, 0.0, {"groups": ["phase_morning", "range_targets"]})
 	# налёт: дед и «чистильщики» у амбара
-	character(chars, "DedRaid", "ded", Vector3(75.0, 0, 61.5), -PI / 2.0, {"dialog": "ded", "dialog_node": "last", "groups": R_})
+	character(chars, "DedRaid", "ded_rifle", Vector3(75.0, 0, 61.5), -PI / 2.0, {"dialog": "ded", "dialog_node": "last", "armed": true, "groups": R_})
 	character(chars, "SoldierA", "soldier_a", Vector3(72.0, 0, 58.2), PI * 0.2, {"hostile": true, "aggro_radius": 8.5, "squad": "cleaners", "groups": R_})
 	character(chars, "SoldierB", "soldier_b", Vector3(72.8, 0, 64.4), -PI * 0.3, {"hostile": true, "aggro_radius": 8.5, "squad": "cleaners", "groups": R_})
 	# защитники держат ворота
@@ -451,6 +480,12 @@ func _characters() -> void:
 		var ch := character(chars, c[0], c[1], c[2], c[3], {"dialog": "defender", "armed": true, "groups": R_})
 		ch.add_to_group("defenders", true)
 	character(chars, "WoundedDefender", "villager", Vector3(60.5, 0, 57.8), 1.0, {"display_name": "Раненый", "start_pose": "down", "groups": R_})
+	# казнь на улице у площади: двое жителей на коленях, над ними нападавший
+	character(chars, "Doomed1", "villager", Vector3(61.0, 0, 50.6), 0.0, {"display_name": "Житель", "start_pose": "yield", "groups": R_})
+	character(chars, "Doomed2", "villager_f", Vector3(63.3, 0, 50.9), 0.2, {"display_name": "Жительница", "start_pose": "yield", "groups": R_})
+	character(chars, "Executioner", "executioner", Vector3(62.2, 0, 48.4), 0.0, {"hostile": true, "aggro_radius": 6.5, "squad": "execs", "groups": R_})
+	# у старой черты — раненый нападавший (появится, когда тела обысканы)
+	character(chars, "ExitRaider", "exit_raider", Vector3(11.5, 0, W_GATE_Z + 2.2), -PI / 2.0, {"groups": ["exit_guard"]})
 	# мародёры, которые ещё шарят по дворам (можно обойти крадучись или напасть первым)
 	character(chars, "LooterA", "raider", Vector3(44.0, 0, 76.8), 0.8, {"hostile": true, "aggro_radius": 6.0, "squad": "looters", "groups": R_})
 	character(chars, "LooterB", "raider", Vector3(47.2, 0, 77.4), -0.6, {"hostile": true, "aggro_radius": 6.0, "squad": "looters", "groups": R_})
@@ -478,14 +513,20 @@ func _items() -> void:
 	item(items, P.planks, "Planks", Vector3(76.6, 0, 39.4), ["phase_morning"])
 	var basket := item(items, P.basket, "Basket", Vector3(42.1, 0.84, 44.2), ["phase_morning"])
 	basket.set("pick_size", Vector3(0.7, 0.9, 0.7))
-	var mi := 0
-	for p in [Vector3(40, 0, 14), Vector3(52, 0, 10), Vector3(64, 0, 16), Vector3(88, 0, 14), Vector3(76, 0, 8)]:
-		mi += 1
-		item(items, P.mushroom, "Mushroom%d" % mi, p)
-	var bi := 0
-	for p in [Vector3(70, 0, 12), Vector3(58, 0, 6), Vector3(84, 0, 10)]:
-		bi += 1
-		item(items, P.berries, "Berries%d" % bi, p)
+	var hi := 0
+	for f in FOOD:
+		item(items, P.mushroom if String(f[0]).begins_with("Mushroom") else P.berries, f[0], f[1])
+		# густой куст рядом — в нём можно спрятаться, когда начнётся
+		hi += 1
+		var hb := _item_base("HideBush%d" % hi)
+		hb.set("kind", "use")
+		hb.set("label", "Густые кусты")
+		hb.set("pick_size", Vector3(1.8, 1.3, 1.8))
+		hb.position = f[1] + Vector3(HIDE_OFF.x, 0, HIDE_OFF.y)
+		items.add_child(hb)
+		hb.owner = root
+		for k in 3:
+			put(P.bush, hb, Vector3(randf_range(-0.5, 0.5), 0, randf_range(-0.5, 0.5)), randf() * TAU, "", randf_range(1.2, 1.5))
 	item(items, P.bandage, "BandageRaid", Vector3(61.5, 0, 58.8), ["phase_raid"])
 	item(items, P.bandage, "BandageGate", Vector3(63.2, 0, 40.4), ["phase_raid"])
 	# вещи в дорогу — по избам, в доме собраний и в амбаре (метки Slot_* внутри построек)
@@ -526,7 +567,7 @@ func _items() -> void:
 	marker(root, "MarkBarn", Vector3(80, 0, 61), "Амбар")
 	marker(root, "MarkDed", Vector3(44, 0, 41), "Изба деда")
 	marker(root, "MarkHall", Vector3(62, 0, 69.5), "Дом собраний")
-	marker(root, "MarkForest", Vector3(64, 0, 12), "Лес")
+	marker(root, "MarkForest", Vector3(62, 0, 0), "Лес")
 	marker(root, "MarkBorder", Vector3(6, 0, W_GATE_Z), "Черта")
 
 

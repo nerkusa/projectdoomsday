@@ -195,6 +195,10 @@ func begin_turn() -> void:
 	main.location.on_combat_round(round_n)
 	if not on:
 		return
+	# союзник мог свалить того, чей ход начался
+	if not u.active():
+		end_turn(true)
+		return
 	if u.is_hero:
 		busy = false
 		after_hero_action()
@@ -780,11 +784,25 @@ func resolve_attack(att: Fighter, dfn: Fighter, w: Dictionary, aim_z, dist: int,
 	return {"hit": true, "dmg": ae.hd, "zone": z.name}
 
 
+## Выстрел союзника вне очереди ходов (дед у амбара): урон без бросков защиты
+func ally_hit(t: Fighter, dmg: int, who: String) -> void:
+	if not on or not t.alive:
+		return
+	var before := t.hp
+	t.hp = maxi(0, before - dmg)
+	clog("%s попадает: %s, −%d ХП" % [who, t.name, dmg], "ХП %d, стало %d" % [before, t.hp], "hit")
+	react(t, {"hit": true, "dmg": dmg, "zone": "корпус"})
+	if t.hp <= 0 and t.lethal:
+		kill(t)
+	changed.emit()
+
+
 func react(dfn: Fighter, r: Dictionary) -> void:
 	var pos: Vector3 = dfn.node.global_position + Vector3(0, 2.0, 0)
 	if r.hit:
 		if dfn.alive or dfn.is_hero:
 			dfn.node.act("hit")
+		main.sfx("hit_blunt", -9.0, randf_range(0.9, 1.2))
 		main.hud.float_text(pos, "−%d %s" % [r.dmg, r.zone], "hit")
 		if dfn.is_hero:
 			main.hud.hurt_flash()
