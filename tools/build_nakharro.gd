@@ -475,15 +475,17 @@ func _characters() -> void:
 	character(chars, "SoldierA", "soldier_a", Vector3(72.0, 0, 58.2), PI * 0.2, {"hostile": true, "aggro_radius": 8.5, "squad": "cleaners", "groups": R_})
 	character(chars, "SoldierB", "soldier_b", Vector3(72.8, 0, 64.4), -PI * 0.3, {"hostile": true, "aggro_radius": 8.5, "squad": "cleaners", "groups": R_})
 	# защитники держат ворота
-	for c in [["DefenderN1", "defender", Vector3(59.6, 0, 39.4), PI], ["DefenderN2", "defender_f", Vector3(64.0, 0, 39.3), PI + 0.2],
-			["DefenderW1", "defender", Vector3(29.6, 0, W_GATE_Z - 2.4), -PI / 2.0], ["DefenderW2", "defender", Vector3(29.1, 0, W_GATE_Z + 2.0), -PI / 2.0 - 0.2]]:
+	character(chars, "DeadDefenderN", "defender_f", Vector3(58.2, 0, 40.6), 2.4, {"start_dead": true, "display_name": "Защитница", "groups": R_})
+	for c in [["DefenderW1", "defender", Vector3(29.6, 0, W_GATE_Z - 2.4), -PI / 2.0], ["DefenderW2", "defender", Vector3(29.1, 0, W_GATE_Z + 2.0), -PI / 2.0 - 0.2]]:
 		var ch := character(chars, c[0], c[1], c[2], c[3], {"dialog": "defender", "armed": true, "groups": R_})
 		ch.add_to_group("defenders", true)
 	character(chars, "WoundedDefender", "villager", Vector3(60.5, 0, 57.8), 1.0, {"display_name": "Раненый", "start_pose": "down", "groups": R_})
-	# казнь на улице у площади: двое жителей на коленях, над ними нападавший
-	character(chars, "Doomed1", "villager", Vector3(61.0, 0, 50.6), 0.0, {"display_name": "Житель", "start_pose": "yield", "groups": R_})
-	character(chars, "Doomed2", "villager_f", Vector3(63.3, 0, 50.9), 0.2, {"display_name": "Жительница", "start_pose": "yield", "groups": R_})
-	character(chars, "Executioner", "executioner", Vector3(62.2, 0, 48.4), 0.0, {"hostile": true, "aggro_radius": 6.5, "squad": "execs", "groups": R_})
+	# у северных ворот: часовой зовёт на помощь, пленные на коленях, двое нападавших
+	character(chars, "GateGuard", "defender", Vector3(62.0, 0, 36.4), PI, {"display_name": "Часовой Эрчим", "armed": true, "groups": R_})
+	character(chars, "Doomed1", "villager", Vector3(60.9, 0, 43.2), PI, {"display_name": "Житель", "start_pose": "yield", "groups": R_})
+	character(chars, "Doomed2", "villager_f", Vector3(63.2, 0, 43.5), PI + 0.2, {"display_name": "Жительница", "start_pose": "yield", "groups": R_})
+	character(chars, "Executioner", "executioner", Vector3(62.1, 0, 45.6), PI, {"squad": "gate", "armed": true, "groups": R_})
+	character(chars, "GateRaider", "raider_gun", Vector3(64.2, 0, 40.8), PI * 1.15, {"display_name": "Нападавший", "squad": "gate", "armed": true, "groups": R_})
 	# у старой черты — раненый нападавший (появится, когда тела обысканы)
 	character(chars, "ExitRaider", "exit_raider", Vector3(11.5, 0, W_GATE_Z + 2.2), -PI / 2.0, {"groups": ["exit_guard"]})
 	# мародёры, которые ещё шарят по дворам (можно обойти крадучись или напасть первым)
@@ -496,7 +498,7 @@ func _characters() -> void:
 	character(chars, "DeadVillager1", "villager", Vector3(52.5, 0, 55.5), 1.0, {"start_dead": true, "groups": R_})
 	character(chars, "DeadVillager2", "villager_f", Vector3(36.5, 0, 73.4), -0.6, {"start_dead": true, "groups": R_})
 	# нападавшие: сюжетные тела с модулями и те, кого положили у ворот
-	character(chars, "Raider1", "raider_dead_1", Vector3(61.4, 0, 29.6), 2.6, {"start_dead": true, "groups": R_})
+	character(chars, "Raider1", "raider_dead_1", Vector3(60.2, 0, 26.4), 2.6, {"start_dead": true, "groups": R_})
 	character(chars, "Raider2", "raider_dead_2", Vector3(41.5, 0, 58.6), -1.4, {"start_dead": true, "groups": R_})
 	character(chars, "Raider3", "raider_dead_3", Vector3(84.5, 0, 64.8), 0.9, {"start_dead": true, "groups": R_})
 	character(chars, "Raider4", "raider_dead_4", Vector3(16.5, 0, 62.8), -2.1, {"start_dead": true, "groups": R_})
@@ -600,6 +602,9 @@ func _clear_overlaps() -> void:
 	for ch in root.get_node("Characters").get_children():
 		if _inside(boxes, ch.position, 0.0):
 			push_warning("персонаж в стене: " + String(ch.name))
+		var rd := _ring_dist(Vector2(ch.position.x, ch.position.z))
+		if rd > DITCH_IN - 0.3 and rd < DITCH_OUT + 0.3:
+			push_warning("персонаж во рву или на мосту: " + String(ch.name))
 
 
 func _is_plant(path: String) -> bool:

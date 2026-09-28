@@ -17,7 +17,8 @@ const DUSK_AT := 3
 const FOREST_EDGE_Z := 26.0
 ## Где стоит дед во время налёта и откуда видна казнь
 const BARN_SCENE_R := 20.0
-const EXEC_SCENE_R := 17.0
+## С какого расстояния часовой у северных ворот замечает героя и зовёт на помощь
+const GATE_SCENE_R := 5.5
 
 var _kpk_busy := false
 var _volley_t := 2.0
@@ -28,6 +29,7 @@ var _prowl_t := 0.0
 var _prowl_pts: Array = []
 var _barn_t := -1.0
 var _ded_round := -1
+var _exec_round := -1
 
 
 func _ready() -> void:
@@ -92,12 +94,13 @@ func _apply_phase() -> void:
 			pr.hostile = true
 			pr.aggro_radius = 7.0
 			pr.set_held("crowbar")
-	# после казни — тела на улице
-	if Game.flag("exec_done"):
-		for n in ["Doomed1", "Doomed2"]:
-			var v := character(n)
-			if v:
-				v.pose = "dead"
+	# у ворот: после начала сцены нападавшие — враги
+	if Game.flag("gate_started"):
+		for n in ["Executioner", "GateRaider"]:
+			var e := character(n)
+			if e and e.pose != "dead":
+				e.hostile = true
+				e.aggro_radius = 8.0
 	# ушедшие «чистильщики»
 	if Game.flag("cleaners_left"):
 		for ch in characters():
@@ -278,10 +281,10 @@ func on_hero_moved(pos: Vector3) -> void:
 				Game.set_flag("strangers_seen")
 				main.say("thoughts", "strangers")
 				break
-	if not Game.flag("exec_done"):
-		var ex := character("Executioner")
-		if ex and ex.visible and ex.pose != "dead" and ex.global_position.distance_to(pos) < EXEC_SCENE_R:
-			_execution()
+	if Game.flag("fire_seen") and not Game.flag("gate_started"):
+		var gg := character("GateGuard")
+		if gg and gg.visible and gg.pose != "dead" and gg.global_position.distance_to(pos) < GATE_SCENE_R:
+			_gate_scene()
 	if not Game.flag("barn_started"):
 		var ded := character("DedRaid")
 		if ded and ded.global_position.distance_to(pos) < BARN_SCENE_R:
@@ -490,29 +493,76 @@ func leave_hide() -> void:
 	main.hidden = false
 
 
-# ---------------- казнь у площади ----------------
-func _execution() -> void:
-	Game.set_flag("exec_done")
+# ---------------- северные ворота: часовой, пленные, бой ----------------
+## Часовой зовёт на помощь — его тут же застреливают. Начинается бой с двумя
+## нападавшими; в первых раундах один из них расстреливает пленных, если его не остановить.
+func _gate_scene() -> void:
+	Game.set_flag("gate_started")
+	main.player.stop()
+	var gg := character("GateGuard")
+	var gr := character("GateRaider")
 	var ex := character("Executioner")
-	main.say("thoughts", "execution")
+	gg.face_towards(main.player.global_position)
+	gg.act("wave")
+	main.hud.float_text(gg.global_position + Vector3(0, 2.3, 0), "Напали! Помоги, они внутри!", "")
+	Game.log_line("Эрчим: «Напали! Помоги, они внутри!»", "", "miss")
+	await get_tree().create_timer(1.5, false).timeout
+	if gr and gr.pose != "dead":
+		gr.face_towards(gg.global_position)
+		gr.aim_pose = true
+		gr.act("fire", Callable(), {"n": 2})
+	await get_tree().create_timer(0.7, false).timeout
+	_kill_npc(gg)
+	main.hud.float_text(gg.global_position + Vector3(0, 1.6, 0), "Эрчим!", "hit")
+	main.say("thoughts", "gate_guard_dead")
+	await get_tree().create_timer(1.2, false).timeout
+	for e in [ex, gr]:
+		if e and e.pose != "dead":
+			e.hostile = true
+			e.aggro_radius = 8.0
+	if not main.combat.on and ex and ex.pose != "dead":
+		main.start_fight([ex])
+
+
+func _kill_npc(ch: Character) -> void:
+	if ch == null or ch.pose == "dead":
+		return
+	ch.pose = "dead"
+	ch.aim_pose = false
+	ch.set_held("")
+	ws().dead[ch.uid()] = true
+	ws().looted[ch.uid()] = true
+
+
+## В первых двух раундах боя у ворот стрелок расстреливает пленного (если ещё жив)
+func _gate_round(r: int) -> void:
+	if r == _exec_round or r > 2:
+		return
+	_exec_round = r
+	var ex := character("Executioner")
+	if ex == null or ex.pose == "dead" or (ex.fighter and not ex.fighter.active()):
+		return
 	for n in ["Doomed1", "Doomed2"]:
 		var v := character(n)
-		if v == null or v.pose == "dead":
-			continue
-		await get_tree().create_timer(1.6, false).timeout
-		if main.combat.on or ex.pose == "dead":
+		if v and v.visible and v.pose == "yield":
+			ex.face_towards(v.global_position)
+			ex.act("fire", Callable(), {"n": 1})
+			_kill_npc(v)
+			Game.log_line("%s стреляет в пленного!" % ex.display_name, "", "hit")
+			main.hud.float_text(v.global_position + Vector3(0, 1.4, 0), "Нет!", "hit")
+			if r == 2 or _doomed_alive() == 0:
+				Game.set_flag("exec_done")
+				main.say("thoughts", "execution_after")
 			return
-		ex.face_towards(v.global_position)
-		ex.aim_pose = true
-		var shot := func(_k):
-			v.pose = "dead"
-			ws().dead[v.uid()] = true
-			ws().looted[v.uid()] = true
-		ex.act("fire", Callable(), {"n": 1, "per_shot": shot})
-	await get_tree().create_timer(1.4, false).timeout
-	if ex.pose != "dead" and not main.combat.on:
-		ex.aim_pose = false
-		main.say("thoughts", "execution_after")
+
+
+func _doomed_alive() -> int:
+	var n := 0
+	for k in ["Doomed1", "Doomed2"]:
+		var v := character(k)
+		if v and v.pose != "dead":
+			n += 1
+	return n
 
 
 # ---------------- дед у амбара ----------------
@@ -696,6 +746,8 @@ func on_dialog_action(a: String, _sp: Character) -> bool:
 
 # ---------------- бой ----------------
 func on_combat_round(r: int) -> void:
+	if _fighting_squad("gate"):
+		_gate_round(r)
 	if not _fighting_cleaners() or Game.flag("ded_shot") or r == _ded_round:
 		return
 	_ded_round = r
@@ -775,10 +827,14 @@ func on_combat_end(res: String, kind: String) -> void:
 
 
 func _fighting_cleaners() -> bool:
+	return _fighting_squad("cleaners")
+
+
+func _fighting_squad(sq: String) -> bool:
 	if not main.combat.on:
 		return false
 	for u in main.combat.units:
-		if not u.is_hero and u.node.squad == "cleaners":
+		if not u.is_hero and u.node.squad == sq:
 			return true
 	return false
 

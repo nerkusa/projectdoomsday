@@ -335,9 +335,29 @@ func _ready() -> void:
 		await fight()
 		ok(prowler.pose == "dead" and Game.flag("ambush_done"), "нападавший с монтировкой убит")
 	Game.hero.stats.PRC = 5
-	await tp(Vector3(62, 0, 28))
+	await tp(Vector3(62, 0, 26.6))
 	await wait(0.6)
 	ok(Game.flag("fire_seen"), "увидел пожар")
+	# --- северные ворота: часовой зовёт на помощь, бой, пленные ---
+	ok(not Game.flag("gate_started"), "с моста сцену у ворот ещё не видно")
+	await tp(Vector3(62, 0, 31.5))
+	await wait(0.5)
+	ok(Game.flag("gate_started"), "часовой у ворот зовёт на помощь")
+	var tg := 0.0
+	while not main.combat.on and tg < 10.0:
+		await wait(0.25)
+		tg += 0.25
+	ok(main.location.character("GateGuard").pose == "dead", "часового застрелили")
+	ok(main.combat.on, "бой у ворот")
+	await fight()
+	ok(main.location.character("Executioner").pose == "dead" and main.location.character("GateRaider").pose == "dead", "нападавшие у ворот побеждены")
+	await wait(1.0)
+	var saved := 0
+	for n in ["Doomed1", "Doomed2"]:
+		if main.location.character(n).pose != "dead":
+			saved += 1
+	print("  пленных спасено: ", saved, " из 2")
+	ok(saved < 2, "стрелок успел выстрелить в пленного")
 	var r1: Character = main.location.character("Raider1")
 	await tp(r1.global_position + Vector3(1.2, 0, 0))
 	main.loot(r1)
@@ -347,12 +367,6 @@ func _ready() -> void:
 	Game.hero.active = 0
 	Game.auto_reload()
 	main.player.set_held("pistol")
-
-	# --- казнь на улице ---
-	await tp(Vector3(56, 0, 40))
-	await wait(6.0)
-	ok(Game.flag("exec_done") and main.location.character("Doomed1").pose == "dead", "казнь у площади")
-	ok(not main.combat.on, "казнь не начала бой сама")
 
 	# --- дед у амбара ---
 	if stealth:

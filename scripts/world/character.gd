@@ -72,6 +72,24 @@ var _bracelet: Node3D
 var _plug_dev: Node3D
 var _plug_cable: Array = []
 var _plug_label: Label3D
+## Отметки: силуэт сквозь препятствия, кружок под ногами, полупрозрачность в стелсе
+var _body_meshes: Array = []
+var _ring: MeshInstance3D
+var _mark := ""
+var _mark_t := 0.0
+var _see_through := 0.0
+static var _mats := {}
+
+## Цвета отметок: силуэт (с прозрачностью) и кружок
+const MARKS := {
+	"hero": [Color(0.55, 0.82, 1.0, 0.55), Color(0, 0, 0, 0)],
+	"hero_sneak": [Color(0.55, 0.82, 1.0, 0.55), Color(0, 0, 0, 0)],
+	"enemy": [Color(1.0, 0.32, 0.25, 0.5), Color(1.0, 0.3, 0.2, 0.75)],
+	"talk": [Color(1.0, 0.85, 0.4, 0.45), Color(1.0, 0.82, 0.35, 0.7)],
+	"npc": [Color(0.9, 0.88, 0.8, 0.35), Color(0.9, 0.88, 0.8, 0.45)],
+	"corpse": [Color(0.75, 0.75, 0.75, 0.35), Color(0, 0, 0, 0)],
+	"none": [Color(0, 0, 0, 0), Color(0, 0, 0, 0)],
+}
 
 
 func _ready() -> void:
@@ -170,6 +188,7 @@ func _build_visual() -> void:
 		body = h
 	var sc := float(tpl.get("scale", 1.0))
 	rig.scale = Vector3.ONE * sc
+	_collect_meshes(rig)
 	_flash = OmniLight3D.new()
 	_flash.light_color = Color("ffc46b")
 	_flash.omni_range = 5.0
@@ -224,6 +243,10 @@ func _process(delta: float) -> void:
 			global_position += Vector3(dn.x, 0, dn.y) * st
 			rotation.y = lerp_angle(rotation.y, atan2(dn.x, dn.y), 0.3)
 	_patrol(delta)
+	_mark_t -= delta
+	if _mark_t <= 0.0:
+		_mark_t = 0.25
+		_update_marks()
 	if body is AnimBody:
 		_animate_clips(delta)
 	else:
@@ -727,3 +750,87 @@ func _plug_clear() -> void:
 	_plug_label = null
 	if _held_node:
 		_held_node.visible = true
+
+
+# ---------------- отметки: силуэт, кружок, стелс ----------------
+func _collect_meshes(n: Node) -> void:
+	if n is MeshInstance3D:
+		_body_meshes.append(n)
+	for c in n.get_children():
+		_collect_meshes(c)
+
+
+func _mark_kind() -> String:
+	if tpl.get("dummy", false) or not visible:
+		return "none"
+	if is_player:
+		return "hero_sneak" if bool(Game.hero.get("sneak", false)) else "hero"
+	if pose == "dead":
+		var loc := get_tree().get_first_node_in_group("location")
+		if loc and not loc.ws().looted.has(uid()):
+			return "corpse"
+		return "none"
+	if hostile:
+		return "enemy"
+	return "talk" if dialog != "" else "npc"
+
+
+func _update_marks() -> void:
+	var k := _mark_kind()
+	if k != _mark:
+		_mark = k
+		var sil: Color = MARKS[k][0]
+		var ov: Material = null if sil.a <= 0.0 else _sil_mat(sil, 0.45 if k == "hero_sneak" else 0.0)
+		for m in _body_meshes:
+			if is_instance_valid(m):
+				(m as MeshInstance3D).material_overlay = ov
+		var rc: Color = MARKS[k][1]
+		if rc.a > 0.0:
+			if _ring == null:
+				_ring = MeshInstance3D.new()
+				var tm := TorusMesh.new()
+				tm.inner_radius = 0.36
+				tm.outer_radius = 0.44
+				tm.rings = 24
+				tm.ring_segments = 4
+				_ring.mesh = tm
+				_ring.scale = Vector3(1, 0.08, 1)
+				_ring.position = Vector3(0, 0.03, 0)
+				_ring.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+				add_child(_ring)
+			_ring.material_override = _ring_mat(rc)
+			_ring.visible = true
+		elif _ring:
+			_ring.visible = false
+	# герой крадётся или прячется — становится полупрозрачным
+	if is_player:
+		var sneak := bool(Game.hero.get("sneak", false))
+		var target := 0.5 if sneak else 0.0
+		if target != _see_through:
+			_see_through = target
+			for m in _body_meshes:
+				if is_instance_valid(m):
+					(m as GeometryInstance3D).transparency = target
+
+
+static func _sil_mat(c: Color, ghost := 0.0) -> ShaderMaterial:
+	var key := "s" + c.to_html() + str(ghost)
+	if not _mats.has(key):
+		var m := ShaderMaterial.new()
+		m.shader = load("res://assets/shaders/xray_silhouette.gdshader")
+		m.set_shader_parameter("color", c)
+		m.set_shader_parameter("ghost", ghost)
+		_mats[key] = m
+	return _mats[key]
+
+
+static func _ring_mat(c: Color) -> StandardMaterial3D:
+	var key := "r" + c.to_html()
+	if not _mats.has(key):
+		var m := StandardMaterial3D.new()
+		m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+		m.albedo_color = c
+		m.no_depth_test = false
+		_mats[key] = m
+	return _mats[key]
