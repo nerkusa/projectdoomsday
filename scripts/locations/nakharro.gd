@@ -239,6 +239,39 @@ func on_noticed(ch: Character) -> bool:
 
 
 func on_interact(it: Interactable) -> bool:
+	if String(it.name).begins_with("Junk"):
+		if Game.quest_stage("barn_junk") != 1:
+			main.hud.flash_tip("Варвара не просила разбирать")
+			return true
+		ws().picked[it.uid()] = true
+		it.set_active(false)
+		main.player.act("pickup")
+		var n := int(Game.flag_value("junk_n", 0)) + 1
+		Game.set_flag("junk_n", n)
+		Game.log_line("Хлам разобран: %d/3" % n)
+		if n >= 3:
+			Game.set_quest("barn_junk", 2)
+		return true
+	if it.name == "LockedBox":
+		if Game.flag("box_open"):
+			return true
+		if Game.flag("box_jammed"):
+			main.hud.flash_tip("Замок заклинило намертво")
+			return true
+		main.player.act("pickup")
+		if Game.skill_check("Взлом замков", "DEX", "Взлом замков", 11):
+			Game.set_flag("box_open")
+			ws().picked[it.uid()] = true
+			it.set_active(false)
+			Game.add_item("ammo9", 6)
+			Game.add_item("canned", 1)
+			Game.log_line("В сундуке: патроны 9 мм ×6, консервы", "", "hit")
+			Game.add_note("В старом сундуке в амбаре — довоенная коробка патронов. Кто-то когда-то спрятал «не на себя», а на чёрный день.")
+			Game.grant_xp(25)
+		else:
+			Game.set_flag("box_jammed")
+			Game.log_line("Отмычка хрустнула — замок заклинило.", "", "miss")
+		return true
 	if it.name == "BorderExit":
 		if phase() == "morning":
 			main.say("thoughts", "law_border")
@@ -278,6 +311,30 @@ func on_dialog_action(a: String, _sp: Character) -> bool:
 			_check_kpk()
 			main.autosave()
 			return true
+		"hunter_spar":
+			var hunter := character("Hunter")
+			main.dialog.close()
+			Game.set_flag("hunter_spar")
+			main.combat.start([hunter], {"kind": "spar"})
+			return true
+		"range_start":
+			main.dialog.close()
+			var targets := []
+			for ch in characters():
+				if ch.is_in_group("range_targets") and ch.pose != "dead":
+					targets.append(ch)
+			if targets.is_empty():
+				return true
+			if Game.hero_wkey() == "knife" or Game.hero_wkey() == "fists":
+				main._swap_hands()
+			Game.set_flag("range_on")
+			main.combat.start(targets, {"kind": "range"})
+			return true
+		"range_reward":
+			Game.hero.skills["Дальний бой"] = int(Game.hero.skills.get("Дальний бой", 0)) + 1
+			Game.log_line("Дальний бой +1 — урок Бэргэна.", "", "hit")
+			Game.hero_changed.emit()
+			return true
 		"open_kpk":
 			main.open_kpk.call_deferred("stat")
 			return true
@@ -302,7 +359,16 @@ func on_fighter_down(f: Fighter) -> void:
 		_shoot_ded(shooter if shooter else f.node, shooter == null)
 
 
-func on_combat_end(res: String, _kind: String) -> void:
+func on_combat_end(res: String, kind: String) -> void:
+	if kind == "spar" and Game.flag("hunter_spar") and not Game.flag("hunter_done"):
+		await get_tree().create_timer(0.6, false).timeout
+		main.talk_to(character("Hunter"), "won" if res == "win" else "lost")
+		return
+	if kind == "range" and Game.flag("range_on"):
+		Game.set_flag("range_on", false)
+		await get_tree().create_timer(0.6, false).timeout
+		main.talk_to(character("Shooter"), "done")
+		return
 	if res != "win" or Game.flag("ded_dead") or not Game.flag("barn_started"):
 		return
 	if _alive_cleaner() != null:

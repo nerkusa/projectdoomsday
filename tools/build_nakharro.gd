@@ -26,7 +26,7 @@ func _ready() -> void:
 			"rock", "fire", "well", "woodpile", "table", "tractor", "garden", "fence", "fence_broken", "border_post", "sign",
 			"planks", "basket", "mushroom", "berries", "bandage",
 			"item_flask", "item_matches", "item_blanket", "item_rope", "item_compass", "item_rusks",
-			"item_dried_fish", "item_canned", "item_herbs"]:
+			"item_dried_fish", "item_canned", "item_herbs", "junk", "locked_box"]:
 		P[n] = load(PROP_DIR + n + ".tscn")
 	_build()
 	print("Деревня собрана.")
@@ -49,6 +49,7 @@ func _build() -> void:
 	_raid()
 	_characters()
 	_items()
+	_clear_overlaps()
 	var ps := PackedScene.new()
 	var err := ps.pack(root)
 	if err != OK:
@@ -231,6 +232,8 @@ func _forest() -> void:
 		if absf(z - W_GATE_Z) < 3.0 and x < 26:
 			continue
 		var ok := Vector2(x, z).distance_to(Vector2(92, 10)) > 6.5  # поляна пса
+		ok = ok and Vector2(x, z).distance_to(Vector2(46, 16)) > 5.0  # поляна охотника
+		ok = ok and not (x > 66 and x < 84 and z > 18.5)  # стрельбище за воротами
 		for c in keep:
 			if Vector2(x, z).distance_to(c) < 2.2:
 				ok = false
@@ -275,25 +278,43 @@ func _characters() -> void:
 	character(chars, "Ded", "ded", Vector3(46.8, 0, 46.4), PI, {"dialog": "ded", "groups": M_})
 	character(chars, "Stepan", "stepan", Vector3(74.5, 0, 46.2), PI * 0.9, {"dialog": "stepan", "groups": M_})
 	character(chars, "Varvara", "varvara", Vector3(75.5, 0, 59.5), -PI / 2.0, {"dialog": "varvara", "groups": M_})
-	character(chars, "Kid", "kid", Vector3(66.5, 0, 58.2), -0.8, {"dialog": "kid", "groups": M_})
+	character(chars, "Kid", "kid", Vector3(66.5, 0, 58.2), -0.8, {"dialog": "kid", "groups": M_,
+		"patrol": PackedVector3Array([Vector3(66.5, 0, 58.2), Vector3(60.5, 0, 62.5), Vector3(58.5, 0, 60), Vector3(64, 0, 55.5)])})
 	character(chars, "Wolf", "wolf", Vector3(92, 0, 10), 1.2, {"hostile": true, "aggro_radius": 7.0, "groups": M_})
 	# жители утром: часовые, огородницы, мастер, старики на площади
-	character(chars, "GuardN", "defender", Vector3(60.2, 0, 37.2), PI, {"display_name": "Часовой Эрчим", "armed": true, "groups": M_})
+	character(chars, "GuardN", "defender", Vector3(60.2, 0, 37.2), PI, {"display_name": "Часовой Эрчим", "dialog": "guard", "armed": true, "groups": M_})
 	character(chars, "GuardW", "defender_f", Vector3(27.6, 0, W_GATE_Z - 1.6), -PI / 2.0, {"display_name": "Часовая Сардана", "armed": true, "groups": M_})
 	character(chars, "Gardener1", "villager_f", Vector3(73.5, 0, 83.2), 0.6, {"display_name": "Огородница", "groups": M_})
 	character(chars, "Gardener2", "villager_f", Vector3(84.5, 0, 87.2), -2.2, {"display_name": "Огородница", "groups": M_})
-	character(chars, "Smith", "villager", Vector3(35.6, 0, 62.5), -PI / 2.0, {"display_name": "Мастер Тимир", "groups": M_})
-	character(chars, "Elder1", "villager", Vector3(54.4, 0, 55.4), 0.3, {"display_name": "Старик", "start_pose": "sit", "groups": M_})
+	character(chars, "Smith", "villager", Vector3(35.6, 0, 62.5), -PI / 2.0, {"display_name": "Мастер Тимир", "dialog": "smith", "groups": M_})
+	character(chars, "Elder1", "elder", Vector3(54.4, 0, 55.4), 0.3, {"dialog": "elder", "start_pose": "sit", "groups": M_})
 	character(chars, "Elder2", "villager_f", Vector3(53.4, 0, 58.2), 2.8, {"display_name": "Старуха", "start_pose": "sit", "groups": M_})
-	character(chars, "Villager3", "villager", Vector3(89.5, 0, 57.5), 1.4, {"display_name": "Житель", "groups": M_})
-	character(chars, "Villager4", "villager", Vector3(64.0, 0, 88.5), -0.5, {"display_name": "Житель", "groups": M_})
+	# прохожие ходят по улицам и рассказывают слухи
+	character(chars, "Villager3", "villager", Vector3(40, 0, 46.3), 1.4, {"display_name": "Прохожий", "dialog": "rumors", "groups": M_,
+		"patrol": PackedVector3Array([Vector3(40, 0, 46.3), Vector3(90, 0, 46.3)])})
+	character(chars, "Villager4", "villager_f", Vector3(88, 0, 76.4), -0.5, {"display_name": "Прохожая", "dialog": "rumors", "groups": M_,
+		"patrol": PackedVector3Array([Vector3(88, 0, 76.4), Vector3(40, 0, 76.4)])})
+	character(chars, "WaterCarrier", "villager", Vector3(67.5, 0, 58.6), 0.0, {"display_name": "Водонос", "dialog": "rumors", "groups": M_,
+		"patrol_wait": 2.5, "patrol": PackedVector3Array([Vector3(67.5, 0, 58.6), Vector3(62, 0, 58.6), Vector3(62, 0, 47.2),
+			Vector3(52, 0, 47.2), Vector3(62, 0, 47.2), Vector3(62, 0, 58.6)])})
+	# начальные задания: разговоры, проверки навыков, драка, стрельбище
+	character(chars, "Nyurguyana", "girl", Vector3(70.3, 0, 54.2), -0.9, {"dialog": "girl", "groups": M_})
+	character(chars, "Gambler", "gambler", Vector3(56.4, 0, 57.8), -2.1, {"dialog": "gambler", "start_pose": "sit", "groups": M_})
+	character(chars, "Hunter", "hunter", Vector3(46, 0, 16), 0.5, {"dialog": "hunter", "groups": M_})
+	character(chars, "Shooter", "shooter", Vector3(74, 0, 30.5), PI, {"dialog": "shooter", "armed": true, "groups": M_})
+	var izba9: Node3D = root.get_node("Village/Izba9")
+	character(chars, "Sick", "sick", izba9.transform * Vector3(1.0, 0, -0.4), -1.2, {"dialog": "sick", "start_pose": "down", "groups": M_})
+	var ti := 0
+	for p in [Vector3(70.5, 0, 25.2), Vector3(74, 0, 24.6), Vector3(77.5, 0, 25.4)]:
+		ti += 1
+		character(chars, "Target%d" % ti, "target", p, 0.0, {"groups": ["phase_morning", "range_targets"]})
 	# налёт: дед и «чистильщики» у амбара
 	character(chars, "DedRaid", "ded", Vector3(75.0, 0, 61.5), -PI / 2.0, {"dialog": "ded", "dialog_node": "last", "groups": R_})
 	character(chars, "SoldierA", "soldier_a", Vector3(72.0, 0, 58.2), PI * 0.2, {"hostile": true, "aggro_radius": 8.5, "squad": "cleaners", "groups": R_})
 	character(chars, "SoldierB", "soldier_b", Vector3(72.8, 0, 64.4), -PI * 0.3, {"hostile": true, "aggro_radius": 8.5, "squad": "cleaners", "groups": R_})
 	# защитники держат ворота
-	for c in [["DefenderN1", "defender", Vector3(59.6, 0, 39.4), PI], ["DefenderN2", "defender_f", Vector3(65.4, 0, 39.6), PI + 0.2],
-			["DefenderW1", "defender", Vector3(29.6, 0, W_GATE_Z - 2.4), -PI / 2.0], ["DefenderW2", "defender", Vector3(29.8, 0, W_GATE_Z + 2.2), -PI / 2.0 - 0.2]]:
+	for c in [["DefenderN1", "defender", Vector3(59.6, 0, 39.4), PI], ["DefenderN2", "defender_f", Vector3(64.0, 0, 39.3), PI + 0.2],
+			["DefenderW1", "defender", Vector3(29.6, 0, W_GATE_Z - 2.4), -PI / 2.0], ["DefenderW2", "defender", Vector3(29.1, 0, W_GATE_Z + 2.0), -PI / 2.0 - 0.2]]:
 		var ch := character(chars, c[0], c[1], c[2], c[3], {"dialog": "defender", "armed": true, "groups": R_})
 		ch.add_to_group("defenders", true)
 	character(chars, "WoundedDefender", "villager", Vector3(60.5, 0, 57.8), 1.0, {"display_name": "Раненый", "start_pose": "down", "groups": R_})
@@ -303,7 +324,7 @@ func _characters() -> void:
 	character(chars, "Gunman", "raider_gun", Vector3(94.5, 0, 67.8), PI, {"hostile": true, "aggro_radius": 6.5, "squad": "gunman", "groups": R_})
 	# погибшие жители
 	character(chars, "DeadStepan", "stepan", Vector3(70.5, 0, 46.3), 0.4, {"start_dead": true, "display_name": "Степан", "groups": R_})
-	character(chars, "DeadVarvara", "varvara", Vector3(77.0, 0, 65.0), 2.2, {"start_dead": true, "display_name": "Тётка Варвара", "groups": R_})
+	character(chars, "DeadVarvara", "varvara", Vector3(76.2, 0, 66.4), 2.2, {"start_dead": true, "display_name": "Тётка Варвара", "groups": R_})
 	character(chars, "DeadVillager1", "villager", Vector3(52.5, 0, 55.5), 1.0, {"start_dead": true, "groups": R_})
 	character(chars, "DeadVillager2", "villager_f", Vector3(36.5, 0, 73.4), -0.6, {"start_dead": true, "groups": R_})
 	# нападавшие: сюжетные тела с модулями и те, кого положили у ворот
@@ -347,6 +368,13 @@ func _items() -> void:
 		var pos: Vector3 = house.transform * slot.position
 		var ps: PackedScene = P.bandage if it[2] == "bandage" else P["item_" + it[2]]
 		item(items, ps, "Take_%s_%s" % [it[0], it[1]], pos)
+	# амбар: три кучи хлама и запертый сундук
+	var barn: Node3D = root.get_node("Village/Barn")
+	var ji := 0
+	for lp in [Vector3(-1.0, 0, 1.3), Vector3(1.6, 0, 0.9), Vector3(-2.9, 0, 1.6)]:
+		ji += 1
+		put(P.junk, items, barn.transform * lp, randf() * TAU, "Junk%d" % ji)
+	put(P.locked_box, items, barn.transform * Vector3(0.8, 0, -2.2), barn.rotation.y, "LockedBox")
 	var ex := _item_base("BorderExit")
 	ex.set("kind", "use")
 	ex.set("label", "Старая черта")
@@ -367,3 +395,50 @@ func _items() -> void:
 	marker(root, "MarkHall", Vector3(62, 0, 69.5), "Дом собраний")
 	marker(root, "MarkForest", Vector3(64, 0, 12), "Лес")
 	marker(root, "MarkBorder", Vector3(6, 0, W_GATE_Z), "Черта")
+
+
+# ---------------- проверка: ничего не растёт внутри построек ----------------
+## Убирает деревья, кусты и камни, попавшие в постройки (с запасом 1,5 м на крону),
+## и предупреждает о персонажах, стоящих в стенах.
+func _clear_overlaps() -> void:
+	var boxes := []
+	for grp in ["Village", "Palisade", "RaidFX"]:
+		for b in root.get_node(grp).get_children():
+			var sp := String(b.scene_file_path)
+			if sp == "" or _is_plant(sp):
+				continue
+			var body := b.get_node_or_null("Collision")
+			if body == null:
+				continue
+			for cs in body.get_children():
+				if cs is CollisionShape3D and cs.shape is BoxShape3D:
+					boxes.append([b.transform * body.transform * cs.transform, (cs.shape as BoxShape3D).size])
+	var removed := 0
+	for grp in ["Village", "Forest"]:
+		for t in root.get_node(grp).get_children():
+			if not _is_plant(String(t.scene_file_path)):
+				continue
+			if _inside(boxes, t.position, 1.5):
+				t.get_parent().remove_child(t)
+				t.free()
+				removed += 1
+	print("  убрано деревьев/кустов из построек: ", removed)
+	for ch in root.get_node("Characters").get_children():
+		if _inside(boxes, ch.position, 0.0):
+			push_warning("персонаж в стене: " + String(ch.name))
+
+
+func _is_plant(path: String) -> bool:
+	for k in ["birch", "bush", "spruce", "pine", "dead_tree", "larch", "rock"]:
+		if path.ends_with("/" + k + ".tscn"):
+			return true
+	return false
+
+
+func _inside(boxes: Array, p: Vector3, margin: float) -> bool:
+	for bx in boxes:
+		var l: Vector3 = (bx[0] as Transform3D).affine_inverse() * Vector3(p.x, 0.5, p.z)
+		var h: Vector3 = bx[1] / 2.0 + Vector3(margin, 5.0, margin)
+		if absf(l.x) < h.x and absf(l.z) < h.z:
+			return true
+	return false

@@ -6,15 +6,15 @@
 [ext_resource type="Material" path="res://assets/materials/rope_mat.tres" id="4_dpd2c"]
 [ext_resource type="ArrayMesh" path="res://assets/models/props/item_herbs_rope_mat.res" id="5_j7m3e"]
 
-[node name="Item" type="Node3D" unique_id=1496449224]
+[node name="Item" type="Node3D" unique_id=1759017377]
 script = ExtResource("1_t8qtp")
 item_id = "herbs"
 pick_size = Vector3(0.45, 0.3, 0.4)
 
-[node name="Mesh_herb" type="MeshInstance3D" parent="." unique_id=43007421]
+[node name="Mesh_herb" type="MeshInstance3D" parent="." unique_id=1937427915]
 material_override = ExtResource("2_ppook")
 mesh = ExtResource("3_nsufa")
 
-[node name="Mesh_rope_mat" type="MeshInstance3D" parent="." unique_id=610579352]
+[node name="Mesh_rope_mat" type="MeshInstance3D" parent="." unique_id=922983014]
 material_override = ExtResource("4_dpd2c")
 mesh = ExtResource("5_j7m3e")

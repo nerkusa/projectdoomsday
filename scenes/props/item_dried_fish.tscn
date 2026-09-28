@@ -6,15 +6,15 @@
 [ext_resource type="Material" path="res://assets/materials/rope_mat.tres" id="4_btfig"]
 [ext_resource type="ArrayMesh" path="res://assets/models/props/item_dried_fish_rope_mat.res" id="5_binnn"]
 
-[node name="Item" type="Node3D" unique_id=169403050]
+[node name="Item" type="Node3D" unique_id=342647408]
 script = ExtResource("1_if8sr")
 item_id = "dried_fish"
 pick_size = Vector3(0.5, 0.3, 0.4)
 
-[node name="Mesh_fish" type="MeshInstance3D" parent="." unique_id=1375003968]
+[node name="Mesh_fish" type="MeshInstance3D" parent="." unique_id=845986085]
 material_override = ExtResource("2_vhlik")
 mesh = ExtResource("3_h3cwk")
 
-[node name="Mesh_rope_mat" type="MeshInstance3D" parent="." unique_id=2096362565]
+[node name="Mesh_rope_mat" type="MeshInstance3D" parent="." unique_id=1166111384]
 material_override = ExtResource("4_btfig")
 mesh = ExtResource("5_binnn")

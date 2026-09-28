@@ -26,6 +26,11 @@ extends Node3D
 @export var start_dead := false
 ## Держит оружие из шаблона, даже если не враг (часовые, защитники)
 @export var armed := false
+## Маршрут прогулки (точки в мире, по кругу); пусто — стоит на месте.
+## Между точками идёт по прямой, так что ставь их вдоль улиц.
+@export var patrol := PackedVector3Array()
+## Сколько секунд постоять в каждой точке
+@export var patrol_wait := 4.0
 ## Поза с начала: "", "sit", "down", "yield"
 @export var start_pose := ""
 ## Показывать героя моделью из hero.glb
@@ -57,6 +62,8 @@ var _held_node: Node3D
 var _flash: OmniLight3D
 var _pick_area: Area3D
 var fighter: Fighter = null
+var _patrol_i := 0
+var _patrol_t := 1.0
 var is_player := false
 var aim_pose := false
 
@@ -131,7 +138,12 @@ func _build_visual() -> void:
 	rig = Node3D.new()
 	rig.name = "Rig"
 	add_child(rig)
-	if use_anim_model:
+	if tpl.get("dummy", false):
+		var tb := TargetBody.new()
+		rig.add_child(tb)
+		tb.build()
+		body = tb
+	if body == null and use_anim_model:
 		var ab := AnimBody.new()
 		rig.add_child(ab)
 		if ab.build(tpl.get("look", {})):
@@ -205,10 +217,25 @@ func _process(delta: float) -> void:
 			var dn := d.normalized()
 			global_position += Vector3(dn.x, 0, dn.y) * st
 			rotation.y = lerp_angle(rotation.y, atan2(dn.x, dn.y), 0.3)
+	_patrol(delta)
 	if body is AnimBody:
 		_animate_clips(delta)
 	else:
 		_animate(delta)
+
+
+## Прогулка по маршруту patrol: только вне боя и разговоров
+func _patrol(delta: float) -> void:
+	if patrol.is_empty() or moving or pose != "" or not _act.is_empty() or not visible or fighter != null:
+		return
+	var loc := get_tree().get_first_node_in_group("location")
+	if loc == null or loc.main == null or loc.main.dialog.visible or loc.main.combat.on:
+		return
+	_patrol_t -= delta
+	if _patrol_t > 0.0:
+		return
+	_patrol_i = (_patrol_i + 1) % patrol.size()
+	move_along([patrol[_patrol_i]], func(): _patrol_t = patrol_wait + randf() * 2.0, 1.4)
 
 
 # ---------------- действия (анимации с обратным вызовом) ----------------

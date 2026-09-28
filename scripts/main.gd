@@ -354,6 +354,7 @@ func talk_to(ch: Character, node := "") -> void:
 	if ch.dialog == "":
 		return
 	player.face_towards(ch.global_position)
+	ch.stop()
 	ch.face_towards(player.global_position)
 	dialog.open(ch.dialog, node if node != "" else ch.dialog_node, ch)
 

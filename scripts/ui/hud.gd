@@ -343,7 +343,7 @@ func _on_log(head: String, detail: String, cls: String) -> void:
 	elif cls == "miss":
 		col = "#d8e89a"
 	_log.append_text("[color=%s]%s[/color]\n" % [col, _esc(head)])
-	if detail != "" and Game.settings.get("show_rolls", true):
+	if detail != "" and Game.settings.get("show_rolls", false):
 		_log.append_text("[color=#5f9a58]   %s[/color]\n" % _esc(detail))
 
 

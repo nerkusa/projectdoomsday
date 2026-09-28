@@ -12,7 +12,8 @@ const SETTINGS_PATH := "user://settings.json"
 var hero: Dictionary = {}
 ## Состояние мира по локациям: {"nakharro": {"dead": {...}, "looted": {...}, "picked": {...}}}
 var world: Dictionary = {}
-var settings := {"text_speed": "normal", "show_rolls": true}
+## show_rolls — показывать ли броски и формулы в журнале (по умолчанию нет)
+var settings := {"text_speed": "normal", "show_rolls": false}
 
 
 func _ready() -> void:
@@ -313,6 +314,10 @@ func _load_settings() -> void:
 		var d = JSON.parse_string(FileAccess.get_file_as_string(SETTINGS_PATH))
 		if d is Dictionary:
 			settings.merge(d, true)
+			# раньше броски показывались по умолчанию — прячем один раз
+			if not d.has("rolls_v2"):
+				settings.show_rolls = false
+				settings["rolls_v2"] = true
 
 
 func save_settings() -> void:

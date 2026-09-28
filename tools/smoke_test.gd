@@ -190,6 +190,74 @@ func _ready() -> void:
 	ok(Game.quest_stage("chores") == 3, "дед отправил в лес")
 	ok(Game.quest_stage("forest") == 1, "задание «Лес» взято")
 
+	# --- побочные задания утром ---
+	# хлам в амбаре и запертый сундук
+	main.talk_to(main.location.character("Varvara"))
+	await frames(2)
+	await choose(find_opt("Чем ещё"))
+	await close_dialogs()
+	ok(Game.quest_stage("barn_junk") == 1, "Варвара дала задание про хлам")
+	for n in ["Junk1", "Junk2", "Junk3", "LockedBox"]:
+		var jt: Interactable = main.location.item(n)
+		await tp(Vector3(jt.global_position.x + 0.8, 0, jt.global_position.z + 0.8))
+		main.interact(jt)
+		await wait(0.4)
+	ok(Game.quest_stage("barn_junk") == 2, "хлам разобран")
+	ok(Game.flag("box_open") or Game.flag("box_jammed"), "сундук: взлом попробован (%s)" % ("открыт" if Game.flag("box_open") else "заклинило"))
+	main.talk_to(main.location.character("Varvara"))
+	await frames(2)
+	await choose(find_opt("Хлам разобрал"))
+	await close_dialogs()
+	ok(Game.quest_stage("barn_junk") == 3, "награда за хлам")
+	# разговоры с проверками навыков
+	main.talk_to(main.location.character("Elder1"))
+	await frames(2)
+	await choose(find_opt("Расскажи"))
+	await choose(find_opt("[Убеждение]"))
+	var guard2 := 0
+	while main.dialog.visible and guard2 < 6:
+		await choose(0)
+		guard2 += 1
+	ok(Game.quest_stage("elder") >= 1, "старик: убеждение (%s)" % ("рассказал" if Game.flag("elder_told") else "не уговорил"))
+	for who in [["Smith", "Что у тебя", "[Наука]"], ["GuardN", "[Обман]", ""], ["Nyurguyana", "[Обольщение]", ""], ["Gambler", "[Внимательность]", ""], ["Sick", "[Медицина]", ""]]:
+		main.talk_to(main.location.character(who[0]))
+		await frames(2)
+		await choose(find_opt(who[1]))
+		if who[2] != "":
+			await choose(find_opt(who[2]))
+		await close_dialogs()
+	ok(Game.flag("guard_lied") and (Game.flag("flirt_ok") or Game.flag("flirt_fail")) and Game.flag("gambler_caught") and Game.flag("sick_seen"), "проверки навыков в разговорах прошли")
+	# жители ходят
+	var walker: Character = main.location.character("Villager3")
+	var wp0 := walker.global_position
+	await wait(4.0)
+	ok(walker.global_position.distance_to(wp0) > 1.0, "прохожий гуляет по улице")
+	# стрельбище: три мишени
+	var shooter: Character = main.location.character("Shooter")
+	await tp(shooter.global_position + Vector3(0, 0, 1.5))
+	main.talk_to(shooter)
+	await frames(2)
+	await choose(find_opt("Покажи"))
+	await choose(find_opt("Начинаю"))
+	await wait(0.6)
+	ok(main.combat.on and main.combat.kind == "range", "стрельбище: бой по мишеням")
+	await fight(60)
+	await wait(1.5)
+	ok(Game.flag("range_done") and int(Game.hero.skills.get("Дальний бой", 0)) >= 6, "урок стрельбы пройден (Дальний бой %d)" % int(Game.hero.skills.get("Дальний бой", 0)))
+	await close_dialogs()
+	# охотник в лесу: драка на кулаках
+	var hunter: Character = main.location.character("Hunter")
+	await tp(hunter.global_position + Vector3(1.5, 0, 1.5))
+	main.talk_to(hunter)
+	await frames(2)
+	await choose(find_opt("Давай"))
+	await wait(0.8)
+	ok(main.combat.on and main.combat.kind == "spar", "драка с охотником началась")
+	await fight(60)
+	await wait(1.5)
+	ok(Game.flag("hunter_done"), "охотник: проверка пройдена")
+	await close_dialogs()
+
 	# --- граница утром ---
 	main.interact(main.location.item("BorderExit"))
 	await frames(2)

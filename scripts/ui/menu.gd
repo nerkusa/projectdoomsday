@@ -100,7 +100,7 @@ func open(m: String) -> void:
 			var sp: String = Game.settings.get("text_speed", "normal")
 			var names := {"slow": "медленно", "normal": "обычно", "fast": "быстро", "instant": "сразу"}
 			items.append(["speed", "Скорость текста: " + names.get(sp, sp), "клик — сменить"])
-			items.append(["rolls", "Показывать броски в журнале: " + ("да" if Game.settings.get("show_rolls", true) else "нет"), "клик — сменить"])
+			items.append(["rolls", "Показывать броски в журнале: " + ("да" if Game.settings.get("show_rolls", false) else "нет"), "клик — сменить"])
 			items.append(["back", "Назад", ""])
 			_foot.text = ""
 	for it in items:
@@ -148,7 +148,7 @@ func _on(id: String) -> void:
 			open("settings")
 			return
 		"rolls":
-			Game.settings.show_rolls = not Game.settings.get("show_rolls", true)
+			Game.settings.show_rolls = not Game.settings.get("show_rolls", false)
 			Game.save_settings()
 			open("settings")
 			return

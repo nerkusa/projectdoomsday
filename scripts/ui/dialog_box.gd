@@ -211,7 +211,7 @@ func _apply_effects(o: Dictionary) -> void:
 		Game.change_humanity(int(o.humanity))
 
 
-## Условия показа: {"flag": "...", "not_flag": "...", "quest": "id", "stage_min": 1,
+## Условия показа: {"flag": "...", "not_flag": "...", "flags": [...], "not_flags": [...], "quest": "id", "stage_min": 1,
 ## "stage_max": 2, "item": "ключ", "no_item": "ключ", "humanity_min": 50, "humanity_max": 30,
 ## "cond": "имя проверки в скрипте локации"}
 func _cond_ok(c: Dictionary) -> bool:
@@ -221,6 +221,12 @@ func _cond_ok(c: Dictionary) -> bool:
 		return false
 	if c.has("not_flag") and Game.flag(c.not_flag):
 		return false
+	for f in c.get("flags", []):
+		if not Game.flag(f):
+			return false
+	for f in c.get("not_flags", []):
+		if Game.flag(f):
+			return false
 	if c.has("quest"):
 		var st := Game.quest_stage(c.quest)
 		if c.has("stage_min") and st < int(c.stage_min):

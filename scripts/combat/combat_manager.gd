@@ -558,7 +558,7 @@ func give_up() -> void:
 func ai_turn(u: Fighter) -> void:
 	if not on:
 		return
-	if not u.active():
+	if not u.active() or u.static_target:
 		end_turn(true)
 		return
 	u.think += 1
@@ -713,7 +713,7 @@ func resolve_attack(att: Fighter, dfn: Fighter, w: Dictionary, aim_z, dist: int,
 	var sneak := att.is_hero and sneak_attack
 	var at: int = maxi(1, A.total) * Rules.SNEAK_MULT if sneak else A.total
 	var t: int = R.d + at
-	var show: bool = Game.settings.get("show_rolls", true)
+	var show: bool = Game.settings.get("show_rolls", false)
 	clog("%s: %s%s%s%s%s" % [att.name, w.name, (" » " + aim_z) if aim_z != null else "", note, " · ИЗ СКРЫТНОСТИ" if sneak else "", " · КРИТ" if R.crit else (" · ПРОВАЛ" if R.fumble else "")],
 		"атака d10(%d) + (%s(%d) + %s(%d)%s%s%s%s)%s = %d" % [R.d, A.st_k, A.rv, A.sk, A.sv,
 		(" + бонус(%d)" % A.b) if A.b else "", (" − прицел(%d)" % A.ap) if A.ap else "",
@@ -799,7 +799,11 @@ func kill(u: Fighter) -> void:
 	u.node.aim_pose = false
 	u.node.set_held("")
 	main.location.ws().dead[u.node.uid()] = true
-	clog("%s погибает." % u.name, "", "hit")
+	if u.static_target:
+		main.location.ws().looted[u.node.uid()] = true
+		clog("%s сбита." % u.name, "", "hit")
+	else:
+		clog("%s погибает." % u.name, "", "hit")
 	var note := Game.grant_xp(u.xp)
 	clog("Опыт +%d" % u.xp, note.strip_edges())
 	main.location.on_fighter_down(u)
@@ -825,7 +829,9 @@ func finish(res: String, gave_up := false) -> void:
 	main.hud.hide_tip()
 	changed.emit()
 	var win := res == "win"
-	if kind == "spar":
+	if kind == "range":
+		clog("Все мишени сбиты." if win else "Стрельба окончена.", "", "hit" if win else "miss")
+	elif kind == "spar":
 		clog("Бой окончен: %s" % ("ты победил" if win else ("ты сдался" if gave_up else "ты еле стоишь")), "", "hit" if win else "miss")
 	else:
 		clog("Бой окончен. Можно обыскать тела." if win else "Ты отступил.", "", "hit" if win else "miss")

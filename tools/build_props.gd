@@ -48,6 +48,8 @@ func _ready() -> void:
 	spruce()
 	pine()
 	travel_items()
+	junk()
+	locked_box()
 	print("Постройки собраны.")
 	get_tree().quit()
 
@@ -834,3 +836,28 @@ func _item(id: String, pick: Vector3, build: Callable) -> void:
 	root_props = {"item_id": id, "pick_size": pick}
 	build.call()
 	finish("item_" + id, "Item")
+
+
+# ---------------- хлам и запертый сундук (амбар) ----------------
+func junk() -> void:
+	begin()
+	root_props = {"kind": "use", "label": "Хлам — разобрать", "pick_size": Vector3(1.2, 0.8, 1.0)}
+	box("planks_old", Vector3(1.1, 0.06, 0.18), Vector3(0, 0.05, 0), Vector3(0, 0.4, 0.1))
+	box("planks_old", Vector3(0.9, 0.06, 0.16), Vector3(0.1, 0.12, 0.1), Vector3(0, -0.7, -0.15))
+	box("planks_old", Vector3(0.7, 0.05, 0.14), Vector3(-0.2, 0.2, -0.1), Vector3(0.2, 1.3, 0.2))
+	box("cloth_sack", Vector3(0.5, 0.14, 0.4), Vector3(0.25, 0.08, -0.25), Vector3(0, 0.5, 0))
+	box("cloth_red", Vector3(0.35, 0.06, 0.3), Vector3(-0.3, 0.05, 0.3), Vector3(0, 1.1, 0))
+	for p in [Vector3(0.4, 0.05, 0.3), Vector3(-0.45, 0.05, -0.2)]:
+		cyl("rust", 0.05, 0.05, 0.1, p, Vector3(PI / 2.0, 0, 0.6), 8)
+	finish("junk", "Junk")
+
+
+func locked_box() -> void:
+	begin()
+	root_props = {"kind": "use", "label": "Запертый сундук", "pick_size": Vector3(1.0, 0.8, 0.7)}
+	box("planks_old", Vector3(0.9, 0.5, 0.55), Vector3(0, 0.25, 0))
+	cyl("planks_old", 0.28, 0.28, 0.9, Vector3(0, 0.5, 0), Vector3(0, 0, PI / 2.0), 10)
+	for x in [-0.3, 0.3]:
+		box("metal_dark", Vector3(0.06, 0.62, 0.6), Vector3(x, 0.33, 0))
+	box("brass", Vector3(0.12, 0.14, 0.04), Vector3(0, 0.42, 0.29))
+	finish("locked_box", "LockedBox")

@@ -220,7 +220,7 @@ func render() -> void:
 		row.add_child(_pm("+", can_s(s.key, 1), ch_stat.bind(s.key, 1)))
 		_stats_box.add_child(row)
 	var mx := Game.hero_max()
-	_derived.text = "ХП: %d  (Тело×2 + Рефл.×2 + d10=%d)\nОД в бою: %d  (5 + (Рефл.+Ловк.)/4, вниз)\nЧеловечность: %d/100 — %s" % [mx, h.hp_roll, Rules.ap_for(h.stats, mx, mx), Game.humanity(), Rules.humanity_label(Game.humanity())]
+	_derived.text = "ХП: %d\nОД в бою: %d\nЧеловечность: %d/100 — %s" % [mx, Rules.ap_for(h.stats, mx, mx), Game.humanity(), Rules.humanity_label(Game.humanity())]
 	for c in _skills_box.get_children():
 		c.queue_free()
 	for s in Rules.STATS:

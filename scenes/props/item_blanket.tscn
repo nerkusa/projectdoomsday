@@ -6,15 +6,15 @@
 [ext_resource type="Material" path="res://assets/materials/cloth_sack.tres" id="4_wg75x"]
 [ext_resource type="ArrayMesh" path="res://assets/models/props/item_blanket_cloth_sack.res" id="5_6redu"]
 
-[node name="Item" type="Node3D" unique_id=1806661962]
+[node name="Item" type="Node3D" unique_id=520540239]
 script = ExtResource("1_ml5gc")
 item_id = "blanket"
 pick_size = Vector3(0.6, 0.35, 0.5)
 
-[node name="Mesh_cloth_red" type="MeshInstance3D" parent="." unique_id=416886318]
+[node name="Mesh_cloth_red" type="MeshInstance3D" parent="." unique_id=2091532636]
 material_override = ExtResource("2_3lpv0")
 mesh = ExtResource("3_3ed21")
 
-[node name="Mesh_cloth_sack" type="MeshInstance3D" parent="." unique_id=1372104339]
+[node name="Mesh_cloth_sack" type="MeshInstance3D" parent="." unique_id=170670167]
 material_override = ExtResource("4_wg75x")
 mesh = ExtResource("5_6redu")

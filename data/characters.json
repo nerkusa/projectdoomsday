@@ -82,6 +82,48 @@
     "look": {"skin": "#c9a07a", "top": "#5a3a3a", "pants": "#33332a", "hair": "#2a1a12"}
   },
 
+  "elder": {
+    "name": "Старик Мэхээлэ",
+    "stats": {"INT": 7, "PRC": 4, "REF": 2, "DEX": 2, "BODY": 2, "EMP": 6, "CRA": 5, "WILL": 7},
+    "hp_roll": 2, "weapon": "fists", "lethal": false,
+    "look": {"skin": "#b8906c", "top": "#4a4036", "pants": "#3a3a2e", "hair": "#e0dcd4", "beard": "#e0dcd4"}
+  },
+  "girl": {
+    "name": "Нюргуяна",
+    "stats": {"INT": 6, "PRC": 7, "REF": 5, "DEX": 6, "BODY": 3, "EMP": 7, "CRA": 5, "WILL": 5},
+    "hp_roll": 3, "weapon": "fists", "lethal": false,
+    "look": {"skin": "#d0a880", "top": "#8a3a52", "pants": "#3a3040", "hair": "#141010"}
+  },
+  "gambler": {
+    "name": "Кустук",
+    "stats": {"INT": 6, "PRC": 6, "REF": 5, "DEX": 7, "BODY": 4, "EMP": 5, "CRA": 3, "WILL": 4},
+    "hp_roll": 4, "weapon": "fists", "lethal": false,
+    "look": {"skin": "#c49a74", "top": "#5a6a3a", "pants": "#3a3a2e", "hair": "#2a2018", "cap": "#6a5a3a"}
+  },
+  "hunter": {
+    "name": "Охотник Кэскил",
+    "stats": {"INT": 4, "PRC": 7, "REF": 5, "DEX": 5, "BODY": 5, "EMP": 4, "CRA": 5, "WILL": 6},
+    "skills": {"Рукопашный бой": 2, "Уклонение": 1}, "hp_roll": 4, "weapon": "fists", "lethal": false, "xp": 60,
+    "look": {"skin": "#b58a66", "top": "#4a3a2a", "pants": "#3a3024", "hair": "#1a1410", "vest": "#6a5236"}
+  },
+  "shooter": {
+    "name": "Стрелок Бэргэн",
+    "stats": {"INT": 5, "PRC": 8, "REF": 7, "DEX": 5, "BODY": 5, "EMP": 4, "CRA": 4, "WILL": 6},
+    "skills": {"Дальний бой": 6}, "hp_roll": 5, "weapon": "rifle", "lethal": false,
+    "look": {"skin": "#c0906a", "top": "#3a4a3a", "pants": "#2e3a2e", "vest": "#4a4a36", "cap": "#2e3a2e"}
+  },
+  "sick": {
+    "name": "Сайыына",
+    "stats": {"INT": 5, "PRC": 5, "REF": 3, "DEX": 4, "BODY": 2, "EMP": 6, "CRA": 5, "WILL": 4},
+    "hp_roll": 2, "weapon": "fists", "lethal": false,
+    "look": {"skin": "#d8b89a", "top": "#6a6a5a", "pants": "#4a4a44", "hair": "#3a2a1a"}
+  },
+  "target": {
+    "name": "Мишень",
+    "stats": {"REF": 1, "DEX": 1, "BODY": 2}, "hp_roll": 0, "weapon": "fists", "xp": 15,
+    "static": true, "dummy": true
+  },
+
   "raider": {
     "name": "Мародёр",
     "stats": {"INT": 3, "PRC": 4, "REF": 3, "DEX": 3, "BODY": 3, "EMP": 2, "CRA": 2, "WILL": 2},

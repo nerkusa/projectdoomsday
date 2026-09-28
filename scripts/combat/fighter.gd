@@ -34,6 +34,8 @@ var xp := 50
 var loot: Dictionary = {}
 var flee_threshold := 0.3
 var will_dc := 13
+## Мишень: не ходит и не бьёт, просто стоит
+var static_target := false
 
 var hp: int:
 	get:
@@ -86,6 +88,7 @@ static func for_npc(n: Character, tpl: Dictionary) -> Fighter:
 	f.loot = tpl.get("loot", {})
 	f.flee_threshold = float(tpl.get("flee_below", 0.3))
 	f.will_dc = int(tpl.get("will_dc", 13))
+	f.static_target = bool(tpl.get("static", false))
 	return f
 
 
