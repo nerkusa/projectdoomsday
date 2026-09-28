@@ -66,6 +66,12 @@ var _patrol_i := 0
 var _patrol_t := 1.0
 var is_player := false
 var aim_pose := false
+## Браслет на левом запястье (у героя — когда собран КПК)
+var _bracelet: Node3D
+## Подключение компьютера к браслету: сам компьютер, кабель и надпись
+var _plug_dev: Node3D
+var _plug_cable: Array = []
+var _plug_label: Label3D
 
 
 func _ready() -> void:
@@ -298,6 +304,11 @@ func _make_weapon_mesh(wkey: String) -> Node3D:
 
 
 func muzzle_flash() -> void:
+	# звук выстрела: чем дальше от героя, тем тише
+	var loc := get_tree().get_first_node_in_group("location")
+	if loc and loc.main and loc.main.player:
+		var d: float = global_position.distance_to(loc.main.player.global_position)
+		loc.main.sfx("shot_near" if d < 25.0 else "shot_far_%d" % randi_range(1, 3), clampf(-3.0 - d * 0.35, -30.0, -3.0), randf_range(0.92, 1.08))
 	_flash.light_energy = 6.0
 	var tw := create_tween()
 	tw.tween_property(_flash, "light_energy", 0.0, 0.12)
@@ -508,6 +519,9 @@ func _clip_act(ab: AnimBody, t: float) -> void:
 		if shots >= n and t > next_at + 0.3:
 			_end_act()
 		return
+	if _act.type == "plug":
+		_plug_tick(ab, t)
+		return
 	var c := _act_clip(_act.type)
 	if c.is_empty() or not ab.has(c[0]):
 		_fire_cb_once()
@@ -540,3 +554,176 @@ func _end_act() -> void:
 		cb.call()
 	elif not was_done and cb.is_valid():
 		cb.call()
+
+
+# ---------------- браслет и подключение компьютера ----------------
+func show_bracelet(on: bool) -> void:
+	if not (body is AnimBody):
+		return
+	var hl: Node3D = (body as AnimBody).hand_l()
+	if hl == null:
+		return
+	if _bracelet == null and on:
+		_bracelet = Node3D.new()
+		var band := MeshInstance3D.new()
+		var cm := CylinderMesh.new()
+		cm.top_radius = 0.042
+		cm.bottom_radius = 0.046
+		cm.height = 0.06
+		band.mesh = cm
+		band.material_override = _plain(Color("26241f"), 0.4, 0.5)
+		_bracelet.add_child(band)
+		var led := MeshInstance3D.new()
+		var sm := SphereMesh.new()
+		sm.radius = 0.012
+		sm.height = 0.024
+		led.mesh = sm
+		var lm := _plain(Color("ffb040"), 0.3)
+		lm.emission_enabled = true
+		lm.emission = Color("ffb040")
+		lm.emission_energy_multiplier = 2.0
+		led.material_override = lm
+		led.position = Vector3(0, 0, 0.045)
+		_bracelet.add_child(led)
+		_bracelet.position = Vector3(0, -0.02, 0)
+		hl.add_child(_bracelet)
+	if _bracelet:
+		_bracelet.visible = on
+
+
+func _plain(c: Color, rough := 0.7, metal := 0.0) -> StandardMaterial3D:
+	var m := StandardMaterial3D.new()
+	m.albedo_color = c
+	m.roughness = rough
+	m.metallic = metal
+	return m
+
+
+## Компьютер в правой руке, кабель тянется к браслету на левой, щелчок — экран загорается.
+## extra.dur — длительность (первый раз дольше).
+func _plug_tick(ab: AnimBody, t: float) -> void:
+	var dur: float = float(_act.extra.get("dur", 1.2))
+	var hold := minf(0.5, dur * 0.3)
+	if not _act.has("clip_on"):
+		_act["clip_on"] = true
+		# доводим клип до середины (руки у груди) ровно к моменту hold и держим
+		ab.play("Pistol_Reload", 0.15, ab.length("Pistol_Reload") * 0.5 / hold, true)
+		_plug_build(ab)
+	if t >= hold and not _act.has("held"):
+		_act["held"] = true
+		ab.anim.speed_scale = 0.0
+		ab.anim.seek(ab.length("Pistol_Reload") * 0.5, true)
+	var k := clampf((t - hold) / maxf(0.01, dur - hold - 0.35), 0.0, 1.0)
+	_plug_update(k)
+	if k >= 0.6 and not _act.has("clicked"):
+		_act["clicked"] = true
+		_sound("plug", -4.0)
+	if k >= 0.85 and not _act.has("beeped"):
+		_act["beeped"] = true
+		_sound("beep", -9.0)
+	if t >= dur:
+		ab.anim.speed_scale = 1.0
+		_plug_clear()
+		_fire_cb_once()
+		_end_act()
+
+
+func _sound(n: String, db: float) -> void:
+	var loc := get_tree().get_first_node_in_group("location")
+	if loc and loc.main:
+		loc.main.sfx(n, db)
+
+
+func _plug_build(ab: AnimBody) -> void:
+	_plug_clear()
+	show_bracelet(true)
+	if _held_node:
+		_held_node.visible = false
+	var hr := ab.hand()
+	if hr == null:
+		return
+	_plug_dev = Node3D.new()
+	var case := MeshInstance3D.new()
+	var bm := BoxMesh.new()
+	bm.size = Vector3(0.11, 0.025, 0.08)
+	case.mesh = bm
+	case.material_override = _plain(Color("7a7466"), 0.6, 0.2)
+	_plug_dev.add_child(case)
+	var scr := MeshInstance3D.new()
+	var sb := BoxMesh.new()
+	sb.size = Vector3(0.085, 0.004, 0.055)
+	scr.mesh = sb
+	scr.name = "Screen"
+	scr.material_override = _plain(Color("15201a"), 0.3)
+	scr.position = Vector3(0, 0.014, 0)
+	_plug_dev.add_child(scr)
+	_plug_dev.position = Vector3(0, 0.08, 0.02)
+	hr.add_child(_plug_dev)
+	for i in 2:
+		var seg := MeshInstance3D.new()
+		var cm := CylinderMesh.new()
+		cm.top_radius = 0.007
+		cm.bottom_radius = 0.007
+		cm.height = 1.0
+		cm.radial_segments = 6
+		seg.mesh = cm
+		seg.material_override = _plain(Color("141210"), 0.5)
+		seg.top_level = true
+		add_child(seg)
+		_plug_cable.append(seg)
+	_plug_label = Label3D.new()
+	_plug_label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	_plug_label.no_depth_test = true
+	_plug_label.pixel_size = 0.004
+	_plug_label.font_size = 32
+	_plug_label.outline_size = 8
+	_plug_label.modulate = Color("b8f0a8")
+	_plug_label.text = ""
+	_plug_label.top_level = true
+	add_child(_plug_label)
+
+
+func _plug_update(k: float) -> void:
+	if _plug_dev == null or not is_instance_valid(_plug_dev) or _bracelet == null:
+		return
+	var port: Vector3 = _plug_dev.global_transform * Vector3(-0.06, 0, 0)
+	var wrist: Vector3 = _bracelet.global_position
+	var e := k * k * (3.0 - 2.0 * k)
+	var tip := port.lerp(wrist, clampf(e * 1.7, 0.0, 1.0))
+	var mid := (port + tip) / 2.0 - Vector3(0, 0.06 + 0.1 * (1.0 - e), 0)
+	_seg(_plug_cable[0], port, mid)
+	_seg(_plug_cable[1], mid, tip)
+	var on := k >= 0.6
+	var scr := _plug_dev.get_node("Screen") as MeshInstance3D
+	var m := scr.material_override as StandardMaterial3D
+	if on and not m.emission_enabled:
+		m.albedo_color = Color("3f8a4a")
+		m.emission_enabled = true
+		m.emission = Color("5fd070")
+		m.emission_energy_multiplier = 1.5
+	_plug_label.global_position = _plug_dev.global_position + Vector3(0, 0.35, 0)
+	_plug_label.text = ("CT14 inc.\n" + ("ПОДКЛЮЧЕНО" if k >= 0.85 else "СВЯЗЬ С НОСИТЕЛЕМ...")) if on else ""
+
+
+func _seg(mi: MeshInstance3D, a: Vector3, b: Vector3) -> void:
+	var d := b - a
+	var ln := maxf(0.001, d.length())
+	var up := d / ln
+	var side := up.cross(Vector3.FORWARD if absf(up.dot(Vector3.FORWARD)) < 0.9 else Vector3.RIGHT).normalized()
+	var fwd := side.cross(up)
+	mi.global_transform = Transform3D(Basis(side, up * ln, fwd), (a + b) / 2.0)
+
+
+func _plug_clear() -> void:
+	if _plug_dev and is_instance_valid(_plug_dev):
+		_plug_dev.queue_free()
+	_plug_dev = null
+	for c in _plug_cable:
+		if is_instance_valid(c):
+			c.queue_free()
+	_plug_cable.clear()
+	if _plug_label and is_instance_valid(_plug_label):
+		_plug_label.queue_free()
+	_plug_label = null
+	if _held_node:
+		_held_node.visible = true

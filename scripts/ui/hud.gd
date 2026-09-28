@@ -27,9 +27,19 @@ var _toast: Label
 var _hurt: ColorRect
 var _floats: Control
 var _combat: CombatManager
-## Нижняя панель: появляется, когда у героя есть мини-компьютер (или уже собран КПК).
+## Нижняя панель: появляется, когда собран КПК (браслет + компьютер).
 ## В бою видна всегда — без неё не видно ОД и кнопок хода.
 var _bar: PanelContainer
+## Этикетка с целью — тоже только с КПК; до него героя ведут его мысли
+var _tape: PanelContainer
+## До КПК интерфейс простой: только что в руке, и короткий журнал слева
+var _hand: Button
+var _mini_log: VBoxContainer
+## Мысль над головой героя
+var _thought: Label
+var _thought_t := 0.0
+## Alt — подписи над всем, что можно взять или обыскать
+var _marks: Control
 
 
 func setup(m: Node, cm: CombatManager) -> void:
@@ -58,6 +68,7 @@ func _build() -> void:
 
 	# ---- этикетка кассеты (локация + текущая цель) ----
 	var tape := UITheme.panel(UITheme.plastic(6))
+	_tape = tape
 	tape.position = Vector2(12, 12)
 	tape.custom_minimum_size = Vector2(360, 0)
 	tape.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -106,6 +117,51 @@ func _build() -> void:
 	_toast.modulate.a = 0.0
 	_toast.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_toast)
+
+	# ---- до КПК: что в руке и короткий журнал ----
+	_hand = _make_slot()
+	_hand.set_anchors_and_offsets_preset(Control.PRESET_CENTER_BOTTOM)
+	_hand.offset_left = -130
+	_hand.offset_right = 130
+	_hand.offset_top = -74
+	_hand.offset_bottom = -14
+	_hand.alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_hand.tooltip_text = "Клик или Tab — сменить руку"
+	_hand.pressed.connect(action.emit.bind("swap"))
+	add_child(_hand)
+	_mini_log = VBoxContainer.new()
+	_mini_log.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_LEFT)
+	_mini_log.offset_left = 16
+	_mini_log.offset_right = 470
+	_mini_log.offset_top = -260
+	_mini_log.offset_bottom = -16
+	_mini_log.alignment = BoxContainer.ALIGNMENT_END
+	_mini_log.add_theme_constant_override("separation", 3)
+	_mini_log.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(_mini_log)
+	_thought = Label.new()
+	_thought.add_theme_font_override("font", UITheme.mono())
+	_thought.add_theme_font_size_override("font_size", 14)
+	_thought.add_theme_color_override("font_color", Color("e8eef2"))
+	_thought.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.95))
+	_thought.add_theme_constant_override("shadow_offset_y", 2)
+	_thought.add_theme_constant_override("shadow_offset_x", 1)
+	var tsb := StyleBoxFlat.new()
+	tsb.bg_color = Color(0.05, 0.06, 0.07, 0.55)
+	tsb.set_corner_radius_all(6)
+	tsb.set_content_margin_all(7)
+	_thought.add_theme_stylebox_override("normal", tsb)
+	_thought.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_thought.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_thought.custom_minimum_size = Vector2(340, 0)
+	_thought.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_thought.visible = false
+	add_child(_thought)
+	_marks = Control.new()
+	_marks.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	UITheme.full_rect(_marks)
+	_marks.draw.connect(_draw_marks)
+	add_child(_marks)
 
 	# ---- нижняя панель ----
 	var bar := UITheme.panel(UITheme.plastic(8))
@@ -278,7 +334,12 @@ func refresh() -> void:
 	_hp_bar.value = Game.hero_hp()
 	_hp_lbl.text = "%d/%d" % [Game.hero_hp(), Game.hero_max()]
 	var on := _combat.on
-	_bar.visible = on or Game.flag("kpk") or Game.item_count("minicomputer") > 0
+	_bar.visible = on or Game.flag("kpk")
+	_tape.visible = Game.flag("kpk")
+	_hand.visible = not _bar.visible
+	_mini_log.visible = not _bar.visible
+	var hw := DB.weapon(Game.hero_wkey())
+	_hand.text = "В РУКЕ: %s\n[Tab] другая рука: %s" % [hw.get("name", "—"), DB.weapon(str(h.hands[1 - int(h.active)])).get("name", "—")]
 	for c in _ap_row.get_children():
 		c.queue_free()
 	if on:
@@ -342,7 +403,10 @@ func _on_log(head: String, detail: String, cls: String) -> void:
 		col = "#ffb070"
 	elif cls == "miss":
 		col = "#d8e89a"
+	elif cls == "thought":
+		col = "#c8d6e2"
 	_log.append_text("[color=%s]%s[/color]\n" % [col, _esc(head)])
+	_mini_line(head, col)
 	if detail != "" and Game.settings.get("show_rolls", false):
 		_log.append_text("[color=#5f9a58]   %s[/color]\n" % _esc(detail))
 
@@ -353,6 +417,84 @@ func _esc(s: String) -> String:
 
 func clear_log() -> void:
 	_log.clear()
+	for c in _mini_log.get_children():
+		c.queue_free()
+
+
+## Строка в коротком журнале слева: живёт несколько секунд и гаснет
+func _mini_line(text: String, col: String) -> void:
+	var l := UITheme.label(text, 13, Color(col), false)
+	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	l.custom_minimum_size = Vector2(440, 0)
+	l.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.95))
+	l.add_theme_constant_override("shadow_offset_y", 1)
+	l.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_mini_log.add_child(l)
+	while _mini_log.get_child_count() > 7:
+		var old := _mini_log.get_child(0)
+		_mini_log.remove_child(old)
+		old.queue_free()
+	var tw := l.create_tween()
+	tw.tween_interval(7.0 + text.length() * 0.05)
+	tw.tween_property(l, "modulate:a", 0.0, 1.5)
+	tw.tween_callback(l.queue_free)
+
+
+# ---------------- мысли героя ----------------
+## Мысль всплывает над головой и остаётся в журнале
+func think(text: String) -> void:
+	Game.log_line(text, "", "thought")
+	_thought.text = text
+	_thought.visible = true
+	_thought.modulate.a = 1.0
+	_thought.size = Vector2.ZERO
+	_thought_t = 3.0 + text.length() * 0.05
+
+
+func thought_visible() -> bool:
+	return _thought.visible
+
+
+func _place_thought(delta: float) -> void:
+	if not _thought.visible:
+		return
+	_thought_t -= delta
+	if _thought_t <= 0.0:
+		_thought.modulate.a = maxf(0.0, _thought.modulate.a - delta * 2.0)
+		if _thought.modulate.a <= 0.0:
+			_thought.visible = false
+			return
+	var pl: Node3D = main.player
+	var cam: Camera3D = main.camera
+	if pl == null or cam == null:
+		return
+	var p := cam.unproject_position(pl.global_position + Vector3(0, 2.3, 0))
+	_thought.position = p - Vector2(_thought.size.x / 2.0, _thought.size.y)
+
+
+# ---------------- Alt: подсветка вещей ----------------
+func _draw_marks() -> void:
+	if not Input.is_key_pressed(KEY_ALT) or main.location == null or main.ui_blocked():
+		return
+	var cam: Camera3D = main.camera
+	var font := UITheme.mono()
+	var pts := []
+	for it in main.location.items():
+		if it.visible and it.is_inside_tree():
+			pts.append([it.global_position + Vector3(0, 0.6, 0), it.title(), UITheme.AMBER_HOT])
+	for ch in main.location.characters():
+		if ch.visible and ch.pose == "dead" and not main.location.ws().looted.has(ch.uid()):
+			pts.append([ch.global_position + Vector3(0, 0.6, 0), ch.display_name + " · обыскать", Color("e8a080")])
+	for p in pts:
+		if cam.is_position_behind(p[0]):
+			continue
+		var sp := cam.unproject_position(p[0])
+		if not Rect2(Vector2.ZERO, size).grow(-10).has_point(sp):
+			continue
+		var tw := font.get_string_size(p[1], HORIZONTAL_ALIGNMENT_LEFT, -1, 12).x
+		_marks.draw_rect(Rect2(sp + Vector2(-tw / 2.0 - 6, -30), Vector2(tw + 12, 20)), Color(0.05, 0.03, 0.02, 0.8))
+		_marks.draw_string(font, sp + Vector2(-tw / 2.0, -15), p[1], HORIZONTAL_ALIGNMENT_LEFT, -1, 12, p[2])
+		_marks.draw_colored_polygon(PackedVector2Array([sp + Vector2(0, -8), sp + Vector2(5, -3), sp + Vector2(0, 2), sp + Vector2(-5, -3)]), p[2])
 
 
 # ---------------- подсказки ----------------
@@ -426,6 +568,8 @@ func hide_zones() -> void:
 
 
 func _process(delta: float) -> void:
+	_place_thought(delta)
+	_marks.queue_redraw()
 	if _tip.visible:
 		var mp := get_viewport().get_mouse_position()
 		_tip.position = mp + Vector2(16, 16)
@@ -441,4 +585,6 @@ func _process(delta: float) -> void:
 ## Над панелью ли мышь (чтобы клики не уходили в мир)
 func mouse_over_ui() -> bool:
 	var mp := get_viewport().get_mouse_position()
-	return mp.y > size.y - 166 or (_zones.visible and _zones.get_global_rect().has_point(mp)) or mp.x > size.x - 80 and mp.y < 180
+	if _hand.visible and _hand.get_global_rect().has_point(mp):
+		return true
+	return (_bar.visible and mp.y > size.y - 166) or (_zones.visible and _zones.get_global_rect().has_point(mp)) or mp.x > size.x - 80 and mp.y < 180

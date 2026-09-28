@@ -10,11 +10,13 @@ extends Node3D
 
 const MODEL := "res://assets/models/AnimationLibrary_Godot_Standard.glb"
 const HAND_BONE := "DEF-hand.R"
+const HAND_BONE_L := "DEF-hand.L"
 
 var skel: Skeleton3D
 var anim: AnimationPlayer
 var current := ""
 var _hand: Node3D
+var _hand_l: Node3D
 
 
 ## look — цвета из шаблона персонажа: top красит тело манекена, pants — суставы.
@@ -37,6 +39,13 @@ func build(look := {}) -> bool:
 		_hand = Node3D.new()
 		_hand.name = "Hand"
 		att.add_child(_hand)
+	if skel.find_bone(HAND_BONE_L) >= 0:
+		var att_l := BoneAttachment3D.new()
+		skel.add_child(att_l)
+		att_l.bone_name = HAND_BONE_L
+		_hand_l = Node3D.new()
+		_hand_l.name = "HandL"
+		att_l.add_child(_hand_l)
 	for mi in _meshes(inst):
 		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
 		_tint(mi, look)
@@ -60,6 +69,10 @@ func _tint(mi: MeshInstance3D, look: Dictionary) -> void:
 
 func hand() -> Node3D:
 	return _hand
+
+
+func hand_l() -> Node3D:
+	return _hand_l
 
 
 ## Как оружие лежит в кисти. Ось Y кости кисти идёт вдоль ладони к пальцам,

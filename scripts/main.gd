@@ -29,6 +29,11 @@ var sheet: CharSheet
 var menu: GameMenu
 var slides: GameMenu.Slides
 var attack_mode := false
+## Герой пристёгивает компьютер к браслету (3D-анимация на персонаже)
+var plugging := false
+## Герой сидит в укрытии (кусты): враги не замечают его сами
+var hidden := false
+var _sfx: Array = []
 
 var _pending: Dictionary = {}
 var _aggro_t := 0.0
@@ -37,6 +42,8 @@ var _intro_pending := false
 var _loading := false
 var _xray: Array = []
 var _xray_t := 0.0
+## Деревья локации — для «рентгена» крон
+var _plants: Array = []
 
 
 func _ready() -> void:
@@ -99,7 +106,35 @@ func space() -> PhysicsDirectSpaceState3D:
 
 
 func ui_blocked() -> bool:
-	return dialog.visible or kpk.visible or sheet.visible or menu.visible or slides.visible or _loading
+	return dialog.visible or kpk.visible or sheet.visible or menu.visible or slides.visible or plugging or _loading
+
+
+## Звук из assets/sounds/<name>.wav; громкость в децибелах
+func sfx(name: String, vol_db := 0.0, pitch := 1.0) -> void:
+	var path := "res://assets/sounds/%s.wav" % name
+	if not ResourceLoader.exists(path):
+		return
+	var pl: AudioStreamPlayer = null
+	for a in _sfx:
+		if not a.playing:
+			pl = a
+			break
+	if pl == null:
+		if _sfx.size() >= 12:
+			return
+		pl = AudioStreamPlayer.new()
+		pl.process_mode = Node.PROCESS_MODE_ALWAYS
+		add_child(pl)
+		_sfx.append(pl)
+	pl.stream = load(path)
+	pl.volume_db = vol_db
+	pl.pitch_scale = pitch
+	pl.play()
+
+
+## Мысль героя: над головой и в журнале
+func think(text: String) -> void:
+	hud.think(text)
 
 
 # ---------------- меню и запуск ----------------
@@ -167,7 +202,10 @@ func _unload() -> void:
 	dialog.visible = false
 	kpk.visible = false
 	hud.visible = false
+	hidden = false
+	plugging = false
 	_xray.clear()
+	_plants.clear()
 	if location:
 		if player and player.get_parent() == location:
 			location.remove_child(player)
@@ -201,6 +239,7 @@ func load_location(id: String, spawn := "Start", pos = null) -> void:
 	var p: Vector3 = pos if pos != null else location.spawn_point(spawn)
 	player.global_position = Vector3(p.x, 0, p.z)
 	player.set_held(Game.hero_wkey())
+	player.show_bracelet(Game.flag("kpk"))
 	cam_target = player.global_position
 	await location.setup(self)
 	Game.hero.location = id
@@ -274,7 +313,7 @@ func _on_hud_action(a: String) -> void:
 		"kpk":
 			open_kpk()
 		"sheet":
-			if not combat.on:
+			if not combat.on and Game.flag("kpk"):
 				sheet.open()
 		"reload":
 			combat.reload()
@@ -296,10 +335,25 @@ func _on_hud_action(a: String) -> void:
 				hud.refresh()
 
 
+## КПК открывается только когда он есть: каждый раз герой пристёгивает
+## компьютер кабелем к браслету на руке (анимация на самом персонаже,
+## камера на это время приближается). Первый раз — медленнее.
 func open_kpk(t := "") -> void:
 	if combat.on and not combat.my_turn():
 		return
-	kpk.open(t)
+	if not Game.flag("kpk") or plugging:
+		return
+	var first := not Game.flag("kpk_plugged")
+	Game.set_flag("kpk_plugged")
+	plugging = true
+	player.stop()
+	var z := zoom
+	zoom = minf(zoom, 6.5 if first else 9.0)
+	var done := func():
+		plugging = false
+		zoom = z
+		kpk.open(t)
+	player.act("plug", done, {"dur": 3.2 if first else 1.3})
 
 
 func _swap_hands() -> void:
@@ -359,7 +413,15 @@ func talk_to(ch: Character, node := "") -> void:
 	dialog.open(ch.dialog, node if node != "" else ch.dialog_node, ch)
 
 
+## Короткие мысли (одна кнопка «Дальше» без действия) не открывают окно:
+## всплывают над головой и остаются в журнале
 func say(dialog_id: String, node := "start", who: Character = null) -> void:
+	if dialog_id == "thoughts":
+		var nd: Dictionary = DB.dialog("thoughts").get("nodes", {}).get(node, {})
+		var opts: Array = nd.get("options", [])
+		if opts.size() <= 1 and (opts.is_empty() or not (opts[0] as Dictionary).has("action")):
+			think(str(nd.get("text", "")))
+			return
 	dialog.open(dialog_id, node, who)
 
 
@@ -434,7 +496,7 @@ func _unhandled_input(e: InputEvent) -> void:
 			KEY_I:
 				open_kpk()
 			KEY_C:
-				if not combat.on:
+				if not combat.on and Game.flag("kpk"):
 					sheet.open()
 			KEY_R:
 				combat.reload()
@@ -485,6 +547,8 @@ func _click(sp: Vector2) -> void:
 	if combat.on:
 		combat.click(p.get("character", null), p.get("hex", null))
 		return
+	if hidden and location.has_method("leave_hide"):
+		location.leave_hide()
 	var ch: Character = p.get("character", null)
 	if ch:
 		if ch.pose == "dead":
@@ -740,6 +804,34 @@ func _update_xray() -> void:
 			var prop: Node = (col as Node).get_parent()
 			if prop and prop != location and not hits.has(prop) and not prop.get_meta("inside", false) and not prop.get_meta("no_xray", false):
 				hits.append(prop)
+	# кроны деревьев без коллизий: гасим те, что стоят между камерой и героем
+	if _plants.is_empty():
+		for grp in ["Forest", "Village"]:
+			var g := location.get_node_or_null(grp)
+			if g == null:
+				continue
+			for t in g.get_children():
+				var sp := String(t.scene_file_path)
+				for k in ["spruce", "pine", "birch", "dead_tree", "larch"]:
+					if sp.contains("/" + k):
+						_plants.append(t)
+						break
+	if not _plants.is_empty():
+		var a := from
+		var b := player.global_position + Vector3(0, 1.0, 0)
+		var ab := b - a
+		var len2 := ab.length_squared()
+		for t in _plants:
+			var tn := t as Node3D
+			if tn == null:
+				continue
+			var s := tn.scale.x
+			var c := tn.global_position + Vector3(0, 3.5 * s, 0)
+			var k := clampf((c - a).dot(ab) / len2, 0.0, 1.0)
+			if k > 0.97:
+				continue
+			if (a + ab * k).distance_to(c) < 3.2 * s and not hits.has(tn):
+				hits.append(tn)
 	for p in _xray:
 		if is_instance_valid(p) and not hits.has(p):
 			_set_alpha(p, 0.0)
@@ -757,6 +849,8 @@ func _set_alpha(n: Node, a: float) -> void:
 
 
 func _check_aggro() -> void:
+	if hidden:
+		return
 	for ch in location.characters():
 		if not ch.hostile or ch.aggro_radius <= 0 or ch.pose == "dead" or not ch.visible:
 			continue

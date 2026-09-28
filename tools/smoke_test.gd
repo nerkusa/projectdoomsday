@@ -1,6 +1,8 @@
 extends Node
 ## Автотест пролога: проходит всю цепочку без участия человека и печатает, что сломалось.
 ## Запуск: godot --headless --path . res://tools/smoke_test.tscn
+## Ветки: по умолчанию — «бой» (засада бьёт сзади, бой у амбара вместе с дедом);
+## -- stealth — «тень» (шорох, укрытие в кустах, ждать у амбара, пока нападавшие уйдут).
 
 var main: Node
 var fails := 0
@@ -143,10 +145,12 @@ func _ready() -> void:
 			closed.append(String(hs.name))
 	ok(closed.is_empty() and get_tree().get_nodes_in_group("houses").size() >= 17, "во все дома можно войти (%d; закрыты: %s)" % [get_tree().get_nodes_in_group("houses").size(), closed])
 	await wait(1.0)
-	ok(main.dialog.visible, "мысли при пробуждении")
-	await close_dialogs()
+	ok(main.hud.thought_visible() and not main.dialog.visible, "мысли при пробуждении — над головой")
 	ok(Game.hero.owned.has("pistol") and Game.hero.owned.has("knife"), "с начала есть пистолет и нож")
-	ok(not main.hud._bar.visible, "нижней панели нет до мини-компьютера")
+	ok(not main.hud._bar.visible and not main.hud._tape.visible and main.hud._hand.visible, "до КПК: только слот «в руке»")
+	main.open_kpk()
+	await frames(2)
+	ok(not main.kpk.visible and not main.plugging, "до КПК сумку не открыть")
 	# свободная ходьба: герой встаёт ровно в точку клика, а не в центр гекса
 	var start: Vector3 = main.player.global_position
 	var spot := start + Vector3(1.37, 0, 0.61)
@@ -266,8 +270,7 @@ func _ready() -> void:
 	# --- граница утром ---
 	main.interact(main.location.item("BorderExit"))
 	await frames(2)
-	ok(main.dialog.visible and main.dialog.node_id == "law_border", "закон не пускает за черту")
-	await close_dialogs()
+	ok(main.hud.thought_visible() and main.hud._thought.text.contains("Закон"), "закон не пускает за черту")
 
 	# --- волк ---
 	var wolf: Character = main.location.character("Wolf")
@@ -279,82 +282,167 @@ func _ready() -> void:
 	ok(wolf.pose == "dead" or not wolf.visible, "пёс убит или сбежал")
 	await close_dialogs()
 
-	# --- грибы ---
-	var picked := 0
+	# --- грибы: пять находок, с третьей вечереет ---
+	var stealth := "stealth" in OS.get_cmdline_user_args()
+	print("  ветка: ", "тень" if stealth else "бой")
+	var folk: Character = main.location.character("ForestGuard1")
+	ok(folk.visible and not folk.patrol.is_empty(), "в лесу ходит дозорный")
+	var foods := []
 	for it in main.location.items():
-		if it.item_id in ["mushroom", "berries"] and picked < 5:
-			await tp(it.global_position + Vector3(0.9, 0, 0))
-			main.interact(it)
-			await wait(0.6)
-			picked += 1
-	ok(main.location.food_count() >= 5, "набрано еды: %d" % main.location.food_count())
+		if it.item_id in ["mushroom", "berries"]:
+			foods.append(it)
+	ok(foods.size() == 5, "в лесу пять находок")
+	for k in 4:
+		await tp(foods[k].global_position + Vector3(0.9, 0, 0))
+		main.interact(foods[k])
+		await wait(0.8)
+	ok(Game.flag("dusk") and main.location.phase() == "morning", "после третьей находки — вечер")
+	ok(not main.objective_text().contains("/"), "цель без счётчика: " + main.objective_text())
+	await wait(24.0)
+	ok(not folk.visible, "дозорный ушёл домой")
+	# Внимательность решает, как начнётся засада
+	Game.hero.stats.PRC = 10 if stealth else -30
+	Game.hero.skills["Внимательность"] = 5 if stealth else 0
+	var hp0 := Game.hero_hp()
+	await tp(foods[4].global_position + Vector3(0.9, 0, 0))
+	main.interact(foods[4])
 	await wait(2.0)
 	ok(Game.flag_value("phase") == "raid", "начался налёт")
-	ok(main.dialog.visible and main.dialog.node_id == "shots", "мысли: выстрелы")
-	await close_dialogs()
+	var prowler: Character = main.location.character("Prowler")
+	if stealth:
+		await wait(3.0)
+		ok(prowler.visible and main.location._prowl == "approach", "шорох: нападавший подкрадывается издалека")
+		var bush: Interactable = null
+		for it in main.location.items():
+			if String(it.name).begins_with("HideBush") and (bush == null or it.global_position.distance_to(main.player.global_position) < bush.global_position.distance_to(main.player.global_position)):
+				bush = it
+		main.interact(bush)
+		await frames(2)
+		ok(main.hidden, "спрятался в кустах")
+		var tw := 0.0
+		while not Game.flag("ambush_done") and tw < 90.0 and not main.combat.on:
+			await wait(0.5)
+			tw += 0.5
+		ok(Game.flag("ambush_done") and not main.combat.on and not prowler.visible, "нападавший поискал и ушёл")
+		main.location.leave_hide()
+	else:
+		var ta := 0.0
+		while not main.combat.on and ta < 20.0:
+			await wait(0.5)
+			ta += 0.5
+		ok(Game.hero_hp() < hp0, "удар монтировкой сзади (ХП %d → %d)" % [hp0, Game.hero_hp()])
+		ok(main.combat.on, "бой с нападавшим")
+		await fight()
+		ok(prowler.pose == "dead" and Game.flag("ambush_done"), "нападавший с монтировкой убит")
+	Game.hero.stats.PRC = 5
 	await tp(Vector3(62, 0, 28))
 	await wait(0.6)
 	ok(Game.flag("fire_seen"), "увидел пожар")
-	await close_dialogs()
-
-	# --- первое тело: пистолет и коробочка ---
 	var r1: Character = main.location.character("Raider1")
 	await tp(r1.global_position + Vector3(1.2, 0, 0))
 	main.loot(r1)
 	await wait(0.3)
-	await close_dialogs()
-	ok(Game.item_count("minicomputer") == 1, "мини-компьютер найден")
-	ok(main.hud._bar.visible, "нижняя панель появилась с мини-компьютером")
-	ok(Game.hero.owned.has("pistol"), "пистолет найден")
+	ok(not main.hud._bar.visible, "панели всё ещё нет — КПК не собран")
 	Game.hero.hands = ["pistol", "knife"]
 	Game.hero.active = 0
 	Game.auto_reload()
 	main.player.set_held("pistol")
-	print("  патроны: магазин ", Game.hero.mag.get("pistol", 0), ", запас ", Game.hero.ammo)
 
-	# --- бой у амбара ---
-	await tp(Vector3(65.5, 0, 60.0))
-	await wait(0.8)
-	ok(main.dialog.visible and main.dialog.node_id == "ded_seen", "увидел деда у амбара (%s, бой=%s)" % [main.dialog.node_id, main.combat.on])
-	await choose(0)
-	await wait(0.6)
-	ok(main.combat.on, "бой у амбара начался")
-	await fight(120)
-	ok(not main.combat.on, "бой у амбара окончен")
-	print("  ХП героя после боя у амбара: ", Game.hero_hp(), "/", Game.hero_max())
-	if "fair" in OS.get_cmdline_user_args():
-		print("=== ЧЕСТНЫЙ БОЙ: ", "победа" if Game.hero_hp() > 0 else "смерть", " ===")
-		get_tree().quit()
-		return
-	ok(Game.flag("ded_shot"), "деда ранили по сюжету")
-	await wait(2.0)
+	# --- казнь на улице ---
+	await tp(Vector3(56, 0, 40))
+	await wait(6.0)
+	ok(Game.flag("exec_done") and main.location.character("Doomed1").pose == "dead", "казнь у площади")
+	ok(not main.combat.on, "казнь не начала бой сама")
+
+	# --- дед у амбара ---
+	if stealth:
+		Game.hero.sneak = true
+		await tp(Vector3(60, 0, 66))
+		await wait(0.5)
+		ok(Game.flag("barn_started"), "увидел деда у амбара")
+		var tb := 0.0
+		while not Game.flag("cleaners_left") and tb < 40.0 and not main.combat.on:
+			await wait(0.5)
+			tb += 0.5
+		ok(Game.flag("ded_shot"), "деда ранили")
+		ok(Game.flag("cleaners_left") and not main.combat.on, "нападавшие ушли, не заметив героя")
+		Game.hero.sneak = false
+		main.talk_to(main.location.character("DedRaid"))
+		await frames(2)
+	else:
+		await tp(Vector3(65.5, 0, 60.0))
+		await wait(1.0)
+		ok(Game.flag("barn_started") and main.combat.on, "бой у амбара начался")
+		await fight(120)
+		ok(not main.combat.on, "бой у амбара окончен")
+		print("  ХП героя после боя у амбара: ", Game.hero_hp(), "/", Game.hero_max())
+		if "fair" in OS.get_cmdline_user_args():
+			print("=== ЧЕСТНЫЙ БОЙ: ", "победа" if Game.hero_hp() > 0 else "смерть", " ===")
+			get_tree().quit()
+			return
+		ok(Game.flag("ded_shot"), "деда ранили по сюжету")
+		await wait(2.0)
 	ok(main.dialog.visible and main.dialog.node_id == "last", "последний разговор с дедом")
-	main.dialog.close()
+	var guard := 0
+	while main.dialog.visible and main.dialog.node_id != "kpk_on" and guard < 12:
+		await choose(0)
+		await frames(3)
+		guard += 1
+	ok(Game.flag("ded_dead"), "дед умер")
+	ok(Game.quest_stage("bootur") == 1, "задание «Найти Боотура»")
+	ok(Game.flag("kpk"), "браслет + компьютер деда = КПК")
+	ok(main.dialog.visible and main.dialog.node_id == "kpk_on", "мысль: подключить кабель")
+	await choose(0)
+	await frames(4)
+	ok(main.plugging, "анимация подключения к браслету")
+	var tk := 0.0
+	while not main.kpk.visible and tk < 8.0:
+		await wait(0.25)
+		tk += 0.25
+	ok(main.kpk.visible and main.kpk.tab == "stat", "КПК открылся: «Состояние»")
+	ok(not main.kpk.has_tab("inv") and not main.kpk.has_tab("map"), "без модулей нет инвентаря и карты")
+	main.kpk.close()
+	ok(main.hud._bar.visible and main.hud._tape.visible, "с КПК появился полный интерфейс")
+	main.open_kpk("quests")
+	await frames(3)
+	ok(main.plugging, "подключение каждый раз при открытии")
+	tk = 0.0
+	while not main.kpk.visible and tk < 4.0:
+		await wait(0.25)
+		tk += 0.25
+	ok(main.kpk.visible, "КПК открыт повторно")
+	main.kpk.close()
+
+	# --- модули на телах ---
 	for n in ["Raider2", "Raider3", "Raider4"]:
 		var r: Character = main.location.character(n)
 		await tp(r.global_position + Vector3(1.2, 0, 0))
 		main.loot(r)
 		await wait(0.3)
-		await close_dialogs()
 		if main.combat.on:
 			await fight()
-			await close_dialogs()
-	ok(Game.item_count("module_carrier") == 1, "модуль носителя найден")
-	main.talk_to(main.location.character("DedRaid"), "last")
-	await frames(2)
-	var guard := 0
-	while main.dialog.visible and main.dialog.node_id != "kpk_on" and guard < 10:
-		await choose(0)
-		guard += 1
-	ok(Game.flag("ded_dead"), "дед умер")
-	ok(Game.quest_stage("pack") == 1, "задание «Собраться в дорогу»")
-	ok(Game.quest_stage("bootur") == 1, "задание «Найти Боотура»")
-	ok(Game.flag("kpk"), "КПК собран из браслета и коробочки")
+		await close_dialogs()
 	var mods: Dictionary = Game.hero.flags.get("modules", {})
-	ok(mods.get("carrier", false) and mods.get("map", false) and mods.get("radio", false) and mods.get("inventory", false), "все модули вставлены")
+	ok(mods.get("inventory", false) and mods.get("map", false), "модули «Инвентарь» и «Карта» вставлены")
+	var eg: Character = main.location.character("ExitRaider")
+	ok(eg.visible and (eg.hostile or eg.pose == "dead"), "у черты появился раненый нападавший")
+	if eg.pose != "dead":
+		main.interact(main.location.item("BorderExit"))
+		await frames(2)
+		ok(not main.dialog.visible and main.hud.thought_visible(), "к черте не пройти, пока он жив")
+		await tp(eg.global_position + Vector3(3.5, 0, 0))
+		await wait(1.0)
+		ok(main.combat.on, "бой с раненым у черты")
+		await fight()
+	else:
+		print("  раненый напал сам, пока обыскивал соседнее тело")
 	await close_dialogs()
-	await frames(3)
-	ok(main.kpk.visible, "КПК открылся")
+	ok(eg.pose == "dead", "раненый у черты побеждён")
+	await tp(eg.global_position + Vector3(1.2, 0, 0))
+	main.loot(eg)
+	await wait(0.4)
+	mods = Game.hero.flags.get("modules", {})
+	ok(mods.get("radio", false), "модуль «Связь» с раненого")
 	for tb in ["inv", "stat", "map", "quests", "notes"]:
 		main.kpk.open(tb)
 		await frames(2)

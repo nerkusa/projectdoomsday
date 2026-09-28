@@ -37,7 +37,7 @@ func setup(m: Node) -> void:
 	body.add_child(v)
 	var top := HBoxContainer.new()
 	v.add_child(top)
-	_brand = UITheme.label("КПК «ВАХТА-М»", 13, UITheme.INK_2, true)
+	_brand = UITheme.label("CT14 inc.", 13, UITheme.INK_2, true)
 	top.add_child(_brand)
 	var sp := Control.new()
 	sp.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -89,8 +89,10 @@ func has_tab(t: String) -> bool:
 	var kpk := Game.flag("kpk")
 	var mods: Dictionary = Game.hero.flags.get("modules", {})
 	match t:
-		"inv", "quests":
+		"quests":
 			return true
+		"inv":
+			return not kpk or mods.get("inventory", false)
 		"stat":
 			return kpk and mods.get("carrier", false)
 		"map":
@@ -102,12 +104,12 @@ func has_tab(t: String) -> bool:
 
 func render() -> void:
 	var kpk := Game.flag("kpk")
-	_brand.text = "КПК НА БРАСЛЕТЕ" if kpk else "СУМКА"
+	_brand.text = "CT14 INC. · КПК НА БРАСЛЕТЕ" if kpk else "СУМКА"
 	for c in _tabs.get_children():
 		c.queue_free()
 	var names := {"inv": "Инвентарь", "stat": "Состояние", "map": "Карта", "quests": "Задания", "notes": "Записи"}
 	if not has_tab(tab):
-		tab = "inv"
+		tab = "inv" if has_tab("inv") else ("stat" if has_tab("stat") else "quests")
 	for t in ["inv", "stat", "map", "quests", "notes"]:
 		if not has_tab(t):
 			continue
