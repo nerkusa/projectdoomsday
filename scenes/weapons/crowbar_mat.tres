@@ -1,0 +1,9 @@
+[gd_resource type="StandardMaterial3D" format=3]
+
+[ext_resource type="Texture2D" path="res://assets/models/weapons/crowbar/crowbar_albedo.png" id="1_ul3uv"]
+
+[resource]
+resource_name = "crowbar"
+cull_mode = 2
+albedo_texture = ExtResource("1_ul3uv")
+roughness = 0.6

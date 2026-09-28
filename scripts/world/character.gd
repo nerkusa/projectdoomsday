@@ -253,6 +253,7 @@ func _process(delta: float) -> void:
 		_update_marks()
 	if body is AnimBody:
 		_animate_clips(delta)
+		_update_two_hands()
 	else:
 		_animate(delta)
 
@@ -293,9 +294,108 @@ func set_held(wkey: String) -> void:
 	if body is AnimBody:
 		_held_node.transform = body.grip(DB.is_gun(wkey))
 	hnd.add_child(_held_node)
+	_setup_two_hands()
+
+
+# ---------------- винтовка: приклад в плечо, руки на оружии ----------------
+## Когда целится (или стреляет, перезаряжается) — винтовка упирается прикладом в правое
+## плечо, а обе руки тянутся к ней (TwoBoneIK3D): правая к рукоятке, левая к цевью.
+## Иначе — просто в правой руке.
+## Где лежит винтовка у плеча (в координатах тела; тело смотрит вдоль +Z)
+const SHOULDER := Vector3(-0.15, 1.42, 0.24)
+var _ik: TwoBoneIK3D
+var _ik_left: Node3D
+var _ik_right: Node3D
+var _shouldered := false
+
+
+func _two_handed() -> bool:
+	return _held_node != null and _held_node.get_node_or_null("Foregrip") != null
+
+
+func _setup_two_hands() -> void:
+	_shouldered = false
+	if not (body is AnimBody):
+		return
+	var sk: Skeleton3D = (body as AnimBody).skel
+	if sk == null:
+		return
+	if _ik == null and _two_handed():
+		_ik_left = Node3D.new()
+		_ik_left.name = "LeftHandTarget"
+		_ik_left.top_level = true
+		add_child(_ik_left)
+		_ik_right = Node3D.new()
+		_ik_right.name = "RightHandTarget"
+		_ik_right.top_level = true
+		add_child(_ik_right)
+		var pole_l := Node3D.new()
+		pole_l.name = "LeftElbowPole"
+		pole_l.position = Vector3(0.6, 0.5, 0.0)
+		rig.add_child(pole_l)
+		var pole_r := Node3D.new()
+		pole_r.name = "RightElbowPole"
+		pole_r.position = Vector3(-0.7, 0.6, -0.1)
+		rig.add_child(pole_r)
+		_ik = TwoBoneIK3D.new()
+		_ik.name = "ArmsIK"
+		sk.add_child(_ik)
+		_ik.setting_count = 2
+		for i in 2:
+			var side := "L" if i == 0 else "R"
+			_ik.set_root_bone_name(i, "DEF-upper_arm." + side)
+			_ik.set_middle_bone_name(i, "DEF-forearm." + side)
+			_ik.set_end_bone_name(i, "DEF-hand." + side)
+		_ik.set_target_node(0, _ik.get_path_to(_ik_left))
+		_ik.set_pole_node(0, _ik.get_path_to(pole_l))
+		_ik.set_target_node(1, _ik.get_path_to(_ik_right))
+		_ik.set_pole_node(1, _ik.get_path_to(pole_r))
+	if _ik:
+		_ik.active = false
+
+
+func _update_two_hands() -> void:
+	if _ik == null or _held_node == null:
+		return
+	var typ: String = _act.get("type", "")
+	var want: bool = _two_handed() and pose == "" and not moving and (aim_pose or typ in ["fire", "reload"])
+	if want != _shouldered:
+		_shouldered = want
+		var hnd: Node3D = (body as AnimBody).hand()
+		if want:
+			_held_node.reparent(rig, false)
+			_held_node.transform = Transform3D(Basis.IDENTITY, SHOULDER)
+		else:
+			_held_node.reparent(hnd, false)
+			_held_node.transform = (body as AnimBody).grip(true)
+	_ik.active = want
+	if not want:
+		return
+	var fg: Node3D = _held_node.get_node("Foregrip")
+	var lp: Vector3 = fg.global_position
+	if typ == "reload" and _held_node.get_node_or_null("Bolt"):
+		var bolt: Node3D = _held_node.get_node("Bolt")
+		var k: float = clampf(float(_act.t) / 1.2, 0.0, 1.0)
+		# к затвору → оттянуть назад → дослать → обратно на цевьё
+		var back: Vector3 = _held_node.global_transform.basis.z.normalized() * -0.09
+		var bp: Vector3 = bolt.global_position
+		if k < 0.25:
+			lp = lp.lerp(bp, k / 0.25)
+		elif k < 0.5:
+			lp = bp.lerp(bp + back, (k - 0.25) / 0.25)
+		elif k < 0.7:
+			lp = (bp + back).lerp(bp, (k - 0.5) / 0.2)
+		else:
+			lp = bp.lerp(fg.global_position, (k - 0.7) / 0.3)
+	_ik_left.global_position = lp
+	_ik_right.global_position = _held_node.global_position
 
 
 func _make_weapon_mesh(wkey: String) -> Node3D:
+	# готовая модель из scenes/weapons (собирает tools/build_weapons.gd)
+	var sp := "res://scenes/weapons/%s.tscn" % wkey
+	if ResourceLoader.exists(sp):
+		return (load(sp) as PackedScene).instantiate()
 	var n := Node3D.new()
 	var w := DB.weapon(wkey)
 	var dark := Color("2b2925")
@@ -552,6 +652,14 @@ func _clip_act(ab: AnimBody, t: float) -> void:
 		return
 	if _act.type == "plug":
 		_plug_tick(ab, t)
+		return
+	if _act.type == "reload" and _two_handed():
+		ab.play("Pistol_Idle", 0.15)
+		if t >= 0.6:
+			_fire_cb_once()
+		if t >= 1.2:
+			_sound_bolt()
+			_end_act()
 		return
 	var c := _act_clip(_act.type)
 	if c.is_empty() or not ab.has(c[0]):
@@ -875,3 +983,7 @@ static func _ring_mat(c: Color) -> StandardMaterial3D:
 		m.no_depth_test = false
 		_mats[key] = m
 	return _mats[key]
+
+
+func _sound_bolt() -> void:
+	_sound("plug", -8.0)

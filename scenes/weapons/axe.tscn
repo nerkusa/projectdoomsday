@@ -1,0 +1,12 @@
+[gd_scene format=3]
+
+[ext_resource type="Material" path="res://scenes/weapons/axe_mat.tres" id="1_w43rl"]
+[ext_resource type="ArrayMesh" path="res://scenes/weapons/axe_mesh0.res" id="2_5wbh6"]
+
+[node name="Axe" type="Node3D" unique_id=310899255]
+metadata/length = 0.62
+
+[node name="Mesh0" type="MeshInstance3D" parent="." unique_id=1080213378]
+transform = Transform3D(-0.9651248, 8.437389e-08, 3.6880996e-15, 0, -4.2186944e-08, 0.9651248, 8.437389e-08, 0.9651248, 4.2186944e-08, -1.2583795e-08, -0.0064497185, 0.08605489)
+material_override = ExtResource("1_w43rl")
+mesh = ExtResource("2_5wbh6")

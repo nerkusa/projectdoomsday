@@ -1,0 +1,12 @@
+[gd_scene format=3]
+
+[ext_resource type="Material" path="res://scenes/weapons/oyun_mat.tres" id="1_unwli"]
+[ext_resource type="ArrayMesh" path="res://scenes/weapons/oyun_mesh0.res" id="2_ph5fh"]
+
+[node name="Oyun" type="Node3D" unique_id=1303550407]
+metadata/length = 0.3
+
+[node name="Mesh0" type="MeshInstance3D" parent="." unique_id=74474810]
+transform = Transform3D(-3.0590002e-09, 0, 0.06998177, 0, 0.06998177, 0, -0.06998177, 0, -3.0590002e-09, 0.00022460034, 0.00057895953, 0.024726748)
+material_override = ExtResource("1_unwli")
+mesh = ExtResource("2_ph5fh")

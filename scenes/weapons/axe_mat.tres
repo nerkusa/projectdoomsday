@@ -1,0 +1,16 @@
+[gd_resource type="StandardMaterial3D" format=3]
+
+[ext_resource type="Texture2D" path="res://assets/models/weapons/axe/axe_albedo.png" id="1_7txm1"]
+[ext_resource type="Texture2D" path="res://assets/models/weapons/axe/axe_metal.png" id="2_qmwlk"]
+[ext_resource type="Texture2D" path="res://assets/models/weapons/axe/axe_normal.png" id="3_oo8ie"]
+[ext_resource type="Texture2D" path="res://assets/models/weapons/axe/axe_rough.png" id="4_0tvt8"]
+
+[resource]
+resource_name = "axe"
+cull_mode = 2
+albedo_texture = ExtResource("1_7txm1")
+metallic = 1.0
+metallic_texture = ExtResource("2_qmwlk")
+roughness_texture = ExtResource("4_0tvt8")
+normal_enabled = true
+normal_texture = ExtResource("3_oo8ie")
