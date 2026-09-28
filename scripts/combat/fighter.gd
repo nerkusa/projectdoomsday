@@ -34,6 +34,8 @@ var xp := 50
 var loot: Dictionary = {}
 var flee_threshold := 0.3
 var will_dc := 13
+## Мишень: не ходит и не бьёт, просто стоит
+var static_target := false
 
 var hp: int:
 	get:
@@ -69,10 +71,7 @@ static func for_npc(n: Character, tpl: Dictionary) -> Fighter:
 		if not f.stats.has(k.key):
 			f.stats[k.key] = 1
 		f.stats[k.key] = int(f.stats[k.key])
-	f.skills = {}
-	var sk: Dictionary = tpl.get("skills", {})
-	for k in sk:
-		f.skills[k] = int(sk[k])
+	f.skills = Rules.normalize_skills(tpl.get("skills", {}))
 	f.hp_roll = int(tpl.get("hp_roll", 5))
 	f.max_hp = Rules.max_hp(f.stats, f.hp_roll)
 	f._hp = int(round(f.max_hp * float(tpl.get("hp_frac", 1.0))))
@@ -89,6 +88,7 @@ static func for_npc(n: Character, tpl: Dictionary) -> Fighter:
 	f.loot = tpl.get("loot", {})
 	f.flee_threshold = float(tpl.get("flee_below", 0.3))
 	f.will_dc = int(tpl.get("will_dc", 13))
+	f.static_target = bool(tpl.get("static", false))
 	return f
 
 

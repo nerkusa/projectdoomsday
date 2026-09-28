@@ -1,0 +1,14 @@
+[gd_resource type="StandardMaterial3D" format=3]
+
+[ext_resource type="Texture2D" path="res://assets/textures/log_weathered.png" id="1_s177p"]
+[ext_resource type="Texture2D" path="res://assets/textures/log_weathered_n.png" id="2_uc4vc"]
+
+[resource]
+resource_name = "log_weathered"
+albedo_texture = ExtResource("1_s177p")
+roughness = 0.95
+normal_enabled = true
+normal_texture = ExtResource("2_uc4vc")
+uv1_scale = Vector3(0.45, 0.45, 0.45)
+uv1_triplanar = true
+uv1_triplanar_sharpness = 4.0

@@ -1,0 +1,33 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/interactable.gd" id="1_2qiw7"]
+[ext_resource type="Material" path="res://assets/materials/planks_old.tres" id="2_bkn5b"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/junk_planks_old.res" id="3_v4j45"]
+[ext_resource type="Material" path="res://assets/materials/cloth_sack.tres" id="4_mjhof"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/junk_cloth_sack.res" id="5_6hs5n"]
+[ext_resource type="Material" path="res://assets/materials/cloth_red.tres" id="6_kwm87"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/junk_cloth_red.res" id="7_4g12t"]
+[ext_resource type="Material" path="res://assets/materials/rust.tres" id="8_m88l7"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/junk_rust.res" id="9_uj2ax"]
+
+[node name="Junk" type="Node3D" unique_id=2000019417]
+script = ExtResource("1_2qiw7")
+kind = "use"
+label = "Хлам — разобрать"
+pick_size = Vector3(1.2, 0.8, 1)
+
+[node name="Mesh_planks_old" type="MeshInstance3D" parent="." unique_id=1440502350]
+material_override = ExtResource("2_bkn5b")
+mesh = ExtResource("3_v4j45")
+
+[node name="Mesh_cloth_sack" type="MeshInstance3D" parent="." unique_id=1707794679]
+material_override = ExtResource("4_mjhof")
+mesh = ExtResource("5_6hs5n")
+
+[node name="Mesh_cloth_red" type="MeshInstance3D" parent="." unique_id=187895455]
+material_override = ExtResource("6_kwm87")
+mesh = ExtResource("7_4g12t")
+
+[node name="Mesh_rust" type="MeshInstance3D" parent="." unique_id=1993481020]
+material_override = ExtResource("8_m88l7")
+mesh = ExtResource("9_uj2ax")

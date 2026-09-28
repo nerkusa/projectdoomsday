@@ -12,7 +12,8 @@ const SETTINGS_PATH := "user://settings.json"
 var hero: Dictionary = {}
 ## Состояние мира по локациям: {"nakharro": {"dead": {...}, "looted": {...}, "picked": {...}}}
 var world: Dictionary = {}
-var settings := {"text_speed": "normal", "show_rolls": true}
+## show_rolls — показывать ли броски и формулы в журнале (по умолчанию нет)
+var settings := {"text_speed": "normal", "show_rolls": false}
 
 
 func _ready() -> void:
@@ -31,11 +32,12 @@ func new_hero() -> void:
 		"hp_roll": Rules.r1(10), "cur_hp": -1,
 		"locked": false, "stat_pts": 0, "skill_pts": 0,
 		"locked_stats": {}, "locked_skills": {},
-		"owned": [], "hands": ["fists", "fists"], "active": 0,
-		"mag": {}, "ammo": {"9мм": 0, "7.62": 0},
+		"owned": ["pistol", "knife"], "hands": ["pistol", "knife"], "active": 0,
+		"mag": {"pistol": 8}, "ammo": {"9мм": 8, "7.62": 0},
 		"items": {},
 		"flags": {}, "q": {}, "notes": [],
 		"sneak": false,
+		"humanity": Rules.HUMANITY_START,
 		"location": "nakharro", "pos": [],
 	}
 	world = {}
@@ -53,6 +55,23 @@ func hero_hp() -> int:
 
 func set_hero_hp(v: int) -> void:
 	hero.cur_hp = clampi(v, 0, hero_max())
+	hero_changed.emit()
+
+
+func humanity() -> int:
+	return int(hero.get("humanity", Rules.HUMANITY_START))
+
+
+## Поступок героя сдвигает человечность (+ добрый, − жестокий)
+func change_humanity(d: int, why := "") -> void:
+	if d == 0:
+		return
+	var old := humanity()
+	hero.humanity = clampi(old + d, 0, 100)
+	var head := "Человечность %s%d" % ["+" if d > 0 else "−", absi(d)]
+	if why != "":
+		head += ": " + why
+	log_line(head, "%d → %d (%s)" % [old, int(hero.humanity), Rules.humanity_label(int(hero.humanity))], "hit" if d > 0 else "miss")
 	hero_changed.emit()
 
 
@@ -221,7 +240,7 @@ func skill_check(label: String, stat: String, skill: String, dc: int, bonus := 0
 	var t: int = r.d + sv + kv + bonus
 	var ok := t >= dc
 	log_line("[%s] %s" % [label, "успех" if ok else "провал"],
-		"d10(%d) + %s(%d) + %s(%d)%s = %d против %d" % [r.d, stat, sv, Rules.skill_label(skill), kv,
+		"d10(%d) + %s(%d) + %s(%d)%s = %d против %d" % [r.d, stat, sv, skill, kv,
 		(" + бонус(%d)" % bonus) if bonus else "", t, dc], "hit" if ok else "miss")
 	return ok
 
@@ -266,6 +285,8 @@ func load_game(slot := "auto") -> bool:
 		if not base.has(k):
 			base[k] = hero[k]
 	hero = base
+	hero.skills = Rules.normalize_skills(hero.skills)
+	hero.locked_skills = Rules.normalize_skills(hero.locked_skills)
 	world = d.get("world", {})
 	hero_changed.emit()
 	return true
@@ -293,6 +314,10 @@ func _load_settings() -> void:
 		var d = JSON.parse_string(FileAccess.get_file_as_string(SETTINGS_PATH))
 		if d is Dictionary:
 			settings.merge(d, true)
+			# раньше броски показывались по умолчанию — прячем один раз
+			if not d.has("rolls_v2"):
+				settings.show_rolls = false
+				settings["rolls_v2"] = true
 
 
 func save_settings() -> void:

@@ -1,0 +1,16 @@
+[gd_resource type="StandardMaterial3D" format=3]
+
+[ext_resource type="Texture2D" path="res://assets/textures/metal_roof.png" id="1_d0ply"]
+[ext_resource type="Texture2D" path="res://assets/textures/metal_roof_n.png" id="2_5j65u"]
+
+[resource]
+resource_name = "metal_roof"
+albedo_color = Color(0.65882355, 0.6431373, 0.6117647, 1)
+albedo_texture = ExtResource("1_d0ply")
+metallic = 0.35
+roughness = 0.7
+normal_enabled = true
+normal_texture = ExtResource("2_5j65u")
+uv1_scale = Vector3(0.8, 0.8, 0.8)
+uv1_triplanar = true
+uv1_triplanar_sharpness = 4.0

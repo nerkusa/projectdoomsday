@@ -1,0 +1,132 @@
+{
+  "speaker": "Сайыына",
+  "title": "Сайыына · третий день в жару",
+  "nodes": {
+    "start": {
+      "text": "Кто там?.. Жар третий день, голова кругом. Знахарка ушла за травами — и нету.",
+      "text_if": [
+        {
+          "if": {
+            "flag": "sick_cured"
+          },
+          "text": "Полегчало... Спасибо тебе. Дед твой бы гордился."
+        }
+      ],
+      "options": [
+        {
+          "text": "[Медицина] Дай посмотрю.",
+          "if": {
+            "not_flag": "sick_seen"
+          },
+          "check": {
+            "stat": "INT",
+            "skill": "Медицина",
+            "dc": 12
+          },
+          "success": "diag_ok",
+          "fail": "diag_bad"
+        },
+        {
+          "text": "[Первая помощь] Сделаю холодный компресс.",
+          "if": {
+            "not_flags": [
+              "sick_compress",
+              "sick_cured"
+            ]
+          },
+          "check": {
+            "stat": "PRC",
+            "skill": "Первая помощь",
+            "dc": 10
+          },
+          "success": "compress_ok",
+          "fail": "compress_bad"
+        },
+        {
+          "text": "Вот травяной сбор, заварим. [Отдать травяной сбор]",
+          "if": {
+            "item": "herbs",
+            "not_flag": "sick_cured"
+          },
+          "take": {
+            "herbs": 1
+          },
+          "next": "cured"
+        },
+        {
+          "text": "[Уйти]",
+          "next": null
+        }
+      ]
+    },
+    "diag_ok": {
+      "text": "Горло чистое, сыпи нет, дышишь ровно... Это не зараза — простыла. Тепло, питьё и отвар из сбора, если найдётся.",
+      "xp": 20,
+      "set_flags": {
+        "sick_seen": true
+      },
+      "note": "Сайыына простыла. Поможет травяной сбор — есть в амбаре и по избам.",
+      "options": [
+        {
+          "text": "Поищу сбор.",
+          "next": null
+        }
+      ]
+    },
+    "diag_bad": {
+      "text": "Ты чего меня щупаешь? Знахарку дождусь.",
+      "set_flags": {
+        "sick_seen": true
+      },
+      "options": [
+        {
+          "text": "Извини.",
+          "next": null
+        }
+      ]
+    },
+    "compress_ok": {
+      "text": "Ох... холодненько. Хорошо. Спасибо.",
+      "xp": 15,
+      "humanity": 1,
+      "set_flags": {
+        "sick_compress": true
+      },
+      "options": [
+        {
+          "text": "Лежи.",
+          "next": null
+        }
+      ]
+    },
+    "compress_bad": {
+      "text": "Ай, вода за шиворот! Ладно, ладно, спасибо и на том.",
+      "set_flags": {
+        "sick_compress": true
+      },
+      "options": [
+        {
+          "text": "Прости.",
+          "next": null
+        }
+      ]
+    },
+    "cured": {
+      "text": "Горько... но тепло пошло. Спасибо. Возьми вот — консервы, мне муж с охоты принёс, а я не ем такое.",
+      "give": {
+        "canned": 1
+      },
+      "xp": 30,
+      "humanity": 3,
+      "set_flags": {
+        "sick_cured": true
+      },
+      "options": [
+        {
+          "text": "Выздоравливай.",
+          "next": null
+        }
+      ]
+    }
+  }
+}

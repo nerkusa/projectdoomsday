@@ -5,7 +5,14 @@ const LOCATIONS := {
 	"nakharro": "res://scenes/locations/nakharro.tscn",
 }
 const CAM_DIR := Vector3(1, 1, 1)
-const CAM_DIST := 60.0
+## Камера ортогональная: расстояние не меняет картинку, но от него зависит
+## качество теней (чем дальше, тем грубее каскад теней солнца)
+const CAM_DIST := 32.0
+## Скорость героя вне боя (м/с) и до какого расстояния он идёт шагом, а не бежит
+const WALK_SPEED := 1.8
+const RUN_SPEED := 4.2
+const SNEAK_SPEED := 1.4
+const WALK_MAX_DIST := 5.0
 
 var location: Location
 var player: Character
@@ -183,7 +190,9 @@ func load_location(id: String, spawn := "Start", pos = null) -> void:
 	if player == null:
 		player = Character.new()
 		player.name = "Player"
+		player.add_to_group("player")
 		player.use_hero_model = true
+		player.use_anim_model = true
 		player.is_player = true
 		player.char_id = "hero"
 	location.add_child(player)
@@ -312,6 +321,18 @@ func _open_pause() -> void:
 	get_tree().paused = true
 
 
+## Крадучись — медленно; к близкой точке — шагом; далеко — бегом
+func _move_speed(pts: Array) -> float:
+	if Game.hero.get("sneak", false):
+		return SNEAK_SPEED
+	var dist := 0.0
+	var prev := player.global_position
+	for p in pts:
+		dist += Vector2(p.x - prev.x, p.z - prev.z).length()
+		prev = p
+	return WALK_SPEED if dist <= WALK_MAX_DIST else RUN_SPEED
+
+
 func _sneak_radius(base: float) -> float:
 	if not Game.hero.get("sneak", false):
 		return base
@@ -333,6 +354,7 @@ func talk_to(ch: Character, node := "") -> void:
 	if ch.dialog == "":
 		return
 	player.face_towards(ch.global_position)
+	ch.stop()
 	ch.face_towards(player.global_position)
 	dialog.open(ch.dialog, node if node != "" else ch.dialog_node, ch)
 
@@ -421,6 +443,8 @@ func _unhandled_input(e: InputEvent) -> void:
 			KEY_SPACE:
 				if combat.my_turn():
 					combat.end_turn()
+			KEY_Z:
+				_on_hud_action("sneak")
 			KEY_A:
 				if combat.my_turn():
 					combat.aim = not combat.aim
@@ -480,15 +504,25 @@ func _click(sp: Vector2) -> void:
 		_go_then(it, "use")
 		return
 	if p.has("hex"):
-		_walk_to_hex(p.hex)
+		_walk_to_hex(p.hex, Callable(), p.get("ground", null))
 
 
-func _walk_to_hex(h: Vector2i, cb := Callable()) -> bool:
+## Вне боя герой ходит свободно: гексы нужны только чтобы найти обход препятствий,
+## потом путь спрямляется, а конечная точка — ровно туда, куда кликнули (exact).
+## В бою ходьба идёт по гексам (CombatManager).
+func _walk_to_hex(h: Vector2i, cb := Callable(), exact = null) -> bool:
 	var g := location.grid
 	var from := g.from_world(player.global_position)
 	var target := h
 	if not g.is_free(target):
 		target = g.nearest_free(g.to_world(h))
+		exact = null
+	var goal: Vector3 = g.to_world(target)
+	if exact != null:
+		goal = Vector3(exact.x, 0, exact.z)
+	if _walk_clear(player.global_position, goal):
+		player.move_along([goal], cb, _move_speed([goal]))
+		return true
 	var blocked := {}
 	for c in location.characters():
 		if c.visible and c.pose != "dead":
@@ -500,8 +534,40 @@ func _walk_to_hex(h: Vector2i, cb := Callable()) -> bool:
 	var pts := []
 	for x in path:
 		pts.append(g.to_world(x))
-	player.move_along(pts, cb, 4.2)
+	if not pts.is_empty():
+		pts[-1] = goal
+	pts = _smooth_path(player.global_position, pts)
+	player.move_along(pts, cb, _move_speed(pts))
 	return true
+
+
+## Можно ли пройти по прямой: три луча на уровне колен (центр и по бокам)
+func _walk_clear(a: Vector3, b: Vector3) -> bool:
+	var d := Vector3(b.x - a.x, 0, b.z - a.z)
+	if d.length() < 0.01:
+		return true
+	var side := Vector3(-d.z, 0, d.x).normalized() * 0.35
+	var sp := space()
+	for off in [Vector3.ZERO, side, -side]:
+		var q := PhysicsRayQueryParameters3D.create(a + off + Vector3(0, 0.5, 0), b + off + Vector3(0, 0.5, 0), 1)
+		if not sp.intersect_ray(q).is_empty():
+			return false
+	return true
+
+
+## Спрямление пути: из каждой точки идём сразу к самой дальней видимой
+func _smooth_path(start: Vector3, pts: Array) -> Array:
+	var out := []
+	var cur := start
+	var i := 0
+	while i < pts.size():
+		var j := mini(pts.size() - 1, i + 24)
+		while j > i and not _walk_clear(cur, pts[j]):
+			j -= 1
+		out.append(pts[j])
+		cur = pts[j]
+		i = j + 1
+	return out
 
 
 func _go_then(target: Node3D, what: String) -> void:
@@ -672,7 +738,7 @@ func _update_xray() -> void:
 			var col: Object = r.collider
 			excl.append(r.rid)
 			var prop: Node = (col as Node).get_parent()
-			if prop and prop != location and not hits.has(prop):
+			if prop and prop != location and not hits.has(prop) and not prop.get_meta("inside", false):
 				hits.append(prop)
 	for p in _xray:
 		if is_instance_valid(p) and not hits.has(p):

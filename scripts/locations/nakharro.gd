@@ -4,8 +4,11 @@ extends Location
 ## Узлы с группой phase_morning видны только утром, phase_raid — во время и после налёта.
 
 const NEED_FOOD := 5
+## Где кончается северный лес: выйдя из него во время налёта, герой видит пожар
+const FOREST_EDGE_Z := 26.0
 
 var _kpk_busy := false
+var _volley_t := 2.0
 
 
 func _ready() -> void:
@@ -98,17 +101,85 @@ func objective() -> String:
 		if Game.quest_stage("fire") <= 1:
 			return "Нахарро горит. Найти деда."
 		return "Помочь деду у амбара!"
+	var pack := pack_line()
 	if not Game.flag("kpk"):
 		var need := []
 		if Game.item_count("minicomputer") <= 0:
 			need.append("коробочку с экраном")
-		return "Обыскать тела нападавших%s. Потом — на запад, к старой черте." % ((": найти " + ", ".join(need)) if not need.is_empty() else "")
-	return "Идти на запад по старой просеке, к старой черте."
+		return "Обыскать тела нападавших%s. Потом — на запад, к старой черте.%s" % [(": найти " + ", ".join(need)) if not need.is_empty() else "", pack]
+	return "Идти на запад по старой просеке, к старой черте." + pack
+
+
+# ---------------- сборы в дорогу ----------------
+## Что нужно взять за черту: категория -> подпись. Еды — FOOD_NEED порций.
+const PACK := {"water": "вода", "fire": "спички", "sleep": "одеяло", "rope": "верёвка"}
+const FOOD_NEED := 2
+
+
+func food_portions() -> int:
+	var n := 0
+	for k in DB.items:
+		if DB.items[k] is Dictionary and DB.items[k].get("travel", "") == "food":
+			n += Game.item_count(k)
+	return n
+
+
+func has_travel(cat: String) -> bool:
+	for k in DB.items:
+		if DB.items[k] is Dictionary and DB.items[k].get("travel", "") == cat and Game.item_count(k) > 0:
+			return true
+	return false
+
+
+func pack_ready() -> bool:
+	for c in PACK:
+		if not has_travel(c):
+			return false
+	return food_portions() >= FOOD_NEED
+
+
+## Строка для цели на экране, пока задание «Собраться в дорогу» не выполнено
+func pack_line() -> String:
+	if Game.quest_stage("pack") != 1:
+		return ""
+	var parts := []
+	for c in PACK:
+		parts.append("%s %s" % ["[x]" if has_travel(c) else "[ ]", PACK[c]])
+	parts.append("%s еда %d/%d" % ["[x]" if food_portions() >= FOOD_NEED else "[ ]", mini(food_portions(), FOOD_NEED), FOOD_NEED])
+	return "\nВ дорогу: " + " · ".join(parts)
+
+
+func _check_pack() -> void:
+	if Game.quest_stage("pack") == 1 and pack_ready():
+		Game.set_quest("pack", 2)
+		Game.add_note("Собрался в дорогу: вода, огонь, одеяло, верёвка, еда. Дед бы одобрил — «в тайгу без спичек не ходят».")
+
+
+# ---------------- перестрелка у ворот ----------------
+## Пока «чистильщики» у амбара живы, защитники у ворот отстреливаются
+## от остатков нападавших в лесу: вспышки и выстрелы то тут, то там.
+func _process(delta: float) -> void:
+	if main == null or phase() != "raid" or Game.flag("ded_shot") or main.combat.on:
+		return
+	_volley_t -= delta
+	if _volley_t > 0.0:
+		return
+	_volley_t = randf_range(0.8, 2.6)
+	var shooters := []
+	for n in get_tree().get_nodes_in_group("defenders"):
+		var ch := n as Character
+		if ch and ch.visible and ch.pose == "" and not ch.moving:
+			ch.aim_pose = true
+			shooters.append(ch)
+	if shooters.is_empty():
+		return
+	var ch: Character = shooters.pick_random()
+	ch.act("fire", Callable(), {"n": randi_range(1, 2)})
 
 
 # ---------------- события ----------------
 func on_hero_moved(pos: Vector3) -> void:
-	if phase() == "raid" and not Game.flag("fire_seen") and pos.z > 20.0:
+	if phase() == "raid" and not Game.flag("fire_seen") and pos.z > FOREST_EDGE_Z:
 		Game.set_flag("fire_seen")
 		Game.set_quest("forest", 3)
 		Game.set_quest("fire", 1)
@@ -137,6 +208,7 @@ func on_picked(it: Interactable) -> void:
 		if phase() == "morning" and food_count() >= NEED_FOOD:
 			_start_raid()
 	else:
+		_check_pack()
 		main.hud.refresh_objective()
 
 
@@ -167,6 +239,39 @@ func on_noticed(ch: Character) -> bool:
 
 
 func on_interact(it: Interactable) -> bool:
+	if String(it.name).begins_with("Junk"):
+		if Game.quest_stage("barn_junk") != 1:
+			main.hud.flash_tip("Варвара не просила разбирать")
+			return true
+		ws().picked[it.uid()] = true
+		it.set_active(false)
+		main.player.act("pickup")
+		var n := int(Game.flag_value("junk_n", 0)) + 1
+		Game.set_flag("junk_n", n)
+		Game.log_line("Хлам разобран: %d/3" % n)
+		if n >= 3:
+			Game.set_quest("barn_junk", 2)
+		return true
+	if it.name == "LockedBox":
+		if Game.flag("box_open"):
+			return true
+		if Game.flag("box_jammed"):
+			main.hud.flash_tip("Замок заклинило намертво")
+			return true
+		main.player.act("pickup")
+		if Game.skill_check("Взлом замков", "DEX", "Взлом замков", 11):
+			Game.set_flag("box_open")
+			ws().picked[it.uid()] = true
+			it.set_active(false)
+			Game.add_item("ammo9", 6)
+			Game.add_item("canned", 1)
+			Game.log_line("В сундуке: патроны 9 мм ×6, консервы", "", "hit")
+			Game.add_note("В старом сундуке в амбаре — довоенная коробка патронов. Кто-то когда-то спрятал «не на себя», а на чёрный день.")
+			Game.grant_xp(25)
+		else:
+			Game.set_flag("box_jammed")
+			Game.log_line("Отмычка хрустнула — замок заклинило.", "", "miss")
+		return true
 	if it.name == "BorderExit":
 		if phase() == "morning":
 			main.say("thoughts", "law_border")
@@ -199,10 +304,36 @@ func on_dialog_action(a: String, _sp: Character) -> bool:
 			Game.set_flag("phase", "after")
 			Game.set_quest("bootur", 1)
 			Game.set_quest("who", 1)
+			Game.set_quest("pack", 1)
+			_check_pack()
 			Game.log_line("Дед Уйбаан умер.", "", "miss")
 			main.hud.refresh_objective()
 			_check_kpk()
 			main.autosave()
+			return true
+		"hunter_spar":
+			var hunter := character("Hunter")
+			main.dialog.close()
+			Game.set_flag("hunter_spar")
+			main.combat.start([hunter], {"kind": "spar"})
+			return true
+		"range_start":
+			main.dialog.close()
+			var targets := []
+			for ch in characters():
+				if ch.is_in_group("range_targets") and ch.pose != "dead":
+					targets.append(ch)
+			if targets.is_empty():
+				return true
+			if Game.hero_wkey() == "knife" or Game.hero_wkey() == "fists":
+				main._swap_hands()
+			Game.set_flag("range_on")
+			main.combat.start(targets, {"kind": "range"})
+			return true
+		"range_reward":
+			Game.hero.skills["Дальний бой"] = int(Game.hero.skills.get("Дальний бой", 0)) + 1
+			Game.log_line("Дальний бой +1 — урок Бэргэна.", "", "hit")
+			Game.hero_changed.emit()
 			return true
 		"open_kpk":
 			main.open_kpk.call_deferred("stat")
@@ -228,7 +359,16 @@ func on_fighter_down(f: Fighter) -> void:
 		_shoot_ded(shooter if shooter else f.node, shooter == null)
 
 
-func on_combat_end(res: String, _kind: String) -> void:
+func on_combat_end(res: String, kind: String) -> void:
+	if kind == "spar" and Game.flag("hunter_spar") and not Game.flag("hunter_done"):
+		await get_tree().create_timer(0.6, false).timeout
+		main.talk_to(character("Hunter"), "won" if res == "win" else "lost")
+		return
+	if kind == "range" and Game.flag("range_on"):
+		Game.set_flag("range_on", false)
+		await get_tree().create_timer(0.6, false).timeout
+		main.talk_to(character("Shooter"), "done")
+		return
 	if res != "win" or Game.flag("ded_dead") or not Game.flag("barn_started"):
 		return
 	if _alive_cleaner() != null:

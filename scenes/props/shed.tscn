@@ -1,0 +1,38 @@
+[gd_scene format=3]
+
+[ext_resource type="Material" path="res://assets/materials/planks_old.tres" id="1_2b3q8"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/shed_planks_old.res" id="2_jx3n5"]
+[ext_resource type="Material" path="res://assets/materials/log_weathered.tres" id="3_mcol1"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/shed_log_weathered.res" id="4_4ai5a"]
+[ext_resource type="Material" path="res://assets/materials/metal_roof.tres" id="5_v7srm"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/shed_metal_roof.res" id="6_i5olm"]
+[ext_resource type="Material" path="res://assets/materials/trim.tres" id="7_ok4ly"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/shed_trim.res" id="8_40ea6"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_tdry4"]
+size = Vector3(3.9, 2.5, 3.1)
+
+[node name="Shed" type="Node3D" unique_id=958191123]
+
+[node name="Mesh_planks_old" type="MeshInstance3D" parent="." unique_id=614709496]
+material_override = ExtResource("1_2b3q8")
+mesh = ExtResource("2_jx3n5")
+
+[node name="Mesh_log_weathered" type="MeshInstance3D" parent="." unique_id=1859572436]
+material_override = ExtResource("3_mcol1")
+mesh = ExtResource("4_4ai5a")
+
+[node name="Mesh_metal_roof" type="MeshInstance3D" parent="." unique_id=1395818509]
+material_override = ExtResource("5_v7srm")
+mesh = ExtResource("6_i5olm")
+
+[node name="Mesh_trim" type="MeshInstance3D" parent="." unique_id=2078360208]
+material_override = ExtResource("7_ok4ly")
+mesh = ExtResource("8_40ea6")
+
+[node name="Collision" type="StaticBody3D" parent="." unique_id=1924624105]
+collision_mask = 0
+
+[node name="@CollisionShape3D@66" type="CollisionShape3D" parent="Collision" unique_id=895398086]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.25, 0)
+shape = SubResource("BoxShape3D_tdry4")

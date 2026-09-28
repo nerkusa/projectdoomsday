@@ -220,9 +220,8 @@ func _render_inv() -> void:
 			rows.append(["Магазин", "%d/%d · %s" % [int(h.mag.get(_sel, 0)), int(w.mag), w.ammo]])
 		if w.has("burst"):
 			rows.append(["Очередь", "×%d, %d ОД, −%d к попаданию" % [int(w.burst.n), int(w.burst.ap), int(w.burst.pen)]])
-		var st := Rules.weapon_stat(w.type)
 		var sk: String = Rules.WEAPON_SKILL[w.type]
-		rows.append(["Попадание", "%s %d + %s %d%s" % [st, int(h.stats.get(st, 0)), Rules.skill_label(sk), int(h.skills.get(sk, 0)), (" + %d" % (int(w.get("bonus", 0)) + int(w.get("hit_bonus", 0)))) if int(w.get("bonus", 0)) + int(w.get("hit_bonus", 0)) else ""]])
+		rows.append(["Навык", "%s %d" % [sk, int(h.skills.get(sk, 0))]])
 		for r in rows:
 			right.add_child(_g("%s: %s" % r, 13))
 		if w.has("desc"):
@@ -239,7 +238,7 @@ func _render_inv() -> void:
 		var it: Dictionary = DB.items.get(_sel, {})
 		right.add_child(_g(it.get("desc", ""), 13))
 		if it.has("heal"):
-			right.add_child(_g("Лечит: %s + %d · %d ОД в бою" % [it.heal, int(it.get("plus", 0)), int(it.get("ap", 2))], 13))
+			right.add_child(_g("Лечит · %d ОД в бою" % int(it.get("ap", 2)), 13))
 			var b := UITheme.key("Использовать", "primary", 11)
 			b.pressed.connect(func(): use_item.emit(_sel))
 			right.add_child(b)
@@ -292,7 +291,8 @@ func _render_stat() -> void:
 		vb.add_child(l2)
 		g.add_child(p)
 	var ap := Rules.ap_for(h.stats, Game.hero_hp(), Game.hero_max())
-	_screen.add_child(_g("ОД в бою: %d · уклонение: DEX %d + Уклонение %d" % [ap, int(h.stats.DEX), int(h.skills.get("Уклонение", 0))], 13))
+	_screen.add_child(_g("ОД в бою: %d" % ap, 13))
+	_screen.add_child(_g("Человечность: %d/100 — %s" % [Game.humanity(), Rules.humanity_label(Game.humanity())], 13))
 	var top := []
 	for k in h.skills:
 		if int(h.skills[k]) > 0:
@@ -300,7 +300,7 @@ func _render_stat() -> void:
 	top.sort_custom(func(a, bb): return a[1] > bb[1])
 	var txt := []
 	for x in top:
-		txt.append("%s %d" % [Rules.skill_label(x[0]), x[1]])
+		txt.append("%s %d" % [x[0], x[1]])
 	_screen.add_child(_g("Навыки: " + (", ".join(txt) if not txt.is_empty() else "нет"), 13))
 
 

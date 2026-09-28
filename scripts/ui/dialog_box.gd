@@ -172,7 +172,7 @@ func _choose(i: int) -> void:
 		var bonus := int(c.get("bonus", 0))
 		if c.get("bonus_gun", 0) and DB.is_gun(Game.hero_wkey()):
 			bonus += int(c.bonus_gun)
-		var ok := Game.skill_check(c.get("label", Rules.skill_label(c.get("skill", ""))), c.get("stat", "EMP"), c.get("skill", ""), int(c.get("dc", 12)), bonus)
+		var ok := Game.skill_check(c.get("label", c.get("skill", "")), c.get("stat", "EMP"), c.get("skill", ""), int(c.get("dc", 12)), bonus)
 		nxt = o.get("success") if ok else o.get("fail")
 		if ok and o.has("xp_success"):
 			var note := Game.grant_xp(int(o.xp_success))
@@ -207,10 +207,13 @@ func _apply_effects(o: Dictionary) -> void:
 		Game.log_line("Опыт +%d" % int(o.xp), note.strip_edges())
 	if o.has("note"):
 		Game.add_note(o.note)
+	if o.has("humanity"):
+		Game.change_humanity(int(o.humanity))
 
 
-## Условия показа: {"flag": "...", "not_flag": "...", "quest": "id", "stage_min": 1,
-## "stage_max": 2, "item": "ключ", "no_item": "ключ", "cond": "имя проверки в скрипте локации"}
+## Условия показа: {"flag": "...", "not_flag": "...", "flags": [...], "not_flags": [...], "quest": "id", "stage_min": 1,
+## "stage_max": 2, "item": "ключ", "no_item": "ключ", "humanity_min": 50, "humanity_max": 30,
+## "cond": "имя проверки в скрипте локации"}
 func _cond_ok(c: Dictionary) -> bool:
 	if c.is_empty():
 		return true
@@ -218,6 +221,12 @@ func _cond_ok(c: Dictionary) -> bool:
 		return false
 	if c.has("not_flag") and Game.flag(c.not_flag):
 		return false
+	for f in c.get("flags", []):
+		if not Game.flag(f):
+			return false
+	for f in c.get("not_flags", []):
+		if Game.flag(f):
+			return false
 	if c.has("quest"):
 		var st := Game.quest_stage(c.quest)
 		if c.has("stage_min") and st < int(c.stage_min):
@@ -231,6 +240,10 @@ func _cond_ok(c: Dictionary) -> bool:
 	if c.has("no_item") and Game.item_count(c.no_item) > 0:
 		return false
 	if c.has("hurt") and Game.hero_hp() >= Game.hero_max():
+		return false
+	if c.has("humanity_min") and Game.humanity() < int(c.humanity_min):
+		return false
+	if c.has("humanity_max") and Game.humanity() > int(c.humanity_max):
 		return false
 	if c.has("cond"):
 		var loc = get_tree().get_first_node_in_group("location")

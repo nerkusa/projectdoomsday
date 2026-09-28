@@ -1,0 +1,39 @@
+[gd_scene format=3]
+
+[ext_resource type="Material" path="res://assets/materials/log_weathered.tres" id="1_matuo"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/gate_log_weathered.res" id="2_4s2m7"]
+[ext_resource type="Material" path="res://assets/materials/planks_old.tres" id="3_rv7nx"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/gate_planks_old.res" id="4_4play"]
+[ext_resource type="Material" path="res://assets/materials/trim.tres" id="5_xdqf0"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/gate_trim.res" id="6_oxugs"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_fhq74"]
+size = Vector3(0.6, 4, 0.6)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_qwel0"]
+size = Vector3(0.6, 4, 0.6)
+
+[node name="Gate" type="Node3D" unique_id=1580636526]
+
+[node name="Mesh_log_weathered" type="MeshInstance3D" parent="." unique_id=641786883]
+material_override = ExtResource("1_matuo")
+mesh = ExtResource("2_4s2m7")
+
+[node name="Mesh_planks_old" type="MeshInstance3D" parent="." unique_id=1655437991]
+material_override = ExtResource("3_rv7nx")
+mesh = ExtResource("4_4play")
+
+[node name="Mesh_trim" type="MeshInstance3D" parent="." unique_id=1554447736]
+material_override = ExtResource("5_xdqf0")
+mesh = ExtResource("6_oxugs")
+
+[node name="Collision" type="StaticBody3D" parent="." unique_id=824650525]
+collision_mask = 0
+
+[node name="@CollisionShape3D@69" type="CollisionShape3D" parent="Collision" unique_id=2056937490]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.2, 2, 0)
+shape = SubResource("BoxShape3D_fhq74")
+
+[node name="@CollisionShape3D@70" type="CollisionShape3D" parent="Collision" unique_id=2133893642]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.2, 2, 0)
+shape = SubResource("BoxShape3D_qwel0")

@@ -1,0 +1,27 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/interactable.gd" id="1_ojd1e"]
+[ext_resource type="Material" path="res://assets/materials/planks_old.tres" id="2_csqma"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/locked_box_planks_old.res" id="3_w7oos"]
+[ext_resource type="Material" path="res://assets/materials/metal_dark.tres" id="4_4fwcj"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/locked_box_metal_dark.res" id="5_ch1cb"]
+[ext_resource type="Material" path="res://assets/materials/brass.tres" id="6_hmmk0"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/locked_box_brass.res" id="7_4rkg2"]
+
+[node name="LockedBox" type="Node3D" unique_id=784203948]
+script = ExtResource("1_ojd1e")
+kind = "use"
+label = "Запертый сундук"
+pick_size = Vector3(1, 0.8, 0.7)
+
+[node name="Mesh_planks_old" type="MeshInstance3D" parent="." unique_id=2125390696]
+material_override = ExtResource("2_csqma")
+mesh = ExtResource("3_w7oos")
+
+[node name="Mesh_metal_dark" type="MeshInstance3D" parent="." unique_id=1091950700]
+material_override = ExtResource("4_4fwcj")
+mesh = ExtResource("5_ch1cb")
+
+[node name="Mesh_brass" type="MeshInstance3D" parent="." unique_id=514557742]
+material_override = ExtResource("6_hmmk0")
+mesh = ExtResource("7_4rkg2")

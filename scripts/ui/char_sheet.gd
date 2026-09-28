@@ -81,7 +81,7 @@ func setup() -> void:
 	cols.add_child(rp)
 	var rv := VBoxContainer.new()
 	rp.add_child(rv)
-	rv.add_child(UITheme.label("НАВЫКИ  (×2 — стоит два очка)", 11, UITheme.AMBER_DIM, true))
+	rv.add_child(UITheme.label("НАВЫКИ", 11, UITheme.AMBER_DIM, true))
 	var sc := ScrollContainer.new()
 	sc.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	sc.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
@@ -148,14 +148,13 @@ func can_s(k: String, d: int) -> bool:
 func can_k(n: String, d: int) -> bool:
 	var h := Game.hero
 	var v := int(h.skills.get(n, 0))
-	var c := Rules.skill_cost(n)
 	if h.locked:
 		if d < 0:
 			return v > int(h.locked_skills.get(n, 0))
-		return int(h.skill_pts) >= c and v < 10
+		return int(h.skill_pts) >= 1 and v < 10
 	if d < 0:
 		return v > 0
-	return v < 10 and Rules.sum_skill_points(h.skills) + c <= Game.skill_pool()
+	return v < 10 and Rules.sum_skill_points(h.skills) < Game.skill_pool()
 
 
 func ch_stat(k: String, d: int) -> void:
@@ -170,10 +169,9 @@ func ch_stat(k: String, d: int) -> void:
 func ch_skill(n: String, d: int) -> void:
 	if not can_k(n, d):
 		return
-	var c := Rules.skill_cost(n)
 	Game.hero.skills[n] = int(Game.hero.skills.get(n, 0)) + d
 	if Game.hero.locked:
-		Game.hero.skill_pts = int(Game.hero.skill_pts) - d * c
+		Game.hero.skill_pts = int(Game.hero.skill_pts) - d
 	render()
 
 
@@ -222,16 +220,16 @@ func render() -> void:
 		row.add_child(_pm("+", can_s(s.key, 1), ch_stat.bind(s.key, 1)))
 		_stats_box.add_child(row)
 	var mx := Game.hero_max()
-	_derived.text = "ХП: %d  (Тело×2 + Рефл.×2 + d10=%d)\nОД в бою: %d  (5 + (Рефл.+Ловк.)/4, вниз)" % [mx, h.hp_roll, Rules.ap_for(h.stats, mx, mx)]
+	_derived.text = "ХП: %d\nОД в бою: %d\nЧеловечность: %d/100 — %s" % [mx, Rules.ap_for(h.stats, mx, mx), Game.humanity(), Rules.humanity_label(Game.humanity())]
 	for c in _skills_box.get_children():
 		c.queue_free()
 	for s in Rules.STATS:
 		var hdr := UITheme.label(s.full.to_upper(), 11, UITheme.AMBER_DIM, true)
 		_skills_box.add_child(hdr)
 		for sk in Rules.SKILLS[s.key]:
-			var n: String = sk[0]
+			var n: String = sk
 			var row := HBoxContainer.new()
-			var nm := UITheme.label("  " + Rules.skill_label(n) + ("  ×2" if sk[1] else ""), 13)
+			var nm := UITheme.label("  " + n, 13)
 			nm.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 			row.add_child(nm)
 			row.add_child(_pm("−", can_k(n, -1), ch_skill.bind(n, -1)))

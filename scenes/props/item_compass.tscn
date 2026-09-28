@@ -1,0 +1,26 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/interactable.gd" id="1_4rggy"]
+[ext_resource type="Material" path="res://assets/materials/brass.tres" id="2_gso1b"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/item_compass_brass.res" id="3_xc00f"]
+[ext_resource type="Material" path="res://assets/materials/tin.tres" id="4_m6nmh"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/item_compass_tin.res" id="5_mgn2t"]
+[ext_resource type="Material" path="res://assets/materials/cloth_red.tres" id="6_gug7i"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/item_compass_cloth_red.res" id="7_bcek2"]
+
+[node name="Item" type="Node3D" unique_id=1622596128]
+script = ExtResource("1_4rggy")
+item_id = "compass"
+pick_size = Vector3(0.3, 0.25, 0.3)
+
+[node name="Mesh_brass" type="MeshInstance3D" parent="." unique_id=493266010]
+material_override = ExtResource("2_gso1b")
+mesh = ExtResource("3_xc00f")
+
+[node name="Mesh_tin" type="MeshInstance3D" parent="." unique_id=2073292079]
+material_override = ExtResource("4_m6nmh")
+mesh = ExtResource("5_mgn2t")
+
+[node name="Mesh_cloth_red" type="MeshInstance3D" parent="." unique_id=227950744]
+material_override = ExtResource("6_gug7i")
+mesh = ExtResource("7_bcek2")

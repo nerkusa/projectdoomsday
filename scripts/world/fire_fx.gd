@@ -23,14 +23,15 @@ func _ready() -> void:
 
 func _particles(smoke: bool) -> GPUParticles3D:
 	var p := GPUParticles3D.new()
-	p.amount = 26 if smoke else 40
-	p.lifetime = 4.0 if smoke else 0.9
+	# strength > 1 — горящий дом: больше языков, выше столб дыма
+	p.amount = int((26 if smoke else 40) * maxf(1.0, strength))
+	p.lifetime = (4.0 if smoke else 0.9) * (1.0 + (strength - 1.0) * 0.5)
 	p.preprocess = 2.0
 	var m := ParticleProcessMaterial.new()
 	m.direction = Vector3(0, 1, 0)
 	m.spread = 12.0 if smoke else 18.0
-	m.initial_velocity_min = 0.8 if smoke else 1.0
-	m.initial_velocity_max = 1.4 if smoke else 2.2
+	m.initial_velocity_min = (0.8 if smoke else 1.0) * sqrt(strength)
+	m.initial_velocity_max = (1.4 if smoke else 2.2) * sqrt(strength)
 	m.gravity = Vector3(0.25, 0.3, 0.1) if smoke else Vector3(0, 0.5, 0)
 	m.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_SPHERE
 	m.emission_sphere_radius = 0.7 * strength
@@ -54,7 +55,7 @@ func _particles(smoke: bool) -> GPUParticles3D:
 	m.color_ramp = gt
 	p.process_material = m
 	var q := QuadMesh.new()
-	q.size = Vector2(1.2, 1.2) if smoke else Vector2(0.6, 0.8)
+	q.size = (Vector2(1.2, 1.2) if smoke else Vector2(0.6, 0.8)) * sqrt(strength)
 	var mat := StandardMaterial3D.new()
 	mat.albedo_texture = _soft_dot()
 	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED

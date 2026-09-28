@@ -6,7 +6,7 @@
   "ded": {
     "name": "Дед Уйбаан",
     "stats": {"INT": 7, "PRC": 6, "REF": 4, "DEX": 3, "BODY": 4, "EMP": 7, "CRA": 7, "WILL": 8},
-    "skills": {"Простое оружие": 3, "Огнестрельное оружие": 4, "Уклонение": 2},
+    "skills": {"Ближний бой": 3, "Дальний бой": 4, "Уклонение": 2},
     "hp_roll": 5, "weapon": "fists", "lethal": false,
     "look": {"skin": "#b8906c", "top": "#5a4a3a", "pants": "#3a3a2e", "hair": "#d8d4cc", "beard": "#d8d4cc"}
   },
@@ -41,9 +41,9 @@
 
   "wolf": {
     "name": "Одичавший пёс",
-    "stats": {"INT": 1, "PRC": 7, "REF": 4, "DEX": 5, "BODY": 2, "EMP": 1, "CRA": 1, "WILL": 3},
-    "skills": {"Рукопашный бой": 2, "Уклонение": 2}, "hp_roll": 2, "weapon": "bite", "xp": 60,
-    "flee_below": 0.4, "will_dc": 12,
+    "stats": {"INT": 1, "PRC": 6, "REF": 3, "DEX": 3, "BODY": 2, "EMP": 1, "CRA": 1, "WILL": 2},
+    "skills": {"Рукопашный бой": 1}, "hp_roll": 1, "weapon": "bite", "xp": 60,
+    "flee_below": 0.5, "will_dc": 13,
     "look": {"skin": "#5a4a3a", "top": "#5a4a3a", "pants": "#4a3a2a", "hair": "#3a2a1a", "boots": "#3a2a1a"},
     "scale": 0.62
   },
@@ -69,20 +69,97 @@
     "look": {"skin": "#b58a66", "top": "#3a3f3a", "pants": "#2e2f30", "vest": "#d9622b", "helmet": "#2b2b28", "mask": true}
   },
 
+  "defender": {
+    "name": "Защитник",
+    "stats": {"INT": 4, "PRC": 6, "REF": 5, "DEX": 4, "BODY": 5, "EMP": 5, "CRA": 4, "WILL": 6},
+    "skills": {"Дальний бой": 3}, "hp_roll": 5, "weapon": "rifle", "lethal": false,
+    "look": {"skin": "#c0906a", "top": "#4a4a36", "pants": "#33332a", "vest": "#5a4a2a", "cap": "#3a3a2e"}
+  },
+  "defender_f": {
+    "name": "Защитница",
+    "stats": {"INT": 5, "PRC": 7, "REF": 5, "DEX": 5, "BODY": 4, "EMP": 5, "CRA": 4, "WILL": 6},
+    "skills": {"Дальний бой": 3}, "hp_roll": 4, "weapon": "rifle", "lethal": false,
+    "look": {"skin": "#c9a07a", "top": "#5a3a3a", "pants": "#33332a", "hair": "#2a1a12"}
+  },
+
+  "elder": {
+    "name": "Старик Мэхээлэ",
+    "stats": {"INT": 7, "PRC": 4, "REF": 2, "DEX": 2, "BODY": 2, "EMP": 6, "CRA": 5, "WILL": 7},
+    "hp_roll": 2, "weapon": "fists", "lethal": false,
+    "look": {"skin": "#b8906c", "top": "#4a4036", "pants": "#3a3a2e", "hair": "#e0dcd4", "beard": "#e0dcd4"}
+  },
+  "girl": {
+    "name": "Нюргуяна",
+    "stats": {"INT": 6, "PRC": 7, "REF": 5, "DEX": 6, "BODY": 3, "EMP": 7, "CRA": 5, "WILL": 5},
+    "hp_roll": 3, "weapon": "fists", "lethal": false,
+    "look": {"skin": "#d0a880", "top": "#8a3a52", "pants": "#3a3040", "hair": "#141010"}
+  },
+  "gambler": {
+    "name": "Кустук",
+    "stats": {"INT": 6, "PRC": 6, "REF": 5, "DEX": 7, "BODY": 4, "EMP": 5, "CRA": 3, "WILL": 4},
+    "hp_roll": 4, "weapon": "fists", "lethal": false,
+    "look": {"skin": "#c49a74", "top": "#5a6a3a", "pants": "#3a3a2e", "hair": "#2a2018", "cap": "#6a5a3a"}
+  },
+  "hunter": {
+    "name": "Охотник Кэскил",
+    "stats": {"INT": 4, "PRC": 7, "REF": 5, "DEX": 5, "BODY": 5, "EMP": 4, "CRA": 5, "WILL": 6},
+    "skills": {"Рукопашный бой": 2, "Уклонение": 1}, "hp_roll": 4, "weapon": "fists", "lethal": false, "xp": 60,
+    "look": {"skin": "#b58a66", "top": "#4a3a2a", "pants": "#3a3024", "hair": "#1a1410", "vest": "#6a5236"}
+  },
+  "shooter": {
+    "name": "Стрелок Бэргэн",
+    "stats": {"INT": 5, "PRC": 8, "REF": 7, "DEX": 5, "BODY": 5, "EMP": 4, "CRA": 4, "WILL": 6},
+    "skills": {"Дальний бой": 6}, "hp_roll": 5, "weapon": "rifle", "lethal": false,
+    "look": {"skin": "#c0906a", "top": "#3a4a3a", "pants": "#2e3a2e", "vest": "#4a4a36", "cap": "#2e3a2e"}
+  },
+  "sick": {
+    "name": "Сайыына",
+    "stats": {"INT": 5, "PRC": 5, "REF": 3, "DEX": 4, "BODY": 2, "EMP": 6, "CRA": 5, "WILL": 4},
+    "hp_roll": 2, "weapon": "fists", "lethal": false,
+    "look": {"skin": "#d8b89a", "top": "#6a6a5a", "pants": "#4a4a44", "hair": "#3a2a1a"}
+  },
+  "target": {
+    "name": "Мишень",
+    "stats": {"REF": 1, "DEX": 1, "BODY": 2}, "hp_roll": 0, "weapon": "fists", "xp": 15,
+    "static": true, "dummy": true
+  },
+
+  "raider": {
+    "name": "Мародёр",
+    "stats": {"INT": 3, "PRC": 4, "REF": 3, "DEX": 3, "BODY": 3, "EMP": 2, "CRA": 2, "WILL": 2},
+    "skills": {"Ближний бой": 1}, "hp_roll": 2, "weapon": "pipe", "xp": 70,
+    "flee_below": 0.5, "will_dc": 14, "loot": {"bandage": 1},
+    "look": {"skin": "#b58a66", "top": "#3a3f3a", "pants": "#2e2f30", "vest": "#d9622b", "helmet": "#2b2b28", "mask": true}
+  },
+  "raider_gun": {
+    "name": "Мародёр с пистолетом",
+    "stats": {"INT": 3, "PRC": 4, "REF": 3, "DEX": 3, "BODY": 3, "EMP": 2, "CRA": 2, "WILL": 2},
+    "skills": {"Дальний бой": 1}, "hp_roll": 2, "weapon": "pistol", "mag": 3, "ammo": 3, "xp": 80,
+    "flee_below": 0.5, "will_dc": 14, "loot": {"ammo9": 4},
+    "look": {"skin": "#c0906a", "top": "#3a3f3a", "pants": "#2e2f30", "vest": "#d9622b", "helmet": "#2b2b28"}
+  },
+  "raider_dead": {
+    "name": "Нападавший",
+    "weapon": "fists", "loot": {"ammo9": 2},
+    "look": {"skin": "#b58a66", "top": "#3a3f3a", "pants": "#2e2f30", "vest": "#d9622b", "helmet": "#2b2b28", "mask": true}
+  },
+
   "soldier_a": {
     "name": "Боец в маске",
-    "stats": {"INT": 5, "PRC": 6, "REF": 5, "DEX": 4, "BODY": 5, "EMP": 3, "CRA": 3, "WILL": 6},
-    "skills": {"Огнестрельное оружие": 3, "Уклонение": 2, "Рукопашный бой": 2},
-    "hp_roll": 5, "weapon": "pistol", "mag": 8, "ammo": 8, "xp": 120,
-    "armor": {"type": "light", "max": 6, "name": "лёгкий бронежилет"},
+    "stats": {"INT": 5, "PRC": 5, "REF": 3, "DEX": 3, "BODY": 3, "EMP": 3, "CRA": 3, "WILL": 3},
+    "skills": {"Дальний бой": 1, "Рукопашный бой": 1},
+    "hp_roll": 2, "weapon": "pistol", "mag": 4, "ammo": 4, "xp": 120,
+    "flee_below": 0.5, "will_dc": 14,
+    "armor": {"type": "light", "max": 3, "name": "лёгкий бронежилет"},
     "loot": {"bandage": 1, "raider_token": 1},
     "look": {"skin": "#b58a66", "top": "#3a3f3a", "pants": "#2e2f30", "vest": "#d9622b", "helmet": "#2b2b28", "mask": true}
   },
   "soldier_b": {
     "name": "Боец с мачете",
-    "stats": {"INT": 4, "PRC": 5, "REF": 5, "DEX": 5, "BODY": 6, "EMP": 3, "CRA": 3, "WILL": 5},
-    "skills": {"Боевое оружие": 3, "Уклонение": 2},
-    "hp_roll": 6, "weapon": "machete", "xp": 120, "hp_frac": 0.55,
+    "stats": {"INT": 4, "PRC": 4, "REF": 3, "DEX": 3, "BODY": 4, "EMP": 3, "CRA": 3, "WILL": 3},
+    "skills": {"Ближний бой": 1},
+    "hp_roll": 2, "weapon": "machete", "xp": 120, "hp_frac": 0.5,
+    "flee_below": 0.5, "will_dc": 14,
     "loot": {"medkit": 1},
     "look": {"skin": "#c0906a", "top": "#3a3f3a", "pants": "#2e2f30", "vest": "#d9622b", "helmet": "#2b2b28", "mask": true}
   }
