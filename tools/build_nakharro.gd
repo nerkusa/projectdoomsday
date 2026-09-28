@@ -19,6 +19,18 @@ const DITCH_OUT := 5.5
 const DITCH_DEPTH := 0.9
 
 var roads: Array = []  # Rect2 дорог — чтобы не сыпать на них траву
+var road_segs: Array = []  # [начало, конец, полуширина] — для карты смешивания
+var ground_mat: ShaderMaterial
+var _nz := FastNoiseLite.new()  # крупный шум: пятна луга, изгибы рва
+var _nf := FastNoiseLite.new()  # мелкий шум: рваные края, комья
+
+## Карта смешивания земли покрывает всю локацию, 2 пикселя на метр
+const SPLAT_RECT := Rect2(-25, -26, 170, 160)
+const SPLAT_PPM := 2.0
+const PLAZA := Rect2(53, 53, 18, 14)
+## Болота на лугу у опушки и разбитая колея перед северным мостом
+const SWAMPS := [Rect2(82, 20, 20, 7.5), Rect2(24, 20, 22, 7.5)]
+const GATE_MUD := Rect2(58, 18, 8, 10)
 
 
 func _ready() -> void:
@@ -110,25 +122,14 @@ func _env() -> void:
 # ---------------- земля и дороги ----------------
 func _ground() -> void:
 	var ground := group(root, "Ground")
-	# земля кусками: внутри рва и рамка снаружи, а в щели — сам ров
-	var ro := PAL.grow(DITCH_OUT)
-	var ri := PAL.grow(DITCH_IN)
-	var big := Rect2(-25, -26, 170, 160)
-	for r in [ri, Rect2(big.position.x, big.position.y, big.size.x, ro.position.y - big.position.y),
-			Rect2(big.position.x, ro.end.y, big.size.x, big.end.y - ro.end.y),
-			Rect2(big.position.x, ro.position.y, ro.position.x - big.position.x, ro.size.y),
-			Rect2(ro.end.x, ro.position.y, big.end.x - ro.end.x, ro.size.y)]:
-		var gp := MeshInstance3D.new()
-		var pm := PlaneMesh.new()
-		pm.size = r.size
-		gp.mesh = pm
-		gp.material_override = M.ground_grass
-		gp.position = Vector3(r.get_center().x, 0, r.get_center().y)
-		ground.add_child(gp)
-		gp.owner = root
-	# выгоревший луг между лесом и рвом
-	box(ground, Vector3(100, 0.01, ro.position.y - 19.5), Vector3(62, 0.006, (19.5 + ro.position.y) / 2.0), "ground_meadow").owner = root
-	# дороги: от северных ворот в лес, главная улица, проулки, к западной черте
+	_nz.seed = 2062
+	_nz.frequency = 0.06
+	_nz.fractal_octaves = 3
+	_nf.seed = 77
+	_nf.frequency = 0.35
+	_nf.fractal_octaves = 2
+	# дороги: от северных ворот в лес, главная улица, проулки, к западной черте.
+	# Их не кладём полосами — они рисуются в карту смешивания земли с рваным краем.
 	var d := "ground_dirt"
 	strip(ground, Vector2(N_GATE_X, 60), Vector2(N_GATE_X, 22), 3.2, d)
 	strip(ground, Vector2(N_GATE_X, 22), Vector2(64, 8), 1.6, d)
@@ -139,9 +140,121 @@ func _ground() -> void:
 	strip(ground, Vector2(38, 46), Vector2(38, 76), 1.8, d)
 	strip(ground, Vector2(86, 46), Vector2(86, 76), 1.8, d)
 	# площадь
-	box(ground, Vector3(18, 0.02, 14), Vector3(62, 0.011, 60), d).owner = root
-	roads.append(Rect2(53, 53, 18, 14))
+	roads.append(PLAZA)
+	ground_mat = _ground_material()
+	# земля кусками: внутри рва и рамка снаружи, а в щели — сам ров
+	var ro := PAL.grow(DITCH_OUT)
+	var ri := PAL.grow(DITCH_IN)
+	var big := SPLAT_RECT
+	for r in [ri, Rect2(big.position.x, big.position.y, big.size.x, ro.position.y - big.position.y),
+			Rect2(big.position.x, ro.end.y, big.size.x, big.end.y - ro.end.y),
+			Rect2(big.position.x, ro.position.y, ro.position.x - big.position.x, ro.size.y),
+			Rect2(ro.end.x, ro.position.y, big.end.x - ro.end.x, ro.size.y)]:
+		var gp := MeshInstance3D.new()
+		var pm := PlaneMesh.new()
+		pm.size = r.size
+		gp.mesh = pm
+		gp.material_override = ground_mat
+		gp.position = Vector3(r.get_center().x, 0, r.get_center().y)
+		ground.add_child(gp)
+		gp.owner = root
 	_moat()
+
+
+## Дорожка-полоса. Земляные дороги только запоминаем — их рисует карта смешивания.
+func strip(parent: Node, a: Vector2, b: Vector2, w: float, mat: String, y := 0.012) -> void:
+	if mat == "ground_dirt":
+		road_segs.append([a, b, w / 2.0])
+	else:
+		super.strip(parent, a, b, w, mat, y)
+	roads.append(Rect2(minf(a.x, b.x) - w / 2.0, minf(a.y, b.y) - w / 2.0, absf(b.x - a.x) + w, absf(b.y - a.y) + w))
+
+
+## Материал земли: шейдер смешивает траву, луг, дорогу и грязь по карте смешивания
+func _ground_material() -> ShaderMaterial:
+	var tex := ImageTexture.create_from_image(_paint_splat())
+	ResourceSaver.save(tex, "res://assets/textures/nakharro_splat.res")
+	var m := ShaderMaterial.new()
+	m.shader = load("res://assets/shaders/ground_blend.gdshader")
+	var t := "res://assets/textures/"
+	for pair in [["grass", "grass_dark"], ["meadow", "meadow"], ["dirt", "dirt_road"], ["mud", "mud"]]:
+		m.set_shader_parameter(pair[0] + "_tex", load(t + pair[1] + ".png"))
+		m.set_shader_parameter(pair[0] + "_n", load(t + pair[1] + "_n.png"))
+	m.set_shader_parameter("splat", load("res://assets/textures/nakharro_splat.res"))
+	m.set_shader_parameter("splat_rect", Vector4(SPLAT_RECT.position.x, SPLAT_RECT.position.y, SPLAT_RECT.size.x, SPLAT_RECT.size.y))
+	ResourceSaver.save(m, MAT_DIR + "ground_nakharro.tres")
+	return load(MAT_DIR + "ground_nakharro.tres")
+
+
+## Карта смешивания: R — выгоревший луг, G — дорога, B — грязь.
+## Все границы — с шумом, поэтому трава переходит в луг и грязь пятнами, а не по линейке.
+func _paint_splat() -> Image:
+	var w := int(SPLAT_RECT.size.x * SPLAT_PPM)
+	var h := int(SPLAT_RECT.size.y * SPLAT_PPM)
+	var img := Image.create(w, h, false, Image.FORMAT_RGB8)
+	var ro := PAL.grow(DITCH_OUT)
+	var meadow := Rect2(12, 19.5, 100, ro.position.y - 19.5)
+	var ri := PAL.grow(DITCH_IN)
+	for j in h:
+		for i in w:
+			var p := SPLAT_RECT.position + Vector2(i + 0.5, j + 0.5) / SPLAT_PPM
+			var n := _nz.get_noise_2dv(p)
+			var f := _nf.get_noise_2dv(p)
+			# луг перед воротами и выгоревшие пятна снаружи частокола
+			var m := smoothstep(-2.5, 3.0, _sd_rect(p, meadow) + n * 4.0 + f * 1.2)
+			if not ri.has_point(p):
+				m = maxf(m, smoothstep(0.15, 0.45, n) * 0.85)
+			# дороги
+			var d := 1.0 - smoothstep(-0.9, 0.9, -_sd_rect(p, PLAZA) + f * 0.8)
+			for sg in road_segs:
+				var dist := _seg_dist(p, sg[0], sg[1]) - float(sg[2])
+				d = maxf(d, 1.0 - smoothstep(-0.6, 0.8, dist + f * 0.7 + n * 0.3))
+			# грязь: ров и вывороченная земля по его краям, болота, разбитая колея у ворот
+			var u := 0.0
+			var cd := _ring_dist(p)
+			if cd > 0.0:
+				u = 1.0 - smoothstep(0.0, 1.4, maxf(DITCH_IN - cd, cd - DITCH_OUT) + f * 0.7 + n * 0.4)
+			for z in SWAMPS:
+				u = maxf(u, smoothstep(-1.5, 2.0, _sd_rect(p, z) + n * 3.0) * smoothstep(-0.2, 0.35, f + n * 0.5))
+			u = maxf(u, smoothstep(-1.0, 2.0, _sd_rect(p, GATE_MUD) + n * 2.0) * smoothstep(-0.1, 0.4, f))
+			img.set_pixel(i, j, Color(m, d, u))
+	return img
+
+
+## Расстояние со знаком до края прямоугольника: внутри > 0, снаружи < 0
+func _sd_rect(p: Vector2, r: Rect2) -> float:
+	var dx := minf(p.x - r.position.x, r.end.x - p.x)
+	var dz := minf(p.y - r.position.y, r.end.y - p.y)
+	if dx >= 0.0 and dz >= 0.0:
+		return minf(dx, dz)
+	return -Vector2(minf(dx, 0.0), minf(dz, 0.0)).length()
+
+
+func _seg_dist(p: Vector2, a: Vector2, b: Vector2) -> float:
+	var ab := b - a
+	var t := clampf((p - a).dot(ab) / maxf(ab.length_squared(), 0.0001), 0.0, 1.0)
+	return p.distance_to(a + ab * t)
+
+
+## Насколько точка отстоит от частокола наружу (квадратное кольцо, как у рва); внутри — 0
+func _ring_dist(p: Vector2) -> float:
+	var dx := maxf(maxf(PAL.position.x - p.x, p.x - PAL.end.x), 0.0)
+	var dz := maxf(maxf(PAL.position.y - p.y, p.y - PAL.end.y), 0.0)
+	return maxf(dx, dz)
+
+
+## Высота земли во рву: неровный, будто выкопанный вручную профиль
+func _ditch_h(x: float, z: float) -> float:
+	var t := (_ring_dist(Vector2(x, z)) - DITCH_IN) / (DITCH_OUT - DITCH_IN)
+	if t <= 0.0 or t >= 1.0:
+		return 0.0
+	var n := _nz.get_noise_2d(x * 3.0, z * 3.0)
+	var f := _nf.get_noise_2d(x * 1.5, z * 1.5)
+	var tt := t + n * 0.08
+	var shape := smoothstep(0.0, 0.42, tt) * (1.0 - smoothstep(0.58, 1.0, tt))
+	var edge := smoothstep(0.0, 0.06, t) * (1.0 - smoothstep(0.94, 1.0, t))
+	var lumps := (f * 0.13 + n * 0.06) * sin(t * PI)
+	return (-DITCH_DEPTH * shape + lumps) * edge
 
 
 # ---------------- деревня ----------------
@@ -470,8 +583,8 @@ func _pal() -> PackedScene:
 
 
 # ---------------- ров с мостами ----------------
-## Ров — полоса за частоколом. Каждая сторона: два ската, грязное дно и мутная вода.
-## Поперёк — невидимая стена (слой препятствий), кроме мостов у ворот.
+## Ров — кольцо за частоколом: неровная выкопанная земля (сетка с шумом),
+## на дне мутная вода. Поперёк — невидимая стена (слой препятствий), кроме мостов у ворот.
 func _moat() -> void:
 	var moat := group(root, "Moat")
 	moat.set_meta("no_xray", true)
@@ -481,48 +594,75 @@ func _moat() -> void:
 	moat.add_child(body)
 	body.owner = root
 	var ro := PAL.grow(DITCH_OUT)
+	var ri := PAL.grow(DITCH_IN)
 	var mid := (DITCH_IN + DITCH_OUT) / 2.0
-	# стороны: [центр линии рва, от, до, вдоль X?]
+	# сетка рва: север и юг во всю ширину (с углами), запад и восток — между ними
+	var w := DITCH_OUT - DITCH_IN
+	var parts := [Rect2(ro.position.x, ro.position.y, ro.size.x, w), Rect2(ro.position.x, ri.end.y, ro.size.x, w),
+		Rect2(ro.position.x, ri.position.y, w, ri.size.y), Rect2(ri.end.x, ri.position.y, w, ri.size.y)]
+	DirAccess.make_dir_recursive_absolute("res://assets/models/terrain")
+	for k in parts.size():
+		var mi := MeshInstance3D.new()
+		mi.name = "Ditch%d" % k
+		var path := "res://assets/models/terrain/nakharro_ditch_%d.res" % k
+		ResourceSaver.save(_ditch_mesh(parts[k]), path)
+		mi.mesh = load(path)
+		mi.material_override = ground_mat
+		moat.add_child(mi)
+		mi.owner = root
+	# вода на дне: по полосе на сторону; края прячутся под скатами
+	var wy := -DITCH_DEPTH + 0.14
+	for sd in [[PAL.position.y - mid, true], [PAL.end.y + mid, true], [PAL.position.x - mid, false], [PAL.end.x + mid, false]]:
+		var sz := Vector3(PAL.size.x + 2.0 * mid + 1.3, 0.02, 1.3) if sd[1] else Vector3(1.3, 0.02, PAL.size.y + 2.0 * mid + 1.3)
+		var pos := Vector3(PAL.get_center().x, wy, sd[0]) if sd[1] else Vector3(sd[0], wy + 0.004, PAL.get_center().y)
+		box(moat, sz, pos, "water").owner = root
+	# стены-препятствия и мосты
 	var sides := [[PAL.position.y - mid, ro.position.x, ro.end.x, true], [PAL.end.y + mid, ro.position.x, ro.end.x, true],
 		[PAL.position.x - mid, ro.position.y, ro.end.y, false], [PAL.end.x + mid, ro.position.y, ro.end.y, false]]
 	var bridges := [[0, N_GATE_X], [2, W_GATE_Z]]
 	for si in sides.size():
 		var sd: Array = sides[si]
 		var cuts := [[sd[1], sd[2]]]
-		for b in bridges:
-			if b[0] == si:
-				cuts = [[sd[1], b[1] - 2.4], [b[1] + 2.4, sd[2]]]
-				_bridge(moat, sd[0], b[1], sd[3])
+		for br in bridges:
+			if br[0] == si:
+				cuts = [[sd[1], br[1] - 2.4], [br[1] + 2.4, sd[2]]]
+				_bridge(moat, sd[0], br[1], sd[3])
 		for c in cuts:
-			_ditch_piece(moat, body, sd[0], c[0], c[1], sd[3])
-	_bridge_fill(moat, sides, bridges)
+			var cs := CollisionShape3D.new()
+			var bs := BoxShape3D.new()
+			var ln: float = c[1] - c[0]
+			var cc: float = (c[0] + c[1]) / 2.0
+			bs.size = Vector3(ln, 1.4, w - 0.2) if sd[3] else Vector3(w - 0.2, 1.4, ln)
+			cs.shape = bs
+			cs.position = Vector3(cc, 0.7, sd[0]) if sd[3] else Vector3(sd[0], 0.7, cc)
+			body.add_child(cs)
+			cs.owner = root
 
 
-func _ditch_piece(moat: Node3D, body: StaticBody3D, line: float, a: float, b: float, along_x: bool, collide := true) -> void:
-	var ln := b - a
-	var c := (a + b) / 2.0
-	var half := (DITCH_OUT - DITCH_IN) / 2.0
-	var run := half - 0.6
-	var slope := Vector2(run, DITCH_DEPTH).length()
-	var ang := atan2(DITCH_DEPTH, run)
-	var at := func(across: float, y: float) -> Vector3:
-		return Vector3(c, y, line + across) if along_x else Vector3(line + across, y, c)
-	var size := func(across: float, h: float) -> Vector3:
-		return Vector3(ln, h, across) if along_x else Vector3(across, h, ln)
-	for sgn in [-1, 1]:
-		var rot := Vector3(-sgn * ang, 0, 0) if along_x else Vector3(0, 0, sgn * ang)
-		box(moat, size.call(slope, 0.05), at.call(sgn * (0.6 + run / 2.0), -DITCH_DEPTH / 2.0), "mud_tex", rot).owner = root
-	box(moat, size.call(1.3, 0.05), at.call(0.0, -DITCH_DEPTH), "mud_tex").owner = root
-	box(moat, size.call(1.05, 0.02), at.call(0.0, -DITCH_DEPTH + 0.15), "water").owner = root
-	if not collide:
-		return
-	var cs := CollisionShape3D.new()
-	var bs := BoxShape3D.new()
-	bs.size = size.call(DITCH_OUT - DITCH_IN - 0.2, 1.4)
-	cs.shape = bs
-	cs.position = at.call(0.0, 0.7)
-	body.add_child(cs)
-	cs.owner = root
+## Сетка куска рва с шагом 0,25 м; высоты — _ditch_h, поэтому куски и углы стыкуются без щелей
+func _ditch_mesh(r: Rect2) -> ArrayMesh:
+	var step := 0.25
+	var nx := int(round(r.size.x / step))
+	var nz := int(round(r.size.y / step))
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	for j in nz + 1:
+		for i in nx + 1:
+			var x := r.position.x + i * step
+			var z := r.position.y + j * step
+			st.set_uv(Vector2(x, z))
+			st.add_vertex(Vector3(x, _ditch_h(x, z), z))
+	for j in nz:
+		for i in nx:
+			var a := j * (nx + 1) + i
+			var b := a + 1
+			var c := a + nx + 1
+			var d := c + 1
+			for idx in [a, b, c, b, d, c]:
+				st.add_index(idx)
+	st.generate_normals()
+	st.generate_tangents()
+	return st.commit()
 
 
 ## Мост через ров: настил, балки, перила
@@ -540,13 +680,6 @@ func _bridge(moat: Node3D, line: float, at: float, along_x: bool) -> void:
 		for q in [-1, 0, 1]:
 			var pp := rp + (Vector3(0, -0.28, q * span * 0.45) if along_x else Vector3(q * span * 0.45, -0.28, 0))
 			box(moat, Vector3(0.12, 0.6, 0.12), pp, "log_weathered").owner = root
-
-
-## Под мостом ров тоже есть — дно и вода, чтобы не было дыры
-func _bridge_fill(moat: Node3D, sides: Array, bridges: Array) -> void:
-	for b in bridges:
-		var sd: Array = sides[b[0]]
-		_ditch_piece(moat, null, sd[0], b[1] - 2.4, b[1] + 2.4, sd[3], false)
 
 
 # ---------------- мелочи: трава, болото, лужи, бочки, телеги, пни ----------------
@@ -581,11 +714,10 @@ func _details() -> void:
 	var det := group(root, "Details")
 	var boxes := _building_boxes()
 	# --- болота на лугу у опушки: грязь, лужи, камыш, кочки, сухие деревья ---
-	var mud := []
 	var pud := []
 	var reeds := []
 	var hum := []
-	for zone in [Rect2(82, 20, 20, 7.5), Rect2(24, 20, 22, 7.5)]:
+	for zone in SWAMPS:
 		# сама топь — плоская заплата с водой в окнах и рваным краем
 		var sp := MeshInstance3D.new()
 		var pm := PlaneMesh.new()
@@ -597,8 +729,6 @@ func _details() -> void:
 		sp.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		det.add_child(sp)
 		sp.owner = root
-		for i in 5:
-			mud.append(_xf(randf_range(zone.position.x, zone.end.x), randf_range(zone.position.y, zone.end.y), randf_range(1.2, 2.6), 1.0))
 		for i in 3:
 			pud.append(_xf(randf_range(zone.position.x - 2, zone.end.x + 2), randf_range(zone.position.y - 1, zone.end.y + 1), randf_range(0.6, 1.3), 1.0))
 		for i in 70:
@@ -611,8 +741,6 @@ func _details() -> void:
 	# лужи в колеях у дороги к лесу и перед мостом
 	for i in 7:
 		pud.append(_xf(N_GATE_X + randf_range(-2.2, 2.2), randf_range(18, 27.5), randf_range(0.5, 1.0), 1.0))
-	for i in 5:
-		mud.append(_xf(N_GATE_X + randf_range(-3, 3), randf_range(20, 27.5), randf_range(1.2, 2.0), 1.0))
 	# лужи на улицах деревни
 	for i in 8:
 		var r: Rect2 = roads[randi() % roads.size()]
@@ -640,7 +768,6 @@ func _details() -> void:
 		var xf := _xf(x, z, randf_range(0.6, 1.0))
 		xf.origin.y = -DITCH_DEPTH + 0.05
 		(reeds if i % 3 else hum).append(xf)
-	_multi(det, "scatter_mud", mud, "Mud")
 	_multi(det, "scatter_puddle", pud, "Puddles")
 	_multi(det, "scatter_reeds", reeds, "Reeds", true)
 	_multi(det, "scatter_hummock", hum, "Hummocks", true)
@@ -696,9 +823,3 @@ func _building_boxes() -> Array:
 			if String(b.scene_file_path).ends_with("/garden.tscn"):
 				boxes.append([b.transform, Vector3(5, 1, 3)])
 	return boxes
-
-
-## Дорожка-полоса; запоминаем её прямоугольник, чтобы не сыпать на неё траву
-func strip(parent: Node, a: Vector2, b: Vector2, w: float, mat: String, y := 0.012) -> void:
-	super.strip(parent, a, b, w, mat, y)
-	roads.append(Rect2(minf(a.x, b.x) - w / 2.0, minf(a.y, b.y) - w / 2.0, absf(b.x - a.x) + w, absf(b.y - a.y) + w))
