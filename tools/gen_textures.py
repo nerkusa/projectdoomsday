@@ -161,12 +161,15 @@ def grass() -> None:
 
 
 def meadow() -> None:
-	"""Выгоревший луг: оливково-жёлтый."""
+	"""Выгоревший луг перед частоколом: сухая солома, бурые проплешины, тёмные сырые пятна."""
 	big = fbm(50, 4)
+	wet = fbm(35, 3)
 	blades = noise(0.7)
-	g = lerp(col("5a5a34"), col("7d7244"), np.clip(big * 1.4 - 0.2, 0, 1))
+	g = lerp(col("6a5e3a"), col("8a7a4c"), np.clip(big * 1.4 - 0.2, 0, 1))
+	g = lerp(g, col("4a4a2c"), np.clip((wet - 0.55) * 3.0, 0, 0.8))
+	g = lerp(g, col("5a4632"), np.clip((0.35 - big) * 3.0, 0, 0.6))
 	g *= (0.85 + blades[..., None] * 0.3)
-	save("meadow", g, blades * 0.3, 2.0)
+	save("meadow", g, blades * 0.3 + big * 0.2, 2.0)
 
 
 def dirt() -> None:
@@ -198,6 +201,46 @@ def bark() -> None:
 	save("bark_dark", b, groove * 0.8 + fine * 0.2, 4.0)
 
 
+def birch_bark() -> None:
+	"""Берёзовая кора: белая, с чёрными поперечными чечевичками и серыми разводами."""
+	base = fbm(20, 3)
+	dash = fbm(1.0, 2, aspect=25.0)  # вытянутые поперёк ствола
+	marks = np.clip((dash - 0.7) * 6, 0, 1)
+	grey = np.clip((base - 0.6) * 2.5, 0, 0.6)
+	b = lerp(col("d8d4c8"), col("a8a498"), grey)
+	b = lerp(b, col("1c1a18"), marks * 0.9)
+	save("birch_bark", b, base * 0.3 - marks * 0.5, 3.0)
+
+
+def leaves() -> None:
+	"""Листва: мелкие пятна света и тени."""
+	clump = fbm(6, 4)
+	fine = noise(0.6)
+	l = lerp(col("2e4020"), col("6a7a38"), np.clip(clump * 1.5 - 0.2, 0, 1))
+	l *= (0.8 + fine[..., None] * 0.4)
+	save("leaves_tex", l, clump * 0.6 + fine * 0.3, 4.0)
+
+
+def mud() -> None:
+	"""Грязь: тёмная, сырая, с блестящими лужицами."""
+	big = fbm(40, 4)
+	fine = noise(1.0)
+	m = lerp(col("2a221a"), col("4a3a2a"), np.clip(big * 1.3 - 0.1, 0, 1))
+	m *= (0.9 + fine[..., None] * 0.2)
+	save("mud", m, big * 0.5 + fine * 0.2, 3.0)
+
+
+def rock() -> None:
+	"""Валун: серый гранит в крапинку, пятна лишайника."""
+	big = fbm(30, 4)
+	speck = np.clip((noise(0.6) - 0.65) * 5, 0, 1)
+	lichen = np.clip((fbm(25, 3) - 0.62) * 4, 0, 1)
+	r = lerp(col("4a4844"), col("7a766e"), np.clip(big * 1.3 - 0.15, 0, 1))
+	r = lerp(r, col("2a2826"), speck * 0.6)
+	r = lerp(r, col("7a7a4a"), lichen * 0.7)
+	save("rock", r, big * 0.7 + speck * 0.2, 4.0)
+
+
 if __name__ == "__main__":
 	logs()
 	metal_roof()
@@ -208,3 +251,7 @@ if __name__ == "__main__":
 	dirt()
 	needles()
 	bark()
+	birch_bark()
+	leaves()
+	mud()
+	rock()

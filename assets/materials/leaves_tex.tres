@@ -1,0 +1,12 @@
+[gd_resource type="StandardMaterial3D" format=3]
+
+[ext_resource type="Texture2D" path="res://assets/textures/leaves_tex.png" id="1_kv02n"]
+[ext_resource type="Texture2D" path="res://assets/textures/leaves_tex_n.png" id="2_38h5e"]
+
+[resource]
+resource_name = "leaves_tex"
+albedo_texture = ExtResource("1_kv02n")
+normal_enabled = true
+normal_texture = ExtResource("2_38h5e")
+uv1_triplanar = true
+uv1_triplanar_sharpness = 4.0

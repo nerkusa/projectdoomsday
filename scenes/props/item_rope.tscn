@@ -4,11 +4,11 @@
 [ext_resource type="Material" path="res://assets/materials/rope_mat.tres" id="2_8p2ft"]
 [ext_resource type="ArrayMesh" path="res://assets/models/props/item_rope_rope_mat.res" id="3_2yoai"]
 
-[node name="Item" type="Node3D" unique_id=1130180901]
+[node name="Item" type="Node3D" unique_id=1858794159]
 script = ExtResource("1_2g2mr")
 item_id = "rope"
 pick_size = Vector3(0.45, 0.3, 0.45)
 
-[node name="Mesh_rope_mat" type="MeshInstance3D" parent="." unique_id=822885959]
+[node name="Mesh_rope_mat" type="MeshInstance3D" parent="." unique_id=1806812568]
 material_override = ExtResource("2_8p2ft")
 mesh = ExtResource("3_2yoai")

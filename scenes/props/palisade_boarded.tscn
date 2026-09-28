@@ -1,0 +1,32 @@
+[gd_scene format=3]
+
+[ext_resource type="Material" path="res://assets/materials/log_weathered.tres" id="1_lncp4"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/palisade_boarded_log_weathered.res" id="2_jr3um"]
+[ext_resource type="Material" path="res://assets/materials/planks_old.tres" id="3_khd6h"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/palisade_boarded_planks_old.res" id="4_v7dlq"]
+[ext_resource type="Material" path="res://assets/materials/wire.tres" id="5_2rfta"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/palisade_boarded_wire.res" id="6_du7k2"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_xi5ox"]
+size = Vector3(4, 2.4, 0.5)
+
+[node name="Palisade" type="Node3D" unique_id=1069021822]
+
+[node name="Mesh_log_weathered" type="MeshInstance3D" parent="." unique_id=553485223]
+material_override = ExtResource("1_lncp4")
+mesh = ExtResource("2_jr3um")
+
+[node name="Mesh_planks_old" type="MeshInstance3D" parent="." unique_id=934358322]
+material_override = ExtResource("3_khd6h")
+mesh = ExtResource("4_v7dlq")
+
+[node name="Mesh_wire" type="MeshInstance3D" parent="." unique_id=69268996]
+material_override = ExtResource("5_2rfta")
+mesh = ExtResource("6_du7k2")
+
+[node name="Collision" type="StaticBody3D" parent="." unique_id=878005970]
+collision_mask = 0
+
+[node name="@CollisionShape3D@85" type="CollisionShape3D" parent="Collision" unique_id=495218865]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.2, 0)
+shape = SubResource("BoxShape3D_xi5ox")

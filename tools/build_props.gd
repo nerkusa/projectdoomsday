@@ -40,13 +40,20 @@ func _ready() -> void:
 	barn()
 	shed()
 	workshop()
-	palisade()
 	gate()
 	barricade()
 	greenhouse()
 	wind_turbine()
 	spruce()
 	pine()
+	birch()
+	bush()
+	dead_tree()
+	rocks()
+	tractor()
+	palisades()
+	small_props()
+	scatter_meshes()
 	travel_items()
 	junk()
 	locked_box()
@@ -93,15 +100,39 @@ func _materials() -> void:
 	_tex_mat("trim", "planks_old", 1.6, 0.9, 0.0, Color("c9bfa8"))
 	_tex_mat("needles_tex", "needles", 0.9, 1.0)
 	_tex_mat("bark_dark", "bark_dark", 1.2)
+	_tex_mat("birch_bark", "birch_bark", 1.6)
+	_tex_mat("leaves_tex", "leaves_tex", 1.0, 1.0)
+	_tex_mat("leaves_dark", "leaves_tex", 1.0, 1.0, 0.0, Color("8a9a80"))
+	_tex_mat("needles_b", "needles", 0.9, 1.0, 0.0, Color("c8d0b0"))
+	_tex_mat("rock_tex", "rock", 0.7, 0.95, 0.0, Color("9a968c"))
+	_tex_mat("moss", "grass_dark", 1.2, 1.0, 0.0, Color("b0c090"))
+	_tex_mat("mud_tex", "mud", 0.35, 0.35, 0.0, Color.WHITE, true)
+	_tex_mat("paint_faded", "planks_old", 2.0, 0.8, 0.1, Color("c86a30"))
 	_tex_mat("metal_dark", "metal_roof", 1.5, 0.6, 0.5, Color("6a6a66"))
 	# земля: мировая проекция, чтобы соседние куски стыковались
 	_tex_mat("ground_grass", "grass_dark", 0.18, 1.0, 0.0, Color.WHITE, true)
-	_tex_mat("ground_meadow", "meadow", 0.15, 1.0, 0.0, Color.WHITE, true)
+	_tex_mat("ground_meadow", "meadow", 0.15, 1.0, 0.0, Color("8c8672"), true)
 	_tex_mat("ground_dirt", "dirt_road", 0.3, 1.0, 0.0, Color.WHITE, true)
 	_plain_mat("film", Color(0.85, 0.9, 0.85, 0.35), 0.2, true)
 	_plain_mat("cloth_sack", Color("7a6a4a"), 1.0)
 	_plain_mat("blade", Color("b8b0a0"), 0.6)
 	_plain_mat("cloth_red", Color("7a2e24"), 1.0)
+	_plain_mat("tire", Color("1c1b1a"), 0.9)
+	_plain_mat("glass", Color(0.25, 0.3, 0.3, 0.55), 0.1, true)
+	_plain_mat("wire", Color("5a5550"), 0.5)
+	_plain_mat("grass_blade", Color("6a6a38"), 1.0)
+	_plain_mat("grass_green", Color("3e4e26"), 1.0)
+	_plain_mat("reed", Color("7a7040"), 1.0)
+	_plain_mat("cattail", Color("4a3020"), 1.0)
+	var water := StandardMaterial3D.new()
+	water.resource_name = "water"
+	water.albedo_color = Color(0.06, 0.07, 0.04, 0.92)
+	water.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	water.roughness = 0.25
+	water.metallic = 0.0
+	water.metallic_specular = 0.35
+	ResourceSaver.save(water, MAT_DIR + "water.tres")
+	M["water"] = load(MAT_DIR + "water.tres")
 	_plain_mat("hay", Color("6e6232"), 1.0)
 	_plain_mat("whitewash", Color("8c8678"), 0.95)
 	_plain_mat("tin", Color("a7a49a"), 0.4)
@@ -126,11 +157,73 @@ func begin() -> void:
 	root_props = {}
 
 
-func add(mat: String, mesh: Mesh, pos: Vector3, rot := Vector3.ZERO) -> void:
+func add(mat: String, mesh: Mesh, pos: Vector3, rot := Vector3.ZERO, scl := Vector3.ONE) -> void:
 	var key := mat + ("@up" if pos.y > cut_y or (_force_up and cut_y < INF) else "")
 	if not parts.has(key):
 		parts[key] = []
-	parts[key].append([mesh, Transform3D(Basis.from_euler(rot), pos)])
+	parts[key].append([mesh, Transform3D(Basis.from_euler(rot) * Basis.from_scale(scl), pos)])
+
+
+## Неровный примитив: вершины сдвинуты шумом от центра, грани плоские (low-poly).
+## Сдвиг зависит только от положения вершины — швы примитива не расходятся.
+func rough(prim: PrimitiveMesh, amount: float, seed_: int, freq := 1.5, squash_y := 1.0) -> ArrayMesh:
+	var arr := prim.get_mesh_arrays()
+	var verts: PackedVector3Array = arr[Mesh.ARRAY_VERTEX]
+	var nz := FastNoiseLite.new()
+	nz.seed = seed_
+	nz.frequency = freq
+	for i in verts.size():
+		var v := verts[i]
+		var dir := Vector3(v.x, v.y * squash_y, v.z)
+		if dir.length() < 0.001:
+			continue
+		verts[i] = v + dir.normalized() * nz.get_noise_3dv(v) * amount
+	arr[Mesh.ARRAY_VERTEX] = verts
+	arr[Mesh.ARRAY_NORMAL] = null
+	arr[Mesh.ARRAY_TANGENT] = null
+	var am := ArrayMesh.new()
+	am.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arr)
+	var st := SurfaceTool.new()
+	st.create_from(am, 0)
+	st.deindex()
+	st.generate_normals()
+	return st.commit()
+
+
+func rsphere(r: float, segs := 9, rings := 6) -> SphereMesh:
+	var sm := SphereMesh.new()
+	sm.radius = r
+	sm.height = r * 2.0
+	sm.radial_segments = segs
+	sm.rings = rings
+	return sm
+
+
+func rcone(r_bot: float, h: float, segs := 10) -> CylinderMesh:
+	var c := CylinderMesh.new()
+	c.top_radius = 0.0
+	c.bottom_radius = r_bot
+	c.height = h
+	c.radial_segments = segs
+	c.rings = 2
+	return c
+
+
+## Сохранить текущие детали как одну сетку (поверхность на материал) — для MultiMesh
+func save_mesh(n: String) -> void:
+	var am := ArrayMesh.new()
+	for key in parts:
+		var st := SurfaceTool.new()
+		st.begin(Mesh.PRIMITIVE_TRIANGLES)
+		for it in parts[key]:
+			var mesh: Mesh = it[0]
+			for si in mesh.get_surface_count():
+				st.append_from(mesh, si, it[1])
+		st.generate_tangents()
+		st.commit(am)
+		am.surface_set_material(am.get_surface_count() - 1, M[String(key).trim_suffix("@up")])
+	ResourceSaver.save(am, MESH_DIR + n + ".res")
+	print("  ", n, " (сетка)")
 
 
 func box(mat: String, size: Vector3, pos: Vector3, rot := Vector3.ZERO) -> void:
@@ -662,21 +755,6 @@ func workshop() -> void:
 
 # ---------------- частокол, ворота, баррикада ----------------
 ## Пролёт частокола 4 м вдоль X: заострённые брёвна и поперечины
-func palisade() -> void:
-	begin()
-	_rng.seed = 3
-	var n := 13
-	for i in n:
-		var x := -2.0 + 0.15 + i * (4.0 - 0.3) / (n - 1)
-		var h := _rng.randf_range(2.2, 2.6)
-		cyl("log_weathered", 0.14, 0.15, h, Vector3(x, h / 2.0, 0), Vector3.ZERO, 7)
-		cyl("log_weathered", 0.0, 0.14, 0.35, Vector3(x, h + 0.17, 0), Vector3.ZERO, 7)
-	for y in [0.6, 1.8]:
-		box("planks_old", Vector3(4.0, 0.14, 0.1), Vector3(0, y, -0.2))
-	solid(Vector3(4.0, 2.4, 0.5), Vector3(0, 1.2, 0))
-	finish("palisade", "Palisade")
-
-
 ## Ворота в частоколе: проём 4 м, столбы, перекладина, распахнутые створки
 func gate() -> void:
 	begin()
@@ -761,28 +839,324 @@ func wind_turbine() -> void:
 
 # ---------------- хвойные деревья ----------------
 func spruce() -> void:
-	begin()
-	cyl("bark_dark", 0.08, 0.2, 7.5, Vector3(0, 3.75, 0), Vector3.ZERO, 7)
-	for i in 6:
-		var rad := 2.0 - i * 0.3
-		cyl("needles_tex", 0.0, rad, 2.0, Vector3(0, 1.4 + i * 1.05, 0), Vector3(0, i * 0.7, 0), 9)
-	solid(Vector3(0.6, 2.0, 0.6), Vector3(0, 1.0, 0))
-	finish("spruce", "Spruce")
+	for v in 2:
+		begin()
+		_rng.seed = 100 + v
+		var h := 8.0 + v * 1.5
+		cyl("bark_dark", 0.07, 0.22, h, Vector3(0, h / 2.0, 0), Vector3.ZERO, 8)
+		var tiers := 8 + v
+		var needles := "needles_tex" if v == 0 else "needles_b"
+		for i in tiers:
+			var k := float(i) / tiers
+			var rad := lerpf(2.3, 0.45, k) * _rng.randf_range(0.85, 1.1)
+			var y := 1.2 + k * (h - 1.8)
+			var off := Vector3(_rng.randf_range(-0.12, 0.12), 0, _rng.randf_range(-0.12, 0.12))
+			add(needles, rough(rcone(rad, 1.5 - k * 0.5, 11), 0.22, 7 * i + v, 2.2), Vector3(0, y, 0) + off,
+				Vector3(_rng.randf_range(-0.08, 0.08), _rng.randf() * TAU, _rng.randf_range(-0.08, 0.08)))
+		add(needles, rough(rcone(0.35, 1.2, 7), 0.06, 99 + v), Vector3(0, h + 0.3, 0))
+		# корни у земли
+		for r in 3:
+			var a := r * TAU / 3.0 + 0.4
+			cyl("bark_dark", 0.02, 0.1, 0.9, Vector3(cos(a) * 0.3, 0.12, sin(a) * 0.3), Vector3(sin(a) * 1.3, 0, -cos(a) * 1.3), 5)
+		solid(Vector3(0.6, 2.0, 0.6), Vector3(0, 1.0, 0))
+		finish("spruce" if v == 0 else "spruce_b", "Spruce")
 
 
 func pine() -> void:
+	for v in 2:
+		begin()
+		_rng.seed = 200 + v
+		var h := 9.5 + v
+		# ствол чуть изогнут: два куска
+		cyl("bark_dark", 0.15, 0.24, h * 0.55, Vector3(0, h * 0.275, 0), Vector3(0, 0, 0.03), 8)
+		cyl("bark_dark", 0.08, 0.15, h * 0.5, Vector3(0.12, h * 0.78, 0), Vector3(0, 0, -0.04), 8)
+		# сухие сучья по стволу
+		for i in 5:
+			var a := _rng.randf() * TAU
+			var y := 2.5 + i * 0.9
+			cyl("bark_dark", 0.01, 0.045, 1.0, Vector3(cos(a) * 0.4, y, sin(a) * 0.4), Vector3(sin(a) * 1.2, 0, -cos(a) * 1.2), 5)
+		# крона из приплюснутых клочьев на ветках
+		for i in 11:
+			var a := i * 2.4 + _rng.randf() * 0.6
+			var y := h * 0.6 + (i % 5) * 0.55 + _rng.randf() * 0.3
+			var d := _rng.randf_range(0.6, 1.4) * (1.0 - (i % 5) * 0.12)
+			var p := Vector3(cos(a) * d, y, sin(a) * d)
+			cyl("bark_dark", 0.03, 0.06, d + 0.2, Vector3(p.x * 0.5, y - 0.2, p.z * 0.5), Vector3(sin(a) * 1.35, 0, -cos(a) * 1.35), 5)
+			add("needles_tex", rough(rsphere(_rng.randf_range(0.9, 1.35), 10, 6), 0.3, 11 * i + v, 2.0), p, Vector3.ZERO, Vector3(1.0, 0.5, 1.0))
+		add("needles_tex", rough(rsphere(0.9, 9, 6), 0.25, 5 + v), Vector3(0.12, h + 0.1, 0), Vector3.ZERO, Vector3(1, 0.6, 1))
+		solid(Vector3(0.6, 2.0, 0.6), Vector3(0, 1.0, 0))
+		finish("pine" if v == 0 else "pine_b", "Pine")
+
+
+func birch() -> void:
+	for v in 2:
+		begin()
+		_rng.seed = 300 + v
+		var h := 5.5 + v * 1.2
+		cyl("birch_bark", 0.1, 0.17, h * 0.6, Vector3(0, h * 0.3, 0), Vector3(0.02, 0, 0.03), 8)
+		cyl("birch_bark", 0.05, 0.1, h * 0.5, Vector3(-0.1, h * 0.82, 0.05), Vector3(-0.05, 0, -0.06), 7)
+		for i in 4:
+			var a := _rng.randf() * TAU
+			var y := h * 0.55 + i * 0.45
+			cyl("birch_bark", 0.02, 0.05, 1.2, Vector3(cos(a) * 0.35, y + 0.35, sin(a) * 0.35), Vector3(sin(a) * 0.9, 0, -cos(a) * 0.9), 5)
+		for i in 12:
+			var a := i * 2.1 + _rng.randf()
+			var d := _rng.randf_range(0.3, 1.1)
+			var p := Vector3(cos(a) * d, h * 0.55 + _rng.randf_range(0.0, h * 0.5), sin(a) * d)
+			add("leaves_tex" if i % 3 else "leaves_dark", rough(rsphere(_rng.randf_range(0.7, 1.05), 9, 6), 0.28, 13 * i + v, 2.0), p, Vector3.ZERO, Vector3(1, 0.8, 1))
+		solid(Vector3(0.5, 2.0, 0.5), Vector3(0, 1.0, 0))
+		finish("birch" if v == 0 else "birch_b", "Birch")
+
+
+func bush() -> void:
 	begin()
-	cyl("bark_dark", 0.1, 0.22, 9.0, Vector3(0, 4.5, 0), Vector3(0, 0, 0.02), 7)
-	# крона наверху: несколько приплюснутых ярусов
+	_rng.seed = 400
 	for i in 5:
-		var rad := 2.3 - i * 0.35
-		cyl("needles_tex", rad * 0.4, rad, 1.1, Vector3(0.15 * (i % 2), 5.2 + i * 0.85, 0.1 * ((i + 1) % 2)), Vector3.ZERO, 8)
-	cyl("needles_tex", 0.0, 0.7, 1.0, Vector3(0, 9.6, 0), Vector3.ZERO, 7)
-	# пара сухих сучьев ниже кроны
-	cyl("bark_dark", 0.02, 0.05, 1.2, Vector3(0.4, 3.8, 0), Vector3(0, 0, -1.0), 5)
-	cyl("bark_dark", 0.02, 0.05, 1.0, Vector3(-0.3, 4.5, 0.2), Vector3(0.3, 0, 1.1), 5)
-	solid(Vector3(0.6, 2.0, 0.6), Vector3(0, 1.0, 0))
-	finish("pine", "Pine")
+		var a := i * 1.3
+		add("leaves_dark" if i % 2 else "leaves_tex", rough(rsphere(_rng.randf_range(0.45, 0.65), 8, 5), 0.18, 17 * i, 2.5),
+			Vector3(cos(a) * 0.4, 0.4 + _rng.randf() * 0.2, sin(a) * 0.35), Vector3.ZERO, Vector3(1, 0.8, 1))
+	finish("bush", "Bush")
+
+
+func dead_tree() -> void:
+	begin()
+	_rng.seed = 450
+	cyl("bark_dark", 0.06, 0.2, 5.0, Vector3(0, 2.5, 0), Vector3(0.03, 0, 0), 7)
+	for i in 6:
+		var a := _rng.randf() * TAU
+		var y := 2.0 + i * 0.5
+		var ln := _rng.randf_range(0.8, 1.6)
+		cyl("bark_dark", 0.015, 0.05, ln, Vector3(cos(a) * ln * 0.35, y + ln * 0.25, sin(a) * ln * 0.35), Vector3(sin(a) * 0.9, 0, -cos(a) * 0.9), 5)
+	solid(Vector3(0.5, 2.0, 0.5), Vector3(0, 1.0, 0))
+	finish("dead_tree", "DeadTree")
+
+
+# ---------------- камни ----------------
+func rocks() -> void:
+	for spec in [["rock_small", 0.35, 1, false], ["rock", 0.7, 2, true], ["rock_big", 1.2, 3, true]]:
+		begin()
+		_rng.seed = hash(spec[0])
+		var r: float = spec[1]
+		for i in spec[2]:
+			var rr := r * (1.0 if i == 0 else _rng.randf_range(0.45, 0.7))
+			var p := Vector3(0, rr * 0.35, 0) if i == 0 else Vector3(_rng.randf_range(-1, 1) * r, rr * 0.3, _rng.randf_range(-1, 1) * r)
+			var sc := Vector3(_rng.randf_range(1.0, 1.4), _rng.randf_range(0.6, 0.85), _rng.randf_range(0.9, 1.2))
+			add("rock_tex", rough(rsphere(rr, 9, 6), rr * 0.35, 31 * i + int(r * 10), 2.2 / rr), p, Vector3(0, _rng.randf() * TAU, 0), sc)
+			if i == 0 and r > 0.5:
+				# мох на макушке
+				add("moss", rough(rsphere(rr * 0.6, 8, 4), rr * 0.15, 7), p + Vector3(0.1, rr * 0.5, 0), Vector3.ZERO, Vector3(1.2, 0.25, 1.0))
+		if spec[3]:
+			solid(Vector3(r * 2.4, r * 1.1, r * 2.0), Vector3(0, r * 0.5, 0))
+		finish(spec[0], "Rock")
+
+
+# ---------------- трактор ----------------
+## Довоенный колёсный трактор: выцветшая оранжевая краска, ржавчина, кабина с рамой.
+## Длина вдоль Z (перёд — +Z).
+func tractor() -> void:
+	begin()
+	# рама и двигатель под капотом
+	box("metal_dark", Vector3(0.9, 0.35, 3.2), Vector3(0, 0.75, 0.1))
+	box("paint_faded", Vector3(1.0, 0.75, 1.6), Vector3(0, 1.2, 0.95))
+	box("rust", Vector3(1.02, 0.3, 0.8), Vector3(0, 1.45, 0.8))
+	# решётка радиатора
+	for i in 6:
+		box("metal_dark", Vector3(0.05, 0.6, 0.06), Vector3(-0.35 + i * 0.14, 1.15, 1.78))
+	box("metal_dark", Vector3(0.95, 0.08, 0.1), Vector3(0, 1.5, 1.78))
+	for sx in [-1, 1]:
+		cyl("window", 0.09, 0.09, 0.08, Vector3(sx * 0.38, 1.35, 1.8), Vector3(PI / 2.0, 0, 0), 10)
+	# выхлопная труба с колпачком
+	cyl("rust", 0.06, 0.06, 1.3, Vector3(0.3, 2.1, 1.25), Vector3.ZERO, 8)
+	cyl("metal_dark", 0.09, 0.07, 0.12, Vector3(0.3, 2.78, 1.25), Vector3.ZERO, 8)
+	# кабина: пол, стойки, крыша, заднее стекло
+	box("metal_dark", Vector3(1.4, 0.1, 1.3), Vector3(0, 1.1, -0.65))
+	for sx in [-1, 1]:
+		for sz in [-1, 1]:
+			box("paint_faded", Vector3(0.07, 1.4, 0.07), Vector3(sx * 0.66, 1.85, -0.65 + sz * 0.6))
+	box("paint_faded", Vector3(1.5, 0.08, 1.45), Vector3(0, 2.58, -0.65))
+	box("glass", Vector3(1.25, 0.8, 0.03), Vector3(0, 2.05, -1.25))
+	box("glass", Vector3(1.25, 0.7, 0.03), Vector3(0, 2.05, -0.06), Vector3(-0.15, 0, 0))
+	# сиденье и руль
+	box("cloth_sack", Vector3(0.5, 0.12, 0.45), Vector3(0, 1.45, -0.85))
+	box("cloth_sack", Vector3(0.5, 0.45, 0.1), Vector3(0, 1.7, -1.08))
+	var wheel := TorusMesh.new()
+	wheel.inner_radius = 0.16
+	wheel.outer_radius = 0.2
+	wheel.rings = 12
+	wheel.ring_segments = 5
+	add("metal_dark", wheel, Vector3(0, 1.75, -0.35), Vector3(-0.9, 0, 0))
+	cyl("metal_dark", 0.02, 0.02, 0.5, Vector3(0, 1.55, -0.28), Vector3(-0.9, 0, 0), 6)
+	# большие задние колёса с грунтозацепами и крыльями
+	for sx in [-1, 1]:
+		var c := Vector3(sx * 0.95, 0.8, -0.65)
+		cyl("tire", 0.8, 0.8, 0.45, c, Vector3(0, 0, PI / 2.0), 16)
+		cyl("rust", 0.38, 0.38, 0.47, c, Vector3(0, 0, PI / 2.0), 10)
+		for k in 14:
+			var a := k * TAU / 14.0
+			box("tire", Vector3(0.46, 0.12, 0.1), c + Vector3(0, sin(a) * 0.8, cos(a) * 0.8), Vector3(-a, 0, 0))
+		box("paint_faded", Vector3(0.5, 0.05, 1.3), Vector3(sx * 0.95, 1.7, -0.65), Vector3(0, 0, 0))
+		# передние колёса
+		var f := Vector3(sx * 0.72, 0.45, 1.35)
+		cyl("tire", 0.45, 0.45, 0.28, f, Vector3(0, 0, PI / 2.0), 14)
+		cyl("rust", 0.2, 0.2, 0.3, f, Vector3(0, 0, PI / 2.0), 8)
+	# сцепка сзади и забытый плуг
+	box("metal_dark", Vector3(0.3, 0.15, 0.6), Vector3(0, 0.6, -1.7))
+	box("rust", Vector3(1.4, 0.1, 0.15), Vector3(0, 0.35, -2.4))
+	for sx in [-0.45, 0.0, 0.45]:
+		box("rust", Vector3(0.08, 0.45, 0.35), Vector3(sx, 0.2, -2.45), Vector3(0.5, 0, 0))
+	solid(Vector3(2.4, 2.4, 3.4), Vector3(0, 1.2, 0))
+	solid(Vector3(1.5, 0.6, 0.5), Vector3(0, 0.3, -2.4))
+	finish("tractor", "Tractor")
+
+
+# ---------------- частокол: колючка, заплаты, заколоченные дыры ----------------
+func palisades() -> void:
+	for kind in ["palisade", "palisade_boarded", "palisade_patched"]:
+		begin()
+		_rng.seed = hash(kind)
+		var n := 13
+		for i in n:
+			var x := -2.0 + 0.15 + i * (4.0 - 0.3) / (n - 1)
+			var h := _rng.randf_range(2.2, 2.6)
+			if kind == "palisade_boarded" and (i == 5 or i == 6):
+				h = _rng.randf_range(0.9, 1.3)  # бревна подгнили — дыру заколотили
+			cyl("log_weathered", 0.14, 0.15, h, Vector3(x, h / 2.0, 0), Vector3.ZERO, 7)
+			cyl("log_weathered", 0.0, 0.14, 0.35, Vector3(x, h + 0.17, 0), Vector3.ZERO, 7)
+		for y in [0.6, 1.8]:
+			box("planks_old", Vector3(4.0, 0.14, 0.1), Vector3(0, y, -0.2))
+		if kind == "palisade_boarded":
+			# доски крест-накрест и поперёк поверх дыры
+			box("planks_old", Vector3(1.6, 0.2, 0.05), Vector3(0.0, 1.6, 0.2), Vector3(0, 0, 0.5))
+			box("planks_old", Vector3(1.6, 0.2, 0.05), Vector3(0.0, 1.6, 0.21), Vector3(0, 0, -0.5))
+			for y in [1.3, 1.95, 2.3]:
+				box("planks_old", Vector3(1.3, 0.18, 0.05), Vector3(_rng.randf_range(-0.1, 0.1), y, 0.18), Vector3(0, 0, _rng.randf_range(-0.12, 0.12)))
+		if kind == "palisade_patched":
+			# ржавый лист, прибитый поверх брёвен
+			box("metal_roof", Vector3(1.4, 1.1, 0.04), Vector3(_rng.randf_range(-0.8, 0.8), 1.1, 0.19), Vector3(0, 0, 0.06))
+		# колючая проволока: две нитки на скобах и спираль поверх остриёв
+		for x in [-1.6, 0.0, 1.6]:
+			box("wire", Vector3(0.03, 0.6, 0.03), Vector3(x, 2.55, 0.22))
+		for y in [2.45, 2.75]:
+			cyl("wire", 0.008, 0.008, 4.0, Vector3(0, y, 0.22), Vector3(0, 0, PI / 2.0), 4)
+			for k in 12:
+				var bx := -1.85 + k * 0.33
+				box("wire", Vector3(0.012, 0.09, 0.012), Vector3(bx, y, 0.22), Vector3(0.7, 0, 0.7))
+		for k in 9:
+			var coil := TorusMesh.new()
+			coil.inner_radius = 0.24
+			coil.outer_radius = 0.26
+			coil.rings = 14
+			coil.ring_segments = 3
+			add("wire", coil, Vector3(-1.8 + k * 0.45, 2.85, 0.05), Vector3(0, 0, PI / 2.0 + 0.35))
+		solid(Vector3(4.0, 2.4, 0.5), Vector3(0, 1.2, 0))
+		finish(kind, "Palisade")
+
+
+# ---------------- мелочи: бочки, ящики, телега, скамья, сено, пни ----------------
+func small_props() -> void:
+	begin()
+	cyl("metal_dark", 0.3, 0.3, 0.88, Vector3(0, 0.44, 0), Vector3.ZERO, 12)
+	for y in [0.12, 0.44, 0.76]:
+		cyl("rust", 0.31, 0.31, 0.06, Vector3(0, y, 0), Vector3.ZERO, 12)
+	solid(Vector3(0.6, 0.9, 0.6), Vector3(0, 0.45, 0))
+	finish("barrel", "Barrel")
+
+	begin()
+	box("planks_old", Vector3(0.7, 0.6, 0.6), Vector3(0, 0.3, 0))
+	box("planks_old", Vector3(0.6, 0.5, 0.55), Vector3(0.15, 0.85, 0.02), Vector3(0, 0.3, 0))
+	box("planks_old", Vector3(0.5, 0.4, 0.5), Vector3(0.75, 0.2, 0.1), Vector3(0, -0.2, 0))
+	for p in [Vector3(0, 0.3, 0.31), Vector3(0.15, 0.85, 0.3)]:
+		box("metal_dark", Vector3(0.6, 0.04, 0.02), p)
+	solid(Vector3(1.4, 1.0, 0.8), Vector3(0.3, 0.5, 0))
+	finish("crates", "Crates")
+
+	begin()
+	box("planks_old", Vector3(1.3, 0.08, 2.2), Vector3(0, 0.75, 0))
+	for sx in [-1, 1]:
+		box("planks_old", Vector3(0.06, 0.35, 2.2), Vector3(sx * 0.65, 0.95, 0))
+		cyl("planks_old", 0.5, 0.5, 0.1, Vector3(sx * 0.75, 0.5, -0.3), Vector3(0, 0, PI / 2.0), 12)
+		cyl("rust", 0.1, 0.1, 0.12, Vector3(sx * 0.75, 0.5, -0.3), Vector3(0, 0, PI / 2.0), 8)
+		box("planks_old", Vector3(0.07, 0.07, 1.8), Vector3(sx * 0.35, 0.55, 1.9), Vector3(0.28, 0, 0))
+	box("hay", Vector3(1.1, 0.35, 1.2), Vector3(0, 1.0, -0.3))
+	solid(Vector3(1.6, 1.2, 2.4), Vector3(0, 0.6, 0))
+	finish("cart", "Cart")
+
+	begin()
+	box("planks_old", Vector3(1.8, 0.07, 0.35), Vector3(0, 0.45, 0))
+	for sx in [-0.7, 0.7]:
+		box("log_weathered", Vector3(0.12, 0.42, 0.3), Vector3(sx, 0.21, 0))
+	finish("bench", "Bench")
+
+	begin()
+	cyl("hay", 0.55, 0.55, 1.1, Vector3(0, 0.55, 0), Vector3(0, 0, PI / 2.0), 12)
+	for x in [-0.3, 0.3]:
+		cyl("rope_mat", 0.56, 0.56, 0.04, Vector3(x, 0.55, 0), Vector3(0, 0, PI / 2.0), 12)
+	solid(Vector3(1.2, 1.1, 1.1), Vector3(0, 0.55, 0))
+	finish("hay_bale", "HayBale")
+
+	begin()
+	cyl("bark_dark", 0.3, 0.36, 0.45, Vector3(0, 0.22, 0), Vector3.ZERO, 9)
+	cyl("planks_old", 0.29, 0.29, 0.02, Vector3(0, 0.455, 0), Vector3.ZERO, 9)
+	add("moss", rough(rsphere(0.2, 7, 4), 0.05, 3), Vector3(0.2, 0.25, 0.2), Vector3.ZERO, Vector3(1, 0.4, 1))
+	finish("stump", "Stump")
+
+	begin()
+	cyl("bark_dark", 0.22, 0.26, 4.0, Vector3(0, 0.24, 0), Vector3(0, 0, PI / 2.0), 9)
+	cyl("bark_dark", 0.03, 0.06, 0.9, Vector3(0.8, 0.5, 0.2), Vector3(0.5, 0, 0.3), 5)
+	add("moss", rough(rsphere(0.3, 7, 4), 0.06, 5), Vector3(-0.9, 0.42, 0), Vector3.ZERO, Vector3(1.6, 0.35, 0.8))
+	solid(Vector3(4.0, 0.5, 0.5), Vector3(0, 0.25, 0))
+	finish("log_fallen", "LogFallen")
+
+
+# ---------------- сетки для россыпи (MultiMesh): трава, камыш, кочки, лужи ----------------
+func scatter_meshes() -> void:
+	begin()
+	_rng.seed = 501
+	for i in 7:
+		var a := _rng.randf() * TAU
+		var d := _rng.randf() * 0.15
+		cyl("grass_blade" if i % 3 else "grass_green", 0.0, 0.025, _rng.randf_range(0.3, 0.55),
+			Vector3(cos(a) * d, 0.18, sin(a) * d), Vector3(_rng.randf_range(-0.35, 0.35), 0, _rng.randf_range(-0.35, 0.35)), 3)
+	save_mesh("scatter_tuft")
+
+	begin()
+	_rng.seed = 502
+	for i in 9:
+		var a := _rng.randf() * TAU
+		var d := _rng.randf() * 0.25
+		var h := _rng.randf_range(1.0, 1.7)
+		var tilt := Vector3(_rng.randf_range(-0.15, 0.15), 0, _rng.randf_range(-0.15, 0.15))
+		cyl("reed", 0.008, 0.02, h, Vector3(cos(a) * d, h / 2.0, sin(a) * d), tilt, 4)
+		if i % 3 == 0:
+			cyl("cattail", 0.03, 0.03, 0.18, Vector3(cos(a) * d + tilt.z * -h * 0.45, h * 0.88, sin(a) * d + tilt.x * h * 0.45), tilt, 6)
+	save_mesh("scatter_reeds")
+
+	begin()
+	add("moss", rough(rsphere(0.35, 8, 5), 0.08, 9), Vector3(0, 0.05, 0), Vector3.ZERO, Vector3(1.0, 0.55, 1.0))
+	for i in 5:
+		var a := i * 1.25
+		cyl("grass_blade", 0.0, 0.03, 0.4, Vector3(cos(a) * 0.15, 0.3, sin(a) * 0.15), Vector3(sin(a) * 0.4, 0, -cos(a) * 0.4), 3)
+	save_mesh("scatter_hummock")
+
+	begin()
+	var pool := CylinderMesh.new()
+	pool.top_radius = 1.0
+	pool.bottom_radius = 1.0
+	pool.height = 0.02
+	pool.radial_segments = 14
+	pool.rings = 1
+	add("water", rough(pool, 0.25, 21, 1.2, 0.0), Vector3(0, 0.02, 0))
+	save_mesh("scatter_puddle")
+
+	begin()
+	var disk := CylinderMesh.new()
+	disk.top_radius = 1.0
+	disk.bottom_radius = 1.0
+	disk.height = 0.02
+	disk.radial_segments = 14
+	disk.rings = 1
+	add("mud_tex", rough(disk, 0.3, 23, 1.0, 0.0), Vector3(0, 0.01, 0))
+	save_mesh("scatter_mud")
 
 
 # ---------------- вещи в дорогу ----------------

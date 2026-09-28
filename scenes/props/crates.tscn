@@ -1,0 +1,26 @@
+[gd_scene format=3]
+
+[ext_resource type="Material" path="res://assets/materials/planks_old.tres" id="1_4mgtl"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/crates_planks_old.res" id="2_5netu"]
+[ext_resource type="Material" path="res://assets/materials/metal_dark.tres" id="3_ehurf"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/crates_metal_dark.res" id="4_e367p"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_jviw0"]
+size = Vector3(1.4, 1, 0.8)
+
+[node name="Crates" type="Node3D" unique_id=633273091]
+
+[node name="Mesh_planks_old" type="MeshInstance3D" parent="." unique_id=614474965]
+material_override = ExtResource("1_4mgtl")
+mesh = ExtResource("2_5netu")
+
+[node name="Mesh_metal_dark" type="MeshInstance3D" parent="." unique_id=1505540084]
+material_override = ExtResource("3_ehurf")
+mesh = ExtResource("4_e367p")
+
+[node name="Collision" type="StaticBody3D" parent="." unique_id=1400981712]
+collision_mask = 0
+
+[node name="@CollisionShape3D@88" type="CollisionShape3D" parent="Collision" unique_id=1956677214]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.3, 0.5, 0)
+shape = SubResource("BoxShape3D_jviw0")
