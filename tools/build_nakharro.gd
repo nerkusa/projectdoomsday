@@ -162,10 +162,10 @@ func _village() -> void:
 		put(P.shed, vil, p, randf_range(-0.2, 0.2))
 	put(P.woodpile, vil, Vector3(78, 0, 37.5), 0.1, "Woodpile")
 	put(P.woodpile, vil, Vector3(40.8, 0, 37.8), -0.2)
-	put(P.table, vil, Vector3(41.5, 0, 45.2), 0.0, "TableDed")
+	put(P.table, vil, Vector3(41.5, 0, 44.2), 0.0, "TableDed")
 	# огороды за домами и поле на юге
-	for p in [Vector3(36, 0, 37), Vector3(88, 0, 36.8), Vector3(40, 0, 56), Vector3(92, 0, 56), Vector3(50, 0, 65),
-			Vector3(86, 0, 66.5), Vector3(46, 0, 88)]:
+	for p in [Vector3(36, 0, 37), Vector3(88, 0, 36.8), Vector3(42.5, 0, 55), Vector3(92, 0, 56), Vector3(50, 0, 65),
+			Vector3(89.5, 0, 66.5), Vector3(46, 0, 88)]:
 		put(P.garden, vil, p, 0.0)
 	for gx in range(4):
 		for gz in range(2):
@@ -343,7 +343,7 @@ func _characters() -> void:
 func _items() -> void:
 	var items := group(root, "Items")
 	item(items, P.planks, "Planks", Vector3(76.6, 0, 39.4), ["phase_morning"])
-	var basket := item(items, P.basket, "Basket", Vector3(42.1, 0.84, 45.2), ["phase_morning"])
+	var basket := item(items, P.basket, "Basket", Vector3(42.1, 0.84, 44.2), ["phase_morning"])
 	basket.set("pick_size", Vector3(0.7, 0.9, 0.7))
 	var mi := 0
 	for p in [Vector3(40, 0, 14), Vector3(52, 0, 10), Vector3(64, 0, 16), Vector3(88, 0, 14), Vector3(76, 0, 8)]:
