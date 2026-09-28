@@ -826,12 +826,18 @@ func _update_xray() -> void:
 			if tn == null:
 				continue
 			var s := tn.scale.x
-			var c := tn.global_position + Vector3(0, 3.5 * s, 0)
-			var k := clampf((c - a).dot(ab) / len2, 0.0, 1.0)
-			if k > 0.97:
+			var base := tn.global_position
+			# быстрый отсев: дерево должно быть между героем и камерой
+			if (base - b).dot(ab) > 0.5 or base.distance_to(b) > 16.0:
 				continue
-			if (a + ab * k).distance_to(c) < 3.2 * s and not hits.has(tn):
-				hits.append(tn)
+			# ствол с кроной до ~12 м: проверяем несколько высот
+			for hy in [1.5, 3.5, 5.5, 7.5, 9.5, 11.5]:
+				var c := base + Vector3(0, hy * s, 0)
+				var k := clampf((c - a).dot(ab) / len2, 0.0, 1.0)
+				if (a + ab * k).distance_to(c) < 2.8 * s + 0.4:
+					if not hits.has(tn):
+						hits.append(tn)
+					break
 	for p in _xray:
 		if is_instance_valid(p) and not hits.has(p):
 			_set_alpha(p, 0.0)
