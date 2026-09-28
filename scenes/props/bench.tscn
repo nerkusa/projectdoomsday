@@ -5,12 +5,12 @@
 [ext_resource type="Material" path="res://assets/materials/log_weathered.tres" id="3_c3lmo"]
 [ext_resource type="ArrayMesh" path="res://assets/models/props/bench_log_weathered.res" id="4_vgojc"]
 
-[node name="Bench" type="Node3D" unique_id=7894190]
+[node name="Bench" type="Node3D" unique_id=113820371]
 
-[node name="Mesh_planks_old" type="MeshInstance3D" parent="." unique_id=1062915287]
+[node name="Mesh_planks_old" type="MeshInstance3D" parent="." unique_id=1582995267]
 material_override = ExtResource("1_lip8d")
 mesh = ExtResource("2_pp6l3")
 
-[node name="Mesh_log_weathered" type="MeshInstance3D" parent="." unique_id=215332606]
+[node name="Mesh_log_weathered" type="MeshInstance3D" parent="." unique_id=16873644]
 material_override = ExtResource("3_c3lmo")
 mesh = ExtResource("4_vgojc")

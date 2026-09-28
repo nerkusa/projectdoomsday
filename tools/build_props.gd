@@ -91,8 +91,8 @@ func _decal_mat(n: String, tex: String) -> void:
 	m.roughness_texture_channel = BaseMaterial3D.TEXTURE_CHANNEL_RED
 	m.normal_enabled = true
 	m.normal_texture = load(TEX_DIR + tex + "_n.png")
-	m.normal_scale = 0.6
-	m.metallic_specular = 0.6
+	m.normal_scale = 0.4
+	m.metallic_specular = 0.25
 	ResourceSaver.save(m, MAT_DIR + n + ".tres")
 	M[n] = load(MAT_DIR + n + ".tres")
 

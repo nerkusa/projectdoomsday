@@ -257,17 +257,20 @@ def _save_rgba(name: str, rgb: np.ndarray, alpha: np.ndarray, rough: np.ndarray,
 
 
 def _blob_mask(w: int, h: int, fuzz: float, seed_scale: float) -> np.ndarray:
-	"""Рваное пятно: эллипс, искажённый шумом, с мягким краем. 0..1"""
+	"""Рваное пятно: эллипс, искажённый шумом, с широким мягким краем. 0..1"""
 	yy, xx = np.mgrid[0:h, 0:w]
 	u = (xx + 0.5) / w * 2 - 1
 	v = (yy + 0.5) / h * 2 - 1
 	r = np.sqrt(u * u + v * v)
 	n = _noise_rect(w, h, seed_scale)
 	n = (n - n.mean()) / max(n.std(), 1e-6) * 0.15
-	edge = 0.78 - r + n * fuzz
+	fine = _noise_rect(w, h, seed_scale * 0.25)
+	fine = (fine - fine.mean()) / max(fine.std(), 1e-6) * 0.05
+	edge = 0.72 - r + n * fuzz + fine
 	# к краям текстуры — гарантированно прозрачно
-	border = np.clip(np.minimum(np.minimum(u + 1, 1 - u), np.minimum(v + 1, 1 - v)) * 8, 0, 1)
-	return np.clip(edge * 4.0, 0, 1) * border
+	border = np.clip(np.minimum(np.minimum(u + 1, 1 - u), np.minimum(v + 1, 1 - v)) * 6, 0, 1)
+	t = np.clip(edge * 1.8, 0, 1)
+	return t * t * (3 - 2 * t) * border
 
 
 def _noise_rect(w: int, h: int, scale: float) -> np.ndarray:
@@ -277,44 +280,42 @@ def _noise_rect(w: int, h: int, scale: float) -> np.ndarray:
 
 
 def swamp() -> None:
-	"""Болотная заплата на луг: грязь, тёмная вода в окнах, сырая трава; края рваные и прозрачные."""
+	"""Болотная заплата на луг: сырая бурая земля, мутная вода в окнах; края тают в луг."""
 	w, h = 768, 256
-	mask = _blob_mask(w, h, 1.6, 40)
-	water = np.clip((_noise_rect(w, h, 14) - 0.56) * 6, 0, 1)
-	grassy = np.clip((_noise_rect(w, h, 9) - 0.5) * 3, 0, 1)
+	mask = _blob_mask(w, h, 1.8, 40)
+	water = np.clip((_noise_rect(w, h, 14) - 0.52) * 4, 0, 1) * np.clip(mask * 1.5 - 0.3, 0, 1)
+	grassy = np.clip((_noise_rect(w, h, 9) - 0.45) * 2.5, 0, 1)
 	fine = _noise_rect(w, h, 0.8)
-	c = lerp(col("3a2e20"), col("4e4630"), grassy) * (0.85 + fine[..., None] * 0.3)[:, :, :1]
-	c = lerp(c, col("12140c"), water * 0.95)
-	# у края пятна — переход к сухому лугу
-	c = lerp(col("5e5436"), c, np.clip(mask * 1.6, 0, 1))
-	alpha = np.clip(mask * 1.3, 0, 1)
-	rough = 0.9 - water * 0.8 - np.clip(mask - 0.3, 0, 1) * 0.1
-	height = fine * 0.2 + grassy * 0.3 - water * 0.4
-	_save_rgba("swamp", c, alpha, rough, height, 3.0)
+	c = lerp(col("463a28"), col("55502f"), grassy) * (0.9 + fine[..., None] * 0.2)
+	c = lerp(c, col("22241a"), water * 0.9)
+	alpha = np.clip(mask * 1.1, 0, 1) * 0.9
+	rough = 0.95 - water * 0.35
+	height = fine * 0.2 + grassy * 0.3 - water * 0.3
+	_save_rgba("swamp", c, alpha, rough, height, 2.0)
 
 
 def puddle() -> None:
-	"""Лужа: тёмная вода с грязной каймой, мягкий край."""
+	"""Лужа: мутная вода, сырая кайма растворяется в земле."""
 	w = h = 256
-	mask = _blob_mask(w, h, 1.2, 28)
-	water = np.clip((mask - 0.45) * 4, 0, 1)
+	mask = _blob_mask(w, h, 1.4, 28)
+	water = np.clip((mask - 0.55) * 2.5, 0, 1)
 	fine = _noise_rect(w, h, 0.8)
-	c = lerp(col("4a3c2c"), col("14150e"), water) * (0.9 + fine[..., None] * 0.2)
-	alpha = np.clip(mask * 1.5, 0, 1)
-	rough = 0.85 - water * 0.78
-	_save_rgba("puddle", c, alpha, rough, fine * 0.2 - water * 0.3, 2.0)
+	c = lerp(col("4c402a"), col("2a2a1a"), water) * (0.92 + fine[..., None] * 0.16)
+	alpha = np.clip(mask * 1.1, 0, 1) * 0.85
+	rough = 0.92 - water * 0.3
+	_save_rgba("puddle", c, alpha, rough, fine * 0.2 - water * 0.2, 1.5)
 
 
 def mud_patch() -> None:
-	"""Пятно грязи: без воды, матовое, мягкий край."""
+	"""Сырое пятно земли: чуть темнее луга, матовое, край тает."""
 	w = h = 256
-	mask = _blob_mask(w, h, 1.4, 30)
+	mask = _blob_mask(w, h, 1.6, 30)
 	big = _noise_rect(w, h, 20)
 	fine = _noise_rect(w, h, 0.8)
-	c = lerp(col("2e241a"), col("4a3a2a"), big) * (0.88 + fine[..., None] * 0.24)
-	alpha = np.clip(mask * 1.2, 0, 1) * 0.9
-	rough = 0.7 - np.clip(big - 0.6, 0, 1)
-	_save_rgba("mud_patch", c, alpha, rough, big * 0.4 + fine * 0.2, 3.0)
+	c = lerp(col("4a3e2a"), col("5a4c34"), big) * (0.9 + fine[..., None] * 0.2)
+	alpha = np.clip(mask * 1.1, 0, 1) * 0.55
+	rough = 0.95 - np.clip(big - 0.6, 0, 1) * 0.3
+	_save_rgba("mud_patch", c, alpha, rough, big * 0.3 + fine * 0.2, 2.0)
 
 
 if __name__ == "__main__":

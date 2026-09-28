@@ -6,15 +6,15 @@
 [ext_resource type="Material" path="res://assets/materials/bread.tres" id="4_w5ij2"]
 [ext_resource type="ArrayMesh" path="res://assets/models/props/item_matches_bread.res" id="5_kg2m5"]
 
-[node name="Item" type="Node3D" unique_id=487351517]
+[node name="Item" type="Node3D" unique_id=199987885]
 script = ExtResource("1_oqjg4")
 item_id = "matches"
 pick_size = Vector3(0.35, 0.3, 0.35)
 
-[node name="Mesh_paper" type="MeshInstance3D" parent="." unique_id=1276469028]
+[node name="Mesh_paper" type="MeshInstance3D" parent="." unique_id=1875905274]
 material_override = ExtResource("2_6u7ys")
 mesh = ExtResource("3_7i2lk")
 
-[node name="Mesh_bread" type="MeshInstance3D" parent="." unique_id=1294620246]
+[node name="Mesh_bread" type="MeshInstance3D" parent="." unique_id=48578649]
 material_override = ExtResource("4_w5ij2")
 mesh = ExtResource("5_kg2m5")
