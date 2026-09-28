@@ -1,0 +1,15 @@
+[gd_resource type="StandardMaterial3D" format=3]
+
+[ext_resource type="Texture2D" path="res://assets/textures/puddle.png" id="1_e17sx"]
+[ext_resource type="Texture2D" path="res://assets/textures/puddle_n.png" id="2_wv4g4"]
+[ext_resource type="Texture2D" path="res://assets/textures/puddle_r.png" id="3_bfoaw"]
+
+[resource]
+resource_name = "puddle_patch"
+transparency = 1
+albedo_texture = ExtResource("1_e17sx")
+metallic_specular = 0.6
+roughness_texture = ExtResource("3_bfoaw")
+normal_enabled = true
+normal_scale = 0.6
+normal_texture = ExtResource("2_wv4g4")

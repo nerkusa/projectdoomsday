@@ -586,10 +586,21 @@ func _details() -> void:
 	var reeds := []
 	var hum := []
 	for zone in [Rect2(82, 20, 20, 7.5), Rect2(24, 20, 22, 7.5)]:
-		for i in 26:
+		# сама топь — плоская заплата с водой в окнах и рваным краем
+		var sp := MeshInstance3D.new()
+		var pm := PlaneMesh.new()
+		pm.size = Vector2(zone.size.x + 4, zone.size.y + 3)
+		sp.mesh = pm
+		sp.material_override = load("res://assets/materials/swamp_patch.tres")
+		sp.position = Vector3(zone.get_center().x, 0.014, zone.get_center().y)
+		sp.rotation.y = PI if randf() < 0.5 else 0.0
+		sp.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		det.add_child(sp)
+		sp.owner = root
+		for i in 8:
 			mud.append(_xf(randf_range(zone.position.x, zone.end.x), randf_range(zone.position.y, zone.end.y), randf_range(1.2, 2.6), 1.0))
-		for i in 12:
-			pud.append(_xf(randf_range(zone.position.x, zone.end.x), randf_range(zone.position.y, zone.end.y), randf_range(0.6, 1.5), 1.0))
+		for i in 5:
+			pud.append(_xf(randf_range(zone.position.x - 2, zone.end.x + 2), randf_range(zone.position.y - 1, zone.end.y + 1), randf_range(0.6, 1.3), 1.0))
 		for i in 70:
 			reeds.append(_xf(randf_range(zone.position.x - 1, zone.end.x + 1), randf_range(zone.position.y - 1, zone.end.y + 0.5), randf_range(0.7, 1.2)))
 		for i in 35:

@@ -8,19 +8,19 @@
 [ext_resource type="Material" path="res://assets/materials/cloth_red.tres" id="6_gug7i"]
 [ext_resource type="ArrayMesh" path="res://assets/models/props/item_compass_cloth_red.res" id="7_bcek2"]
 
-[node name="Item" type="Node3D" unique_id=1082821563]
+[node name="Item" type="Node3D" unique_id=482292469]
 script = ExtResource("1_4rggy")
 item_id = "compass"
 pick_size = Vector3(0.3, 0.25, 0.3)
 
-[node name="Mesh_brass" type="MeshInstance3D" parent="." unique_id=251322672]
+[node name="Mesh_brass" type="MeshInstance3D" parent="." unique_id=624795719]
 material_override = ExtResource("2_gso1b")
 mesh = ExtResource("3_xc00f")
 
-[node name="Mesh_tin" type="MeshInstance3D" parent="." unique_id=882415624]
+[node name="Mesh_tin" type="MeshInstance3D" parent="." unique_id=96454824]
 material_override = ExtResource("4_m6nmh")
 mesh = ExtResource("5_mgn2t")
 
-[node name="Mesh_cloth_red" type="MeshInstance3D" parent="." unique_id=425138050]
+[node name="Mesh_cloth_red" type="MeshInstance3D" parent="." unique_id=628322956]
 material_override = ExtResource("6_gug7i")
 mesh = ExtResource("7_bcek2")

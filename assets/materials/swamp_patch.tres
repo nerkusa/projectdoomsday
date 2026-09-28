@@ -1,0 +1,15 @@
+[gd_resource type="StandardMaterial3D" format=3]
+
+[ext_resource type="Texture2D" path="res://assets/textures/swamp.png" id="1_rflhj"]
+[ext_resource type="Texture2D" path="res://assets/textures/swamp_n.png" id="2_m5ylp"]
+[ext_resource type="Texture2D" path="res://assets/textures/swamp_r.png" id="3_214yp"]
+
+[resource]
+resource_name = "swamp_patch"
+transparency = 1
+albedo_texture = ExtResource("1_rflhj")
+metallic_specular = 0.6
+roughness_texture = ExtResource("3_214yp")
+normal_enabled = true
+normal_scale = 0.6
+normal_texture = ExtResource("2_m5ylp")

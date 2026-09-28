@@ -6,15 +6,15 @@
 [ext_resource type="Material" path="res://assets/materials/bread.tres" id="4_nnql2"]
 [ext_resource type="ArrayMesh" path="res://assets/models/props/item_rusks_bread.res" id="5_d2jc7"]
 
-[node name="Item" type="Node3D" unique_id=1832026867]
+[node name="Item" type="Node3D" unique_id=760840471]
 script = ExtResource("1_0bgdi")
 item_id = "rusks"
 pick_size = Vector3(0.45, 0.4, 0.45)
 
-[node name="Mesh_cloth_sack" type="MeshInstance3D" parent="." unique_id=690883609]
+[node name="Mesh_cloth_sack" type="MeshInstance3D" parent="." unique_id=1875065375]
 material_override = ExtResource("2_4h823")
 mesh = ExtResource("3_br026")
 
-[node name="Mesh_bread" type="MeshInstance3D" parent="." unique_id=371993830]
+[node name="Mesh_bread" type="MeshInstance3D" parent="." unique_id=1647788938]
 material_override = ExtResource("4_nnql2")
 mesh = ExtResource("5_d2jc7")

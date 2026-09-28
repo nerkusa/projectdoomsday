@@ -8,19 +8,19 @@
 [ext_resource type="Material" path="res://assets/materials/cloth_sack.tres" id="6_t8qb5"]
 [ext_resource type="ArrayMesh" path="res://assets/models/props/item_flask_cloth_sack.res" id="7_kyksl"]
 
-[node name="Item" type="Node3D" unique_id=2128289277]
+[node name="Item" type="Node3D" unique_id=2103891175]
 script = ExtResource("1_inhpv")
 item_id = "flask"
 pick_size = Vector3(0.4, 0.4, 0.4)
 
-[node name="Mesh_metal_dark" type="MeshInstance3D" parent="." unique_id=1069861793]
+[node name="Mesh_metal_dark" type="MeshInstance3D" parent="." unique_id=1653312377]
 material_override = ExtResource("2_w7cep")
 mesh = ExtResource("3_dcxuf")
 
-[node name="Mesh_tin" type="MeshInstance3D" parent="." unique_id=1360488654]
+[node name="Mesh_tin" type="MeshInstance3D" parent="." unique_id=1682782979]
 material_override = ExtResource("4_g47ci")
 mesh = ExtResource("5_b2778")
 
-[node name="Mesh_cloth_sack" type="MeshInstance3D" parent="." unique_id=293618682]
+[node name="Mesh_cloth_sack" type="MeshInstance3D" parent="." unique_id=1127371451]
 material_override = ExtResource("6_t8qb5")
 mesh = ExtResource("7_kyksl")
