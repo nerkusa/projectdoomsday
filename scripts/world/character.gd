@@ -80,16 +80,20 @@ var _mark_t := 0.0
 var _see_through := 0.0
 static var _mats := {}
 
-## Цвета отметок: силуэт (с прозрачностью) и кружок
+## Цвета отметок: силуэт (с прозрачностью) и кружок.
+## Зелёные — свои и дружелюбные, жёлтые — нейтральные, красные — враги.
 const MARKS := {
-	"hero": [Color(0.55, 0.82, 1.0, 0.55), Color(0, 0, 0, 0)],
-	"hero_sneak": [Color(0.55, 0.82, 1.0, 0.55), Color(0, 0, 0, 0)],
+	"hero": [Color(0.75, 0.85, 0.95, 0.45), Color(0, 0, 0, 0)],
 	"enemy": [Color(1.0, 0.32, 0.25, 0.5), Color(1.0, 0.3, 0.2, 0.75)],
-	"talk": [Color(1.0, 0.85, 0.4, 0.45), Color(1.0, 0.82, 0.35, 0.7)],
-	"npc": [Color(0.9, 0.88, 0.8, 0.35), Color(0.9, 0.88, 0.8, 0.45)],
+	"friend": [Color(0.45, 0.9, 0.45, 0.45), Color(0.4, 0.88, 0.4, 0.7)],
+	"neutral": [Color(1.0, 0.85, 0.35, 0.45), Color(1.0, 0.82, 0.3, 0.7)],
 	"corpse": [Color(0.75, 0.75, 0.75, 0.35), Color(0, 0, 0, 0)],
 	"none": [Color(0, 0, 0, 0), Color(0, 0, 0, 0)],
 }
+
+## Отношение к герою: friend | neutral | enemy. Пусто — само: враг, если hostile,
+## нейтральный, если в шаблоне "neutral": true, иначе свой.
+@export var attitude := ""
 
 
 func _ready() -> void:
@@ -486,8 +490,12 @@ func _animate_clips(delta: float) -> void:
 		"dead":
 			# труп с начала уровня не должен падать у игрока на глазах
 			ab.play("Death01", 0.25, 1.0, false, first)
-		"sit", "down":
+		"sit":
+			# сидит на скамейке или стуле (сиденье ставит генератор уровня)
 			ab.play("Sitting_Idle", 0.3)
+		"down":
+			# раненый лежит на земле
+			ab.play("Death01", 0.4, 1.0, false, first)
 		"yield":
 			ab.play("Crouch_Idle", 0.3)
 		_:
@@ -764,15 +772,20 @@ func _mark_kind() -> String:
 	if tpl.get("dummy", false) or not visible:
 		return "none"
 	if is_player:
-		return "hero_sneak" if bool(Game.hero.get("sneak", false)) else "hero"
+		return "hero"
 	if pose == "dead":
 		var loc := get_tree().get_first_node_in_group("location")
 		if loc and not loc.ws().looted.has(uid()):
 			return "corpse"
 		return "none"
-	if hostile:
+	if pose == "sit" and not hostile:
+		# за столом видно и так; кружок и силуэт пробивались бы сквозь скамейку
+		return "none"
+	if hostile or attitude == "enemy":
 		return "enemy"
-	return "talk" if dialog != "" else "npc"
+	if attitude == "neutral" or (attitude == "" and tpl.get("neutral", false)):
+		return "neutral"
+	return "friend"
 
 
 func _update_marks() -> void:
@@ -780,7 +793,7 @@ func _update_marks() -> void:
 	if k != _mark:
 		_mark = k
 		var sil: Color = MARKS[k][0]
-		var ov: Material = null if sil.a <= 0.0 else _sil_mat(sil, 0.45 if k == "hero_sneak" else 0.0)
+		var ov: Material = null if sil.a <= 0.0 else _sil_mat(sil)
 		for m in _body_meshes:
 			if is_instance_valid(m):
 				(m as MeshInstance3D).material_overlay = ov
@@ -808,9 +821,36 @@ func _update_marks() -> void:
 		var target := 0.5 if sneak else 0.0
 		if target != _see_through:
 			_see_through = target
-			for m in _body_meshes:
-				if is_instance_valid(m):
-					(m as GeometryInstance3D).transparency = target
+			_set_ghost(sneak)
+
+
+## Полупрозрачность: подменяем материалы тела копиями с прозрачностью
+## (работает на любом рендерере), при выходе из стелса возвращаем исходные.
+var _ghost_saved := {}
+
+
+func _set_ghost(on: bool) -> void:
+	for m in _body_meshes:
+		if not is_instance_valid(m):
+			continue
+		var mi := m as MeshInstance3D
+		if mi.mesh == null:
+			continue
+		for i in mi.mesh.get_surface_count():
+			var key := "%d/%d" % [mi.get_instance_id(), i]
+			if on:
+				var src := mi.get_surface_override_material(i)
+				_ghost_saved[key] = src
+				var base: Material = src if src else mi.mesh.surface_get_material(i)
+				if base is BaseMaterial3D:
+					var g := (base as BaseMaterial3D).duplicate() as BaseMaterial3D
+					g.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA_DEPTH_PRE_PASS
+					g.albedo_color.a = 0.45
+					mi.set_surface_override_material(i, g)
+			elif _ghost_saved.has(key):
+				mi.set_surface_override_material(i, _ghost_saved[key])
+	if not on:
+		_ghost_saved.clear()
 
 
 static func _sil_mat(c: Color, ghost := 0.0) -> ShaderMaterial:

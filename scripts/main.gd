@@ -60,6 +60,7 @@ func _ready() -> void:
 	add_child(combat)
 	combat.setup(self)
 	_build_ui()
+	Graphics.apply(get_tree())
 	menu.open("main")
 
 
@@ -243,6 +244,7 @@ func load_location(id: String, spawn := "Start", pos = null) -> void:
 	cam_target = player.global_position
 	await location.setup(self)
 	Game.hero.location = id
+	Graphics.apply(get_tree())
 	_loading = false
 	hud.visible = true
 	hud.refresh()

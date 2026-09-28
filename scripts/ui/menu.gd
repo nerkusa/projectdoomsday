@@ -101,7 +101,15 @@ func open(m: String) -> void:
 			var names := {"slow": "медленно", "normal": "обычно", "fast": "быстро", "instant": "сразу"}
 			items.append(["speed", "Скорость текста: " + names.get(sp, sp), "клик — сменить"])
 			items.append(["rolls", "Показывать броски в журнале: " + ("да" if Game.settings.get("show_rolls", false) else "нет"), "клик — сменить"])
+			items.append(["graphics", "Графика", ""])
 			items.append(["back", "Назад", ""])
+			_foot.text = ""
+		"graphics":
+			_title.text = "ГРАФИКА"
+			_sub.text = "Если игра тормозит — поставь качество «быстро» или уменьши масштаб картинки."
+			for g in Graphics.OPTIONS:
+				items.append(["gfx:" + g.id, "%s: %s" % [g.name, Graphics.value_name(g.id)], "клик — сменить"])
+			items.append(["gfx_back", "Назад", ""])
 			_foot.text = ""
 	for it in items:
 		_list.add_child(_item(it[0], it[1], it[2]))
@@ -152,6 +160,17 @@ func _on(id: String) -> void:
 			Game.save_settings()
 			open("settings")
 			return
+		"graphics":
+			open("graphics")
+			return
+		"gfx_back":
+			open("settings")
+			return
+	if id.begins_with("gfx:"):
+		Graphics.cycle(id.substr(4))
+		Graphics.apply(get_tree())
+		open("graphics")
+		return
 	chosen.emit(id)
 
 

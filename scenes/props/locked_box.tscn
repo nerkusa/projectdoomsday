@@ -8,20 +8,20 @@
 [ext_resource type="Material" path="res://assets/materials/brass.tres" id="6_hmmk0"]
 [ext_resource type="ArrayMesh" path="res://assets/models/props/locked_box_brass.res" id="7_4rkg2"]
 
-[node name="LockedBox" type="Node3D" unique_id=1069794767]
+[node name="LockedBox" type="Node3D" unique_id=1738729283]
 script = ExtResource("1_ojd1e")
 kind = "use"
 label = "Запертый сундук"
 pick_size = Vector3(1, 0.8, 0.7)
 
-[node name="Mesh_planks_old" type="MeshInstance3D" parent="." unique_id=1997405385]
+[node name="Mesh_planks_old" type="MeshInstance3D" parent="." unique_id=1531712984]
 material_override = ExtResource("2_csqma")
 mesh = ExtResource("3_w7oos")
 
-[node name="Mesh_metal_dark" type="MeshInstance3D" parent="." unique_id=2027507211]
+[node name="Mesh_metal_dark" type="MeshInstance3D" parent="." unique_id=223999707]
 material_override = ExtResource("4_4fwcj")
 mesh = ExtResource("5_ch1cb")
 
-[node name="Mesh_brass" type="MeshInstance3D" parent="." unique_id=1777255473]
+[node name="Mesh_brass" type="MeshInstance3D" parent="." unique_id=747163832]
 material_override = ExtResource("6_hmmk0")
 mesh = ExtResource("7_4rkg2")

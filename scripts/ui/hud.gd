@@ -40,6 +40,8 @@ var _thought: Label
 var _thought_t := 0.0
 ## Alt — подписи над всем, что можно взять или обыскать
 var _marks: Control
+## Планка «меню / + / −» справа сверху
+var _menu_bar: Control
 
 
 func setup(m: Node, cm: CombatManager) -> void:
@@ -94,16 +96,32 @@ func _build() -> void:
 	vb.add_child(_obj_lbl)
 
 	# ---- справа сверху: меню и масштаб ----
-	var tr := VBoxContainer.new()
-	tr.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
-	tr.offset_left = -86
-	tr.offset_right = -14
-	tr.offset_top = 12
-	tr.add_theme_constant_override("separation", 8)
-	add_child(tr)
-	for pair in [["menu", "Меню"], ["zin", "+"], ["zout", "-"]]:
-		var b := UITheme.key(pair[1], "warn", 15 if pair[0] == "menu" else 20)
-		b.custom_minimum_size = Vector2(72, 40)
+	# компактная пластиковая планка: меню и масштаб
+	var pst := UITheme.plastic(6)
+	pst.set_content_margin_all(5)
+	pst.shadow_size = 6
+	var tp := UITheme.panel(pst)
+	tp.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
+	tp.offset_left = -150
+	tp.offset_right = -12
+	tp.offset_top = 12
+	tp.grow_horizontal = Control.GROW_DIRECTION_BEGIN
+	add_child(tp)
+	_menu_bar = tp
+	var tr := HBoxContainer.new()
+	tr.add_theme_constant_override("separation", 4)
+	tp.add_child(tr)
+	for pair in [["menu", "МЕНЮ", "Меню (Esc)"], ["zin", "+", "Приблизить (колесо мыши)"], ["zout", "−", "Отдалить (колесо мыши)"]]:
+		var b := UITheme.key(pair[1], "warn" if pair[0] == "menu" else "normal", 11 if pair[0] == "menu" else 14)
+		for st in ["normal", "hover", "pressed", "disabled"]:
+			var sb := b.get_theme_stylebox(st).duplicate() as StyleBoxFlat
+			sb.content_margin_left = 7
+			sb.content_margin_right = 7
+			sb.content_margin_top = 3 + (1 if st == "pressed" else 0)
+			sb.content_margin_bottom = 2
+			b.add_theme_stylebox_override(st, sb)
+		b.custom_minimum_size = Vector2(52 if pair[0] == "menu" else 28, 26)
+		b.tooltip_text = pair[2]
 		b.pressed.connect(action.emit.bind(pair[0]))
 		tr.add_child(b)
 
@@ -587,4 +605,4 @@ func mouse_over_ui() -> bool:
 	var mp := get_viewport().get_mouse_position()
 	if _hand.visible and _hand.get_global_rect().has_point(mp):
 		return true
-	return (_bar.visible and mp.y > size.y - 166) or (_zones.visible and _zones.get_global_rect().has_point(mp)) or mp.x > size.x - 80 and mp.y < 180
+	return (_bar.visible and mp.y > size.y - 166) or (_zones.visible and _zones.get_global_rect().has_point(mp)) or _menu_bar.get_global_rect().has_point(mp)

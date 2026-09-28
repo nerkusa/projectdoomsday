@@ -350,7 +350,13 @@ func _ready() -> void:
 	ok(main.location.character("GateGuard").pose == "dead", "часового застрелили")
 	ok(main.combat.on, "бой у ворот")
 	await fight()
-	ok(main.location.character("Executioner").pose == "dead" and main.location.character("GateRaider").pose == "dead", "нападавшие у ворот побеждены")
+	var gate_ok := true
+	for n in ["Executioner", "GateRaider"]:
+		var e: Character = main.location.character(n)
+		print("  ", n, ": ", "убит" if e.pose == "dead" else ("сбежал" if not e.visible else "жив"))
+		if e.pose != "dead" and e.visible:
+			gate_ok = false
+	ok(gate_ok and not main.combat.on, "нападавшие у ворот побеждены или сбежали")
 	await wait(1.0)
 	var saved := 0
 	for n in ["Doomed1", "Doomed2"]:

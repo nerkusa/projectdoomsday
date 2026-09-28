@@ -53,7 +53,7 @@ func _ready() -> void:
 			"item_flask", "item_matches", "item_blanket", "item_rope", "item_compass", "item_rusks",
 			"item_dried_fish", "item_canned", "item_herbs", "junk", "locked_box",
 			"spruce_b", "pine_b", "birch_b", "rock_small", "rock_big", "palisade_boarded", "palisade_patched",
-			"barrel", "crates", "cart", "bench", "hay_bale", "stump", "log_fallen"]:
+			"barrel", "crates", "cart", "bench", "hay_bale", "stump", "log_fallen", "table_long"]:
 		P[n] = load(PROP_DIR + n + ".tscn")
 	_build()
 	print("Деревня собрана.")
@@ -165,6 +165,16 @@ func _ground() -> void:
 		gp.position = Vector3(r.get_center().x, 0, r.get_center().y)
 		ground.add_child(gp)
 		gp.owner = root
+	# за краем карты земля продолжается (иначе по краям видна пустота)
+	var far := MeshInstance3D.new()
+	far.name = "FarGround"
+	var fpm := PlaneMesh.new()
+	fpm.size = Vector2(700, 700)
+	far.mesh = fpm
+	far.material_override = ground_mat
+	far.position = Vector3(60, -0.03, 54)
+	ground.add_child(far)
+	far.owner = root
 	_moat()
 
 
@@ -288,7 +298,7 @@ func _village() -> void:
 	# площадь: дом собраний (двери к площади), колодец, стол, костровище
 	put(P.hall, vil, Vector3(62, 0, 69.5), PI, "Hall")
 	put(P.well, vil, Vector3(68, 0, 56), 0.0, "Well")
-	put(P.table, vil, Vector3(55, 0, 57), 0.3, "SquareTable")
+	put(P.table_long, vil, Vector3(55, 0, 57), 0.3, "SquareTable")
 	# хозяйство
 	put(P.barn, vil, Vector3(80, 0, 61), -PI / 2.0, "Barn")
 	put(P.workshop, vil, Vector3(32, 0, 64), PI / 2.0, "Workshop")
@@ -398,6 +408,35 @@ func _forest() -> void:
 			break
 	for i in 30:
 		put([P.rock, P.rock_big, P.rock][i % 3], forest, Vector3(randf_range(6, 114), 0, randf_range(-18, 21)), randf() * TAU, "", randf_range(0.7, 1.2))
+	_forest_edge()
+
+
+## Пояс тайги за границей карты: туда не пройти, но и чёрной пустоты не видно
+func _forest_edge() -> void:
+	var edge := group(root, "ForestEdge")
+	edge.set_meta("no_xray", true)
+	var mr: Rect2 = root.get("map_rect")
+	var inner := mr.grow(0.5)
+	var outer := mr.grow(30.0)
+	var trees := [P.spruce, P.spruce_b, P.spruce, P.pine, P.pine_b, P.birch, P.spruce_b]
+	var placed := 0
+	for i in 5000:
+		var x := randf_range(outer.position.x, outer.end.x)
+		var z := randf_range(outer.position.y, outer.end.y)
+		var p := Vector2(x, z)
+		if inner.has_point(p):
+			continue
+		# просека к старой черте на западе остаётся открытой
+		if x < inner.position.x and absf(z - W_GATE_Z) < 3.5:
+			continue
+		# у самой границы гуще, дальше — реже (там всё равно всё в дымке)
+		var d := -_sd_rect(p, inner)
+		if randf() < clampf(d / 40.0, 0.0, 0.6):
+			continue
+		put(trees[randi() % trees.size()], edge, Vector3(x, 0, z), randf() * TAU, "", randf_range(0.9, 1.4))
+		placed += 1
+		if placed >= 700:
+			break
 
 
 # ---------------- налёт ----------------
@@ -436,8 +475,13 @@ func _characters() -> void:
 	character(chars, "Gardener1", "villager_f", Vector3(73.5, 0, 83.2), 0.6, {"display_name": "Огородница", "groups": M_})
 	character(chars, "Gardener2", "villager_f", Vector3(84.5, 0, 87.2), -2.2, {"display_name": "Огородница", "groups": M_})
 	character(chars, "Smith", "villager", Vector3(35.6, 0, 62.5), -PI / 2.0, {"display_name": "Мастер Тимир", "dialog": "smith", "groups": M_})
-	character(chars, "Elder1", "elder", Vector3(54.4, 0, 55.4), 0.3, {"dialog": "elder", "start_pose": "sit", "groups": M_})
-	character(chars, "Elder2", "villager_f", Vector3(53.4, 0, 58.2), 2.8, {"display_name": "Старуха", "start_pose": "sit", "groups": M_})
+	# за длинным столом на площади: двое стариков с одной стороны, картёжник напротив
+	var tbl: Node3D = root.get_node("Village/SquareTable")
+	var s1 := _seat(tbl, -0.6, 1.0)
+	var s2 := _seat(tbl, 0.6, 1.0)
+	var s3 := _seat(tbl, 0.2, -1.0)
+	character(chars, "Elder1", "elder", s1[0], s1[1], {"dialog": "elder", "start_pose": "sit", "groups": M_})
+	character(chars, "Elder2", "villager_f", s2[0], s2[1], {"display_name": "Старуха", "start_pose": "sit", "groups": M_})
 	# прохожие ходят по улицам и рассказывают слухи
 	character(chars, "Villager3", "villager", Vector3(40, 0, 46.3), 1.4, {"display_name": "Прохожий", "dialog": "rumors", "groups": M_,
 		"patrol": PackedVector3Array([Vector3(40, 0, 46.3), Vector3(90, 0, 46.3)])})
@@ -448,7 +492,7 @@ func _characters() -> void:
 			Vector3(52, 0, 47.2), Vector3(62, 0, 47.2), Vector3(62, 0, 58.6)])})
 	# начальные задания: разговоры, проверки навыков, драка, стрельбище
 	character(chars, "Nyurguyana", "girl", Vector3(70.3, 0, 54.2), -0.9, {"dialog": "girl", "groups": M_})
-	character(chars, "Gambler", "gambler", Vector3(56.4, 0, 57.8), -2.1, {"dialog": "gambler", "start_pose": "sit", "groups": M_})
+	character(chars, "Gambler", "gambler", s3[0], s3[1], {"dialog": "gambler", "start_pose": "sit", "groups": M_})
 	var F_ := ["phase_morning", "forest_folk"]
 	character(chars, "Hunter", "hunter", Vector3(46, 0, 16), 0.5, {"dialog": "hunter", "groups": F_})
 	character(chars, "Shooter", "shooter", Vector3(74, 0, 26.0), PI, {"dialog": "shooter", "armed": true, "groups": F_})
@@ -507,6 +551,18 @@ func _characters() -> void:
 			Vector3(15.2, 0, 64.6), Vector3(101.8, 0, 52.0), Vector3(54.5, 0, 26.2)]:
 		character(chars, "Raider%d" % i, "raider_dead", p, randf() * TAU, {"start_dead": true, "groups": R_})
 		i += 1
+
+
+## Место на скамейке длинного стола: x — вдоль стола, side — сторона (+1 / −1).
+## Возвращает [позиция, поворот] так, чтобы сидящий смотрел на стол.
+## SIT_FWD — насколько точка «ног» клипа Sitting_Idle впереди таза.
+const SIT_FWD := 0.31
+
+
+func _seat(table: Node3D, x: float, side: float) -> Array:
+	var face := (table.transform.basis * Vector3(0, 0, -side)).normalized()
+	var p: Vector3 = table.transform * Vector3(x, 0, side * 0.78) + face * SIT_FWD
+	return [Vector3(p.x, 0, p.z), atan2(face.x, face.z)]
 
 
 # ---------------- предметы и отметки ----------------

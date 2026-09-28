@@ -1107,6 +1107,19 @@ func small_props() -> void:
 		box("log_weathered", Vector3(0.12, 0.42, 0.3), Vector3(sx, 0.21, 0))
 	finish("bench", "Bench")
 
+	# длинный стол со скамейками по обе стороны — за ним сидят старики и картёжник
+	begin()
+	box("planks_old", Vector3(2.4, 0.07, 0.9), Vector3(0, 0.78, 0))
+	for sx in [-1.0, 1.0]:
+		for sz in [-1.0, 1.0]:
+			box("log_weathered", Vector3(0.1, 0.75, 0.1), Vector3(sx * 1.05, 0.375, sz * 0.35))
+	for sz in [-1.0, 1.0]:
+		box("planks_old", Vector3(2.4, 0.07, 0.34), Vector3(0, 0.45, sz * 0.78))
+		for sx in [-0.95, 0.0, 0.95]:
+			box("log_weathered", Vector3(0.1, 0.42, 0.28), Vector3(sx, 0.21, sz * 0.78))
+	solid(Vector3(2.5, 0.85, 0.8), Vector3(0, 0.42, 0))
+	finish("table_long", "TableLong")
+
 	begin()
 	cyl("hay", 0.55, 0.55, 1.1, Vector3(0, 0.55, 0), Vector3(0, 0, PI / 2.0), 12)
 	for x in [-0.3, 0.3]:
