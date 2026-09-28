@@ -5,6 +5,7 @@
 
 [resource]
 resource_name = "ground_meadow"
+albedo_color = Color(0.54901963, 0.5254902, 0.44705883, 1)
 albedo_texture = ExtResource("1_kfboa")
 normal_enabled = true
 normal_texture = ExtResource("2_r17x8")

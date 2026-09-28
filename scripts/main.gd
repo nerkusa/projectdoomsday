@@ -738,7 +738,7 @@ func _update_xray() -> void:
 			var col: Object = r.collider
 			excl.append(r.rid)
 			var prop: Node = (col as Node).get_parent()
-			if prop and prop != location and not hits.has(prop) and not prop.get_meta("inside", false):
+			if prop and prop != location and not hits.has(prop) and not prop.get_meta("inside", false) and not prop.get_meta("no_xray", false):
 				hits.append(prop)
 	for p in _xray:
 		if is_instance_valid(p) and not hits.has(p):

@@ -13,20 +13,28 @@ extends "res://tools/build_scenes.gd"
 const PAL := Rect2(24, 34, 76, 58)
 const N_GATE_X := 62.0
 const W_GATE_Z := 60.0
+## Ров вокруг частокола: от 2,5 до 5,5 м снаружи, глубина 0,9 м; мосты у ворот
+const DITCH_IN := 2.5
+const DITCH_OUT := 5.5
+const DITCH_DEPTH := 0.9
+
+var roads: Array = []  # Rect2 дорог — чтобы не сыпать на них траву
 
 
 func _ready() -> void:
 	for n in ["grass", "grass_dry", "dirt", "field", "log", "log_dark", "plank", "roof", "roof_moss", "stone", "metal",
 			"rust", "paint_orange", "paint_white", "bark_birch", "bark", "leaves", "leaves_dark", "needles", "window",
 			"cabbage", "ash", "mushroom_cap", "mushroom_leg", "berry", "cloth",
-			"ground_grass", "ground_meadow", "ground_dirt"]:
+			"ground_grass", "ground_meadow", "ground_dirt", "planks_old", "log_weathered", "mud_tex", "water"]:
 		M[n] = load(MAT_DIR + n + ".tres")
 	for n in ["izba", "izba_long", "izba_tall", "izba_lean", "izba_small", "hall", "tower", "barn", "shed", "workshop",
 			"palisade", "gate", "barricade", "greenhouse", "wind_turbine", "spruce", "pine", "birch", "dead_tree", "bush",
 			"rock", "fire", "well", "woodpile", "table", "tractor", "garden", "fence", "fence_broken", "border_post", "sign",
 			"planks", "basket", "mushroom", "berries", "bandage",
 			"item_flask", "item_matches", "item_blanket", "item_rope", "item_compass", "item_rusks",
-			"item_dried_fish", "item_canned", "item_herbs", "junk", "locked_box"]:
+			"item_dried_fish", "item_canned", "item_herbs", "junk", "locked_box",
+			"spruce_b", "pine_b", "birch_b", "rock_small", "rock_big", "palisade_boarded", "palisade_patched",
+			"barrel", "crates", "cart", "bench", "hay_bale", "stump", "log_fallen"]:
 		P[n] = load(PROP_DIR + n + ".tscn")
 	_build()
 	print("Деревня собрана.")
@@ -49,6 +57,7 @@ func _build() -> void:
 	_raid()
 	_characters()
 	_items()
+	_details()
 	_clear_overlaps()
 	var ps := PackedScene.new()
 	var err := ps.pack(root)
@@ -101,17 +110,24 @@ func _env() -> void:
 # ---------------- земля и дороги ----------------
 func _ground() -> void:
 	var ground := group(root, "Ground")
-	var gp := MeshInstance3D.new()
-	gp.name = "Grass"
-	var pm := PlaneMesh.new()
-	pm.size = Vector2(170, 160)
-	gp.mesh = pm
-	gp.material_override = M.ground_grass
-	gp.position = Vector3(60, 0, 54)
-	ground.add_child(gp)
-	gp.owner = root
-	# выгоревший луг между лесом и частоколом
-	box(ground, Vector3(100, 0.01, 10), Vector3(62, 0.006, 29), "ground_meadow").owner = root
+	# земля кусками: внутри рва и рамка снаружи, а в щели — сам ров
+	var ro := PAL.grow(DITCH_OUT)
+	var ri := PAL.grow(DITCH_IN)
+	var big := Rect2(-25, -26, 170, 160)
+	for r in [ri, Rect2(big.position.x, big.position.y, big.size.x, ro.position.y - big.position.y),
+			Rect2(big.position.x, ro.end.y, big.size.x, big.end.y - ro.end.y),
+			Rect2(big.position.x, ro.position.y, ro.position.x - big.position.x, ro.size.y),
+			Rect2(ro.end.x, ro.position.y, big.end.x - ro.end.x, ro.size.y)]:
+		var gp := MeshInstance3D.new()
+		var pm := PlaneMesh.new()
+		pm.size = r.size
+		gp.mesh = pm
+		gp.material_override = M.ground_grass
+		gp.position = Vector3(r.get_center().x, 0, r.get_center().y)
+		ground.add_child(gp)
+		gp.owner = root
+	# выгоревший луг между лесом и рвом
+	box(ground, Vector3(100, 0.01, ro.position.y - 19.5), Vector3(62, 0.006, (19.5 + ro.position.y) / 2.0), "ground_meadow").owner = root
 	# дороги: от северных ворот в лес, главная улица, проулки, к западной черте
 	var d := "ground_dirt"
 	strip(ground, Vector2(N_GATE_X, 60), Vector2(N_GATE_X, 22), 3.2, d)
@@ -124,6 +140,8 @@ func _ground() -> void:
 	strip(ground, Vector2(86, 46), Vector2(86, 76), 1.8, d)
 	# площадь
 	box(ground, Vector3(18, 0.02, 14), Vector3(62, 0.011, 60), d).owner = root
+	roads.append(Rect2(53, 53, 18, 14))
+	_moat()
 
 
 # ---------------- деревня ----------------
@@ -156,7 +174,7 @@ func _village() -> void:
 	put(P.workshop, vil, Vector3(32, 0, 64), PI / 2.0, "Workshop")
 	put(P.tractor, vil, Vector3(34, 0, 70), 0.6, "Tractor")
 	put(P.greenhouse, vil, Vector3(56, 0, 86), 0.0, "Greenhouse1")
-	put(P.greenhouse, vil, Vector3(68, 0, 86), 0.0, "Greenhouse2")
+	put(P.greenhouse, vil, Vector3(63.5, 0, 86), 0.0, "Greenhouse2")
 	put(P.wind_turbine, vil, Vector3(96, 0, 62), 0.4, "WindTurbine")
 	for p in [Vector3(28, 0, 37.5), Vector3(66.5, 0, 41), Vector3(97, 0, 46.5), Vector3(40, 0, 88.5), Vector3(96, 0, 88)]:
 		put(P.shed, vil, p, randf_range(-0.2, 0.2))
@@ -179,8 +197,8 @@ func _village() -> void:
 	var x := PAL.position.x + 2.0
 	while x < PAL.end.x:
 		if absf(x - N_GATE_X) > 2.6:
-			put(P.palisade, pal, Vector3(x, 0, PAL.position.y), 0.0)
-		put(P.palisade, pal, Vector3(x, 0, PAL.end.y), PI)
+			put(_pal(), pal, Vector3(x, 0, PAL.position.y), 0.0)
+		put(_pal(), pal, Vector3(x, 0, PAL.end.y), PI)
 		x += 4.0
 	var zs := []
 	var z := PAL.position.y + 2.0
@@ -190,8 +208,8 @@ func _village() -> void:
 	zs.append(PAL.end.y - 2.0)
 	for zz in zs:
 		if absf(zz - W_GATE_Z) > 2.6:
-			put(P.palisade, pal, Vector3(PAL.position.x, 0, zz), PI / 2.0)
-		put(P.palisade, pal, Vector3(PAL.end.x, 0, zz), -PI / 2.0)
+			put(_pal(), pal, Vector3(PAL.position.x, 0, zz), PI / 2.0)
+		put(_pal(), pal, Vector3(PAL.end.x, 0, zz), -PI / 2.0)
 	put(P.gate, pal, Vector3(N_GATE_X, 0, PAL.position.y), 0.0, "GateNorth")
 	put(P.gate, pal, Vector3(PAL.position.x, 0, W_GATE_Z), PI / 2.0, "GateWest")
 	put(P.tower, pal, Vector3(54.5, 0, 36.5), 0.0, "TowerNorth")
@@ -213,7 +231,8 @@ func _village() -> void:
 # ---------------- лес ----------------
 func _forest() -> void:
 	var forest := group(root, "Forest")
-	var trees := [P.spruce, P.spruce, P.spruce, P.pine, P.pine, P.birch, P.dead_tree]
+	var trees := [P.spruce, P.spruce_b, P.spruce, P.spruce_b, P.pine, P.pine_b, P.birch, P.birch_b, P.dead_tree]
+	var moat_zone := PAL.grow(DITCH_OUT + 1.0)
 	var keep := [Vector2(40, 14), Vector2(52, 10), Vector2(64, 16), Vector2(76, 8), Vector2(88, 14),
 		Vector2(70, 12), Vector2(58, 6), Vector2(84, 10), Vector2(92, 10)]
 	var n := 0
@@ -233,7 +252,8 @@ func _forest() -> void:
 			continue
 		var ok := Vector2(x, z).distance_to(Vector2(92, 10)) > 6.5  # поляна пса
 		ok = ok and Vector2(x, z).distance_to(Vector2(46, 16)) > 5.0  # поляна охотника
-		ok = ok and not (x > 66 and x < 84 and z > 18.5)  # стрельбище за воротами
+		ok = ok and not (x > 66 and x < 84 and z > 16.0)  # стрельбище за воротами
+		ok = ok and not moat_zone.has_point(Vector2(x, z))  # у рва — голо
 		for c in keep:
 			if Vector2(x, z).distance_to(c) < 2.2:
 				ok = false
@@ -248,7 +268,7 @@ func _forest() -> void:
 		if n > 620:
 			break
 	for i in 20:
-		put(P.rock, forest, Vector3(randf_range(6, 114), 0, randf_range(4, 21)), randf() * TAU, "", randf_range(0.6, 1.4))
+		put([P.rock, P.rock_big, P.rock][i % 3], forest, Vector3(randf_range(6, 114), 0, randf_range(4, 21)), randf() * TAU, "", randf_range(0.7, 1.2))
 
 
 # ---------------- налёт ----------------
@@ -301,11 +321,11 @@ func _characters() -> void:
 	character(chars, "Nyurguyana", "girl", Vector3(70.3, 0, 54.2), -0.9, {"dialog": "girl", "groups": M_})
 	character(chars, "Gambler", "gambler", Vector3(56.4, 0, 57.8), -2.1, {"dialog": "gambler", "start_pose": "sit", "groups": M_})
 	character(chars, "Hunter", "hunter", Vector3(46, 0, 16), 0.5, {"dialog": "hunter", "groups": M_})
-	character(chars, "Shooter", "shooter", Vector3(74, 0, 30.5), PI, {"dialog": "shooter", "armed": true, "groups": M_})
+	character(chars, "Shooter", "shooter", Vector3(74, 0, 26.0), PI, {"dialog": "shooter", "armed": true, "groups": M_})
 	var izba9: Node3D = root.get_node("Village/Izba9")
 	character(chars, "Sick", "sick", izba9.transform * Vector3(1.0, 0, -0.4), -1.2, {"dialog": "sick", "start_pose": "down", "groups": M_})
 	var ti := 0
-	for p in [Vector3(70.5, 0, 25.2), Vector3(74, 0, 24.6), Vector3(77.5, 0, 25.4)]:
+	for p in [Vector3(70.5, 0, 20.8), Vector3(74, 0, 20.2), Vector3(77.5, 0, 21.0)]:
 		ti += 1
 		character(chars, "Target%d" % ti, "target", p, 0.0, {"groups": ["phase_morning", "range_targets"]})
 	# налёт: дед и «чистильщики» у амбара
@@ -328,13 +348,13 @@ func _characters() -> void:
 	character(chars, "DeadVillager1", "villager", Vector3(52.5, 0, 55.5), 1.0, {"start_dead": true, "groups": R_})
 	character(chars, "DeadVillager2", "villager_f", Vector3(36.5, 0, 73.4), -0.6, {"start_dead": true, "groups": R_})
 	# нападавшие: сюжетные тела с модулями и те, кого положили у ворот
-	character(chars, "Raider1", "raider_dead_1", Vector3(61.4, 0, 29.0), 2.6, {"start_dead": true, "groups": R_})
+	character(chars, "Raider1", "raider_dead_1", Vector3(61.4, 0, 29.6), 2.6, {"start_dead": true, "groups": R_})
 	character(chars, "Raider2", "raider_dead_2", Vector3(41.5, 0, 58.6), -1.4, {"start_dead": true, "groups": R_})
 	character(chars, "Raider3", "raider_dead_3", Vector3(84.5, 0, 64.8), 0.9, {"start_dead": true, "groups": R_})
-	character(chars, "Raider4", "raider_dead_4", Vector3(21.5, 0, 62.8), -2.1, {"start_dead": true, "groups": R_})
+	character(chars, "Raider4", "raider_dead_4", Vector3(16.5, 0, 62.8), -2.1, {"start_dead": true, "groups": R_})
 	var i := 5
-	for p in [Vector3(64.5, 0, 30.6), Vector3(58.2, 0, 31.2), Vector3(66.8, 0, 32.4), Vector3(20.8, 0, 57.2),
-			Vector3(19.6, 0, 64.6), Vector3(101.8, 0, 52.0), Vector3(55.0, 0, 28.0)]:
+	for p in [Vector3(64.8, 0, 26.8), Vector3(58.0, 0, 27.0), Vector3(67.5, 0, 27.5), Vector3(16.8, 0, 57.4),
+			Vector3(15.2, 0, 64.6), Vector3(101.8, 0, 52.0), Vector3(54.5, 0, 26.2)]:
 		character(chars, "Raider%d" % i, "raider_dead", p, randf() * TAU, {"start_dead": true, "groups": R_})
 		i += 1
 
@@ -442,3 +462,232 @@ func _inside(boxes: Array, p: Vector3, margin: float) -> bool:
 		if absf(l.x) < h.x and absf(l.z) < h.z:
 			return true
 	return false
+
+
+func _pal() -> PackedScene:
+	var r := randf()
+	return P.palisade_boarded if r < 0.15 else (P.palisade_patched if r < 0.3 else P.palisade)
+
+
+# ---------------- ров с мостами ----------------
+## Ров — полоса за частоколом. Каждая сторона: два ската, грязное дно и мутная вода.
+## Поперёк — невидимая стена (слой препятствий), кроме мостов у ворот.
+func _moat() -> void:
+	var moat := group(root, "Moat")
+	moat.set_meta("no_xray", true)
+	var body := StaticBody3D.new()
+	body.name = "Collision"
+	body.collision_mask = 0
+	moat.add_child(body)
+	body.owner = root
+	var ro := PAL.grow(DITCH_OUT)
+	var mid := (DITCH_IN + DITCH_OUT) / 2.0
+	# стороны: [центр линии рва, от, до, вдоль X?]
+	var sides := [[PAL.position.y - mid, ro.position.x, ro.end.x, true], [PAL.end.y + mid, ro.position.x, ro.end.x, true],
+		[PAL.position.x - mid, ro.position.y, ro.end.y, false], [PAL.end.x + mid, ro.position.y, ro.end.y, false]]
+	var bridges := [[0, N_GATE_X], [2, W_GATE_Z]]
+	for si in sides.size():
+		var sd: Array = sides[si]
+		var cuts := [[sd[1], sd[2]]]
+		for b in bridges:
+			if b[0] == si:
+				cuts = [[sd[1], b[1] - 2.4], [b[1] + 2.4, sd[2]]]
+				_bridge(moat, sd[0], b[1], sd[3])
+		for c in cuts:
+			_ditch_piece(moat, body, sd[0], c[0], c[1], sd[3])
+	_bridge_fill(moat, sides, bridges)
+
+
+func _ditch_piece(moat: Node3D, body: StaticBody3D, line: float, a: float, b: float, along_x: bool, collide := true) -> void:
+	var ln := b - a
+	var c := (a + b) / 2.0
+	var half := (DITCH_OUT - DITCH_IN) / 2.0
+	var run := half - 0.6
+	var slope := Vector2(run, DITCH_DEPTH).length()
+	var ang := atan2(DITCH_DEPTH, run)
+	var at := func(across: float, y: float) -> Vector3:
+		return Vector3(c, y, line + across) if along_x else Vector3(line + across, y, c)
+	var size := func(across: float, h: float) -> Vector3:
+		return Vector3(ln, h, across) if along_x else Vector3(across, h, ln)
+	for sgn in [-1, 1]:
+		var rot := Vector3(-sgn * ang, 0, 0) if along_x else Vector3(0, 0, sgn * ang)
+		box(moat, size.call(slope, 0.05), at.call(sgn * (0.6 + run / 2.0), -DITCH_DEPTH / 2.0), "mud_tex", rot).owner = root
+	box(moat, size.call(1.3, 0.05), at.call(0.0, -DITCH_DEPTH), "mud_tex").owner = root
+	box(moat, size.call(1.05, 0.02), at.call(0.0, -DITCH_DEPTH + 0.15), "water").owner = root
+	if not collide:
+		return
+	var cs := CollisionShape3D.new()
+	var bs := BoxShape3D.new()
+	bs.size = size.call(DITCH_OUT - DITCH_IN - 0.2, 1.4)
+	cs.shape = bs
+	cs.position = at.call(0.0, 0.7)
+	body.add_child(cs)
+	cs.owner = root
+
+
+## Мост через ров: настил, балки, перила
+func _bridge(moat: Node3D, line: float, at: float, along_x: bool) -> void:
+	var span := DITCH_OUT - DITCH_IN + 1.4
+	var p := Vector3(at, 0.08, line) if along_x else Vector3(line, 0.08, at)
+	var deck := Vector3(4.6, 0.12, span) if along_x else Vector3(span, 0.12, 4.6)
+	box(moat, deck, p, "planks_old").owner = root
+	for k in [-1.6, 0.0, 1.6]:
+		var bp := p + (Vector3(k, -0.25, 0) if along_x else Vector3(0, -0.25, k))
+		box(moat, Vector3(0.25, 0.3, span) if along_x else Vector3(span, 0.3, 0.25), bp, "log_weathered").owner = root
+	for sgn in [-1, 1]:
+		var rp := p + (Vector3(sgn * 2.2, 0.55, 0) if along_x else Vector3(0, 0.55, sgn * 2.2))
+		box(moat, Vector3(0.1, 0.1, span) if along_x else Vector3(span, 0.1, 0.1), rp, "log_weathered").owner = root
+		for q in [-1, 0, 1]:
+			var pp := rp + (Vector3(0, -0.28, q * span * 0.45) if along_x else Vector3(q * span * 0.45, -0.28, 0))
+			box(moat, Vector3(0.12, 0.6, 0.12), pp, "log_weathered").owner = root
+
+
+## Под мостом ров тоже есть — дно и вода, чтобы не было дыры
+func _bridge_fill(moat: Node3D, sides: Array, bridges: Array) -> void:
+	for b in bridges:
+		var sd: Array = sides[b[0]]
+		_ditch_piece(moat, null, sd[0], b[1] - 2.4, b[1] + 2.4, sd[3], false)
+
+
+# ---------------- мелочи: трава, болото, лужи, бочки, телеги, пни ----------------
+func _multi(parent: Node, mesh: String, xf: Array, nm: String, shadow := false) -> void:
+	var mmi := MultiMeshInstance3D.new()
+	mmi.name = nm
+	mmi.set_script(load("res://scripts/world/scatter.gd"))
+	mmi.set("mesh", load("res://assets/models/props/" + mesh + ".res"))
+	var t: Array[Transform3D] = []
+	for x in xf:
+		t.append(x)
+	mmi.set("transforms", t)
+	mmi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON if shadow else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	parent.add_child(mmi)
+	mmi.owner = root
+
+
+func _xf(x: float, z: float, s: float, sy := -1.0) -> Transform3D:
+	return Transform3D(Basis(Vector3.UP, randf() * TAU).scaled(Vector3(s, s if sy < 0 else sy, s)), Vector3(x, 0.006, z))
+
+
+func _free_spot(boxes: Array, x: float, z: float, margin := 0.4) -> bool:
+	if _inside(boxes, Vector3(x, 0, z), margin):
+		return false
+	for r in roads:
+		if (r as Rect2).grow(0.3).has_point(Vector2(x, z)):
+			return false
+	return not PAL.grow(DITCH_OUT + 0.3).has_point(Vector2(x, z)) or PAL.grow(DITCH_IN - 0.3).has_point(Vector2(x, z))
+
+
+func _details() -> void:
+	var det := group(root, "Details")
+	var boxes := _building_boxes()
+	# --- болота на лугу у опушки: грязь, лужи, камыш, кочки, сухие деревья ---
+	var mud := []
+	var pud := []
+	var reeds := []
+	var hum := []
+	for zone in [Rect2(82, 20, 20, 7.5), Rect2(24, 20, 22, 7.5)]:
+		for i in 26:
+			mud.append(_xf(randf_range(zone.position.x, zone.end.x), randf_range(zone.position.y, zone.end.y), randf_range(1.2, 2.6), 1.0))
+		for i in 12:
+			pud.append(_xf(randf_range(zone.position.x, zone.end.x), randf_range(zone.position.y, zone.end.y), randf_range(0.6, 1.5), 1.0))
+		for i in 70:
+			reeds.append(_xf(randf_range(zone.position.x - 1, zone.end.x + 1), randf_range(zone.position.y - 1, zone.end.y + 0.5), randf_range(0.7, 1.2)))
+		for i in 35:
+			hum.append(_xf(randf_range(zone.position.x, zone.end.x), randf_range(zone.position.y, zone.end.y), randf_range(0.7, 1.3)))
+		for i in 3:
+			put(P.dead_tree, det, Vector3(randf_range(zone.position.x, zone.end.x), 0, randf_range(zone.position.y, zone.end.y)), randf() * TAU, "", randf_range(0.7, 1.0))
+		put(P.log_fallen, det, Vector3(zone.get_center().x + randf_range(-5, 5), 0, zone.get_center().y), randf() * TAU)
+	# лужи в колеях у дороги к лесу и перед мостом
+	for i in 16:
+		pud.append(_xf(N_GATE_X + randf_range(-2.2, 2.2), randf_range(18, 27.5), randf_range(0.35, 0.9), 1.0))
+	for i in 10:
+		mud.append(_xf(N_GATE_X + randf_range(-3, 3), randf_range(20, 27.5), randf_range(0.8, 1.6), 1.0))
+	# лужи на улицах деревни
+	for i in 14:
+		var r: Rect2 = roads[randi() % roads.size()]
+		pud.append(_xf(randf_range(r.position.x, r.end.x), randf_range(r.position.y, r.end.y), randf_range(0.3, 0.7), 1.0))
+	# камыш и кочки на дне рва
+	var ro := PAL.grow(DITCH_OUT)
+	var mid := (DITCH_IN + DITCH_OUT) / 2.0
+	for i in 160:
+		var t := randf()
+		var side := randi() % 4
+		var x: float
+		var z: float
+		if side < 2:
+			x = lerpf(ro.position.x, ro.end.x, t)
+			z = (PAL.position.y - mid) if side == 0 else (PAL.end.y + mid)
+			if side == 0 and absf(x - N_GATE_X) < 3.0:
+				continue
+			z += randf_range(-0.5, 0.5)
+		else:
+			z = lerpf(ro.position.y, ro.end.y, t)
+			x = (PAL.position.x - mid) if side == 2 else (PAL.end.x + mid)
+			if side == 2 and absf(z - W_GATE_Z) < 3.0:
+				continue
+			x += randf_range(-0.5, 0.5)
+		var xf := _xf(x, z, randf_range(0.6, 1.0))
+		xf.origin.y = -DITCH_DEPTH + 0.05
+		(reeds if i % 3 else hum).append(xf)
+	_multi(det, "scatter_mud", mud, "Mud")
+	_multi(det, "scatter_puddle", pud, "Puddles")
+	_multi(det, "scatter_reeds", reeds, "Reeds", true)
+	_multi(det, "scatter_hummock", hum, "Hummocks", true)
+	# --- пучки травы по лугу и дворам ---
+	var tufts := []
+	var guard := 0
+	while tufts.size() < 1600 and guard < 20000:
+		guard += 1
+		var x := randf_range(8, 112)
+		var z := randf_range(16, 100)
+		if _free_spot(boxes, x, z):
+			tufts.append(_xf(x, z, randf_range(0.7, 1.4)))
+	_multi(det, "scatter_tuft", tufts, "Tufts")
+	# --- в лесу: пни, валежник, мелкие камни ---
+	for i in 60:
+		var x := randf_range(4, 116)
+		var z := randf_range(3, 17)
+		if absf(x - N_GATE_X) < 3.0:
+			continue
+		var kind := i % 4
+		var ps: PackedScene = [P.stump, P.log_fallen, P.rock_small, P.rock_small][kind]
+		put(ps, det, Vector3(x, 0, z), randf() * TAU, "", randf_range(0.8, 1.2))
+	# --- во дворах: бочки, ящики, телеги, скамьи, сено ---
+	for d in [["barrel", Vector3(35.6, 0, 67.2)], ["barrel", Vector3(36.3, 0, 67.9)], ["crates", Vector3(84.4, 0, 57.4)],
+			["barrel", Vector3(76.8, 0, 56.2)], ["cart", Vector3(72.5, 0, 52.6)], ["hay_bale", Vector3(83.6, 0, 55.4)],
+			["hay_bale", Vector3(82.2, 0, 55.2)], ["bench", Vector3(56.2, 0, 62.6)], ["bench", Vector3(68.4, 0, 63.0)],
+			["crates", Vector3(57.4, 0, 40.8)], ["cart", Vector3(29.5, 0, 72.5)], ["barrel", Vector3(94.8, 0, 75.4)],
+			["crates", Vector3(47.2, 0, 85.2)], ["bench", Vector3(40.6, 0, 43.2)], ["barrel", Vector3(89.6, 0, 43.4)],
+			["hay_bale", Vector3(70.2, 0, 90.6)], ["crates", Vector3(97.8, 0, 58.2)]]:
+		put(P[d[0]], det, d[1], randf() * TAU)
+
+
+func _building_boxes() -> Array:
+	var boxes := []
+	for grp in ["Village", "Palisade"]:
+		for b in root.get_node(grp).get_children():
+			var sp := String(b.scene_file_path)
+			if sp == "" or _is_plant(sp):
+				continue
+			var bd := b.get_node_or_null("Collision")
+			if bd == null:
+				continue
+			for cs in bd.get_children():
+				if cs is CollisionShape3D and cs.shape is BoxShape3D:
+					boxes.append([b.transform * bd.transform * cs.transform, (cs.shape as BoxShape3D).size])
+		# в дома можно войти — коллизия только по стенам, а занят весь пол
+		for b in root.get_node(grp).get_children():
+			var inn = b.get("inner")
+			if inn is Vector2 and inn != Vector2.ZERO:
+				boxes.append([b.transform, Vector3(inn.x + 1.0, 3.0, inn.y + 1.0)])
+		# огороды без коллизии — тоже место занято
+		for b in root.get_node(grp).get_children():
+			if String(b.scene_file_path).ends_with("/garden.tscn"):
+				boxes.append([b.transform, Vector3(5, 1, 3)])
+	return boxes
+
+
+## Дорожка-полоса; запоминаем её прямоугольник, чтобы не сыпать на неё траву
+func strip(parent: Node, a: Vector2, b: Vector2, w: float, mat: String, y := 0.012) -> void:
+	super.strip(parent, a, b, w, mat, y)
+	roads.append(Rect2(minf(a.x, b.x) - w / 2.0, minf(a.y, b.y) - w / 2.0, absf(b.x - a.x) + w, absf(b.y - a.y) + w))

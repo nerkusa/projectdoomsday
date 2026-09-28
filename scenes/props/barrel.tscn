@@ -1,0 +1,26 @@
+[gd_scene format=3]
+
+[ext_resource type="Material" path="res://assets/materials/metal_dark.tres" id="1_ikkq8"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/barrel_metal_dark.res" id="2_dn7ut"]
+[ext_resource type="Material" path="res://assets/materials/rust.tres" id="3_j1kq6"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/barrel_rust.res" id="4_c4ldr"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_siot3"]
+size = Vector3(0.6, 0.9, 0.6)
+
+[node name="Barrel" type="Node3D" unique_id=175289750]
+
+[node name="Mesh_metal_dark" type="MeshInstance3D" parent="." unique_id=1472337907]
+material_override = ExtResource("1_ikkq8")
+mesh = ExtResource("2_dn7ut")
+
+[node name="Mesh_rust" type="MeshInstance3D" parent="." unique_id=2125623849]
+material_override = ExtResource("3_j1kq6")
+mesh = ExtResource("4_c4ldr")
+
+[node name="Collision" type="StaticBody3D" parent="." unique_id=983160237]
+collision_mask = 0
+
+[node name="@CollisionShape3D@87" type="CollisionShape3D" parent="Collision" unique_id=867550977]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.45, 0)
+shape = SubResource("BoxShape3D_siot3")

@@ -1,0 +1,5 @@
+[gd_resource type="StandardMaterial3D" format=3]
+
+[resource]
+resource_name = "grass_blade"
+albedo_color = Color(0.41568628, 0.41568628, 0.21960784, 1)

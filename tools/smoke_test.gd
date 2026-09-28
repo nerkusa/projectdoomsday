@@ -122,6 +122,11 @@ func _ready() -> void:
 	print("  гексов: ", grid.free.size(), ", проходимых: ", free)
 	ok(free > 5000, "сетка проходимости построена")
 	ok(not grid.is_free(grid.from_world(Vector3(44, 0, 38.6))), "стена избы деда непроходима")
+	# ров: через мосты можно пройти в лес и к черте, а мимо мостов — нет
+	var inside_v := grid.nearest_free(Vector3(62, 0, 42))
+	ok(not grid.explore_path(inside_v, grid.nearest_free(Vector3(62, 0, 14))).is_empty(), "в лес — через северный мост")
+	ok(not grid.explore_path(inside_v, grid.nearest_free(Vector3(8, 0, 60))).is_empty(), "к черте — через западный мост")
+	ok(not grid.is_free(grid.from_world(Vector3(40, 0, 30))), "ров непроходим")
 	# в каждую постройку можно войти через дверь
 	var closed := []
 	for hs in get_tree().get_nodes_in_group("houses"):

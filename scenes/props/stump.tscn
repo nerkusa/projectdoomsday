@@ -1,0 +1,22 @@
+[gd_scene format=3]
+
+[ext_resource type="Material" path="res://assets/materials/bark_dark.tres" id="1_3lvlk"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/stump_bark_dark.res" id="2_7uwoy"]
+[ext_resource type="Material" path="res://assets/materials/planks_old.tres" id="3_8w2fx"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/stump_planks_old.res" id="4_quqtn"]
+[ext_resource type="Material" path="res://assets/materials/moss.tres" id="5_kfngf"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/stump_moss.res" id="6_ikytp"]
+
+[node name="Stump" type="Node3D" unique_id=1194273384]
+
+[node name="Mesh_bark_dark" type="MeshInstance3D" parent="." unique_id=1372918601]
+material_override = ExtResource("1_3lvlk")
+mesh = ExtResource("2_7uwoy")
+
+[node name="Mesh_planks_old" type="MeshInstance3D" parent="." unique_id=341801051]
+material_override = ExtResource("3_8w2fx")
+mesh = ExtResource("4_quqtn")
+
+[node name="Mesh_moss" type="MeshInstance3D" parent="." unique_id=1856654489]
+material_override = ExtResource("5_kfngf")
+mesh = ExtResource("6_ikytp")

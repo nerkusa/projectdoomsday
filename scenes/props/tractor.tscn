@@ -1,85 +1,63 @@
 [gd_scene format=3]
 
-[ext_resource type="Material" path="res://assets/materials/rust.tres" id="1_1ube8"]
-[ext_resource type="Material" path="res://assets/materials/paint_orange.tres" id="2_f28yw"]
-[ext_resource type="Material" path="res://assets/materials/window.tres" id="3_2a6hr"]
-[ext_resource type="Material" path="res://assets/materials/ash.tres" id="4_e0cc5"]
-[ext_resource type="Material" path="res://assets/materials/metal.tres" id="5_gm4uj"]
+[ext_resource type="Material" path="res://assets/materials/metal_dark.tres" id="1_6wqit"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/tractor_metal_dark.res" id="2_klpl1"]
+[ext_resource type="Material" path="res://assets/materials/paint_faded.tres" id="3_87x14"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/tractor_paint_faded.res" id="4_tiocg"]
+[ext_resource type="Material" path="res://assets/materials/rust.tres" id="5_bfn7j"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/tractor_rust.res" id="6_7s648"]
+[ext_resource type="Material" path="res://assets/materials/window.tres" id="7_aidlu"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/tractor_window.res" id="8_3538h"]
+[ext_resource type="Material" path="res://assets/materials/glass.tres" id="9_i7hpl"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/tractor_glass.res" id="10_lk5wp"]
+[ext_resource type="Material" path="res://assets/materials/cloth_sack.tres" id="11_nms8t"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/tractor_cloth_sack.res" id="12_gcp55"]
+[ext_resource type="Material" path="res://assets/materials/tire.tres" id="13_mqgvq"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/tractor_tire.res" id="14_d852o"]
 
-[sub_resource type="BoxMesh" id="BoxMesh_oqnm6"]
-size = Vector3(1.4, 1, 2.6)
+[sub_resource type="BoxShape3D" id="BoxShape3D_0036s"]
+size = Vector3(2.4, 2.4, 3.4)
 
-[sub_resource type="BoxMesh" id="BoxMesh_gbymg"]
-size = Vector3(1.3, 1.3, 1.2)
+[sub_resource type="BoxShape3D" id="BoxShape3D_8f8sb"]
+size = Vector3(1.5, 0.6, 0.5)
 
-[sub_resource type="BoxMesh" id="BoxMesh_r3wjt"]
-size = Vector3(1.1, 0.7, 0.05)
+[node name="Tractor" type="Node3D" unique_id=340531349]
 
-[sub_resource type="CylinderMesh" id="CylinderMesh_uvjp6"]
-top_radius = 0.9
-bottom_radius = 0.9
-height = 0.5
-radial_segments = 12
-rings = 1
+[node name="Mesh_metal_dark" type="MeshInstance3D" parent="." unique_id=873383073]
+material_override = ExtResource("1_6wqit")
+mesh = ExtResource("2_klpl1")
 
-[sub_resource type="CylinderMesh" id="CylinderMesh_6wqit"]
-top_radius = 0.9
-bottom_radius = 0.9
-height = 0.5
-radial_segments = 12
-rings = 1
+[node name="Mesh_paint_faded" type="MeshInstance3D" parent="." unique_id=332019096]
+material_override = ExtResource("3_87x14")
+mesh = ExtResource("4_tiocg")
 
-[sub_resource type="CylinderMesh" id="CylinderMesh_klpl1"]
-height = 0.35
-radial_segments = 10
-rings = 1
+[node name="Mesh_rust" type="MeshInstance3D" parent="." unique_id=1473812537]
+material_override = ExtResource("5_bfn7j")
+mesh = ExtResource("6_7s648")
 
-[sub_resource type="BoxMesh" id="BoxMesh_87x14"]
-size = Vector3(0.4, 0.3, 0.3)
+[node name="Mesh_window" type="MeshInstance3D" parent="." unique_id=367188414]
+material_override = ExtResource("7_aidlu")
+mesh = ExtResource("8_3538h")
 
-[sub_resource type="BoxShape3D" id="BoxShape3D_tiocg"]
-size = Vector3(2.4, 2.4, 3.2)
+[node name="Mesh_glass" type="MeshInstance3D" parent="." unique_id=547742077]
+material_override = ExtResource("9_i7hpl")
+mesh = ExtResource("10_lk5wp")
 
-[node name="Tractor" type="Node3D" unique_id=328376168]
+[node name="Mesh_cloth_sack" type="MeshInstance3D" parent="." unique_id=1734529080]
+material_override = ExtResource("11_nms8t")
+mesh = ExtResource("12_gcp55")
 
-[node name="@MeshInstance3D@114" type="MeshInstance3D" parent="." unique_id=1222477841]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0.2)
-material_override = ExtResource("1_1ube8")
-mesh = SubResource("BoxMesh_oqnm6")
+[node name="Mesh_tire" type="MeshInstance3D" parent="." unique_id=2065748973]
+material_override = ExtResource("13_mqgvq")
+mesh = ExtResource("14_d852o")
 
-[node name="@MeshInstance3D@115" type="MeshInstance3D" parent="." unique_id=1481581326]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.9, -0.6)
-material_override = ExtResource("2_f28yw")
-mesh = SubResource("BoxMesh_gbymg")
-
-[node name="@MeshInstance3D@116" type="MeshInstance3D" parent="." unique_id=1952061836]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.1, 0.02)
-material_override = ExtResource("3_2a6hr")
-mesh = SubResource("BoxMesh_r3wjt")
-
-[node name="@MeshInstance3D@117" type="MeshInstance3D" parent="." unique_id=344079435]
-transform = Transform3D(-4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 0, 0, 1, 0.95, 0.9, -0.6)
-material_override = ExtResource("4_e0cc5")
-mesh = SubResource("CylinderMesh_uvjp6")
-
-[node name="@MeshInstance3D@118" type="MeshInstance3D" parent="." unique_id=1069237726]
-transform = Transform3D(-4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 0, 0, 1, -0.95, 0.9, -0.6)
-material_override = ExtResource("4_e0cc5")
-mesh = SubResource("CylinderMesh_6wqit")
-
-[node name="@MeshInstance3D@119" type="MeshInstance3D" parent="." unique_id=783929748]
-transform = Transform3D(-4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 0, 0, 1, 0.85, 0.5, 1.2)
-material_override = ExtResource("4_e0cc5")
-mesh = SubResource("CylinderMesh_klpl1")
-
-[node name="@MeshInstance3D@120" type="MeshInstance3D" parent="." unique_id=112027539]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.2, 0.15, 1.5)
-material_override = ExtResource("5_gm4uj")
-mesh = SubResource("BoxMesh_87x14")
-
-[node name="Collision" type="StaticBody3D" parent="." unique_id=417912461]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.2, 0)
+[node name="Collision" type="StaticBody3D" parent="." unique_id=303495862]
 collision_mask = 0
 
-[node name="@CollisionShape3D@121" type="CollisionShape3D" parent="Collision" unique_id=207199091]
-shape = SubResource("BoxShape3D_tiocg")
+[node name="@CollisionShape3D@82" type="CollisionShape3D" parent="Collision" unique_id=122245405]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.2, 0)
+shape = SubResource("BoxShape3D_0036s")
+
+[node name="@CollisionShape3D@83" type="CollisionShape3D" parent="Collision" unique_id=2091805112]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.3, -2.4)
+shape = SubResource("BoxShape3D_8f8sb")

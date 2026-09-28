@@ -1,0 +1,38 @@
+[gd_scene format=3]
+
+[ext_resource type="Material" path="res://assets/materials/log_weathered.tres" id="1_vfkg2"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/palisade_patched_log_weathered.res" id="2_cuq71"]
+[ext_resource type="Material" path="res://assets/materials/planks_old.tres" id="3_ggjq1"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/palisade_patched_planks_old.res" id="4_dl6ua"]
+[ext_resource type="Material" path="res://assets/materials/metal_roof.tres" id="5_1oc5f"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/palisade_patched_metal_roof.res" id="6_hecvx"]
+[ext_resource type="Material" path="res://assets/materials/wire.tres" id="7_nyo2m"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/palisade_patched_wire.res" id="8_wnd7d"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_wa0pn"]
+size = Vector3(4, 2.4, 0.5)
+
+[node name="Palisade" type="Node3D" unique_id=830798006]
+
+[node name="Mesh_log_weathered" type="MeshInstance3D" parent="." unique_id=2043475000]
+material_override = ExtResource("1_vfkg2")
+mesh = ExtResource("2_cuq71")
+
+[node name="Mesh_planks_old" type="MeshInstance3D" parent="." unique_id=792063919]
+material_override = ExtResource("3_ggjq1")
+mesh = ExtResource("4_dl6ua")
+
+[node name="Mesh_metal_roof" type="MeshInstance3D" parent="." unique_id=276344105]
+material_override = ExtResource("5_1oc5f")
+mesh = ExtResource("6_hecvx")
+
+[node name="Mesh_wire" type="MeshInstance3D" parent="." unique_id=1790289761]
+material_override = ExtResource("7_nyo2m")
+mesh = ExtResource("8_wnd7d")
+
+[node name="Collision" type="StaticBody3D" parent="." unique_id=800531160]
+collision_mask = 0
+
+[node name="@CollisionShape3D@86" type="CollisionShape3D" parent="Collision" unique_id=197050898]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.2, 0)
+shape = SubResource("BoxShape3D_wa0pn")

@@ -1,28 +1,16 @@
 [gd_scene format=3]
 
-[ext_resource type="Material" path="res://assets/materials/leaves_dark.tres" id="1_pxw4a"]
-[ext_resource type="Material" path="res://assets/materials/leaves.tres" id="2_y62c1"]
+[ext_resource type="Material" path="res://assets/materials/leaves_tex.tres" id="1_co27k"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/bush_leaves_tex.res" id="2_ypu05"]
+[ext_resource type="Material" path="res://assets/materials/leaves_dark.tres" id="3_h5uqq"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/bush_leaves_dark.res" id="4_2rg6i"]
 
-[sub_resource type="SphereMesh" id="SphereMesh_co27k"]
-radius = 0.6
-height = 1.2
-radial_segments = 8
-rings = 5
+[node name="Bush" type="Node3D" unique_id=1105824908]
 
-[sub_resource type="SphereMesh" id="SphereMesh_ypu05"]
-radius = 0.45
-height = 0.9
-radial_segments = 8
-rings = 5
+[node name="Mesh_leaves_tex" type="MeshInstance3D" parent="." unique_id=1071287329]
+material_override = ExtResource("1_co27k")
+mesh = ExtResource("2_ypu05")
 
-[node name="Bush" type="Node3D" unique_id=1657783266]
-
-[node name="@MeshInstance3D@99" type="MeshInstance3D" parent="." unique_id=224607680]
-transform = Transform3D(1.3, 0, 0, 0, 0.8, 0, 0, 0, 1.1, 0, 0.45, 0)
-material_override = ExtResource("1_pxw4a")
-mesh = SubResource("SphereMesh_co27k")
-
-[node name="@MeshInstance3D@100" type="MeshInstance3D" parent="." unique_id=1202892927]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.5, 0.4, 0.2)
-material_override = ExtResource("2_y62c1")
-mesh = SubResource("SphereMesh_ypu05")
+[node name="Mesh_leaves_dark" type="MeshInstance3D" parent="." unique_id=1418455477]
+material_override = ExtResource("3_h5uqq")
+mesh = ExtResource("4_2rg6i")

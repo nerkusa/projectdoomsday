@@ -1,0 +1,32 @@
+[gd_scene format=3]
+
+[ext_resource type="Material" path="res://assets/materials/birch_bark.tres" id="1_2ysor"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/birch_b_birch_bark.res" id="2_g7hxq"]
+[ext_resource type="Material" path="res://assets/materials/leaves_dark.tres" id="3_kbcas"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/birch_b_leaves_dark.res" id="4_212kw"]
+[ext_resource type="Material" path="res://assets/materials/leaves_tex.tres" id="5_jklj8"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/birch_b_leaves_tex.res" id="6_87y2e"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_k1elr"]
+size = Vector3(0.5, 2, 0.5)
+
+[node name="Birch" type="Node3D" unique_id=179664021]
+
+[node name="Mesh_birch_bark" type="MeshInstance3D" parent="." unique_id=169529772]
+material_override = ExtResource("1_2ysor")
+mesh = ExtResource("2_g7hxq")
+
+[node name="Mesh_leaves_dark" type="MeshInstance3D" parent="." unique_id=494217500]
+material_override = ExtResource("3_kbcas")
+mesh = ExtResource("4_212kw")
+
+[node name="Mesh_leaves_tex" type="MeshInstance3D" parent="." unique_id=333046237]
+material_override = ExtResource("5_jklj8")
+mesh = ExtResource("6_87y2e")
+
+[node name="Collision" type="StaticBody3D" parent="." unique_id=1504686504]
+collision_mask = 0
+
+[node name="@CollisionShape3D@78" type="CollisionShape3D" parent="Collision" unique_id=1004769748]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+shape = SubResource("BoxShape3D_k1elr")

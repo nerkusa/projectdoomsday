@@ -1,0 +1,14 @@
+[gd_resource type="StandardMaterial3D" format=3]
+
+[ext_resource type="Texture2D" path="res://assets/textures/grass_dark.png" id="1_xgyhx"]
+[ext_resource type="Texture2D" path="res://assets/textures/grass_dark_n.png" id="2_u86mt"]
+
+[resource]
+resource_name = "moss"
+albedo_color = Color(0.6901961, 0.7529412, 0.5647059, 1)
+albedo_texture = ExtResource("1_xgyhx")
+normal_enabled = true
+normal_texture = ExtResource("2_u86mt")
+uv1_scale = Vector3(1.2, 1.2, 1.2)
+uv1_triplanar = true
+uv1_triplanar_sharpness = 4.0

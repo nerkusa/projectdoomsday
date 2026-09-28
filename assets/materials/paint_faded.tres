@@ -1,0 +1,16 @@
+[gd_resource type="StandardMaterial3D" format=3]
+
+[ext_resource type="Texture2D" path="res://assets/textures/planks_old.png" id="1_3wdhh"]
+[ext_resource type="Texture2D" path="res://assets/textures/planks_old_n.png" id="2_62r07"]
+
+[resource]
+resource_name = "paint_faded"
+albedo_color = Color(0.78431374, 0.41568628, 0.1882353, 1)
+albedo_texture = ExtResource("1_3wdhh")
+metallic = 0.1
+roughness = 0.8
+normal_enabled = true
+normal_texture = ExtResource("2_62r07")
+uv1_scale = Vector3(2, 2, 2)
+uv1_triplanar = true
+uv1_triplanar_sharpness = 4.0

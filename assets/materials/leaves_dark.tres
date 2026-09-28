@@ -1,6 +1,13 @@
 [gd_resource type="StandardMaterial3D" format=3]
 
+[ext_resource type="Texture2D" path="res://assets/textures/leaves_tex.png" id="1_jlf1j"]
+[ext_resource type="Texture2D" path="res://assets/textures/leaves_tex_n.png" id="2_t8uph"]
+
 [resource]
 resource_name = "leaves_dark"
-albedo_color = Color(0.24705882, 0.3529412, 0.18039216, 1)
-roughness = 0.9
+albedo_color = Color(0.5411765, 0.6039216, 0.5019608, 1)
+albedo_texture = ExtResource("1_jlf1j")
+normal_enabled = true
+normal_texture = ExtResource("2_t8uph")
+uv1_triplanar = true
+uv1_triplanar_sharpness = 4.0
