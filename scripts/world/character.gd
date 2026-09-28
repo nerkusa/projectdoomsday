@@ -85,8 +85,8 @@ static var _mats := {}
 const MARKS := {
 	"hero": [Color(0.75, 0.85, 0.95, 0.45), Color(0, 0, 0, 0)],
 	"enemy": [Color(1.0, 0.32, 0.25, 0.5), Color(1.0, 0.3, 0.2, 0.75)],
-	"friend": [Color(0.45, 0.9, 0.45, 0.45), Color(0.4, 0.88, 0.4, 0.7)],
-	"neutral": [Color(1.0, 0.85, 0.35, 0.45), Color(1.0, 0.82, 0.3, 0.7)],
+	"friend": [Color(0.45, 0.9, 0.45, 0.16), Color(0.4, 0.88, 0.4, 0.28)],
+	"neutral": [Color(1.0, 0.85, 0.35, 0.2), Color(1.0, 0.82, 0.3, 0.35)],
 	"corpse": [Color(0.75, 0.75, 0.75, 0.35), Color(0, 0, 0, 0)],
 	"none": [Color(0, 0, 0, 0), Color(0, 0, 0, 0)],
 }
@@ -778,8 +778,9 @@ func _mark_kind() -> String:
 		if loc and not loc.ws().looted.has(uid()):
 			return "corpse"
 		return "none"
-	if pose == "sit" and not hostile:
-		# за столом видно и так; кружок и силуэт пробивались бы сквозь скамейку
+	if pose in ["sit", "down"] and not hostile:
+		# сидящих за столом и лежащих на кровати видно и так;
+		# кружок и силуэт пробивались бы сквозь скамейку или кровать
 		return "none"
 	if hostile or attitude == "enemy":
 		return "enemy"
@@ -802,8 +803,8 @@ func _update_marks() -> void:
 			if _ring == null:
 				_ring = MeshInstance3D.new()
 				var tm := TorusMesh.new()
-				tm.inner_radius = 0.36
-				tm.outer_radius = 0.44
+				tm.inner_radius = 0.38
+				tm.outer_radius = 0.43
 				tm.rings = 24
 				tm.ring_segments = 4
 				_ring.mesh = tm

@@ -509,7 +509,10 @@ func _characters() -> void:
 	# засада: нападавший с монтировкой появится, когда герой возьмёт последнюю находку
 	character(chars, "Prowler", "prowler", Vector3(100, 0, -18), 0.0, {"groups": ["ambush"]})
 	var izba9: Node3D = root.get_node("Village/Izba9")
-	character(chars, "Sick", "sick", izba9.transform * Vector3(1.0, 0, -0.4), -1.2, {"dialog": "sick", "start_pose": "down", "groups": M_})
+	# больная лежит на кровати головой к подушке (поза «лёжа» вытянута назад от точки ног)
+	var bed: Vector3 = izba9.get_node("Slot_bed").position
+	var sick_at: Vector3 = izba9.transform * Vector3(bed.x, 0.5, bed.z - 0.3 + 0.47)
+	character(chars, "Sick", "sick", sick_at, izba9.rotation.y, {"dialog": "sick", "start_pose": "down", "groups": M_})
 	var ti := 0
 	for p in [Vector3(70.5, 0, 20.8), Vector3(74, 0, 20.2), Vector3(77.5, 0, 21.0)]:
 		ti += 1
@@ -656,7 +659,7 @@ func _clear_overlaps() -> void:
 				removed += 1
 	print("  убрано деревьев/кустов из построек: ", removed)
 	for ch in root.get_node("Characters").get_children():
-		if _inside(boxes, ch.position, 0.0):
+		if _inside(boxes, ch.position, 0.0) and ch.position.y < 0.2:
 			push_warning("персонаж в стене: " + String(ch.name))
 		var rd := _ring_dist(Vector2(ch.position.x, ch.position.z))
 		if rd > DITCH_IN - 0.3 and rd < DITCH_OUT + 0.3:
