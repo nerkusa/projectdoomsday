@@ -8,8 +8,8 @@
 resource_name = "mud_patch"
 transparency = 1
 albedo_texture = ExtResource("1_iwqcl")
-metallic_specular = 0.6
+metallic_specular = 0.25
 roughness_texture = ExtResource("3_lu6qy")
 normal_enabled = true
-normal_scale = 0.6
+normal_scale = 0.4
 normal_texture = ExtResource("2_fbroa")

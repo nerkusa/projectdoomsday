@@ -597,9 +597,9 @@ func _details() -> void:
 		sp.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		det.add_child(sp)
 		sp.owner = root
-		for i in 8:
-			mud.append(_xf(randf_range(zone.position.x, zone.end.x), randf_range(zone.position.y, zone.end.y), randf_range(1.2, 2.6), 1.0))
 		for i in 5:
+			mud.append(_xf(randf_range(zone.position.x, zone.end.x), randf_range(zone.position.y, zone.end.y), randf_range(1.2, 2.6), 1.0))
+		for i in 3:
 			pud.append(_xf(randf_range(zone.position.x - 2, zone.end.x + 2), randf_range(zone.position.y - 1, zone.end.y + 1), randf_range(0.6, 1.3), 1.0))
 		for i in 70:
 			reeds.append(_xf(randf_range(zone.position.x - 1, zone.end.x + 1), randf_range(zone.position.y - 1, zone.end.y + 0.5), randf_range(0.7, 1.2)))
@@ -609,12 +609,12 @@ func _details() -> void:
 			put(P.dead_tree, det, Vector3(randf_range(zone.position.x, zone.end.x), 0, randf_range(zone.position.y, zone.end.y)), randf() * TAU, "", randf_range(0.7, 1.0))
 		put(P.log_fallen, det, Vector3(zone.get_center().x + randf_range(-5, 5), 0, zone.get_center().y), randf() * TAU)
 	# лужи в колеях у дороги к лесу и перед мостом
-	for i in 16:
-		pud.append(_xf(N_GATE_X + randf_range(-2.2, 2.2), randf_range(18, 27.5), randf_range(0.35, 0.9), 1.0))
-	for i in 10:
-		mud.append(_xf(N_GATE_X + randf_range(-3, 3), randf_range(20, 27.5), randf_range(0.8, 1.6), 1.0))
+	for i in 7:
+		pud.append(_xf(N_GATE_X + randf_range(-2.2, 2.2), randf_range(18, 27.5), randf_range(0.5, 1.0), 1.0))
+	for i in 5:
+		mud.append(_xf(N_GATE_X + randf_range(-3, 3), randf_range(20, 27.5), randf_range(1.2, 2.0), 1.0))
 	# лужи на улицах деревни
-	for i in 14:
+	for i in 8:
 		var r: Rect2 = roads[randi() % roads.size()]
 		pud.append(_xf(randf_range(r.position.x, r.end.x), randf_range(r.position.y, r.end.y), randf_range(0.3, 0.7), 1.0))
 	# камыш и кочки на дне рва
