@@ -322,7 +322,7 @@ func _make_weapon_mesh(wkey: String) -> Node3D:
 				add.call(Vector3(0.052, 0.02, 0.16), Vector3(0, 0.075, 0.09), Color("d9622b"))
 		"Battle", "Simple":
 			var ln := 0.6 if w.get("type", "") == "Battle" else 0.45
-			if wkey == "knife":
+			if wkey in ["knife", "oyun"]:
 				ln = 0.2
 			add.call(Vector3(0.04, 0.04, ln), Vector3(0, 0, ln / 2.0 - 0.05), Color("8a8a84") if wkey != "crowbar" else Color("8a2a1e"))
 		_:

@@ -47,10 +47,38 @@ func phase() -> String:
 	return str(Game.flag_value("phase", "morning"))
 
 
+## Вступление: герой рассматривает отцовский пистолет. Камера близко, мысли
+## идут одна за другой; если игрок пошёл — сцена обрывается.
+const INTRO := [
+	"Отцовский пистолет. Каждое утро одно и то же: проверить, протереть, пересчитать патроны. Восемь. Больше не будет.",
+	"Отец ушёл в тайгу за соболем и не вернулся к ночи. Нашли его утром — изодранного, будто медведь поработал. Только медведь так не рвёт.",
+	"«Чучуна», — сказали старики. Лесной человек. Никто его не видел — ни тогда, ни после. А отец, кажется, видел.",
+	"Он умирал три дня. На третий сунул мне в руку пистолет: «Теперь твой». Больше ничего не сказал.",
+]
+
+
 func on_new_game() -> void:
 	Game.set_flag("phase", "morning")
 	_apply_phase()
+	var pl: Character = main.player
+	var z: float = main.zoom
+	main.zoom = 6.0
+	pl.aim_pose = true
+	pl.set_held(Game.hero_wkey())
+	Game.add_note("Отец погиб в тайге: его задрал чучуна — лесной человек, которого никто никогда не видел. Перед смертью он отдал мне свой пистолет.")
 	await get_tree().create_timer(0.6).timeout
+	for line in INTRO:
+		if pl.moving or main.combat.on:
+			break
+		main.think(line)
+		var t := 0.0
+		var dur: float = 2.5 + line.length() * 0.045
+		while t < dur and not pl.moving:
+			await get_tree().create_timer(0.1).timeout
+			t += 0.1
+	pl.aim_pose = false
+	if main.zoom == 6.0:
+		main.zoom = z
 	main.say("thoughts", "wake")
 
 
@@ -723,7 +751,7 @@ func on_dialog_action(a: String, _sp: Character) -> bool:
 					targets.append(ch)
 			if targets.is_empty():
 				return true
-			if Game.hero_wkey() == "knife" or Game.hero_wkey() == "fists":
+			if not DB.is_gun(Game.hero_wkey()):
 				main._swap_hands()
 			Game.set_flag("range_on")
 			main.combat.start(targets, {"kind": "range"})

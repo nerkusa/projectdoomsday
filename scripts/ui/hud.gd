@@ -423,6 +423,8 @@ func _on_log(head: String, detail: String, cls: String) -> void:
 		col = "#d8e89a"
 	elif cls == "thought":
 		col = "#c8d6e2"
+	elif cls == "look":
+		col = "#e6d3a3"
 	_log.append_text("[color=%s]%s[/color]\n" % [col, _esc(head)])
 	_mini_line(head, col)
 	if detail != "" and Game.settings.get("show_rolls", false):

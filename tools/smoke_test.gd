@@ -146,7 +146,7 @@ func _ready() -> void:
 	ok(closed.is_empty() and get_tree().get_nodes_in_group("houses").size() >= 17, "во все дома можно войти (%d; закрыты: %s)" % [get_tree().get_nodes_in_group("houses").size(), closed])
 	await wait(1.0)
 	ok(main.hud.thought_visible() and not main.dialog.visible, "мысли при пробуждении — над головой")
-	ok(Game.hero.owned.has("pistol") and Game.hero.owned.has("knife"), "с начала есть пистолет и нож")
+	ok(Game.hero.owned.has("father_pistol") and not Game.hero.owned.has("oyun"), "с начала только отцовский пистолет")
 	ok(not main.hud._bar.visible and not main.hud._tape.visible and main.hud._hand.visible, "до КПК: только слот «в руке»")
 	main.open_kpk()
 	await frames(2)
@@ -172,7 +172,10 @@ func _ready() -> void:
 	ok(main.dialog.visible, "разговор с дедом")
 	await choose(find_opt("Что нужно"))
 	await choose(0)
+	ok(Game.hero.owned.has("oyun"), "дед подарил нож «Ойун»")
+	await choose(0)
 	ok(Game.quest_stage("chores") == 1, "задание «Утро» взято")
+	ok(main.hud._log.get_parsed_text().contains("Вы видите:"), "в журнале «Вы видите: …»")
 	ok(main.objective_text().contains("Степан"), "цель на экране: " + main.objective_text().replace("\n", " / "))
 	main.interact(main.location.item("Planks"))
 	await wait(1.0)
@@ -369,10 +372,10 @@ func _ready() -> void:
 	main.loot(r1)
 	await wait(0.3)
 	ok(not main.hud._bar.visible, "панели всё ещё нет — КПК не собран")
-	Game.hero.hands = ["pistol", "knife"]
+	Game.hero.hands = ["father_pistol", "oyun"]
 	Game.hero.active = 0
 	Game.auto_reload()
-	main.player.set_held("pistol")
+	main.player.set_held("father_pistol")
 
 	# --- дед у амбара ---
 	if stealth:

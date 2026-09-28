@@ -37,6 +37,9 @@ var _sfx: Array = []
 
 var _pending: Dictionary = {}
 var _aggro_t := 0.0
+var _look_t := 0.0
+## С какого расстояния герой «замечает» персонажа и в журнале пишется «Вы видите…»
+const LOOK_DIST := 9.0
 var _hover: Object = null
 var _intro_pending := false
 var _loading := false
@@ -780,6 +783,10 @@ func _process(delta: float) -> void:
 		if _aggro_t <= 0:
 			_aggro_t = 0.25
 			_check_aggro()
+		_look_t -= delta
+		if _look_t <= 0:
+			_look_t = 0.5
+			_look_around()
 		location.on_hero_moved(player.global_position)
 
 
@@ -870,3 +877,43 @@ func _check_aggro() -> void:
 			Game.log_line("%s замечает тебя!" % ch.display_name, "", "miss")
 			start_fight([ch])
 			return
+
+
+## Как в первом Fallout: когда персонаж впервые попадает в поле зрения,
+## в журнал слева пишется, что герой видит. Один раз на персонажа.
+func _look_around() -> void:
+	var st := location.ws()
+	for ch in location.characters():
+		if not ch.visible or ch == player or ch.is_in_group("range_targets") or ch.name == "Prowler":
+			continue
+		var key: String = "seen_" + ch.uid()
+		if st.misc.has(key):
+			continue
+		if ch.global_position.distance_to(player.global_position) > LOOK_DIST:
+			continue
+		if not location.grid.line_clear(ch.global_position, player.global_position, space()):
+			continue
+		st.misc[key] = true
+		Game.log_line("Вы видите: " + _look_text(ch), "", "look")
+		return
+
+
+func _look_text(ch: Character) -> String:
+	var t: String = DB.observations.get(String(ch.name), "")
+	if t != "":
+		return t
+	var n := ch.display_name
+	if ch.pose == "dead":
+		return "%s лежит на земле. Не шевелится." % n
+	if ch.hostile:
+		return "%s. Оружие наготове, смотрит по сторонам." % n
+	match ch.pose:
+		"sit":
+			return "%s сидит, о чём-то задумавшись." % n
+		"down":
+			return "%s лежит и тяжело дышит." % n
+		"yield":
+			return "%s стоит на коленях, руки за головой." % n
+	if not ch.patrol.is_empty():
+		return "%s идёт по своим делам." % n
+	return "%s стоит неподалёку." % n

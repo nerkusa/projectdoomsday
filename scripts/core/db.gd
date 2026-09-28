@@ -8,6 +8,8 @@ var items: Dictionary = {}
 var characters: Dictionary = {}
 var quests: Dictionary = {}
 var intro: Dictionary = {}
+## Что игрок видит, когда впервые замечает персонажа (как в первом Fallout)
+var observations: Dictionary = {}
 var _dialogs: Dictionary = {}
 
 
@@ -21,6 +23,7 @@ func reload() -> void:
 	characters = _load("res://data/characters.json")
 	quests = _load("res://data/quests.json")
 	intro = _load("res://data/intro.json")
+	observations = _load("res://data/observations.json")
 	_dialogs.clear()
 
 
