@@ -3,10 +3,10 @@
 [ext_resource type="Material" path="res://scenes/weapons/machete_mat.tres" id="1_mgq7e"]
 [ext_resource type="ArrayMesh" path="res://scenes/weapons/machete_mesh0.res" id="2_s4q1y"]
 
-[node name="Machete" type="Node3D" unique_id=1774112416]
+[node name="Machete" type="Node3D" unique_id=689583455]
 metadata/length = 0.6
 
-[node name="Mesh0" type="MeshInstance3D" parent="." unique_id=1738855083]
+[node name="Mesh0" type="MeshInstance3D" parent="." unique_id=1246891650]
 transform = Transform3D(12.149565, 0, 0, 0, 7.241705e-07, 12.149565, 0, -12.149565, 7.241705e-07, 3.7226e-08, -0.009471454, 0.22666746)
 material_override = ExtResource("1_mgq7e")
 mesh = ExtResource("2_s4q1y")

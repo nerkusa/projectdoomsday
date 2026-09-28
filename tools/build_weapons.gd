@@ -25,7 +25,7 @@ const W := {
 		"paint": {"base": Color(0.2, 0.19, 0.18), "zone": Rect2(0.0, 0.0, 0.42, 0.62), "zone_color": Color(0.36, 0.2, 0.1)},
 		"metal": 0.55, "rough": 0.6},
 	"rifle": {"file": "rifle/rifle.fbx", "rot": Vector3(0, 0, 0), "flip": true, "length": 1.15, "grip": Vector2(0.3, 0.45),
-		"tex": {"albedo": "rifle_albedo.png"}, "foregrip": 0.62, "bolt": 0.42},
+		"tex": {"albedo": "enfield.png"}, "foregrip": 0.62, "bolt": 0.42},
 	"oyun": {"file": "knife/knife.obj", "rot": Vector3(0, 90, 0), "length": 0.3, "grip": Vector2(0.18, 0.5),
 		"tex": {"albedo": "knife.png", "normal": "knife_normal.png"}},
 	"knife": {"same": "oyun"},
