@@ -34,8 +34,9 @@ const W := {
 	"crowbar": {"file": "crowbar/crowbar.fbx", "rot": Vector3(-90, 0, 0), "flip": true, "length": 0.75, "grip": Vector2(0.12, 0.5),
 		"tex": {"albedo": "crowbar_albedo.png"}},
 	# AK-104 «Кочевник» (D_U, CC-BY-4.0) — патроны и запасной магазин из сцены убраны
-	"buran": {"file": "buran/buran.gltf", "rot": Vector3(0, -90, 0), "length": 0.88, "grip": Vector2(0.36, 0.3),
-		"keep_mats": true, "foregrip": 0.66, "bolt": 0.5},
+	# у этой модели пистолетная рукоять стоит перед магазином — хват по ней, левая рука на цевье
+	"buran": {"file": "buran/buran.gltf", "rot": Vector3(0, -90, 0), "length": 0.74, "grip": Vector2(0.59, 0.45),
+		"keep_mats": true, "foregrip": 0.8, "foregrip_y": 0.72, "bolt": 0.5},
 	"machete": {"file": "machete/machete.fbx", "rot": Vector3(0, 0, 0), "length": 0.6, "grip": Vector2(0.12, 0.5),
 		"tex": {"albedo": "machete_albedo.png", "normal": "machete_normal.png", "rough": "machete_rough.png", "metal": "machete_metal.png"}},
 }
@@ -166,7 +167,7 @@ func _build(k: String) -> void:
 		var mk := Marker3D.new()
 		mk.name = pair[0]
 		var z: float = (ab.position.z + ab.size.z * float(c[pair[1]])) * s - grip.z
-		var y: float = (ab.position.y + ab.size.y * (0.55 if pair[1] == "foregrip" else 0.85)) * s - grip.y
+		var y: float = (ab.position.y + ab.size.y * (float(c.get("foregrip_y", 0.55)) if pair[1] == "foregrip" else 0.85)) * s - grip.y
 		mk.position = Vector3(0, y, z)
 		root.add_child(mk)
 		mk.owner = root

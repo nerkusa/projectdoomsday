@@ -428,6 +428,9 @@ func _ready() -> void:
 		await frames(3)
 		guard += 1
 	ok(Game.flag("ded_dead"), "дед умер")
+	var dw: Character = main.location.character("DefenderW1")
+	ok(dw.pose == "dead" and not main.location.ws().looted.has(dw.uid()), "после налёта защитники у западных ворот мертвы, их можно обыскать")
+	ok(main._body_entries(dw).any(func(e): return e.id == "rifle"), "у тела защитника есть винтовка")
 	ok(Game.quest_stage("bootur") == 1, "задание «Найти Боотура»")
 	ok(Game.flag("kpk"), "браслет + компьютер деда = КПК")
 	ok(main.dialog.visible and main.dialog.node_id == "kpk_on", "мысль: подключить кабель")

@@ -3,16 +3,16 @@
 [ext_resource type="Material" path="res://scenes/weapons/rifle_mat.tres" id="1_hkhc6"]
 [ext_resource type="ArrayMesh" path="res://scenes/weapons/rifle_mesh0.res" id="2_sg1yr"]
 
-[node name="Rifle" type="Node3D" unique_id=1803342807]
+[node name="Rifle" type="Node3D" unique_id=600263914]
 metadata/length = 1.15
 
-[node name="Mesh0" type="MeshInstance3D" parent="." unique_id=1351088758]
+[node name="Mesh0" type="MeshInstance3D" parent="." unique_id=258613174]
 transform = Transform3D(-98.01543, 8.56878e-06, 1.0214783e-12, 0, -1.1684349e-05, 98.01542, 8.568781e-06, 98.01542, 1.1684349e-05, 0.006223353, 0.024255969, -0.068211585)
 material_override = ExtResource("1_hkhc6")
 mesh = ExtResource("2_sg1yr")
 
-[node name="Foregrip" type="Marker3D" parent="." unique_id=786668587]
+[node name="Foregrip" type="Marker3D" parent="." unique_id=2038545272]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.018957425, 0.36799997)
 
-[node name="Bolt" type="Marker3D" parent="." unique_id=1604457882]
+[node name="Bolt" type="Marker3D" parent="." unique_id=1368253497]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.07582969, 0.13799998)

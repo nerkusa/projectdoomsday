@@ -311,6 +311,9 @@ var _ik: TwoBoneIK3D
 var _ik_left: Node3D
 var _ik_right: Node3D
 var _shouldered := false
+var _hold := ""
+## Оружие наготове, но не у плеча: перед телом, ствол вниз-влево, обе руки на нём
+const LOW_READY := Transform3D(Basis(Vector3.UP, 0.45) * Basis(Vector3.RIGHT, 0.55), Vector3(-0.12, 1.0, 0.24))
 
 
 func _two_handed() -> bool:
@@ -319,6 +322,7 @@ func _two_handed() -> bool:
 
 func _setup_two_hands() -> void:
 	_shouldered = false
+	_hold = ""
 	if not (body is AnimBody):
 		return
 	var sk: Skeleton3D = (body as AnimBody).skel
@@ -362,13 +366,19 @@ func _update_two_hands() -> void:
 	if _ik == null or _held_node == null:
 		return
 	var typ: String = _act.get("type", "")
-	var want: bool = _two_handed() and pose == "" and not moving and (aim_pose or typ in ["fire", "reload"])
-	if want != _shouldered:
-		_shouldered = want
+	# у плеча — когда целится, стреляет, перезаряжает; иначе стоя или на ходу — «наготове» двумя руками
+	var hold := ""
+	if _two_handed() and pose == "":
+		hold = "shoulder" if not moving and (aim_pose or typ in ["fire", "reload"]) else "low"
+	var want := hold != ""
+	if hold != _hold:
+		_hold = hold
+		_shouldered = hold == "shoulder"
 		var hnd: Node3D = (body as AnimBody).hand()
 		if want:
-			_held_node.reparent(rig, false)
-			_held_node.transform = Transform3D(Basis.IDENTITY, SHOULDER)
+			if _held_node.get_parent() != rig:
+				_held_node.reparent(rig, false)
+			_held_node.transform = Transform3D(Basis.IDENTITY, SHOULDER) if _shouldered else LOW_READY
 		else:
 			_held_node.reparent(hnd, false)
 			_held_node.transform = (body as AnimBody).grip(true)

@@ -102,6 +102,8 @@ func _apply_phase() -> void:
 	if Game.flag("dusk"):
 		for n in get_tree().get_nodes_in_group("forest_folk"):
 			_set_on(n, false)
+	if phase() == "after":
+		_nobody_left()
 	var ded := character("DedRaid")
 	if ded and Game.flag("ded_dead"):
 		ded.pose = "dead"
@@ -617,6 +619,18 @@ func _gate_scene() -> void:
 		main.start_fight([ex])
 
 
+## После налёта в деревне не остаётся живых: защитники у западных ворот, раненый,
+## пленные, которых не успели спасти. Тела можно обыскать (винтовки, патроны).
+func _nobody_left() -> void:
+	for n in ["DefenderW1", "DefenderW2", "WoundedDefender", "GateGuard", "Doomed1", "Doomed2"]:
+		var ch := character(n)
+		if ch == null or ch.pose == "dead" or ws().misc.has("gone_" + ch.uid()) or not ch.visible:
+			continue
+		ch.stop()
+		ch.patrol = PackedVector3Array()
+		_kill_npc(ch, false)
+
+
 func _kill_npc(ch: Character, looted := true) -> void:
 	if ch == null or ch.pose == "dead":
 		return
@@ -785,6 +799,7 @@ func on_dialog_action(a: String, _sp: Character) -> bool:
 				ws().dead[ded.uid()] = true
 			Game.set_flag("ded_dead")
 			Game.set_flag("phase", "after")
+			_nobody_left()
 			Game.set_quest("bootur", 1)
 			Game.set_quest("who", 1)
 			Game.set_quest("pack", 1)
