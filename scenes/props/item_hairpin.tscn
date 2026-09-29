@@ -1,0 +1,20 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/interactable.gd" id="1_2l1a8"]
+[ext_resource type="Material" path="res://assets/materials/metal_dark.tres" id="2_hrvik"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/item_hairpin_metal_dark.res" id="3_ui6ff"]
+[ext_resource type="Material" path="res://assets/materials/cloth_red.tres" id="4_pp6id"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/item_hairpin_cloth_red.res" id="5_3liw7"]
+
+[node name="Item" type="Node3D" unique_id=23816410]
+script = ExtResource("1_2l1a8")
+item_id = "hairpin"
+pick_size = Vector3(0.3, 0.2, 0.3)
+
+[node name="Mesh_metal_dark" type="MeshInstance3D" parent="." unique_id=2126871920]
+material_override = ExtResource("2_hrvik")
+mesh = ExtResource("3_ui6ff")
+
+[node name="Mesh_cloth_red" type="MeshInstance3D" parent="." unique_id=1751563207]
+material_override = ExtResource("4_pp6id")
+mesh = ExtResource("5_3liw7")

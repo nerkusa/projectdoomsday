@@ -26,6 +26,10 @@ var hud: HUD
 var dialog: DialogBox
 var kpk: KPK
 var sheet: CharSheet
+var loot_win: LootWindow
+## Меню действий по правой кнопке (взять, осмотреть, разобрать, обокрасть…)
+var actions: PopupMenu
+var _act_list: Array = []
 var menu: GameMenu
 var slides: GameMenu.Slides
 var attack_mode := false
@@ -95,6 +99,23 @@ func _build_ui() -> void:
 	root.add_child(sheet)
 	sheet.setup()
 	sheet.closed.connect(_on_sheet_closed)
+	loot_win = LootWindow.new()
+	root.add_child(loot_win)
+	loot_win.setup(self)
+	actions = PopupMenu.new()
+	actions.add_theme_font_override("font", UITheme.mono())
+	actions.add_theme_font_size_override("font_size", 14)
+	var pst := UITheme.plastic(6)
+	pst.set_content_margin_all(6)
+	actions.add_theme_stylebox_override("panel", pst)
+	var hov := StyleBoxFlat.new()
+	hov.bg_color = Color(UITheme.AMBER, 0.25)
+	hov.set_corner_radius_all(3)
+	actions.add_theme_stylebox_override("hover", hov)
+	actions.add_theme_color_override("font_color", UITheme.INK)
+	actions.add_theme_color_override("font_hover_color", UITheme.INK_2)
+	actions.id_pressed.connect(_on_action_picked)
+	root.add_child(actions)
 	slides = GameMenu.Slides.new()
 	root.add_child(slides)
 	slides.setup()
@@ -110,7 +131,7 @@ func space() -> PhysicsDirectSpaceState3D:
 
 
 func ui_blocked() -> bool:
-	return dialog.visible or kpk.visible or sheet.visible or menu.visible or slides.visible or plugging or _loading
+	return dialog.visible or kpk.visible or sheet.visible or loot_win.visible or menu.visible or slides.visible or plugging or _loading
 
 
 ## Звук из assets/sounds/<name>.wav; громкость в децибелах
@@ -319,7 +340,7 @@ func _on_hud_action(a: String) -> void:
 			open_kpk()
 		"sheet":
 			if not combat.on and Game.flag("kpk"):
-				sheet.open()
+				open_kpk("stat")
 		"reload":
 			combat.reload()
 		"sneak":
@@ -413,8 +434,10 @@ func talk_to(ch: Character, node := "") -> void:
 	if ch.dialog == "":
 		return
 	player.face_towards(ch.global_position)
-	ch.stop()
-	ch.face_towards(player.global_position)
+	# сидящий на лавке или лежащий не разворачивается — иначе поза ломается
+	if ch.pose == "":
+		ch.stop()
+		ch.face_towards(player.global_position)
 	dialog.open(ch.dialog, node if node != "" else ch.dialog_node, ch)
 
 
@@ -486,6 +509,8 @@ func _unhandled_input(e: InputEvent) -> void:
 				if combat.on and not combat.pending.is_empty():
 					combat.zone_picked("")
 				elif not combat.on:
+					if not hud.mouse_over_ui() and _open_actions(e.position):
+						return
 					player.stop()
 					_pending = {}
 	elif e is InputEventKey and e.pressed and not e.echo:
@@ -501,8 +526,7 @@ func _unhandled_input(e: InputEvent) -> void:
 			KEY_I:
 				open_kpk()
 			KEY_C:
-				if not combat.on and Game.flag("kpk"):
-					sheet.open()
+				_on_hud_action("sheet")
 			KEY_R:
 				combat.reload()
 			KEY_TAB:
@@ -530,15 +554,23 @@ func _pick(screen_pos: Vector2) -> Dictionary:
 	q.collide_with_areas = true
 	q.collide_with_bodies = false
 	var res := {}
-	var hit := space().intersect_ray(q)
-	if not hit.is_empty():
+	# герой и невидимые не мешают кликнуть по тому, что за ними
+	var excl: Array[RID] = []
+	for i in 4:
+		q.exclude = excl
+		var hit := space().intersect_ray(q)
+		if hit.is_empty():
+			break
 		var col: Object = hit.collider
+		excl.append(hit.rid)
 		if col.has_meta("character"):
 			var ch: Character = col.get_meta("character")
 			if ch != player and ch.visible:
 				res.character = ch
+				break
 		elif col.has_meta("interactable"):
 			res.item = col.get_meta("interactable")
+			break
 	var plane := Plane(Vector3.UP, 0.0)
 	var g = plane.intersects_ray(from, dir)
 	if g != null:
@@ -686,6 +718,17 @@ func _do_pending(target: Node3D, what: String) -> void:
 			loot(target as Character)
 		"use":
 			interact(target as Interactable)
+		"look":
+			examine(target)
+		"steal":
+			pickpocket(target as Character)
+		_:
+			# действие с вариантом: «use:key», «use:pick» — место само решает, что делать
+			if what.begins_with("use:") and target is Interactable:
+				target.set_meta("act", what.substr(4))
+				interact(target as Interactable)
+				if is_instance_valid(target):
+					target.remove_meta("act")
 
 
 func interact(it: Interactable) -> void:
@@ -713,8 +756,21 @@ func loot(ch: Character) -> void:
 	if st.looted.has(ch.uid()):
 		hud.flash_tip("Уже обыскан")
 		return
-	st.looted[ch.uid()] = true
-	var got := []
+	player.act("pickup")
+	var first: bool = not st.misc.has("loot_" + ch.uid())
+	var gen := func() -> Array: return _body_entries(ch)
+	var after := func(left: Array) -> void:
+		if left.is_empty():
+			st.looted[ch.uid()] = true
+	open_loot(ch.uid(), "Обыскать: " + ch.display_name, gen, after)
+	if first:
+		Game.log_line("Обыскал: %s" % ch.display_name)
+		location.on_looted(ch)
+
+
+## Что при теле: оружие, патроны к нему, вещи из шаблона и карманы
+func _body_entries(ch: Character) -> Array:
+	var out := []
 	var tpl := ch.tpl
 	var wk: String = tpl.get("weapon", "")
 	var f: Fighter = ch.fighter
@@ -723,20 +779,136 @@ func loot(ch: Character) -> void:
 		if DB.is_gun(wk):
 			var n := (f.mag + f.ammo_left) if f else int(tpl.get("mag", w.mag)) + int(tpl.get("ammo", 0))
 			if n > 0:
-				Game.add_item("ammo9" if w.ammo == "9мм" else "ammo762", n)
-				got.append("%d патр. %s" % [n, w.ammo])
-		if not Game.hero.owned.has(wk) and tpl.get("drop_weapon", true) and wk != "fists" and not w.get("natural", false):
-			Game.add_item(wk)
-			got.append(w.name)
-	var lt: Dictionary = tpl.get("loot", {})
-	for k in lt:
-		Game.add_item(k, int(lt[k]))
-		got.append("%s ×%d" % [DB.item_name(k), int(lt[k])] if int(lt[k]) > 1 else DB.item_name(k))
+				out.append({"id": "ammo9" if w.ammo == "9мм" else "ammo762", "n": n, "ok": true})
+		if tpl.get("drop_weapon", true) and wk != "fists" and not w.get("natural", false):
+			var have: bool = Game.hero.owned.has(wk)
+			out.append({"id": wk, "n": 1, "ok": not have, "why": "такое уже есть"})
+	for src in [tpl.get("loot", {}), tpl.get("pockets", {})]:
+		for k in src:
+			out.append({"id": k, "n": int(src[k]), "ok": true})
+	return out
+
+
+## Открыть окно обыска. Содержимое хранится в состоянии мира (loot_<key>),
+## gen() — начальный список, если сюда ещё не заглядывали. after(оставшееся) — по закрытии.
+func open_loot(key: String, title: String, gen: Callable, after := Callable()) -> void:
+	var st := location.ws()
+	var mk := "loot_" + key
+	if not st.misc.has(mk):
+		st.misc[mk] = gen.call()
+	var take := func(e: Dictionary) -> bool:
+		Game.add_item(str(e.id), int(e.get("n", 1)))
+		var nm := DB.item_name(str(e.id))
+		Game.log_line("Взято: %s%s" % [nm, (" ×%d" % int(e.n)) if int(e.get("n", 1)) > 1 else ""])
+		player.set_held(Game.hero_wkey())
+		return true
+	var done := func(left: Array) -> void:
+		st.misc[mk] = left
+		if after.is_valid():
+			after.call(left)
+		autosave()
+	loot_win.open(title, st.misc[mk], take, done)
+
+
+## Залезть в чужой карман: Ловкость + «Воровство» против бдительности.
+## Удачно — человечность −3 и окно с содержимым карманов; попался — отругают, −6.
+func pickpocket(ch: Character) -> void:
+	var st := location.ws()
+	if ch == null or ch.pose == "dead" or ch.hostile:
+		return
+	if st.misc.has("caught_" + ch.uid()):
+		hud.flash_tip("%s теперь следит за карманами" % ch.display_name)
+		return
 	player.act("pickup")
-	player.set_held(Game.hero_wkey())
-	Game.log_line("Обыскал: %s" % ch.display_name, ", ".join(got) if not got.is_empty() else "пусто")
-	location.on_looted(ch)
-	autosave()
+	if st.misc.has("pocket_ok_" + ch.uid()) or Game.skill_check("Воровство", "DEX", "Воровство", 12, 2 if Game.hero.get("sneak", false) else 0):
+		if not st.misc.has("pocket_ok_" + ch.uid()):
+			st.misc["pocket_ok_" + ch.uid()] = true
+			Game.change_humanity(-3, "залез в чужой карман")
+		var gen := func() -> Array:
+			var out := []
+			var pk: Dictionary = ch.tpl.get("pockets", {})
+			for k in pk:
+				out.append({"id": k, "n": int(pk[k]), "ok": true})
+			return out
+		open_loot("pocket_" + ch.uid(), "Карманы: " + ch.display_name, gen)
+		return
+	st.misc["caught_" + ch.uid()] = true
+	if ch.pose == "":
+		ch.face_towards(player.global_position)
+	var line := "Ах ты ж! Руки из моего кармана — живо!"
+	hud.float_text(ch.global_position + Vector3(0, 2.0, 0), line, "miss")
+	Game.log_line("%s: «%s»" % [ch.display_name, line], "", "miss")
+	Game.change_humanity(-6, "поймали за руку")
+	think("Попался. Теперь вся деревня узнает.")
+
+
+## «Осмотреть»: описание в журнал
+func examine(target: Node3D) -> void:
+	var t := ""
+	if target is Character:
+		t = _look_text(target as Character)
+	elif target is Interactable:
+		var it := target as Interactable
+		t = location.describe(it) if location.has_method("describe") else ""
+		if t == "" and it.item_id != "":
+			t = str(DB.items.get(it.item_id, {}).get("desc", DB.weapon(it.item_id).get("desc", "")))
+		if t == "":
+			t = it.title() + "."
+	Game.log_line(t, "", "look")
+
+
+## Меню по правой кнопке: список действий для того, что под курсором
+func _open_actions(sp: Vector2) -> bool:
+	var p := _pick(sp)
+	var target: Node3D = p.get("character", null)
+	if target == null:
+		target = p.get("item", null)
+	if target == null:
+		return false
+	_act_list = []
+	if target is Character:
+		var ch := target as Character
+		if ch.pose == "dead":
+			if not location.ws().looted.has(ch.uid()):
+				_act_list.append(["Обыскать", ch, "loot"])
+		elif ch.hostile:
+			_act_list.append(["Атаковать", ch, "attack"])
+		else:
+			if ch.dialog != "":
+				_act_list.append(["Говорить", ch, "talk"])
+			if not ch.is_in_group("range_targets"):
+				_act_list.append(["Обокрасть", ch, "steal"])
+	else:
+		var it := target as Interactable
+		var acts: Array = location.item_actions(it) if location.has_method("item_actions") else []
+		if acts.is_empty():
+			acts = [["Взять" if it.kind == "item" else it.title(), "use"]]
+		for a in acts:
+			_act_list.append([a[0], it, a[1]])
+	_act_list.append(["Осмотреть", target, "look"])
+	actions.clear()
+	for i in _act_list.size():
+		actions.add_item(_act_list[i][0], i)
+	actions.position = Vector2i(sp)
+	actions.reset_size()
+	actions.popup()
+	return true
+
+
+func _on_action_picked(id: int) -> void:
+	if id < 0 or id >= _act_list.size():
+		return
+	var a: Array = _act_list[id]
+	var target: Node3D = a[1]
+	if not is_instance_valid(target):
+		return
+	match a[2]:
+		"attack":
+			start_fight([target], {"ambush": Game.hero.get("sneak", false)})
+		"look":
+			examine(target)
+		_:
+			_go_then(target, a[2])
 
 
 # ---------------- кадр ----------------

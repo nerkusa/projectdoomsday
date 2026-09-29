@@ -1,0 +1,116 @@
+[gd_scene format=3]
+
+[ext_resource type="ArrayMesh" path="res://scenes/weapons/buran_mesh0.res" id="1_w2hih"]
+[ext_resource type="ArrayMesh" path="res://scenes/weapons/buran_mesh1.res" id="2_56mvj"]
+[ext_resource type="ArrayMesh" path="res://scenes/weapons/buran_mesh2.res" id="3_1e2fj"]
+[ext_resource type="ArrayMesh" path="res://scenes/weapons/buran_mesh3.res" id="4_2sicr"]
+[ext_resource type="ArrayMesh" path="res://scenes/weapons/buran_mesh4.res" id="5_v44iv"]
+[ext_resource type="ArrayMesh" path="res://scenes/weapons/buran_mesh5.res" id="6_qrmjf"]
+[ext_resource type="ArrayMesh" path="res://scenes/weapons/buran_mesh6.res" id="7_07omx"]
+[ext_resource type="ArrayMesh" path="res://scenes/weapons/buran_mesh7.res" id="8_wk377"]
+[ext_resource type="ArrayMesh" path="res://scenes/weapons/buran_mesh8.res" id="9_rf45t"]
+[ext_resource type="ArrayMesh" path="res://scenes/weapons/buran_mesh9.res" id="10_0qoey"]
+[ext_resource type="ArrayMesh" path="res://scenes/weapons/buran_mesh10.res" id="11_xj8e7"]
+[ext_resource type="ArrayMesh" path="res://scenes/weapons/buran_mesh11.res" id="12_d3f1g"]
+[ext_resource type="ArrayMesh" path="res://scenes/weapons/buran_mesh12.res" id="13_olrpw"]
+[ext_resource type="ArrayMesh" path="res://scenes/weapons/buran_mesh13.res" id="14_hp4ds"]
+[ext_resource type="ArrayMesh" path="res://scenes/weapons/buran_mesh14.res" id="15_ohcrw"]
+[ext_resource type="ArrayMesh" path="res://scenes/weapons/buran_mesh15.res" id="16_h2n28"]
+[ext_resource type="ArrayMesh" path="res://scenes/weapons/buran_mesh16.res" id="17_qd0b4"]
+[ext_resource type="ArrayMesh" path="res://scenes/weapons/buran_mesh17.res" id="18_5mrvw"]
+[ext_resource type="ArrayMesh" path="res://scenes/weapons/buran_mesh18.res" id="19_y8or7"]
+[ext_resource type="ArrayMesh" path="res://scenes/weapons/buran_mesh19.res" id="20_1qbft"]
+[ext_resource type="ArrayMesh" path="res://scenes/weapons/buran_mesh20.res" id="21_aduxn"]
+
+[node name="Buran" type="Node3D" unique_id=1136117541]
+metadata/length = 0.88
+
+[node name="Mesh0" type="MeshInstance3D" parent="." unique_id=971811207]
+transform = Transform3D(-6.3104557e-09, 0, -0.1443664, 0, 0.1443664, 0, 0.1443664, 0, -6.3104557e-09, 0.011682664, 0.16992787, -0.1899827)
+mesh = ExtResource("1_w2hih")
+
+[node name="Mesh1" type="MeshInstance3D" parent="." unique_id=937579887]
+transform = Transform3D(-6.3104557e-09, 0, -0.1443664, 0, 0.1443664, 0, 0.1443664, 0, -6.3104557e-09, 0.011682664, 0.16992787, -0.1899827)
+mesh = ExtResource("2_56mvj")
+
+[node name="Mesh2" type="MeshInstance3D" parent="." unique_id=1489992256]
+transform = Transform3D(-6.3104557e-09, 0, -0.1443664, 0, 0.1443664, 0, 0.1443664, 0, -6.3104557e-09, 0.011682659, 0.10700229, -0.08503075)
+mesh = ExtResource("3_1e2fj")
+
+[node name="Mesh3" type="MeshInstance3D" parent="." unique_id=1558567078]
+transform = Transform3D(-6.3104557e-09, 0, -0.1443664, 0, 0.1443664, 0, 0.1443664, 0, -6.3104557e-09, 0.011682659, 0.15494253, -0.09316862)
+mesh = ExtResource("4_2sicr")
+
+[node name="Mesh4" type="MeshInstance3D" parent="." unique_id=897083567]
+transform = Transform3D(-6.3104557e-09, 0, -0.1443664, 0, 0.1443664, 0, 0.1443664, 0, -6.3104557e-09, 0.011682659, 0.15494253, -0.09316862)
+mesh = ExtResource("5_v44iv")
+
+[node name="Mesh5" type="MeshInstance3D" parent="." unique_id=1661105459]
+transform = Transform3D(-6.3104557e-09, 0, -0.1443664, 0, 0.1443664, 0, 0.1443664, 0, -6.3104557e-09, 0.011682659, 0.15494253, -0.09316862)
+mesh = ExtResource("6_qrmjf")
+
+[node name="Mesh6" type="MeshInstance3D" parent="." unique_id=577281216]
+transform = Transform3D(-6.3104557e-09, 0, -0.1443664, 0, 0.1443664, 0, 0.1443664, 0, -6.3104557e-09, 0.01168264, 0.18111569, 0.33832604)
+mesh = ExtResource("7_07omx")
+
+[node name="Mesh7" type="MeshInstance3D" parent="." unique_id=18769956]
+transform = Transform3D(-6.3104557e-09, 0, -0.1443664, 0, 0.1443664, 0, 0.1443664, 0, -6.3104557e-09, 0.011682654, 0.21616217, 0.051198974)
+mesh = ExtResource("8_wk377")
+
+[node name="Mesh8" type="MeshInstance3D" parent="." unique_id=2138304996]
+transform = Transform3D(-6.3104557e-09, 0, -0.1443664, 0, 0.1443664, 0, 0.1443664, 0, -6.3104557e-09, 0.011682654, 0.21616217, 0.051198974)
+mesh = ExtResource("9_rf45t")
+
+[node name="Mesh9" type="MeshInstance3D" parent="." unique_id=682037061]
+transform = Transform3D(-6.3104557e-09, 0, -0.1443664, 0, 0.1443664, 0, 0.1443664, 0, -6.3104557e-09, 0.011428483, 0.21027794, -0.10371886)
+mesh = ExtResource("10_0qoey")
+
+[node name="Mesh10" type="MeshInstance3D" parent="." unique_id=424924728]
+transform = Transform3D(-6.3104557e-09, 0, -0.1443664, 0, 0.1443664, 0, 0.1443664, 0, -6.3104557e-09, 0.011428483, 0.21027794, -0.10371886)
+mesh = ExtResource("11_xj8e7")
+
+[node name="Mesh11" type="MeshInstance3D" parent="." unique_id=1532839614]
+transform = Transform3D(-6.3104557e-09, 0, -0.1443664, 0, 0.1443664, 0, 0.1443664, 0, -6.3104557e-09, 0.0116826, 0.18111569, 0.4940623)
+mesh = ExtResource("12_d3f1g")
+
+[node name="Mesh12" type="MeshInstance3D" parent="." unique_id=1993590536]
+transform = Transform3D(-6.3104557e-09, 0, -0.1443664, 0, 0.1443664, 0, 0.1443664, 0, -6.3104557e-09, 0.011682643, 0.17891476, 0.17913845)
+mesh = ExtResource("13_olrpw")
+
+[node name="Mesh13" type="MeshInstance3D" parent="." unique_id=1804820359]
+transform = Transform3D(-6.3104557e-09, 0, -0.1443664, 0, 0.1443664, 0, 0.1443664, 0, -6.3104557e-09, 0.011682643, 0.17891476, 0.17913845)
+mesh = ExtResource("14_hp4ds")
+
+[node name="Mesh14" type="MeshInstance3D" parent="." unique_id=498573585]
+transform = Transform3D(-6.3104557e-09, 0, -0.1443664, 0, 0.1443664, 0, 0.1443664, 0, -6.3104557e-09, 0.011682643, 0.17891476, 0.17913845)
+mesh = ExtResource("15_ohcrw")
+
+[node name="Mesh15" type="MeshInstance3D" parent="." unique_id=925293444]
+transform = Transform3D(-3.637803e-10, 0, -0.008322324, 0, 0.008322324, 0, 0.008322324, 0, -3.637803e-10, 0.011682639, 0.14980519, 0.26756427)
+mesh = ExtResource("16_h2n28")
+
+[node name="Mesh16" type="MeshInstance3D" parent="." unique_id=2088007525]
+transform = Transform3D(-6.3054584e-09, 2.5108912e-10, -0.1443664, 0.005744249, 0.14425208, 0, 0.14425208, -0.005744249, -6.3104557e-09, 0.011682647, 0.028355315, 0.009766594)
+mesh = ExtResource("17_qd0b4")
+
+[node name="Mesh17" type="MeshInstance3D" parent="." unique_id=824901269]
+transform = Transform3D(-6.3054584e-09, 2.5108912e-10, -0.1443664, 0.005744249, 0.14425208, 0, 0.14425208, -0.005744249, -6.3104557e-09, 0.011682647, 0.028355315, 0.009766594)
+mesh = ExtResource("18_5mrvw")
+
+[node name="Mesh18" type="MeshInstance3D" parent="." unique_id=865554947]
+transform = Transform3D(-6.3054584e-09, 2.5108912e-10, -0.1443664, 0.005744249, 0.14425208, 0, 0.14425208, -0.005744249, -6.3104557e-09, 0.011682647, 0.028355315, 0.009766594)
+mesh = ExtResource("19_y8or7")
+
+[node name="Mesh19" type="MeshInstance3D" parent="." unique_id=1120644160]
+transform = Transform3D(-6.3054584e-09, 2.5108912e-10, -0.1443664, 0.005744249, 0.14425208, 0, 0.14425208, -0.005744249, -6.3104557e-09, 0.011682647, 0.028355315, 0.009766594)
+mesh = ExtResource("20_1qbft")
+
+[node name="Mesh20" type="MeshInstance3D" parent="." unique_id=1555217556]
+transform = Transform3D(-6.3104557e-09, 0, -0.1443664, 0, 0.1443664, 0, 0.1443664, 0, -6.3104557e-09, 0.011682666, 0.21557641, -0.22742935)
+mesh = ExtResource("21_aduxn")
+
+[node name="Foregrip" type="Marker3D" parent="." unique_id=274782998]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.09144112, 0.264)
+
+[node name="Bolt" type="Marker3D" parent="." unique_id=23575059]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.20117047, 0.12319999)

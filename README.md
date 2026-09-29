@@ -154,3 +154,7 @@ godot --headless --path . res://tools/smoke_test.tscn
 - [ ] Карта мира и переходы между локациями.
 
 Шрифты Russo One и PT Mono распространяются по лицензии SIL Open Font License (`assets/fonts/OFL-*.txt`).
+
+## Сторонние модели
+
+- Автомат «Буран» — [low-poly AK-104 Kochevnik](https://sketchfab.com/3d-models/low-poly-ak-104-kochevnik-3c3b22c5d8994398b1cf57e5845cebdf), автор D_U, лицензия CC-BY-4.0 (патроны и запасной магазин из сцены убраны).

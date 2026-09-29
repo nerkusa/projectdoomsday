@@ -277,7 +277,7 @@ func _build() -> void:
 	grid.add_theme_constant_override("h_separation", 6)
 	grid.add_theme_constant_override("v_separation", 6)
 	row.add_child(grid)
-	for pair in [["kpk", "КПК  [I]"], ["sheet", "Дело  [C]"], ["reload", "Перезар. [R]"], ["sneak", "Красться [Z]"], ["give", "Сдаться"], ["end", "В бой"]]:
+	for pair in [["kpk", "КПК  [I]"], ["reload", "Перезар. [R]"], ["sneak", "Красться [Z]"], ["give", "Сдаться"], ["end", "В бой"]]:
 		var b := UITheme.key(pair[1], "primary" if pair[0] == "end" else "normal", 11)
 		b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		b.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -392,11 +392,10 @@ func refresh() -> void:
 	_btns.sneak.visible = not on
 	_btns.give.disabled = not my
 	_btns.reload.disabled = not DB.is_gun(Game.hero_wkey()) or (on and not my)
-	_btns.sheet.disabled = on
 	UITheme.style_key(_btns.sneak, "sel" if h.get("sneak", false) else "normal")
+	# «Дело» (лист персонажа) живёт в КПК; точка — есть нераспределённые очки
 	var pts := int(h.stat_pts) + int(h.skill_pts)
-	_btns.sheet.text = "Дело  [C]" + (" •" if pts > 0 or not h.locked else "")
-	_btns.kpk.text = ("КПК  [I]" if Game.flag("kpk") else "Сумка  [I]")
+	_btns.kpk.text = ("КПК  [I]" + (" •" if pts > 0 else "")) if Game.flag("kpk") else "Сумка  [I]"
 	_status.text = main.status_text() if main.has_method("status_text") else ""
 
 

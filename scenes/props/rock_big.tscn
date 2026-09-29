@@ -8,19 +8,19 @@
 [sub_resource type="BoxShape3D" id="BoxShape3D_3i1po"]
 size = Vector3(2.88, 1.32, 2.4)
 
-[node name="Rock" type="Node3D" unique_id=1425097758]
+[node name="Rock" type="Node3D" unique_id=1938623635]
 
-[node name="Mesh_rock_tex" type="MeshInstance3D" parent="." unique_id=2139554932]
+[node name="Mesh_rock_tex" type="MeshInstance3D" parent="." unique_id=154089823]
 material_override = ExtResource("1_x44c5")
 mesh = ExtResource("2_011vl")
 
-[node name="Mesh_moss" type="MeshInstance3D" parent="." unique_id=1410790819]
+[node name="Mesh_moss" type="MeshInstance3D" parent="." unique_id=935648342]
 material_override = ExtResource("3_86wfn")
 mesh = ExtResource("4_w36kq")
 
-[node name="Collision" type="StaticBody3D" parent="." unique_id=443493523]
+[node name="Collision" type="StaticBody3D" parent="." unique_id=1797388322]
 collision_mask = 0
 
-[node name="@CollisionShape3D@93" type="CollisionShape3D" parent="Collision" unique_id=1817368382]
+[node name="@CollisionShape3D@93" type="CollisionShape3D" parent="Collision" unique_id=2101280027]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.6, 0)
 shape = SubResource("BoxShape3D_3i1po")

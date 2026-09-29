@@ -51,7 +51,7 @@ func _ready() -> void:
 			"rock", "fire", "well", "woodpile", "table", "tractor", "garden", "fence", "fence_broken", "fence_gate", "border_post", "sign",
 			"planks", "basket", "mushroom", "berries", "bandage",
 			"item_flask", "item_matches", "item_blanket", "item_rope", "item_compass", "item_rusks",
-			"item_dried_fish", "item_canned", "item_herbs", "junk", "locked_box",
+			"item_dried_fish", "item_canned", "item_herbs", "item_screwdriver", "item_hairpin", "junk", "locked_box",
 			"spruce_b", "pine_b", "birch_b", "rock_small", "rock_big", "palisade_boarded", "palisade_patched",
 			"barrel", "crates", "cart", "bench", "hay_bale", "stump", "log_fallen", "table_long"]:
 		P[n] = load(PROP_DIR + n + ".tscn")
@@ -600,12 +600,16 @@ func _items() -> void:
 			["Izba8", "bed", "rusks"], ["Izba9", "floor", "rope"], ["Izba10", "table", "canned"],
 			["Izba12", "chest", "dried_fish"], ["Izba13", "stove", "matches"], ["Izba15", "bed", "blanket"],
 			["Hall", "table", "bandage"], ["Hall", "table2", "rusks"], ["Hall", "chest", "canned"],
-			["Barn", "sacks", "rusks"], ["Barn", "chest", "canned"], ["Barn", "floor", "herbs"]]:
+			["Barn", "sacks", "rusks"], ["Barn", "chest", "canned"], ["Barn", "floor", "herbs"],
+			["Izba7", "bed", "hairpin"], ["Izba12", "table", "hairpin"]]:
 		var house: Node3D = root.get_node("Village/" + it[0])
 		var slot: Node3D = house.get_node("Slot_" + it[1])
 		var pos: Vector3 = house.transform * slot.position
 		var ps: PackedScene = P.bandage if it[2] == "bandage" else P["item_" + it[2]]
 		item(items, ps, "Take_%s_%s" % [it[0], it[1]], pos)
+	# отвёртка у мастерской — вместе со шпилькой станет отмычкой для сундука
+	var ws_: Node3D = root.get_node("Village/Workshop")
+	item(items, P.item_screwdriver, "Take_Workshop", ws_.transform * Vector3(1.2, 0, 3.4))
 	# амбар: три кучи хлама и запертый сундук
 	var barn: Node3D = root.get_node("Village/Barn")
 	var ji := 0

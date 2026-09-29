@@ -1,7 +1,7 @@
 class_name KPK
 extends Control
 ## Карманный компьютер на браслете. Пока браслета нет — просто «Сумка».
-## Вкладки открываются модулями-кассетами: носитель, инвентарь, карта, связь.
+## С браслетом — полный КПК: инвентарь, «Дело» (лист персонажа), карта, задания, записи.
 
 signal closed
 signal use_item(id: String)
@@ -86,20 +86,9 @@ func close() -> void:
 
 
 func has_tab(t: String) -> bool:
-	var kpk := Game.flag("kpk")
-	var mods: Dictionary = Game.hero.flags.get("modules", {})
-	match t:
-		"quests":
-			return true
-		"inv":
-			return not kpk or mods.get("inventory", false)
-		"stat":
-			return kpk and mods.get("carrier", false)
-		"map":
-			return kpk and mods.get("map", false)
-		"notes":
-			return kpk and mods.get("radio", false)
-	return false
+	if Game.flag("kpk"):
+		return t in ["inv", "stat", "map", "quests", "notes"]
+	return t in ["inv", "quests"]
 
 
 func render() -> void:
@@ -107,7 +96,7 @@ func render() -> void:
 	_brand.text = "CT14 INC. · КПК НА БРАСЛЕТЕ" if kpk else "СУМКА"
 	for c in _tabs.get_children():
 		c.queue_free()
-	var names := {"inv": "Инвентарь", "stat": "Состояние", "map": "Карта", "quests": "Задания", "notes": "Записи"}
+	var names := {"inv": "Инвентарь", "stat": "Дело", "map": "Карта", "quests": "Задания", "notes": "Записи"}
 	if not has_tab(tab):
 		tab = "inv" if has_tab("inv") else ("stat" if has_tab("stat") else "quests")
 	for t in ["inv", "stat", "map", "quests", "notes"]:
@@ -118,16 +107,6 @@ func render() -> void:
 			tab = t
 			render())
 		_tabs.add_child(b)
-	if kpk:
-		var mods: Dictionary = Game.hero.flags.get("modules", {})
-		var miss := []
-		for m in [["carrier", "носитель"], ["inventory", "инвентарь"], ["map", "карта"], ["radio", "связь"]]:
-			if not mods.get(m[0], false):
-				miss.append(m[1])
-		if not miss.is_empty():
-			var l := UITheme.label("Нет модулей:\n" + ", ".join(miss), 10, UITheme.INK)
-			l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-			_tabs.add_child(l)
 	for c in _screen.get_children():
 		c.queue_free()
 	_title.text = names[tab].to_upper()
@@ -262,6 +241,11 @@ func _equip(hand: int) -> void:
 func _render_stat() -> void:
 	var h := Game.hero
 	_screen.add_child(_g("%s · уровень %d" % [h.name, h.level], 17, UITheme.GREEN_HI))
+	var pts := int(h.stat_pts) + int(h.skill_pts)
+	var eb := UITheme.key("Распределить очки: %d" % pts if pts > 0 else "Характеристики и навыки", "primary" if pts > 0 else "normal", 11)
+	eb.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	eb.pressed.connect(_open_sheet)
+	_screen.add_child(eb)
 	_screen.add_child(_g("ХП %d/%d · опыт %d/%d" % [Game.hero_hp(), Game.hero_max(), h.xp, Rules.xp_for_level(int(h.level) + 1)], 14))
 	var pb := ProgressBar.new()
 	pb.max_value = Rules.xp_for_level(int(h.level) + 1) - Rules.xp_for_level(int(h.level))
@@ -304,6 +288,15 @@ func _render_stat() -> void:
 	for x in top:
 		txt.append("%s %d" % [x[0], x[1]])
 	_screen.add_child(_g("Навыки: " + (", ".join(txt) if not txt.is_empty() else "нет"), 13))
+
+
+## Полный лист персонажа поверх КПК; после закрытия — обратно в «Дело»
+func _open_sheet() -> void:
+	if main.combat.on:
+		return
+	close()
+	main.sheet.closed.connect(func(): open("stat"), CONNECT_ONE_SHOT)
+	main.sheet.open()
 
 
 func _render_map() -> void:

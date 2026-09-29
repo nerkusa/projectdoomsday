@@ -20,7 +20,7 @@
   "varvara": {
     "name": "Тётка Варвара",
     "stats": {"INT": 6, "PRC": 6, "REF": 3, "DEX": 4, "BODY": 4, "EMP": 7, "CRA": 5, "WILL": 6},
-    "skills": {}, "hp_roll": 4, "weapon": "fists", "lethal": false,
+    "skills": {}, "hp_roll": 4, "weapon": "fists", "lethal": false, "pockets": {"chest_key": 1, "rusks": 1},
     "look": {"skin": "#c9a07a", "top": "#7a3a4a", "pants": "#4a3a3a", "hair": "#5a4a3a", "cap": "#a33a2a"}
   },
   "kid": {
@@ -61,12 +61,12 @@
   },
   "raider_dead_3": {
     "name": "Нападавший",
-    "weapon": "fists", "loot": {"module_inventory": 1, "raider_token": 1},
+    "weapon": "fists", "loot": {"raider_token": 1, "ammo762": 6},
     "look": {"skin": "#c9a07a", "top": "#3a3f3a", "pants": "#2e2f30", "vest": "#d9622b", "helmet": "#2b2b28"}
   },
   "raider_dead_4": {
     "name": "Нападавший",
-    "weapon": "fists", "loot": {"module_map": 1, "bandage": 2},
+    "weapon": "fists", "loot": {"bandage": 2},
     "look": {"skin": "#b58a66", "top": "#3a3f3a", "pants": "#2e2f30", "vest": "#d9622b", "helmet": "#2b2b28", "mask": true}
   },
 

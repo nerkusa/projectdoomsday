@@ -10,24 +10,24 @@
 [ext_resource type="Material" path="res://assets/materials/rust.tres" id="8_m88l7"]
 [ext_resource type="ArrayMesh" path="res://assets/models/props/junk_rust.res" id="9_uj2ax"]
 
-[node name="Junk" type="Node3D" unique_id=2102273673]
+[node name="Junk" type="Node3D" unique_id=156286390]
 script = ExtResource("1_2qiw7")
 kind = "use"
 label = "Хлам — разобрать"
 pick_size = Vector3(1.2, 0.8, 1)
 
-[node name="Mesh_planks_old" type="MeshInstance3D" parent="." unique_id=1159000629]
+[node name="Mesh_planks_old" type="MeshInstance3D" parent="." unique_id=1381918532]
 material_override = ExtResource("2_bkn5b")
 mesh = ExtResource("3_v4j45")
 
-[node name="Mesh_cloth_sack" type="MeshInstance3D" parent="." unique_id=154700262]
+[node name="Mesh_cloth_sack" type="MeshInstance3D" parent="." unique_id=1908981978]
 material_override = ExtResource("4_mjhof")
 mesh = ExtResource("5_6hs5n")
 
-[node name="Mesh_cloth_red" type="MeshInstance3D" parent="." unique_id=529411334]
+[node name="Mesh_cloth_red" type="MeshInstance3D" parent="." unique_id=624262701]
 material_override = ExtResource("6_kwm87")
 mesh = ExtResource("7_4g12t")
 
-[node name="Mesh_rust" type="MeshInstance3D" parent="." unique_id=1620713285]
+[node name="Mesh_rust" type="MeshInstance3D" parent="." unique_id=1614693202]
 material_override = ExtResource("8_m88l7")
 mesh = ExtResource("9_uj2ax")

@@ -200,14 +200,6 @@ func objective() -> String:
 			return "Нахарро горит. Найти деда."
 		return "Дед у амбара!"
 	var pack := pack_line()
-	var mods: Dictionary = Game.hero.flags.get("modules", {})
-	var need := []
-	if not mods.get("inventory", false):
-		need.append("«Инвентарь»")
-	if not mods.get("map", false):
-		need.append("«Карта»")
-	if not need.is_empty():
-		return "Обыскать тела нападавших: найти модули %s. Потом — на запад, к старой черте.%s" % [" и ".join(need), pack]
 	return "Идти на запад по старой просеке, к старой черте." + pack
 
 
@@ -262,6 +254,13 @@ func _check_pack() -> void:
 ## Пока идёт налёт, из деревни слышны выстрелы и крики: чем ближе герой, тем громче.
 ## Защитники у ворот отстреливаются от остатков нападавших.
 func _process(delta: float) -> void:
+	_mark_t -= delta
+	if _mark_t <= 0.0:
+		_mark_t = 0.4
+		_update_quest_marks()
+	for m in _qmarks.values():
+		if is_instance_valid(m) and m.visible:
+			m.position.y = m.get_meta("y0") + sin(Time.get_ticks_msec() / 250.0) * 0.08
 	if main == null:
 		return
 	_prowl_tick(delta)
@@ -314,6 +313,14 @@ func on_hero_moved(pos: Vector3) -> void:
 		var gg := character("GateGuard")
 		if gg and gg.visible and gg.pose != "dead" and gg.global_position.distance_to(pos) < GATE_SCENE_R:
 			_gate_scene()
+		elif gg and gg.pose != "dead" and pos.z > 40.0 and gg.global_position.distance_to(pos) > 12.0:
+			# герой вошёл в деревню другой дорогой — часового у ворот уже убили
+			Game.set_flag("gate_started")
+			_kill_npc(gg, false)
+			for e in [character("Executioner"), character("GateRaider")]:
+				if e and e.pose != "dead":
+					e.hostile = true
+					e.aggro_radius = 8.0
 	if not Game.flag("barn_started"):
 		var ded := character("DedRaid")
 		if ded and ded.global_position.distance_to(pos) < BARN_SCENE_R:
@@ -322,6 +329,9 @@ func on_hero_moved(pos: Vector3) -> void:
 			main.say("thoughts", "ded_seen")
 			_barn_t = 10.0
 			main.hud.refresh_objective()
+			if _alive_cleaner() == null:
+				_barn_t = -1.0
+				_ded_falls()
 
 
 func can_pick(it: Interactable) -> bool:
@@ -370,7 +380,8 @@ func _steal(_it: Interactable) -> bool:
 	var w := _witness()
 	if w:
 		main.player.act("pickup")
-		w.face_towards(main.player.global_position)
+		if w.pose == "":
+			w.face_towards(main.player.global_position)
 		var line: String = SCOLD[randi() % SCOLD.size()]
 		main.hud.float_text(w.global_position + Vector3(0, 2.0, 0), line, "miss")
 		Game.log_line("%s: «%s»" % [w.display_name if w.display_name != "" else "Житель", line], "", "miss")
@@ -594,7 +605,7 @@ func _gate_scene() -> void:
 		gr.aim_pose = true
 		gr.act("fire", Callable(), {"n": 2})
 	await get_tree().create_timer(0.7, false).timeout
-	_kill_npc(gg)
+	_kill_npc(gg, false)
 	main.hud.float_text(gg.global_position + Vector3(0, 1.6, 0), "Эрчим!", "hit")
 	main.say("thoughts", "gate_guard_dead")
 	await get_tree().create_timer(1.2, false).timeout
@@ -606,14 +617,15 @@ func _gate_scene() -> void:
 		main.start_fight([ex])
 
 
-func _kill_npc(ch: Character) -> void:
+func _kill_npc(ch: Character, looted := true) -> void:
 	if ch == null or ch.pose == "dead":
 		return
 	ch.pose = "dead"
 	ch.aim_pose = false
 	ch.set_held("")
 	ws().dead[ch.uid()] = true
-	ws().looted[ch.uid()] = true
+	if looted:
+		ws().looted[ch.uid()] = true
 
 
 ## В первых двух раундах боя у ворот стрелок расстреливает пленного (если ещё жив)
@@ -678,6 +690,8 @@ func _barn_tick(delta: float) -> void:
 		if shooter:
 			_shoot_ded(shooter)
 			_cleaners_leave()
+		else:
+			_ded_falls()
 
 
 func _cleaners_leave() -> void:
@@ -745,27 +759,7 @@ func on_interact(it: Interactable) -> bool:
 			Game.set_quest("barn_junk", 2)
 		return true
 	if it.name == "LockedBox":
-		if Game.flag("box_open"):
-			return true
-		if Game.flag("box_jammed"):
-			main.hud.flash_tip("Замок заклинило намертво")
-			return true
-		# чужой сундук в общем амбаре — до налёта это воровство
-		if phase() == "morning" and not _steal(it):
-			return true
-		main.player.act("pickup")
-		if Game.skill_check("Взлом замков", "DEX", "Взлом замков", 11):
-			Game.set_flag("box_open")
-			ws().picked[it.uid()] = true
-			it.set_active(false)
-			Game.add_item("ammo9", 6)
-			Game.add_item("canned", 1)
-			Game.log_line("В сундуке: патроны 9 мм ×6, консервы", "", "hit")
-			Game.add_note("В старом сундуке в амбаре — довоенная коробка патронов. Кто-то когда-то спрятал «не на себя», а на чёрный день.")
-			Game.grant_xp(25)
-		else:
-			Game.set_flag("box_jammed")
-			Game.log_line("Отмычка хрустнула — замок заклинило.", "", "miss")
+		_chest(it, String(it.get_meta("act", "")))
 		return true
 	if it.name == "BorderExit":
 		if phase() == "morning":
@@ -786,8 +780,9 @@ func on_dialog_action(a: String, _sp: Character) -> bool:
 			var ded := character("DedRaid")
 			if ded:
 				ded.pose = "dead"
+				ded.aim_pose = false
+				ded.set_held("")
 				ws().dead[ded.uid()] = true
-				ws().looted[ded.uid()] = true
 			Game.set_flag("ded_dead")
 			Game.set_flag("phase", "after")
 			Game.set_quest("bootur", 1)
@@ -901,11 +896,21 @@ func on_combat_end(res: String, kind: String) -> void:
 				var c := v
 				v.move_along([Vector3(v.global_position.x + 6, 0, 56), Vector3(84, 0, 56)], func(): _gone_home(c), 3.4)
 				main.say("thoughts", "doomed_saved")
+	_ded_falls()
+
+
+## Нападавших у амбара больше нет (убиты или ушли) — дед падает раненым и зовёт внука.
+## Вызывается после боя, при подходе к амбару и по таймеру сцены.
+func _ded_falls() -> void:
 	if Game.flag("ded_dead") or not Game.flag("barn_started") or _alive_cleaner() != null:
 		return
+	var dd := character("DedRaid")
+	if dd == null:
+		return
+	dd.aim_pose = false
 	if not Game.flag("ded_shot"):
 		Game.set_flag("ded_shot")
-		character("DedRaid").pose = "down"
+		dd.pose = "down"
 	Game.set_quest("fire", 3)
 	var ded := character("DedRaid")
 	ded.dialog = "ded"
@@ -951,6 +956,135 @@ func _shoot_ded(shooter: Character, dying := false) -> void:
 	else:
 		shooter.act("swing", hit)
 	main.say("thoughts", "ded_shot")
+
+
+# ---------------- отметки над квестовыми вещами ----------------
+var _mark_t := 0.0
+var _qmarks := {}
+
+
+## Нужна ли вещь прямо сейчас по заданию (доски, корзина, грибы, ягоды, дыра в заборе)
+func _quest_item(it: Interactable) -> bool:
+	if not it.visible:
+		return false
+	var ch := Game.quest_stage("chores") == 1 and phase() == "morning"
+	match String(it.name):
+		"Planks":
+			return ch and not Game.flag("fence_done") and Game.item_count("planks") == 0
+		"Basket":
+			return ch and not Game.flag("basket_done") and Game.item_count("basket") == 0
+		"FenceMend":
+			return not Game.flag("fence_done") and Game.item_count("planks") > 0
+	if it.item_id in ["mushroom", "berries"]:
+		return Game.quest_stage("forest") == 1 and phase() == "morning"
+	return false
+
+
+func _update_quest_marks() -> void:
+	for it in items():
+		var on := _quest_item(it)
+		var m: Label3D = _qmarks.get(it.name, null)
+		if on and m == null:
+			m = Label3D.new()
+			m.text = "▼"
+			m.font_size = 64
+			m.pixel_size = 0.006
+			m.modulate = Color("ffb640")
+			m.outline_modulate = Color(0.1, 0.05, 0.0, 0.9)
+			m.outline_size = 10
+			m.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+			m.no_depth_test = true
+			m.fixed_size = false
+			var y: float = maxf(0.9, it.pick_size.y + 0.6)
+			m.position = Vector3(0, y, 0)
+			m.set_meta("y0", y)
+			it.add_child(m)
+			_qmarks[it.name] = m
+		if m:
+			m.visible = on
+
+
+# ---------------- сундук в амбаре ----------------
+## Заперт. Открыть: ключом (он у тётки Варвары — стащить из кармана или снять с тела)
+## или отмычкой из отвёртки и шпильки. До налёта это воровство. Внутри — автомат «Буран».
+func _chest(it: Interactable, act: String) -> void:
+	if Game.flag("box_open"):
+		_open_chest(it)
+		return
+	var has_key := Game.item_count("chest_key") > 0
+	var tools := Game.item_count("screwdriver") > 0 and Game.item_count("hairpin") > 0
+	if act == "":
+		act = "key" if has_key else ("pick" if tools else "")
+	match act:
+		"key":
+			if not has_key:
+				main.hud.flash_tip("Ключа нет. Он у тётки Варвары — в кармане фартука")
+				return
+			if phase() == "morning" and not _steal(it):
+				return
+			main.player.act("pickup")
+			Game.log_line("Ключ повернулся с хрустом. Сундук открыт.", "", "hit")
+		"pick":
+			if not tools:
+				main.hud.flash_tip("Нужны отвёртка и шпилька")
+				return
+			if phase() == "morning" and not _steal(it):
+				return
+			main.player.act("pickup")
+			if not Game.skill_check("Взлом замков", "DEX", "Взлом замков", 11, 2):
+				Game.remove_item("hairpin")
+				Game.log_line("Шпилька сломалась в замке. Нужна другая.", "", "miss")
+				return
+			Game.log_line("Отвёртка вместо рычага, шпилька — щуп. Щелчок — открыто.", "", "hit")
+			Game.grant_xp(25)
+		_:
+			main.hud.flash_tip("Заперт. Ключ — у тётки Варвары. Или отвёртка со шпилькой")
+			return
+	Game.set_flag("box_open")
+	Game.add_note("В общем сундуке в амбаре — довоенный автомат, завёрнутый в мешковину. Кто-то берёг его «на чёрный день». Чёрный день настал.")
+	_open_chest(it)
+
+
+func _open_chest(it: Interactable) -> void:
+	var gen := func() -> Array:
+		return [{"id": "buran", "n": 1, "ok": not Game.hero.owned.has("buran"), "why": "уже есть"},
+			{"id": "ammo762", "n": 30, "ok": true}, {"id": "canned", "n": 1, "ok": true}]
+	main.open_loot("LockedBox", "Сундук в амбаре", gen)
+
+
+## Действия по правой кнопке для вещей и мест этой локации
+func item_actions(it: Interactable) -> Array:
+	var n := String(it.name)
+	if n.begins_with("Junk"):
+		return [["Разобрать", "use"]]
+	if n == "LockedBox":
+		if Game.flag("box_open"):
+			return [["Открыть", "use"]]
+		return [["Открыть ключом", "use:key"], ["Взломать (отвёртка + шпилька)", "use:pick"]]
+	if n.begins_with("HideBush"):
+		return [["Спрятаться", "use"]]
+	if n == "FenceMend":
+		return [["Заделать досками", "use"]]
+	if n == "BorderExit":
+		return [["Перейти черту", "use"]]
+	if it.kind == "item":
+		return [["Взять (это воровство)" if _is_theft(it) else "Взять", "use"]]
+	return []
+
+
+func describe(it: Interactable) -> String:
+	var n := String(it.name)
+	if n == "LockedBox":
+		return "Тяжёлый общий сундук с навесным замком. Ключ носит тётка Варвара." if not Game.flag("box_open") else "Сундук открыт."
+	if n.begins_with("Junk"):
+		return "Куча хлама: битые ящики, тряпьё, гнутые гвозди. Варвара просила разобрать."
+	if n.begins_with("HideBush"):
+		return "Густые кусты. Если присесть — снаружи не видно."
+	if n == "FenceMend":
+		return "Дыра в заборе Степана: штакетник выломан, жердь висит. Пара досок — и будет как новый."
+	if n == "BorderExit":
+		return "Старая черта: дальше за неё жителям ходить запрещено."
+	return ""
 
 
 # ---------------- забор Степана ----------------
@@ -1035,9 +1169,11 @@ func _assemble_kpk() -> void:
 	Game.set_flag("kpk")
 	# «Носитель» (состояние владельца) встроен в сам компьютер
 	var mods: Dictionary = Game.hero.flags.get("modules", {})
-	mods["carrier"] = true
+	for m in ["carrier", "inventory", "map"]:
+		mods[m] = true
 	Game.hero.flags["modules"] = mods
 	_absorb_modules()
+	_update_exit_guard()
 	_kpk_busy = false
 	main.player.show_bracelet(true)
 	main.hud.refresh()

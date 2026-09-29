@@ -229,7 +229,8 @@ func _ready() -> void:
 		main.interact(jt)
 		await wait(0.4)
 	ok(Game.quest_stage("barn_junk") == 2, "хлам разобран")
-	ok(Game.flag("box_open") or Game.flag("box_jammed"), "сундук: взлом попробован (%s)" % ("открыт" if Game.flag("box_open") else "заклинило"))
+	ok(not Game.flag("box_open"), "сундук без ключа и отмычки не открыть")
+	ok(main.location.item_actions(main.location.item("LockedBox")).size() == 2, "у сундука два действия: ключом и взломать")
 	main.talk_to(main.location.character("Varvara"))
 	await frames(2)
 	await choose(find_opt("Хлам разобрал"))
@@ -384,6 +385,7 @@ func _ready() -> void:
 	var r1: Character = main.location.character("Raider1")
 	await tp(r1.global_position + Vector3(1.2, 0, 0))
 	main.loot(r1)
+	main.loot_win.take_all()
 	await wait(0.3)
 	ok(not main.hud._bar.visible, "панели всё ещё нет — КПК не собран")
 	Game.hero.hands = ["father_pistol", "oyun"]
@@ -437,7 +439,8 @@ func _ready() -> void:
 		await wait(0.25)
 		tk += 0.25
 	ok(main.kpk.visible and main.kpk.tab == "stat", "КПК открылся: «Состояние»")
-	ok(not main.kpk.has_tab("inv") and not main.kpk.has_tab("map"), "без модулей нет инвентаря и карты")
+	ok(main.kpk.has_tab("inv") and main.kpk.has_tab("map") and main.kpk.has_tab("stat"), "КПК сразу полный: инвентарь, «Дело», карта")
+	ok(not main.hud._btns.has("sheet"), "кнопки «Дело» на панели нет — оно в КПК")
 	main.kpk.close()
 	ok(main.hud._bar.visible and main.hud._tape.visible, "с КПК появился полный интерфейс")
 	main.open_kpk("quests")
@@ -450,17 +453,16 @@ func _ready() -> void:
 	ok(main.kpk.visible, "КПК открыт повторно")
 	main.kpk.close()
 
-	# --- модули на телах ---
+	# --- тела нападавших ---
 	for n in ["Raider2", "Raider3", "Raider4"]:
 		var r: Character = main.location.character(n)
 		await tp(r.global_position + Vector3(1.2, 0, 0))
 		main.loot(r)
 		await wait(0.3)
+		main.loot_win.take_all()
 		if main.combat.on:
 			await fight()
 		await close_dialogs()
-	var mods: Dictionary = Game.hero.flags.get("modules", {})
-	ok(mods.get("inventory", false) and mods.get("map", false), "модули «Инвентарь» и «Карта» вставлены")
 	var eg: Character = main.location.character("ExitRaider")
 	ok(eg.visible and (eg.hostile or eg.pose == "dead"), "у черты появился раненый нападавший")
 	if eg.pose != "dead":
@@ -478,13 +480,30 @@ func _ready() -> void:
 	await tp(eg.global_position + Vector3(1.2, 0, 0))
 	main.loot(eg)
 	await wait(0.4)
-	mods = Game.hero.flags.get("modules", {})
+	main.loot_win.take_all()
+	var mods: Dictionary = Game.hero.flags.get("modules", {})
 	ok(mods.get("radio", false), "модуль «Связь» с раненого")
 	for tb in ["inv", "stat", "map", "quests", "notes"]:
 		main.kpk.open(tb)
 		await frames(2)
 		ok(main.kpk.tab == tb, "вкладка КПК: " + tb)
 	main.kpk.close()
+
+	# --- ключ с тела Варвары, сундук в амбаре, автомат «Буран» ---
+	var dv: Character = main.location.character("DeadVarvara")
+	await tp(dv.global_position + Vector3(1.2, 0, 0))
+	main.loot(dv)
+	await wait(0.3)
+	ok(main.loot_win.visible, "окно обыска открылось")
+	main.loot_win.take_all()
+	ok(Game.item_count("chest_key") == 1, "ключ от сундука с тела Варвары")
+	var box: Interactable = main.location.item("LockedBox")
+	await tp(Vector3(box.global_position.x + 0.8, 0, box.global_position.z + 0.8))
+	main.interact(box)
+	await wait(0.4)
+	ok(Game.flag("box_open") and main.loot_win.visible, "сундук открыт ключом")
+	main.loot_win.take_all()
+	ok(Game.hero.owned.has("buran"), "автомат «Буран» взят из сундука")
 
 	# --- сборы в дорогу ---
 	for n in ["Take_IzbaDed_table", "Take_IzbaDed_stove", "Take_IzbaDed_bed", "Take_Izba3_chest", "Take_Izba2_table", "Take_Hall_table2"]:

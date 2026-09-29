@@ -1,0 +1,11 @@
+Model Information:
+* title:	low-poly AK-104 Kochevnik
+* source:	https://sketchfab.com/3d-models/low-poly-ak-104-kochevnik-3c3b22c5d8994398b1cf57e5845cebdf
+* author:	D_U (https://sketchfab.com/DU1701)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "low-poly AK-104 Kochevnik" (https://sketchfab.com/3d-models/low-poly-ak-104-kochevnik-3c3b22c5d8994398b1cf57e5845cebdf) by D_U (https://sketchfab.com/DU1701) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

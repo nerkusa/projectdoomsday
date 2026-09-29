@@ -1,0 +1,20 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/interactable.gd" id="1_xqiwu"]
+[ext_resource type="Material" path="res://assets/materials/cloth_red.tres" id="2_kqtdk"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/item_screwdriver_cloth_red.res" id="3_r0i6h"]
+[ext_resource type="Material" path="res://assets/materials/tin.tres" id="4_o5uvt"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/item_screwdriver_tin.res" id="5_jttcl"]
+
+[node name="Item" type="Node3D" unique_id=1339617798]
+script = ExtResource("1_xqiwu")
+item_id = "screwdriver"
+pick_size = Vector3(0.4, 0.25, 0.3)
+
+[node name="Mesh_cloth_red" type="MeshInstance3D" parent="." unique_id=224581236]
+material_override = ExtResource("2_kqtdk")
+mesh = ExtResource("3_r0i6h")
+
+[node name="Mesh_tin" type="MeshInstance3D" parent="." unique_id=1031701363]
+material_override = ExtResource("4_o5uvt")
+mesh = ExtResource("5_jttcl")

@@ -7,16 +7,16 @@
 [ext_resource type="Material" path="res://assets/materials/bush_card.tres" id="5_kufl8"]
 [ext_resource type="ArrayMesh" path="res://assets/models/props/bush_bush_card.res" id="6_6s4ui"]
 
-[node name="Bush" type="Node3D" unique_id=101542739]
+[node name="Bush" type="Node3D" unique_id=620132894]
 
-[node name="Mesh_bark_dark" type="MeshInstance3D" parent="." unique_id=789920905]
+[node name="Mesh_bark_dark" type="MeshInstance3D" parent="." unique_id=1737946515]
 material_override = ExtResource("1_h5uqq")
 mesh = ExtResource("2_2rg6i")
 
-[node name="Mesh_birch_card_dark" type="MeshInstance3D" parent="." unique_id=1144158391]
+[node name="Mesh_birch_card_dark" type="MeshInstance3D" parent="." unique_id=1219156736]
 material_override = ExtResource("3_we56a")
 mesh = ExtResource("4_1nppw")
 
-[node name="Mesh_bush_card" type="MeshInstance3D" parent="." unique_id=159364623]
+[node name="Mesh_bush_card" type="MeshInstance3D" parent="." unique_id=1606869247]
 material_override = ExtResource("5_kufl8")
 mesh = ExtResource("6_6s4ui")

@@ -3,10 +3,10 @@
 [ext_resource type="Material" path="res://scenes/weapons/knife_mat.tres" id="1_dg0bh"]
 [ext_resource type="ArrayMesh" path="res://scenes/weapons/oyun_mesh0.res" id="2_6fi8m"]
 
-[node name="Knife" type="Node3D" unique_id=593978615]
+[node name="Knife" type="Node3D" unique_id=161206329]
 metadata/length = 0.3
 
-[node name="Mesh0" type="MeshInstance3D" parent="." unique_id=336997623]
+[node name="Mesh0" type="MeshInstance3D" parent="." unique_id=1427152575]
 transform = Transform3D(-3.0590002e-09, 0, 0.06998177, 0, 0.06998177, 0, -0.06998177, 0, -3.0590002e-09, 0.00022460034, 0.00057895953, 0.024726748)
 material_override = ExtResource("1_dg0bh")
 mesh = ExtResource("2_6fi8m")

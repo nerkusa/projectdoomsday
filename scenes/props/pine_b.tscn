@@ -8,19 +8,19 @@
 [sub_resource type="BoxShape3D" id="BoxShape3D_rmykp"]
 size = Vector3(0.6, 2, 0.6)
 
-[node name="Pine" type="Node3D" unique_id=876001668]
+[node name="Pine" type="Node3D" unique_id=863567719]
 
-[node name="Mesh_bark_dark" type="MeshInstance3D" parent="." unique_id=1700568593]
+[node name="Mesh_bark_dark" type="MeshInstance3D" parent="." unique_id=1217887221]
 material_override = ExtResource("1_d31ao")
 mesh = ExtResource("2_3qw06")
 
-[node name="Mesh_pine_card" type="MeshInstance3D" parent="." unique_id=370492957]
+[node name="Mesh_pine_card" type="MeshInstance3D" parent="." unique_id=601147534]
 material_override = ExtResource("3_yt7f7")
 mesh = ExtResource("4_ohkkr")
 
-[node name="Collision" type="StaticBody3D" parent="." unique_id=8875549]
+[node name="Collision" type="StaticBody3D" parent="." unique_id=831436706]
 collision_mask = 0
 
-[node name="@CollisionShape3D@88" type="CollisionShape3D" parent="Collision" unique_id=172862258]
+[node name="@CollisionShape3D@88" type="CollisionShape3D" parent="Collision" unique_id=2013869674]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
 shape = SubResource("BoxShape3D_rmykp")

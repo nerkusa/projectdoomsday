@@ -1397,6 +1397,14 @@ func travel_items() -> void:
 			cyl("herb", 0.015, 0.05, 0.32, Vector3(-0.02 + i * 0.01, 0.04 + (i % 2) * 0.02, 0), Vector3(0, i * 0.3, PI / 2.0 + (i - 2) * 0.06), 6)
 		box("rope_mat", Vector3(0.02, 0.1, 0.1), Vector3(0.09, 0.05, 0)))
 
+	_item("screwdriver", Vector3(0.4, 0.25, 0.3), func():
+		cyl("cloth_red", 0.018, 0.02, 0.1, Vector3(-0.06, 0.02, 0), Vector3(0, 0, PI / 2.0), 8)
+		cyl("tin", 0.005, 0.005, 0.13, Vector3(0.055, 0.02, 0), Vector3(0, 0, PI / 2.0), 6))
+	_item("hairpin", Vector3(0.3, 0.2, 0.3), func():
+		box("metal_dark", Vector3(0.07, 0.004, 0.004), Vector3(0, 0.004, 0.006))
+		box("metal_dark", Vector3(0.07, 0.004, 0.004), Vector3(0, 0.004, -0.006), Vector3(0, 0.12, 0))
+		box("cloth_red", Vector3(0.012, 0.01, 0.02), Vector3(-0.036, 0.006, 0)))
+
 
 func _item(id: String, pick: Vector3, build: Callable) -> void:
 	begin()

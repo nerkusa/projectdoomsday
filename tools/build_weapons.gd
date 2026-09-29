@@ -33,6 +33,9 @@ const W := {
 		"tex": {"albedo": "axe_albedo.png", "normal": "axe_normal.png", "rough": "axe_rough.png", "metal": "axe_metal.png"}},
 	"crowbar": {"file": "crowbar/crowbar.fbx", "rot": Vector3(-90, 0, 0), "flip": true, "length": 0.75, "grip": Vector2(0.12, 0.5),
 		"tex": {"albedo": "crowbar_albedo.png"}},
+	# AK-104 «Кочевник» (D_U, CC-BY-4.0) — патроны и запасной магазин из сцены убраны
+	"buran": {"file": "buran/buran.gltf", "rot": Vector3(0, -90, 0), "length": 0.88, "grip": Vector2(0.36, 0.3),
+		"keep_mats": true, "foregrip": 0.66, "bolt": 0.5},
 	"machete": {"file": "machete/machete.fbx", "rot": Vector3(0, 0, 0), "length": 0.6, "grip": Vector2(0.12, 0.5),
 		"tex": {"albedo": "machete_albedo.png", "normal": "machete_normal.png", "rough": "machete_rough.png", "metal": "machete_metal.png"}},
 }
@@ -150,7 +153,8 @@ func _build(k: String) -> void:
 		elif not ResourceLoader.exists(mp) or c.src_key == k:
 			ResourceSaver.save(mt[0], mp)
 		mi.mesh = load(mp)
-		mi.material_override = mat
+		if not c.get("keep_mats", false):
+			mi.material_override = mat
 		mi.transform = Transform3D(basis.scaled(Vector3.ONE * s), -grip) * mt[1]
 		root.add_child(mi)
 		mi.owner = root
