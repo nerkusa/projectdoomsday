@@ -5,7 +5,7 @@
 [resource]
 resource_name = "birch_card_dark"
 transparency = 2
-alpha_scissor_threshold = 0.45
+alpha_scissor_threshold = 0.3
 alpha_antialiasing_mode = 0
 cull_mode = 2
 albedo_color = Color(0.6039216, 0.65882355, 0.53333336, 1)

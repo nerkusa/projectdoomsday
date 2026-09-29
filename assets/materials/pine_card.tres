@@ -5,7 +5,7 @@
 [resource]
 resource_name = "pine_card"
 transparency = 2
-alpha_scissor_threshold = 0.45
+alpha_scissor_threshold = 0.3
 alpha_antialiasing_mode = 0
 cull_mode = 2
 albedo_texture = ExtResource("1_2tm7k")

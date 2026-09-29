@@ -8,19 +8,19 @@
 [sub_resource type="BoxShape3D" id="BoxShape3D_siot3"]
 size = Vector3(0.6, 0.9, 0.6)
 
-[node name="Barrel" type="Node3D" unique_id=1640673027]
+[node name="Barrel" type="Node3D" unique_id=135238946]
 
-[node name="Mesh_metal_dark" type="MeshInstance3D" parent="." unique_id=791955379]
+[node name="Mesh_metal_dark" type="MeshInstance3D" parent="." unique_id=904059645]
 material_override = ExtResource("1_ikkq8")
 mesh = ExtResource("2_dn7ut")
 
-[node name="Mesh_rust" type="MeshInstance3D" parent="." unique_id=1387306870]
+[node name="Mesh_rust" type="MeshInstance3D" parent="." unique_id=610375470]
 material_override = ExtResource("3_j1kq6")
 mesh = ExtResource("4_c4ldr")
 
-[node name="Collision" type="StaticBody3D" parent="." unique_id=1385239223]
+[node name="Collision" type="StaticBody3D" parent="." unique_id=525876710]
 collision_mask = 0
 
-[node name="@CollisionShape3D@99" type="CollisionShape3D" parent="Collision" unique_id=888693744]
+[node name="@CollisionShape3D@99" type="CollisionShape3D" parent="Collision" unique_id=1602109074]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.45, 0)
 shape = SubResource("BoxShape3D_siot3")

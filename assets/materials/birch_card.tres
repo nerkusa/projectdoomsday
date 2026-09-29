@@ -5,7 +5,7 @@
 [resource]
 resource_name = "birch_card"
 transparency = 2
-alpha_scissor_threshold = 0.45
+alpha_scissor_threshold = 0.3
 alpha_antialiasing_mode = 0
 cull_mode = 2
 albedo_texture = ExtResource("1_e1yca")
