@@ -48,8 +48,22 @@ func build(look := {}) -> bool:
 		att_l.add_child(_hand_l)
 	for mi in _meshes(inst):
 		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
-		_tint(mi, look)
+		if look.has("skin_mesh") and ResourceLoader.exists(str(look.skin_mesh)):
+			_skin(mi, look)
+		else:
+			_tint(mi, look)
 	return true
+
+
+## Своя сетка с развёрткой и запечённой текстурой (герой: tools/bake_hero_skin.py).
+## Кости те же, что у манекена, так что скелет и анимации остаются прежними.
+func _skin(mi: MeshInstance3D, look: Dictionary) -> void:
+	mi.mesh = load(str(look.skin_mesh))
+	var m := StandardMaterial3D.new()
+	m.albedo_texture = load(str(look.skin_tex))
+	m.roughness = 0.85
+	m.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS_ANISOTROPIC
+	mi.set_surface_override_material(0, m)
 
 
 func _tint(mi: MeshInstance3D, look: Dictionary) -> void:

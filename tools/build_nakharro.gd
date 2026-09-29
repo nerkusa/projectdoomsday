@@ -101,7 +101,8 @@ func _env() -> void:
 	env.tonemap_mode = Environment.TONE_MAPPER_FILMIC
 	env.fog_enabled = true
 	env.fog_light_color = Color("b3a07c")
-	env.fog_density = 0.004
+	# в изометрии камера далеко (~32 м): плотный туман выцвечивал всю картинку
+	env.fog_density = 0.001
 	env.fog_sky_affect = 0.0
 	env.glow_enabled = true
 	env.glow_intensity = 0.6
