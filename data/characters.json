@@ -1,7 +1,7 @@
 {
   "_help": "Шаблоны персонажей. stats — характеристики (INT PRC REF DEX BODY EMP CRA WILL), skills — навыки, hp_roll — d10 к здоровью, weapon — ключ из weapons.json, armor — броня тела {type: light/heavy, max, name}, lethal: false — сдаётся на 25% ХП вместо смерти, xp — опыт за победу, loot — что лежит в карманах, look — цвета внешности (skin, top, pants, vest, hair, beard, cap, helmet, boots, glasses, mask), hp_frac — с какой долей здоровья начинает.",
 
-  "hero": {"name": "Герой", "look": {"skin": "#c49a74", "top": "#6b5a2e", "pants": "#3a4552", "hair": "#1c1612", "skin_mesh": "res://assets/models/hero_skin_mesh.res", "skin_tex": "res://assets/models/hero_skin.png"}},
+  "hero": {"name": "Герой", "look": {"skin": "#c49a74", "top": "#6b5a2e", "pants": "#3a4552", "hair": "#1c1612", "skin_mesh": "res://assets/models/hero_model_mesh.res", "skin_tex": "res://assets/models/hero_model.png"}},
 
   "ded": {
     "name": "Дед Уйбаан",

@@ -2,10 +2,15 @@ extends SceneTree
 ## Собирает сетку героя с новой развёрткой из assets/models/hero_skin_mesh.bin
 ## (его пишет tools/bake_hero_skin.py) в assets/models/hero_skin_mesh.res.
 ## Кости и веса те же, что у манекена UAL, поэтому все анимации работают как есть.
-## Запуск: godot --headless --path . -s res://tools/build_hero_skin.gd
+## Запуск: godot --headless --path . -s res://tools/build_hero_skin.gd [-- hero_model]
+## (hero_model — модель из tools/rig_hero_model.py; по умолчанию hero_skin)
 
 func _init() -> void:
-	var f := FileAccess.open("res://assets/models/hero_skin_mesh.bin", FileAccess.READ)
+	var nm := "hero_skin"
+	var ua := OS.get_cmdline_user_args()
+	if not ua.is_empty():
+		nm = ua[0]
+	var f := FileAccess.open("res://assets/models/%s_mesh.bin" % nm, FileAccess.READ)
 	var nv := f.get_32()
 	var nf := f.get_32()
 	var pos := PackedVector3Array()
@@ -67,6 +72,6 @@ func _init() -> void:
 	arr[Mesh.ARRAY_INDEX] = idx
 	var m := ArrayMesh.new()
 	m.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arr)
-	ResourceSaver.save(m, "res://assets/models/hero_skin_mesh.res")
+	ResourceSaver.save(m, "res://assets/models/%s_mesh.res" % nm)
 	print("сетка героя собрана, несовпадений костей: ", bad)
 	quit()
