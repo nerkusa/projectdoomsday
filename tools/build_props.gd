@@ -80,6 +80,23 @@ func _tex_mat(n: String, tex: String, scale: float, rough := 0.95, metal := 0.0,
 	M[n] = load(MAT_DIR + n + ".tres")
 
 
+## Листва: карточка с вырезом по прозрачности, видна с обеих сторон, чуть просвечивает на солнце
+func _card_mat(n: String, tex: String, tint: Color) -> void:
+	var m := StandardMaterial3D.new()
+	m.resource_name = n
+	m.albedo_texture = load(TEX_DIR + tex + ".png")
+	m.albedo_color = tint
+	m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR
+	m.alpha_scissor_threshold = 0.3
+	m.cull_mode = BaseMaterial3D.CULL_DISABLED
+	m.roughness = 0.95
+	m.backlight_enabled = true
+	m.backlight = Color(0.16, 0.2, 0.1)
+	m.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS_ANISOTROPIC
+	ResourceSaver.save(m, MAT_DIR + n + ".tres")
+	M[n] = load(MAT_DIR + n + ".tres")
+
+
 ## Плоское пятно на земле: текстура с прозрачными краями, гладкость по карте _r
 func _decal_mat(n: String, tex: String) -> void:
 	var m := StandardMaterial3D.new()
@@ -122,6 +139,13 @@ func _materials() -> void:
 	_tex_mat("leaves_dark", "leaves_tex", 1.0, 1.0, 0.0, Color("8a9a80"))
 	_tex_mat("needles_b", "needles", 0.9, 1.0, 0.0, Color("c8d0b0"))
 	_tex_mat("rock_tex", "rock", 0.7, 0.95, 0.0, Color("9a968c"))
+	# листва — карточки веток с прозрачным фоном
+	_card_mat("spruce_card", "spruce_branch", Color.WHITE)
+	_card_mat("spruce_card_b", "spruce_branch", Color("b8c4a8"))
+	_card_mat("pine_card", "pine_tuft", Color.WHITE)
+	_card_mat("birch_card", "birch_leaves", Color.WHITE)
+	_card_mat("birch_card_dark", "birch_leaves", Color("9aa888"))
+	_card_mat("bush_card", "birch_leaves", Color("7f9070"))
 	_tex_mat("moss", "grass_dark", 1.2, 1.0, 0.0, Color("b0c090"))
 	_tex_mat("mud_tex", "mud", 0.35, 0.35, 0.0, Color.WHITE, true)
 	_tex_mat("paint_faded", "planks_old", 2.0, 0.8, 0.1, Color("c86a30"))
@@ -281,7 +305,8 @@ func finish(n: String, root_name := "") -> void:
 		var m: String = key.trim_suffix("@up")
 		var mi := MeshInstance3D.new()
 		mi.name = "Mesh_" + m
-		mi.mesh = _merge(parts[key], MESH_DIR + n + "_" + m + ("_up" if up else "") + ".res")
+		mi.mesh = _merge(parts[key], MESH_DIR + n + "_" + m + ("_up" if up else "") + ".res",
+			(M[m] as BaseMaterial3D).transparency == BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR)
 		mi.material_override = M[m]
 		if up:
 			if upper == null:
@@ -329,7 +354,7 @@ func finish(n: String, root_name := "") -> void:
 	print("  ", n)
 
 
-func _merge(list: Array, path: String) -> ArrayMesh:
+func _merge(list: Array, path: String, card := false) -> ArrayMesh:
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
 	for it in list:
@@ -338,6 +363,18 @@ func _merge(list: Array, path: String) -> ArrayMesh:
 			st.append_from(mesh, s, it[1])
 	st.generate_tangents()
 	var am := st.commit()
+	if card:
+		# у листвы нормали «от ствола и вверх»: крона освещается как объёмная, а не как стопка плоскостей
+		var arr := am.surface_get_arrays(0)
+		var vs: PackedVector3Array = arr[Mesh.ARRAY_VERTEX]
+		var ns := PackedVector3Array()
+		ns.resize(vs.size())
+		for i in vs.size():
+			ns[i] = Vector3(vs[i].x, 1.1, vs[i].z).normalized()
+		arr[Mesh.ARRAY_NORMAL] = ns
+		arr[Mesh.ARRAY_TANGENT] = null
+		am = ArrayMesh.new()
+		am.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arr)
 	ResourceSaver.save(am, path)
 	return load(path)
 
@@ -418,9 +455,16 @@ func _window(pos: Vector3, rot: Vector3, shutters: bool) -> void:
 
 ## Дверной проём с наличником на фасаде (+Z); дверь распахнута внутрь
 func door(x: float, base: float, front: float, width := 0.95) -> void:
-	var hinge := Vector3(x - width / 2.0, base + 0.98, front - 0.15)
-	var leaf_rot := Vector3(0, -1.75, 0)
-	box("planks_old", Vector3(width - 0.1, 1.95, 0.08), hinge + Basis.from_euler(leaf_rot) * Vector3((width - 0.1) / 2.0, 0, 0), leaf_rot)
+	# двустворчатая дверь, створки распахнуты наружу; у каждой — коллизия, сквозь неё не пройти
+	var lw := width / 2.0 - 0.06
+	for sx in [-1, 1]:
+		var hinge := Vector3(x + sx * width / 2.0, base + 0.98, front - 0.1)
+		var leaf_rot := Vector3(0, sx * 1.75, 0)
+		var c := hinge + Basis.from_euler(leaf_rot) * Vector3(-sx * lw / 2.0, 0, 0)
+		box("planks_old", Vector3(lw, 1.95, 0.08), c, leaf_rot)
+		box("trim", Vector3(lw - 0.1, 0.1, 0.04), c + Basis.from_euler(leaf_rot) * Vector3(0, 0.5, 0.05), leaf_rot)
+		box("trim", Vector3(lw - 0.1, 0.1, 0.04), c + Basis.from_euler(leaf_rot) * Vector3(0, -0.5, 0.05), leaf_rot)
+		solid(Vector3(lw, 2.0, 0.16), Vector3(c.x, 1.0, c.z), leaf_rot.y)
 	box("trim", Vector3(0.12, 2.1, 0.1), Vector3(x - width / 2.0 - 0.06, base + 1.05, front + 0.02))
 	box("trim", Vector3(0.12, 2.1, 0.1), Vector3(x + width / 2.0 + 0.06, base + 1.05, front + 0.02))
 	box("trim", Vector3(width + 0.25, 0.14, 0.1), Vector3(x, base + 2.07, front + 0.02))
@@ -713,6 +757,8 @@ func barn() -> void:
 		var bb := Basis.from_euler(rot)
 		box("planks_old", Vector3(1.4, 2.7, 0.1), hinge + bb * Vector3(sx * 0.7, 0, 0), rot)
 		box("trim", Vector3(1.4, 0.12, 0.06), hinge + bb * Vector3(sx * 0.7, 0, 0.07), rot + Vector3(0, 0, sx * 0.9))
+		var lc := hinge + bb * Vector3(sx * 0.7, 0, 0)
+		solid(Vector3(1.4, 2.7, 0.16), Vector3(lc.x, 1.35, lc.z), rot.y)
 	box("planks_old", Vector3(1.0, 0.8, 0.08), Vector3(0, 4.4, d / 2.0 + 0.04))
 	# мешки и ящики у входа снаружи
 	for i in 3:
@@ -858,22 +904,64 @@ func wind_turbine() -> void:
 
 
 # ---------------- хвойные деревья ----------------
+## Ветка-карточка: растёт от точки pos наружу (+X, затем поворот yaw), конец опущен на bend.
+## Текстура: стебель вдоль u, ширина вдоль v.
+func card(mat: String, length: float, width: float, pos: Vector3, yaw: float, pitch: float, bend := 0.2, roll := 0.0) -> void:
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var rows := []
+	for t in [0.0, 0.5, 1.0]:
+		rows.append([Vector3(length * t, -bend * length * t * t, -width / 2.0), Vector3(length * t, -bend * length * t * t, width / 2.0), t])
+	for r in 2:
+		var a: Array = rows[r]
+		var b: Array = rows[r + 1]
+		for tri in [[a[0], b[0], b[1], a[2], b[2], b[2], 0.0, 0.0, 1.0], [a[0], b[1], a[1], a[2], b[2], a[2], 0.0, 1.0, 1.0]]:
+			for k in 3:
+				st.set_normal(Vector3.UP)
+				st.set_uv(Vector2(tri[3 + k], tri[6 + k]))
+				st.add_vertex(tri[k])
+	add(mat, st.commit(), pos, Vector3(roll, yaw, pitch))
+
+
+## Пучок листвы: квадратная карточка с центром в pos, наклонена случайно
+func leaf(mat: String, size: float, pos: Vector3, tilt := 0.6) -> void:
+	var q := QuadMesh.new()
+	q.size = Vector2(size, size)
+	q.orientation = PlaneMesh.FACE_Y
+	add(mat, q, pos, Vector3(_rng.randf_range(-tilt, tilt), _rng.randf() * TAU, _rng.randf_range(-tilt, tilt)))
+
+
 func spruce() -> void:
 	for v in 2:
 		begin()
 		_rng.seed = 100 + v
-		var h := 8.0 + v * 1.5
-		cyl("bark_dark", 0.07, 0.22, h, Vector3(0, h / 2.0, 0), Vector3.ZERO, 8)
-		var tiers := 8 + v
-		var needles := "needles_tex" if v == 0 else "needles_b"
-		for i in tiers:
-			var k := float(i) / tiers
-			var rad := lerpf(2.3, 0.45, k) * _rng.randf_range(0.85, 1.1)
-			var y := 1.2 + k * (h - 1.8)
-			var off := Vector3(_rng.randf_range(-0.12, 0.12), 0, _rng.randf_range(-0.12, 0.12))
-			add(needles, rough(rcone(rad, 1.5 - k * 0.5, 11), 0.22, 7 * i + v, 2.2), Vector3(0, y, 0) + off,
-				Vector3(_rng.randf_range(-0.08, 0.08), _rng.randf() * TAU, _rng.randf_range(-0.08, 0.08)))
-		add(needles, rough(rcone(0.35, 1.2, 7), 0.06, 99 + v), Vector3(0, h + 0.3, 0))
+		var h := 8.5 + v * 1.5
+		var mat := "spruce_card" if v == 0 else "spruce_card_b"
+		cyl("bark_dark", 0.05, 0.22, h, Vector3(0, h / 2.0, 0), Vector3.ZERO, 8)
+		# мутовки лап: внизу длинные и провисшие, к верху короче и приподнятые
+		var y := 0.7
+		var whorl := 0
+		while y < h - 0.35:
+			var k := (y - 0.7) / (h - 1.05)
+			var ln := lerpf(2.6, 0.35, pow(k, 0.8)) * _rng.randf_range(0.85, 1.12)
+			var nb := 7 if k < 0.6 else 5
+			var yaw0 := whorl * 2.39996 + _rng.randf() * 0.5
+			for b in nb:
+				if k < 0.85 and _rng.randf() < 0.12:
+					continue
+				var l := ln * _rng.randf_range(0.8, 1.1)
+				var pitch := -lerpf(0.42, 0.02, k) - _rng.randf() * 0.12
+				card(mat, l, l * 0.5, Vector3(0, y, 0), yaw0 + b * TAU / nb + _rng.randf_range(-0.25, 0.25), pitch,
+					lerpf(0.3, 0.08, k), _rng.randf_range(-0.35, 0.35))
+			# короткие лапы у ствола — крона без просветов
+			for b in 3:
+				var l2 := ln * 0.5
+				card(mat, l2, l2 * 0.55, Vector3(0, y + 0.12, 0), yaw0 + 0.9 + b * TAU / 3.0, 0.2, 0.1)
+			y += lerpf(0.42, 0.28, k) * _rng.randf_range(0.85, 1.15)
+			whorl += 1
+		# верхушка — торчащий вверх побег
+		for b in 3:
+			card(mat, 0.9, 0.4, Vector3(0, h - 0.55, 0), b * TAU / 3.0, 1.4, 0.0)
 		# корни у земли
 		for r in 3:
 			var a := r * TAU / 3.0 + 0.4
@@ -886,24 +974,32 @@ func pine() -> void:
 	for v in 2:
 		begin()
 		_rng.seed = 200 + v
-		var h := 9.5 + v
+		var h := 10.0 + v
 		# ствол чуть изогнут: два куска
-		cyl("bark_dark", 0.15, 0.24, h * 0.55, Vector3(0, h * 0.275, 0), Vector3(0, 0, 0.03), 8)
-		cyl("bark_dark", 0.08, 0.15, h * 0.5, Vector3(0.12, h * 0.78, 0), Vector3(0, 0, -0.04), 8)
+		cyl("bark_dark", 0.15, 0.25, h * 0.55, Vector3(0, h * 0.275, 0), Vector3(0, 0, 0.03), 8)
+		cyl("bark_dark", 0.07, 0.15, h * 0.5, Vector3(0.12, h * 0.78, 0), Vector3(0, 0, -0.04), 8)
 		# сухие сучья по стволу
-		for i in 5:
+		for i in 6:
 			var a := _rng.randf() * TAU
-			var y := 2.5 + i * 0.9
-			cyl("bark_dark", 0.01, 0.045, 1.0, Vector3(cos(a) * 0.4, y, sin(a) * 0.4), Vector3(sin(a) * 1.2, 0, -cos(a) * 1.2), 5)
-		# крона из приплюснутых клочьев на ветках
-		for i in 11:
-			var a := i * 2.4 + _rng.randf() * 0.6
-			var y := h * 0.6 + (i % 5) * 0.55 + _rng.randf() * 0.3
-			var d := _rng.randf_range(0.6, 1.4) * (1.0 - (i % 5) * 0.12)
-			var p := Vector3(cos(a) * d, y, sin(a) * d)
-			cyl("bark_dark", 0.03, 0.06, d + 0.2, Vector3(p.x * 0.5, y - 0.2, p.z * 0.5), Vector3(sin(a) * 1.35, 0, -cos(a) * 1.35), 5)
-			add("needles_tex", rough(rsphere(_rng.randf_range(0.9, 1.35), 10, 6), 0.3, 11 * i + v, 2.0), p, Vector3.ZERO, Vector3(1.0, 0.5, 1.0))
-		add("needles_tex", rough(rsphere(0.9, 9, 6), 0.25, 5 + v), Vector3(0.12, h + 0.1, 0), Vector3.ZERO, Vector3(1, 0.6, 1))
+			var y := 2.2 + i * 0.8
+			cyl("bark_dark", 0.01, 0.04, 0.9, Vector3(cos(a) * 0.35, y, sin(a) * 0.35), Vector3(sin(a) * 1.25, 0, -cos(a) * 1.25), 5)
+		# зонтичная крона: ветви вверх-наружу, на концах пучки хвои
+		for i in 13:
+			var a := i * 2.39996 + _rng.randf() * 0.5
+			var y := h * 0.58 + _rng.randf() * h * 0.36
+			var top := (y - h * 0.58) / (h * 0.42)
+			var d := _rng.randf_range(1.0, 2.0) * (1.0 - top * 0.55)
+			var dir := Vector3(cos(a), 0.45, sin(a)).normalized()
+			var base := Vector3(0.08, y, 0)
+			var tip := base + dir * d
+			var mid := (base + tip) / 2.0
+			cyl("bark_dark", 0.025, 0.06, d, mid, Basis(Quaternion(Vector3.UP, dir)).get_euler(), 5)
+			for t in 6:
+				leaf("pine_card", _rng.randf_range(1.1, 1.6), tip + Vector3(_rng.randf_range(-0.35, 0.35), _rng.randf_range(-0.1, 0.25), _rng.randf_range(-0.35, 0.35)), 0.7)
+			for t in 2:
+				leaf("pine_card", 1.1, base + dir * d * (0.4 + t * 0.25) + Vector3(0, 0.15, 0), 0.6)
+		for t in 5:
+			leaf("pine_card", 1.3, Vector3(0.12, h + 0.05, 0) + Vector3(_rng.randf_range(-0.3, 0.3), _rng.randf_range(-0.2, 0.2), _rng.randf_range(-0.3, 0.3)), 0.8)
 		solid(Vector3(0.6, 2.0, 0.6), Vector3(0, 1.0, 0))
 		finish("pine" if v == 0 else "pine_b", "Pine")
 
@@ -912,18 +1008,21 @@ func birch() -> void:
 	for v in 2:
 		begin()
 		_rng.seed = 300 + v
-		var h := 5.5 + v * 1.2
-		cyl("birch_bark", 0.1, 0.17, h * 0.6, Vector3(0, h * 0.3, 0), Vector3(0.02, 0, 0.03), 8)
-		cyl("birch_bark", 0.05, 0.1, h * 0.5, Vector3(-0.1, h * 0.82, 0.05), Vector3(-0.05, 0, -0.06), 7)
-		for i in 4:
+		var h := 6.0 + v * 1.2
+		cyl("birch_bark", 0.09, 0.17, h * 0.6, Vector3(0, h * 0.3, 0), Vector3(0.02, 0, 0.03), 8)
+		cyl("birch_bark", 0.04, 0.09, h * 0.5, Vector3(-0.1, h * 0.82, 0.05), Vector3(-0.05, 0, -0.06), 7)
+		for i in 6:
 			var a := _rng.randf() * TAU
-			var y := h * 0.55 + i * 0.45
-			cyl("birch_bark", 0.02, 0.05, 1.2, Vector3(cos(a) * 0.35, y + 0.35, sin(a) * 0.35), Vector3(sin(a) * 0.9, 0, -cos(a) * 0.9), 5)
-		for i in 12:
-			var a := i * 2.1 + _rng.randf()
-			var d := _rng.randf_range(0.3, 1.1)
-			var p := Vector3(cos(a) * d, h * 0.55 + _rng.randf_range(0.0, h * 0.5), sin(a) * d)
-			add("leaves_tex" if i % 3 else "leaves_dark", rough(rsphere(_rng.randf_range(0.7, 1.05), 9, 6), 0.28, 13 * i + v, 2.0), p, Vector3.ZERO, Vector3(1, 0.8, 1))
+			var y := h * 0.5 + i * 0.4
+			cyl("birch_bark", 0.015, 0.045, 1.4, Vector3(cos(a) * 0.45, y + 0.4, sin(a) * 0.45), Vector3(sin(a) * 0.85, 0, -cos(a) * 0.85), 5)
+		# крона — облако листвы, редкое по краям, слегка свисает
+		var c := Vector3(0, h * 0.74, 0)
+		for i in 150:
+			var u := Vector3(_rng.randf_range(-1, 1), _rng.randf_range(-1, 1), _rng.randf_range(-1, 1))
+			if u.length() > 1.0:
+				continue
+			var p := c + Vector3(u.x * 1.7, u.y * 1.9, u.z * 1.7)
+			leaf("birch_card" if i % 3 else "birch_card_dark", _rng.randf_range(0.9, 1.35), p, 0.8)
 		solid(Vector3(0.5, 2.0, 0.5), Vector3(0, 1.0, 0))
 		finish("birch" if v == 0 else "birch_b", "Birch")
 
@@ -933,8 +1032,12 @@ func bush() -> void:
 	_rng.seed = 400
 	for i in 5:
 		var a := i * 1.3
-		add("leaves_dark" if i % 2 else "leaves_tex", rough(rsphere(_rng.randf_range(0.45, 0.65), 8, 5), 0.18, 17 * i, 2.5),
-			Vector3(cos(a) * 0.4, 0.4 + _rng.randf() * 0.2, sin(a) * 0.35), Vector3.ZERO, Vector3(1, 0.8, 1))
+		cyl("bark_dark", 0.01, 0.03, 0.9, Vector3(cos(a) * 0.2, 0.4, sin(a) * 0.2), Vector3(sin(a) * 0.5, 0, -cos(a) * 0.5), 4)
+	for i in 60:
+		var u := Vector3(_rng.randf_range(-1, 1), _rng.randf_range(0, 1), _rng.randf_range(-1, 1))
+		if u.length() > 1.0:
+			continue
+		leaf("bush_card" if i % 2 else "birch_card_dark", _rng.randf_range(0.6, 0.85), Vector3(u.x * 0.75, 0.15 + u.y * 0.8, u.z * 0.75), 0.9)
 	finish("bush", "Bush")
 
 
@@ -1125,15 +1228,49 @@ func small_props() -> void:
 		var n := 22
 		for i in n:
 			var px := -ln / 2.0 + 0.1 + i * (ln - 0.2) / float(n - 1)
-			if broken and px > 0.2 and px < 1.6 and i % 4 != 0:
+			# в сломанном пролёте между средним и крайним столбом — дыра, в неё можно пролезть
+			if broken and px > 0.05 and px < 1.95:
 				continue
 			var h := _rng.randf_range(1.0, 1.18)
 			var tilt := _rng.randf_range(-0.05, 0.05)
-			if broken and px > 0.2 and px < 1.6:
-				tilt = 0.35
 			box("planks_old", Vector3(0.1, h, 0.025), Vector3(px, h / 2.0, 0.0), Vector3(0, 0, tilt))
-		solid(Vector3(ln, 1.2, 0.3), Vector3(0, 0.6, 0))
+		if broken:
+			# выломанный штакетник валяется в траве по обе стороны
+			for fp in [Vector3(0.45, 0.02, 0.55), Vector3(1.3, 0.02, -0.6), Vector3(1.75, 0.02, 0.45)]:
+				box("planks_old", Vector3(0.1, 0.025, 1.05), fp, Vector3(0, _rng.randf_range(-0.9, 0.9), 0))
+			solid(Vector3(2.1, 1.2, 0.3), Vector3(-0.95, 0.6, 0))
+			solid(Vector3(0.25, 1.2, 0.3), Vector3(ln / 2.0, 0.6, 0))
+		else:
+			solid(Vector3(ln, 1.2, 0.3), Vector3(0, 0.6, 0))
 		finish("fence_broken" if broken else "fence", "FenceBroken" if broken else "Fence")
+
+	# калитка: короткие куски штакетника, два столба и распахнутые наружу створки
+	begin()
+	_rng.seed = 735
+	var gl := 3.0
+	var gw := 2.0
+	for sx in [-1, 1]:
+		cyl("log_weathered", 0.08, 0.09, 1.5, Vector3(sx * gw / 2.0, 0.7, 0), Vector3.ZERO, 7)
+		for y in [0.35, 0.95]:
+			box("planks_old", Vector3((gl - gw) / 2.0, 0.07, 0.05), Vector3(sx * (gl + gw) / 4.0, y, -0.05))
+		for k in 4:
+			var px: float = sx * (gw / 2.0 + 0.1 + k * 0.12)
+			var h := _rng.randf_range(1.0, 1.18)
+			box("planks_old", Vector3(0.1, h, 0.025), Vector3(px, h / 2.0, 0.0))
+		# створка на петлях у столба, открыта на улицу
+		var lw := gw / 2.0 - 0.08
+		var rot := Vector3(0, sx * 1.9, 0)
+		var hinge := Vector3(sx * gw / 2.0, 0, 0.05)
+		var bb := Basis.from_euler(rot)
+		for k in 7:
+			var along: float = -sx * (0.07 + k * (lw - 0.14) / 6.0)
+			box("planks_old", Vector3(0.1, 1.05, 0.025), hinge + bb * Vector3(along, 0.6, 0), rot)
+		for y in [0.3, 0.9]:
+			box("planks_old", Vector3(lw, 0.07, 0.04), hinge + bb * Vector3(-sx * lw / 2.0, y, -0.03), rot)
+		var lc := hinge + bb * Vector3(-sx * lw / 2.0, 0, 0)
+		solid(Vector3(lw, 1.2, 0.16), Vector3(lc.x, 0.6, lc.z), rot.y)
+		solid(Vector3((gl - gw) / 2.0 + 0.1, 1.2, 0.3), Vector3(sx * (gl + gw) / 4.0, 0.6, 0))
+	finish("fence_gate", "FenceGate")
 
 	# длинный стол со скамейками по обе стороны — за ним сидят старики и картёжник
 	begin()

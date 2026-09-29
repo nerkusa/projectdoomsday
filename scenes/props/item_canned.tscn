@@ -6,15 +6,15 @@
 [ext_resource type="Material" path="res://assets/materials/rust.tres" id="4_n1grm"]
 [ext_resource type="ArrayMesh" path="res://assets/models/props/item_canned_rust.res" id="5_4nhtq"]
 
-[node name="Item" type="Node3D" unique_id=1153644568]
+[node name="Item" type="Node3D" unique_id=2023035404]
 script = ExtResource("1_ptp8i")
 item_id = "canned"
 pick_size = Vector3(0.4, 0.3, 0.4)
 
-[node name="Mesh_tin" type="MeshInstance3D" parent="." unique_id=712208427]
+[node name="Mesh_tin" type="MeshInstance3D" parent="." unique_id=1625525160]
 material_override = ExtResource("2_ldcee")
 mesh = ExtResource("3_lhcy2")
 
-[node name="Mesh_rust" type="MeshInstance3D" parent="." unique_id=1919126503]
+[node name="Mesh_rust" type="MeshInstance3D" parent="." unique_id=708021610]
 material_override = ExtResource("4_n1grm")
 mesh = ExtResource("5_4nhtq")

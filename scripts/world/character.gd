@@ -278,6 +278,10 @@ func act(type: String, cb := Callable(), extra := {}) -> void:
 	_act = {"type": type, "t": 0.0, "cb": cb, "done": false, "extra": extra}
 
 
+## Короткие клинки держат иначе, чем топор или мачете
+const SHORT_BLADES := ["knife", "oyun"]
+
+
 func set_held(wkey: String) -> void:
 	if wkey == _held_key:
 		return
@@ -292,7 +296,7 @@ func set_held(wkey: String) -> void:
 		return
 	_held_node = _make_weapon_mesh(wkey)
 	if body is AnimBody:
-		_held_node.transform = body.grip(DB.is_gun(wkey))
+		_held_node.transform = body.grip(DB.is_gun(wkey), false, wkey in SHORT_BLADES)
 	hnd.add_child(_held_node)
 	_setup_two_hands()
 
@@ -690,7 +694,7 @@ func _fire_cb_once() -> void:
 
 func _end_act() -> void:
 	if _act.get("swing_grip", false) and _held_node and body is AnimBody:
-		_held_node.transform = (body as AnimBody).grip(false)
+		_held_node.transform = (body as AnimBody).grip(false, false, _held_key in SHORT_BLADES)
 	var cb: Callable = _act.get("cb", Callable())
 	var typ: String = _act.get("type", "")
 	var was_done: bool = _act.get("done", false)
@@ -912,6 +916,8 @@ func _update_marks() -> void:
 		for m in _body_meshes:
 			if is_instance_valid(m):
 				(m as MeshInstance3D).material_overlay = ov
+				if ov:
+					_stencil_write(m)
 		var rc: Color = MARKS[k][1]
 		if rc.a > 0.0:
 			if _ring == null:
@@ -966,6 +972,26 @@ func _set_ghost(on: bool) -> void:
 				mi.set_surface_override_material(i, _ghost_saved[key])
 	if not on:
 		_ghost_saved.clear()
+
+
+## Материалы тела пишут 1 в трафарет: по нему силуэт отличает «тело видно» от «тело заслонено»
+func _stencil_write(mi: MeshInstance3D) -> void:
+	if mi.mesh == null:
+		return
+	for i in mi.mesh.get_surface_count():
+		var src := mi.get_surface_override_material(i)
+		var base: Material = src if src else mi.mesh.surface_get_material(i)
+		if not base is BaseMaterial3D or (base as BaseMaterial3D).stencil_mode == BaseMaterial3D.STENCIL_MODE_CUSTOM:
+			continue
+		var key := "st%d" % base.get_instance_id()
+		if not _mats.has(key):
+			var m := (base as BaseMaterial3D).duplicate() as BaseMaterial3D
+			m.stencil_mode = BaseMaterial3D.STENCIL_MODE_CUSTOM
+			m.stencil_flags = BaseMaterial3D.STENCIL_FLAG_WRITE
+			m.stencil_compare = BaseMaterial3D.STENCIL_COMPARE_ALWAYS
+			m.stencil_reference = 1
+			_mats[key] = m
+		mi.set_surface_override_material(i, _mats[key])
 
 
 static func _sil_mat(c: Color, ghost := 0.0) -> ShaderMaterial:

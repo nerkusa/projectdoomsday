@@ -1,16 +1,22 @@
 [gd_scene format=3]
 
-[ext_resource type="Material" path="res://assets/materials/leaves_tex.tres" id="1_co27k"]
-[ext_resource type="ArrayMesh" path="res://assets/models/props/bush_leaves_tex.res" id="2_ypu05"]
-[ext_resource type="Material" path="res://assets/materials/leaves_dark.tres" id="3_h5uqq"]
-[ext_resource type="ArrayMesh" path="res://assets/models/props/bush_leaves_dark.res" id="4_2rg6i"]
+[ext_resource type="Material" path="res://assets/materials/bark_dark.tres" id="1_h5uqq"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/bush_bark_dark.res" id="2_2rg6i"]
+[ext_resource type="Material" path="res://assets/materials/birch_card_dark.tres" id="3_we56a"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/bush_birch_card_dark.res" id="4_1nppw"]
+[ext_resource type="Material" path="res://assets/materials/bush_card.tres" id="5_kufl8"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/bush_bush_card.res" id="6_6s4ui"]
 
-[node name="Bush" type="Node3D" unique_id=1505634188]
+[node name="Bush" type="Node3D" unique_id=1172440691]
 
-[node name="Mesh_leaves_tex" type="MeshInstance3D" parent="." unique_id=1808419629]
-material_override = ExtResource("1_co27k")
-mesh = ExtResource("2_ypu05")
+[node name="Mesh_bark_dark" type="MeshInstance3D" parent="." unique_id=535932647]
+material_override = ExtResource("1_h5uqq")
+mesh = ExtResource("2_2rg6i")
 
-[node name="Mesh_leaves_dark" type="MeshInstance3D" parent="." unique_id=1157854905]
-material_override = ExtResource("3_h5uqq")
-mesh = ExtResource("4_2rg6i")
+[node name="Mesh_birch_card_dark" type="MeshInstance3D" parent="." unique_id=1611757240]
+material_override = ExtResource("3_we56a")
+mesh = ExtResource("4_1nppw")
+
+[node name="Mesh_bush_card" type="MeshInstance3D" parent="." unique_id=606410939]
+material_override = ExtResource("5_kufl8")
+mesh = ExtResource("6_6s4ui")

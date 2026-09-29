@@ -582,6 +582,9 @@ func _click(sp: Vector2) -> void:
 func _walk_to_hex(h: Vector2i, cb := Callable(), exact = null) -> bool:
 	var g := location.grid
 	var from := g.from_world(player.global_position)
+	# герой может стоять на краю занятого гекса (у стены, на крыльце) — путь ищем от ближайшего свободного
+	if not g.is_free(from):
+		from = g.nearest_free(player.global_position)
 	var target := h
 	if not g.is_free(target):
 		target = g.nearest_free(g.to_world(h))
@@ -619,6 +622,7 @@ func _walk_clear(a: Vector3, b: Vector3) -> bool:
 	var sp := space()
 	for off in [Vector3.ZERO, side, -side]:
 		var q := PhysicsRayQueryParameters3D.create(a + off + Vector3(0, 0.5, 0), b + off + Vector3(0, 0.5, 0), 1)
+		q.hit_from_inside = true
 		if not sp.intersect_ray(q).is_empty():
 			return false
 	return true

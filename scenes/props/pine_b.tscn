@@ -2,25 +2,25 @@
 
 [ext_resource type="Material" path="res://assets/materials/bark_dark.tres" id="1_d31ao"]
 [ext_resource type="ArrayMesh" path="res://assets/models/props/pine_b_bark_dark.res" id="2_3qw06"]
-[ext_resource type="Material" path="res://assets/materials/needles_tex.tres" id="3_yt7f7"]
-[ext_resource type="ArrayMesh" path="res://assets/models/props/pine_b_needles_tex.res" id="4_ohkkr"]
+[ext_resource type="Material" path="res://assets/materials/pine_card.tres" id="3_yt7f7"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/pine_b_pine_card.res" id="4_ohkkr"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_rmykp"]
 size = Vector3(0.6, 2, 0.6)
 
-[node name="Pine" type="Node3D" unique_id=1509052529]
+[node name="Pine" type="Node3D" unique_id=940896149]
 
-[node name="Mesh_bark_dark" type="MeshInstance3D" parent="." unique_id=1516954442]
+[node name="Mesh_bark_dark" type="MeshInstance3D" parent="." unique_id=622400814]
 material_override = ExtResource("1_d31ao")
 mesh = ExtResource("2_3qw06")
 
-[node name="Mesh_needles_tex" type="MeshInstance3D" parent="." unique_id=1195850429]
+[node name="Mesh_pine_card" type="MeshInstance3D" parent="." unique_id=1700208469]
 material_override = ExtResource("3_yt7f7")
 mesh = ExtResource("4_ohkkr")
 
-[node name="Collision" type="StaticBody3D" parent="." unique_id=340092104]
+[node name="Collision" type="StaticBody3D" parent="." unique_id=1392998717]
 collision_mask = 0
 
-[node name="@CollisionShape3D@76" type="CollisionShape3D" parent="Collision" unique_id=1847801753]
+[node name="@CollisionShape3D@88" type="CollisionShape3D" parent="Collision" unique_id=799334403]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
 shape = SubResource("BoxShape3D_rmykp")

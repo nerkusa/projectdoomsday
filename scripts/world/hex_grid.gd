@@ -12,6 +12,9 @@ var free: Dictionary = {}
 var bounds := Rect2(0, 0, 64, 64)
 var _astar := AStar2D.new()
 var _ids: Dictionary = {}
+## Разрезанные связи между соседними свободными гексами: между их центрами тонкая
+## стена, которую не задел пробник в центре гекса. Ключ — пара гексов.
+var _cut: Dictionary = {}
 
 
 func to_world(h: Vector2i) -> Vector3:
@@ -49,7 +52,7 @@ func neighbors(h: Vector2i) -> Array:
 	var out := []
 	for d in DIRS:
 		var n: Vector2i = h + d
-		if is_free(n):
+		if is_free(n) and not _cut.has(_edge(h, n)):
 			out.append(n)
 	return out
 
@@ -58,6 +61,7 @@ func neighbors(h: Vector2i) -> Array:
 func build(space: PhysicsDirectSpaceState3D, rect: Rect2, mask := 1) -> void:
 	bounds = rect
 	free.clear()
+	_cut.clear()
 	_ids.clear()
 	_astar.clear()
 	var shape := BoxShape3D.new()
@@ -90,8 +94,26 @@ func build(space: PhysicsDirectSpaceState3D, rect: Rect2, mask := 1) -> void:
 	for h in _ids:
 		for d in DIRS:
 			var n: Vector2i = h + d
-			if _ids.has(n) and not _astar.are_points_connected(_ids[h], _ids[n]):
+			if not _ids.has(n) or _astar.are_points_connected(_ids[h], _ids[n]) or _cut.has(_edge(h, n)):
+				continue
+			if _wall_between(space, to_world(h), to_world(n), mask):
+				_cut[_edge(h, n)] = true
+			else:
 				_astar.connect_points(_ids[h], _ids[n])
+
+
+func _edge(a: Vector2i, b: Vector2i) -> Vector4i:
+	return Vector4i(a.x, a.y, b.x, b.y) if a < b else Vector4i(b.x, b.y, a.x, a.y)
+
+
+## Стена между центрами соседних гексов: лучи на уровне колен и груди
+func _wall_between(space: PhysicsDirectSpaceState3D, a: Vector3, b: Vector3, mask: int) -> bool:
+	for y in [0.45, 1.0]:
+		var q := PhysicsRayQueryParameters3D.create(a + Vector3(0, y, 0), b + Vector3(0, y, 0), mask)
+		q.hit_from_inside = true
+		if not space.intersect_ray(q).is_empty():
+			return true
+	return false
 
 
 ## Путь для свободной ходьбы (вне боя). blocked — занятые гексы.

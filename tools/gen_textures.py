@@ -318,6 +318,140 @@ def mud_patch() -> None:
 	_save_rgba("mud_patch", c, alpha, rough, big * 0.3 + fine * 0.2, 2.0)
 
 
+# ---------------- карточки листвы (ветки с прозрачным фоном) ----------------
+def _card_save(name: str, img) -> None:
+	"""Сохраняет RGBA-карточку: цвет под прозрачными пикселями дотягивается от краёв,
+	чтобы на мипмапах не было тёмной каймы."""
+	from PIL import ImageFilter
+	os.makedirs(OUT, exist_ok=True)
+	a = img.split()[3]
+	rgb = img.convert("RGB")
+	grown = rgb
+	for _ in range(6):
+		grown = grown.filter(ImageFilter.MaxFilter(5))
+	base = Image.composite(rgb, grown, a.point(lambda v: 255 if v > 0 else 0))
+	out = base.copy()
+	out.putalpha(a)
+	out.save(os.path.join(OUT, name + ".png"))
+	print("готово:", name)
+
+
+def _shade(rng, c1: str, c2: str, k: float | None = None):
+	a = col(c1)
+	b = col(c2)
+	t = rng.random() if k is None else k
+	c = a + (b - a) * t
+	return tuple(int(v * 255) for v in np.clip(c, 0, 1)) + (255,)
+
+
+def spruce_branch() -> None:
+	"""Еловая лапа: стебель слева направо, боковые веточки, густая хвоя; к концу сужается."""
+	from PIL import ImageDraw
+	rng = np.random.default_rng(7)
+	S = 2
+	W, H = 512 * S, 256 * S
+	img = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+	d = ImageDraw.Draw(img)
+	cy = H * 0.5
+
+	def needles_along(x0, y0, x1, y1, nl, dens, tip_light):
+		ln = max(1.0, np.hypot(x1 - x0, y1 - y0))
+		ux, uy = (x1 - x0) / ln, (y1 - y0) / ln
+		n = int(ln / dens)
+		for i in range(n):
+			t = i / max(1, n - 1)
+			px, py = x0 + (x1 - x0) * t, y0 + (y1 - y0) * t
+			for side in (-1, 1):
+				ang = np.deg2rad(rng.uniform(40, 70)) * side
+				ca, sa = np.cos(ang), np.sin(ang)
+				dx, dy = ux * ca - uy * sa, ux * sa + uy * ca
+				l = nl * rng.uniform(0.75, 1.15) * (1.0 - 0.35 * t)
+				c = _shade(rng, "1e3319", "3c5a2a", None)
+				if t > 0.8 and tip_light:
+					c = _shade(rng, "3f5f2c", "6a8a40", None)
+				d.line([(px, py), (px + dx * l, py + dy * l)], fill=c, width=2 * S)
+
+	# основной стебель чуть изогнут вниз к концу
+	pts = [(8 * S + t * (W - 30 * S), cy + (t ** 2) * 18 * S) for t in np.linspace(0, 1, 40)]
+	for (x0, y0), (x1, y1) in zip(pts[:-1], pts[1:]):
+		d.line([(x0, y0), (x1, y1)], fill=(70, 50, 32, 255), width=3 * S)
+	# тёмная сердцевина лапы вдоль стебля
+	core = [(x, y - 26 * S * (1 - x / W) - 4 * S) for x, y in pts] + [(x, y + 26 * S * (1 - x / W) + 4 * S) for x, y in pts[::-1]]
+	d.polygon(core, fill=(28, 44, 24, 255))
+	# боковые веточки
+	for i, t in enumerate(np.linspace(0.05, 0.9, 22)):
+		bx, by = pts[int(t * 39)]
+		env = np.sin(np.pi * min(1.0, (t + 0.15))) * (1.0 - t * 0.55)
+		for side in (-1, 1):
+			ang = np.deg2rad(rng.uniform(35, 55)) * side
+			l = (H * 0.40) * env * rng.uniform(0.75, 1.05)
+			ex = bx + np.cos(ang) * l
+			ey = by + np.sin(ang) * l
+			# плотная масса хвои вокруг веточки — чтобы лапа не «таяла» вдали
+			wx, wy = -np.sin(ang) * 11 * S, np.cos(ang) * 11 * S
+			d.polygon([(bx - wx * 0.3, by - wy * 0.3), (ex - wx * 0.35, ey - wy * 0.35), (ex + (ex - bx) * 0.08, ey + (ey - by) * 0.08),
+				(ex + wx * 0.35, ey + wy * 0.35), (bx + wx * 0.3, by + wy * 0.3)], fill=_shade(rng, "1a2c16", "243a1e"))
+			d.line([(bx, by), (ex, ey)], fill=(78, 58, 36, 255), width=2 * S)
+			needles_along(bx, by, ex, ey, 24 * S, 1.6 * S, True)
+	needles_along(pts[0][0], pts[0][1], pts[-1][0], pts[-1][1], 26 * S, 1.5 * S, True)
+	img = img.resize((W // S, H // S), Image.LANCZOS)
+	_card_save("spruce_branch", img)
+
+
+def pine_tuft() -> None:
+	"""Сосновая «кисть»: длинная хвоя пучками веером от веточки."""
+	from PIL import ImageDraw
+	rng = np.random.default_rng(11)
+	S = 2
+	W = H = 256 * S
+	img = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+	d = ImageDraw.Draw(img)
+	for tuft in range(6):
+		ox = W * rng.uniform(0.3, 0.7)
+		oy = H * rng.uniform(0.55, 0.85)
+		base_ang = np.deg2rad(-90 + rng.uniform(-35, 35))
+		fan = [(ox, oy)] + [(ox + np.cos(base_ang + np.deg2rad(a)) * 62 * S, oy + np.sin(base_ang + np.deg2rad(a)) * 62 * S) for a in range(-55, 56, 10)]
+		d.polygon(fan, fill=_shade(rng, "22381b", "2c4521"))
+		for _ in range(150):
+			a = base_ang + np.deg2rad(rng.normal(0, 38))
+			l = rng.uniform(55, 95) * S
+			c = _shade(rng, "2a4420", "58763a")
+			d.line([(ox, oy), (ox + np.cos(a) * l, oy + np.sin(a) * l)], fill=c, width=S + 1)
+		d.line([(ox, oy), (ox + rng.uniform(-10, 10) * S, oy + 40 * S)], fill=(92, 62, 40, 255), width=4 * S)
+	img = img.resize((W // S, H // S), Image.LANCZOS)
+	_card_save("pine_tuft", img)
+
+
+def birch_leaves() -> None:
+	"""Ветка берёзы: тонкие прутья, мелкие листочки треугольником-сердечком."""
+	from PIL import ImageDraw
+	rng = np.random.default_rng(13)
+	S = 2
+	W = H = 512 * S
+	img = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+	d = ImageDraw.Draw(img)
+	cx, cy = W / 2, H / 2
+	for twig in range(14):
+		a = rng.uniform(0, 2 * np.pi)
+		l = rng.uniform(0.25, 0.46) * W
+		x0, y0 = cx + rng.normal(0, 20 * S), cy + rng.normal(0, 20 * S)
+		x1, y1 = x0 + np.cos(a) * l, y0 + np.sin(a) * l
+		d.line([(x0, y0), (x1, y1)], fill=(60, 45, 35, 255), width=2 * S)
+		for k in range(int(l / (4 * S))):
+			t = rng.uniform(0.15, 1.0)
+			px, py = x0 + (x1 - x0) * t + rng.normal(0, 12 * S), y0 + (y1 - y0) * t + rng.normal(0, 12 * S)
+			r = rng.uniform(9, 14) * S
+			ang = rng.uniform(0, 2 * np.pi)
+			pts = []
+			for j in range(10):
+				u = j / 10 * 2 * np.pi
+				rr = r * (0.55 + 0.45 * abs(np.cos(u / 2)))
+				pts.append((px + np.cos(u + ang) * rr, py + np.sin(u + ang) * rr * 0.7))
+			d.polygon(pts, fill=_shade(rng, "4e6e2c", "8aa648"))
+	img = img.resize((W // S, H // S), Image.LANCZOS)
+	_card_save("birch_leaves", img)
+
+
 if __name__ == "__main__":
 	logs()
 	metal_roof()

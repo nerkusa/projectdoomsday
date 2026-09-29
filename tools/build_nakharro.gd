@@ -48,7 +48,7 @@ func _ready() -> void:
 		M[n] = load(MAT_DIR + n + ".tres")
 	for n in ["izba", "izba_long", "izba_tall", "izba_lean", "izba_small", "hall", "tower", "barn", "shed", "workshop",
 			"palisade", "gate", "barricade", "greenhouse", "wind_turbine", "spruce", "pine", "birch", "dead_tree", "bush",
-			"rock", "fire", "well", "woodpile", "table", "tractor", "garden", "fence", "fence_broken", "border_post", "sign",
+			"rock", "fire", "well", "woodpile", "table", "tractor", "garden", "fence", "fence_broken", "fence_gate", "border_post", "sign",
 			"planks", "basket", "mushroom", "berries", "bandage",
 			"item_flask", "item_matches", "item_blanket", "item_rope", "item_compass", "item_rusks",
 			"item_dried_fish", "item_canned", "item_herbs", "junk", "locked_box",
@@ -78,6 +78,7 @@ func _build() -> void:
 	_items()
 	_details()
 	_clear_overlaps()
+	_fence_mend()
 	var ps := PackedScene.new()
 	var err := ps.pack(root)
 	if err != OK:
@@ -308,7 +309,7 @@ func _village() -> void:
 	put(P.wind_turbine, vil, Vector3(96, 0, 62), 0.4, "WindTurbine")
 	for p in [Vector3(28, 0, 37.5), Vector3(66.5, 0, 41), Vector3(97, 0, 46.5), Vector3(40, 0, 88.5), Vector3(96, 0, 88)]:
 		put(P.shed, vil, p, randf_range(-0.2, 0.2))
-	put(P.woodpile, vil, Vector3(78, 0, 37.5), 0.1, "Woodpile")
+	put(P.woodpile, vil, Vector3(78, 0, 35.7), 0.05, "Woodpile")
 	put(P.woodpile, vil, Vector3(40.8, 0, 37.8), -0.2)
 	put(P.table, vil, Vector3(41.5, 0, 44.2), 0.0, "TableDed")
 	# огороды за домами и поле на юге
@@ -321,6 +322,7 @@ func _village() -> void:
 	# забор Степана вдоль улицы перед его двором: целые пролёты и дыра
 	# (перед дверью избы, x ≈ 73.9, — проход)
 	put(P.fence, vil, Vector3(70.4, 0, 44.1), 0.0, "Fence1")
+	put(P.fence_gate, vil, Vector3(73.9, 0, 44.1), 0.0, "FenceGate")
 	put(P.fence_broken, vil, Vector3(77.4, 0, 44.1), 0.0, "FenceGap")
 	put(P.fence, vil, Vector3(81.2, 0, 44.1), 0.0, "Fence3")
 	# частокол с воротами (север и запад) и вышками
@@ -572,7 +574,7 @@ func _seat(table: Node3D, x: float, side: float) -> Array:
 # ---------------- предметы и отметки ----------------
 func _items() -> void:
 	var items := group(root, "Items")
-	item(items, P.planks, "Planks", Vector3(76.6, 0, 39.4), ["phase_morning"])
+	item(items, P.planks, "Planks", Vector3(76.9, 0, 37.1), ["phase_morning"])
 	var basket := item(items, P.basket, "Basket", Vector3(42.1, 0.84, 44.2), ["phase_morning"])
 	basket.set("pick_size", Vector3(0.7, 0.9, 0.7))
 	var hi := 0
@@ -631,6 +633,23 @@ func _items() -> void:
 	marker(root, "MarkHall", Vector3(62, 0, 69.5), "Дом собраний")
 	marker(root, "MarkForest", Vector3(62, 0, 0), "Лес")
 	marker(root, "MarkBorder", Vector3(6, 0, W_GATE_Z), "Черта")
+
+
+# ---------------- забор Степана: дыра, которую можно заделать досками ----------------
+## FenceFixed — целый пролёт на месте сломанного, до починки выключен (nakharro.gd);
+## FenceMend — дыра, по клику на неё герой прибивает доски.
+func _fence_mend() -> void:
+	var gap: Node3D = root.get_node("Village/FenceGap")
+	var fixed := put(P.fence, gap.get_parent(), gap.position, gap.rotation.y, "FenceFixed")
+	fixed.visible = false
+	var m := _item_base("FenceMend")
+	m.set("kind", "use")
+	m.set("label", "Дыра в заборе")
+	m.set("pick_size", Vector3(1.7, 1.1, 0.35))
+	m.position = gap.transform * Vector3(1.0, 0, 0)
+	m.rotation.y = gap.rotation.y
+	root.get_node("Items").add_child(m)
+	m.owner = root
 
 
 # ---------------- проверка: ничего не растёт внутри построек ----------------

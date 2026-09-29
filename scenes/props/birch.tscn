@@ -2,31 +2,31 @@
 
 [ext_resource type="Material" path="res://assets/materials/birch_bark.tres" id="1_y22lf"]
 [ext_resource type="ArrayMesh" path="res://assets/models/props/birch_birch_bark.res" id="2_vpgg6"]
-[ext_resource type="Material" path="res://assets/materials/leaves_dark.tres" id="3_yjg14"]
-[ext_resource type="ArrayMesh" path="res://assets/models/props/birch_leaves_dark.res" id="4_iytje"]
-[ext_resource type="Material" path="res://assets/materials/leaves_tex.tres" id="5_2603m"]
-[ext_resource type="ArrayMesh" path="res://assets/models/props/birch_leaves_tex.res" id="6_t0pnn"]
+[ext_resource type="Material" path="res://assets/materials/birch_card_dark.tres" id="3_yjg14"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/birch_birch_card_dark.res" id="4_iytje"]
+[ext_resource type="Material" path="res://assets/materials/birch_card.tres" id="5_2603m"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/birch_birch_card.res" id="6_t0pnn"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_enm8y"]
 size = Vector3(0.5, 2, 0.5)
 
-[node name="Birch" type="Node3D" unique_id=157730938]
+[node name="Birch" type="Node3D" unique_id=610791386]
 
-[node name="Mesh_birch_bark" type="MeshInstance3D" parent="." unique_id=1805243126]
+[node name="Mesh_birch_bark" type="MeshInstance3D" parent="." unique_id=1535864111]
 material_override = ExtResource("1_y22lf")
 mesh = ExtResource("2_vpgg6")
 
-[node name="Mesh_leaves_dark" type="MeshInstance3D" parent="." unique_id=1853078515]
+[node name="Mesh_birch_card_dark" type="MeshInstance3D" parent="." unique_id=202355915]
 material_override = ExtResource("3_yjg14")
 mesh = ExtResource("4_iytje")
 
-[node name="Mesh_leaves_tex" type="MeshInstance3D" parent="." unique_id=657429925]
+[node name="Mesh_birch_card" type="MeshInstance3D" parent="." unique_id=1572070471]
 material_override = ExtResource("5_2603m")
 mesh = ExtResource("6_t0pnn")
 
-[node name="Collision" type="StaticBody3D" parent="." unique_id=1261897358]
+[node name="Collision" type="StaticBody3D" parent="." unique_id=107697529]
 collision_mask = 0
 
-[node name="@CollisionShape3D@77" type="CollisionShape3D" parent="Collision" unique_id=59794362]
+[node name="@CollisionShape3D@89" type="CollisionShape3D" parent="Collision" unique_id=23975345]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
 shape = SubResource("BoxShape3D_enm8y")

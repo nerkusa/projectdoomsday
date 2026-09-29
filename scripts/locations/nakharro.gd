@@ -97,6 +97,7 @@ func _apply_phase() -> void:
 	for n in get_tree().get_nodes_in_group("phase_raid"):
 		_set_on(n, raid)
 	_apply_light()
+	_apply_fence()
 	# лесные жители, ушедшие домой к вечеру
 	if Game.flag("dusk"):
 		for n in get_tree().get_nodes_in_group("forest_folk"):
@@ -327,6 +328,59 @@ func can_pick(it: Interactable) -> bool:
 	if it.item_id in ["mushroom", "berries"] and Game.quest_stage("forest") != 1:
 		main.hud.flash_tip("Дед ещё не посылал за грибами")
 		return false
+	if _is_theft(it):
+		return _steal(it)
+	return true
+
+
+# ---------------- воровство до налёта ----------------
+## Пока деревня жива, чужое брать нельзя: всё, кроме грибов, ягод, корзины и досок
+## для Степана, и кроме вещей из своей (дедовой) избы. Заметили — вещь остаётся
+## на месте, отругают, человечность падает вдвое сильнее. После налёта брать можно.
+const FREE_PICK := ["mushroom", "berries", "basket", "planks"]
+const THEFT_H := 3
+const WITNESS_R := 9.0
+const SCOLD := ["Эй! Положи, где взял!", "Ты что творишь? А ну верни!", "Совсем стыд потерял? Не твоё — не трогай.",
+	"Вот деду-то расскажу, чем внук занимается!"]
+
+
+func _is_theft(it: Interactable) -> bool:
+	if phase() != "morning" or it.item_id in FREE_PICK:
+		return false
+	return not String(it.name).begins_with("Take_IzbaDed")
+
+
+## Кто из жителей видит героя: рядом, в сознании, не враг и ничто не заслоняет
+func _witness() -> Character:
+	var p: Vector3 = main.player.global_position
+	var best: Character = null
+	var bd := WITNESS_R
+	for ch in characters():
+		if ch == main.player or not ch.visible or ch.pose in ["dead", "down"] or ch.hostile:
+			continue
+		var d: float = ch.global_position.distance_to(p)
+		if d < bd and grid.line_clear(ch.global_position, p, get_world_3d().direct_space_state):
+			bd = d
+			best = ch
+	return best
+
+
+## Попытка взять чужое. true — вещь ушла в сумку (никто не видел)
+func _steal(_it: Interactable) -> bool:
+	var w := _witness()
+	if w:
+		main.player.act("pickup")
+		w.face_towards(main.player.global_position)
+		var line: String = SCOLD[randi() % SCOLD.size()]
+		main.hud.float_text(w.global_position + Vector3(0, 2.0, 0), line, "miss")
+		Game.log_line("%s: «%s»" % [w.display_name if w.display_name != "" else "Житель", line], "", "miss")
+		Game.change_humanity(-THEFT_H * 2, "поймали на воровстве")
+		main.think("Заметили... Стыдно-то как.")
+		return false
+	Game.change_humanity(-THEFT_H, "взял чужое")
+	if not Game.flag("theft_thought"):
+		Game.set_flag("theft_thought")
+		main.think("Никто не видел. Только на душе всё равно гадко.")
 	return true
 
 
@@ -663,6 +717,9 @@ func on_looted(ch: Character) -> void:
 
 
 func on_interact(it: Interactable) -> bool:
+	if it.name == "FenceMend":
+		_mend_fence()
+		return true
 	if String(it.name).begins_with("HideBush"):
 		if _prowl in ["approach", "search"]:
 			main.hidden = true
@@ -692,6 +749,9 @@ func on_interact(it: Interactable) -> bool:
 			return true
 		if Game.flag("box_jammed"):
 			main.hud.flash_tip("Замок заклинило намертво")
+			return true
+		# чужой сундук в общем амбаре — до налёта это воровство
+		if phase() == "morning" and not _steal(it):
 			return true
 		main.player.act("pickup")
 		if Game.skill_check("Взлом замков", "DEX", "Взлом замков", 11):
@@ -893,10 +953,69 @@ func _shoot_ded(shooter: Character, dying := false) -> void:
 	main.say("thoughts", "ded_shot")
 
 
+# ---------------- забор Степана ----------------
+var _fence_fixed := false
+var _fence_init := false
+
+
+## Герой сам прибивает доски в дыру забора (или это сделал Степан в разговоре)
+func _mend_fence() -> void:
+	if Game.flag("fence_done"):
+		return
+	if Game.item_count("planks") <= 0:
+		main.hud.flash_tip("Нужны доски — Степан говорил, лежат у поленницы")
+		return
+	Game.remove_item("planks", 1)
+	main.player.act("pickup")
+	for k in 3:
+		get_tree().create_timer(0.35 + k * 0.3).timeout.connect(func(): main.sfx("hit_blunt", -6.0, 1.4))
+	if Game.skill_check("Механика", "CRA", "Механика", 10):
+		Game.log_line("Доски прибиты ровно — забор Степана снова цел.", "", "hit")
+		Game.grant_xp(25)
+	else:
+		Game.log_line("Доски встали кое-как, палец отбит — но дыры больше нет.", "", "miss")
+	Game.set_flag("fence_done")
+	var st := character("Stepan")
+	if st and st.visible and st.pose != "dead":
+		main.hud.float_text(st.global_position + Vector3(0, 2.0, 0), "Ишь ты, сам управился! Спасибо.", "thought")
+		Game.log_line("Степан: «Ишь ты, сам управился! Спасибо, парень».")
+
+
+## Сломанный пролёт или целый: видимость, коллизия и сетка проходимости
+func _apply_fence() -> void:
+	var done := Game.flag("fence_done")
+	if done == _fence_fixed and _fence_init:
+		return
+	var rebuild := _fence_init
+	_fence_init = true
+	_fence_fixed = done
+	var gap := get_node_or_null("Village/FenceGap") as Node3D
+	var fixed := get_node_or_null("Village/FenceFixed") as Node3D
+	if gap == null or fixed == null:
+		return
+	_set_solid(gap, not done)
+	_set_solid(fixed, done)
+	var mend := get_node_or_null("Items/FenceMend") as Interactable
+	if mend:
+		mend.set_active(not done)
+	if not rebuild and not done:
+		return
+	await get_tree().physics_frame
+	grid.build(get_world_3d().direct_space_state, map_rect, 1)
+
+
+func _set_solid(n: Node3D, on: bool) -> void:
+	n.visible = on
+	for b in n.find_children("*", "CollisionObject3D", true, false):
+		(b as CollisionObject3D).collision_layer = 1 if on else 0
+
+
 # ---------------- КПК: браслет деда + его компьютер ----------------
 func _on_hero_changed() -> void:
 	if _kpk_busy or main == null:
 		return
+	if Game.flag("fence_done") and not _fence_fixed:
+		_apply_fence()
 	if phase() == "morning" and Game.quest_stage("chores") == 1 and Game.flag("fence_done") and Game.flag("basket_done"):
 		Game.set_quest("chores", 2)
 		main.hud.refresh_objective()

@@ -1,0 +1,16 @@
+[gd_resource type="StandardMaterial3D" format=3]
+
+[ext_resource type="Texture2D" path="res://assets/textures/birch_leaves.png" id="1_rbqdf"]
+
+[resource]
+resource_name = "birch_card_dark"
+transparency = 2
+alpha_scissor_threshold = 0.45
+alpha_antialiasing_mode = 0
+cull_mode = 2
+albedo_color = Color(0.6039216, 0.65882355, 0.53333336, 1)
+albedo_texture = ExtResource("1_rbqdf")
+roughness = 0.95
+backlight_enabled = true
+backlight = Color(0.16, 0.2, 0.1, 1)
+texture_filter = 5
