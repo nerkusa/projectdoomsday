@@ -32,6 +32,7 @@ OUT_TEX = os.path.join(ROOT, "assets/models/hero_model.png")
 OUT_MESH = os.path.join(ROOT, "assets/models/hero_model_mesh.bin")
 TEX = 2048
 TRIS = 16000
+GLOVE_LUM = 68.0
 # поза листа персонажа (подобрана tools/bake_hero_skin.py по силуэту)
 SHEET_THETA = np.radians(59)
 SHEET_PHI = np.radians(8)
@@ -103,16 +104,79 @@ def main():
 	print("поза модели: руки %d°, ноги %d° (ср. расстояние %.3f м)" % (best[1], best[2], best[0]))
 	theta, phi = np.radians(best[1]), np.radians(best[2])
 	Pm, _ = B.pose(mesh, G, ib, names, chain, theta, phi)
-	# перенос весов: 6 ближайших точек манекена, обратно пропорционально расстоянию
-	tree_m = cKDTree(Pm)
-	d, idx = tree_m.query(P, k=6)
-	wv = 1.0 / (d + 1e-4)
+	# руки модели короче рук скелета — вытягиваем их вдоль оси руки (плавно от плеча),
+	# иначе запястье модели не совпадёт с запястьем скелета и кисть «оторвётся»
+	tree_model = cKDTree(P)
+	# картинка спереди (в позе модели) — для цвета и для поиска перчаток
+	fimg = np.asarray(Image.open(front_path).convert("RGB"))
+	fmask = B.ref_masks(fimg)
+	ys_, xs_ = np.nonzero(fmask)
+	ftop, fbot = ys_.min(), ys_.max()
+	fs = (fbot - ftop) / top
+	rows = fmask[int(fbot - 0.15 * (fbot - ftop))]
+	fcx = np.nonzero(rows)[0].mean()
+
+	def xy_front(Q):
+		return fcx + Q[:, 0] * fs, fbot - Q[:, 1] * fs, Q[:, 2]
+
+	vx, vy, _ = xy_front(P)
+	fi = np.clip(vx.astype(int), 0, fimg.shape[1] - 1)
+	fj = np.clip(vy.astype(int), 0, fimg.shape[0] - 1)
+	lum = fimg[fj, fi].astype(np.float64) @ np.array([0.3, 0.59, 0.11])
+	# перенос весов по частям тела: сначала каждая точка модели относится к руке, ноге или
+	# туловищу (по расстоянию до костей с учётом толщины части), потом берёт веса только
+	# у точек манекена той же части — иначе низ куртки у кисти получал бы веса руки
+	S_fit = skin_matrices(G, ib, names, chain, theta, phi)
+	jp = np.array([(S_fit[k] @ np.r_[G[k][:3, 3], 1])[:3] for k in range(len(names))])
+	def J_(n):
+		return jp[names.index(n)]
+	groups = {
+		"armL": ([("DEF-upper_arm.L", "DEF-forearm.L"), ("DEF-forearm.L", "DEF-hand.L"), ("DEF-hand.L", "DEF-f_middle.03.L")], set(chain("DEF-upper_arm.L"))),
+		"armR": ([("DEF-upper_arm.R", "DEF-forearm.R"), ("DEF-forearm.R", "DEF-hand.R"), ("DEF-hand.R", "DEF-f_middle.03.R")], set(chain("DEF-upper_arm.R"))),
+		"legL": ([("DEF-thigh.L", "DEF-shin.L"), ("DEF-shin.L", "DEF-foot.L"), ("DEF-foot.L", "DEF-toe.L")], set(chain("DEF-thigh.L"))),
+		"legR": ([("DEF-thigh.R", "DEF-shin.R"), ("DEF-shin.R", "DEF-foot.R"), ("DEF-foot.R", "DEF-toe.R")], set(chain("DEF-thigh.R"))),
+	}
+	torso_segs = [("DEF-hips", "DEF-spine.001"), ("DEF-spine.001", "DEF-spine.002"), ("DEF-spine.002", "DEF-spine.003"),
+		("DEF-spine.003", "DEF-neck"), ("DEF-neck", "DEF-head"), ("DEF-shoulder.L", "DEF-upper_arm.L"), ("DEF-shoulder.R", "DEF-upper_arm.R")]
+	limb_bones = set().union(*[g[1] for g in groups.values()])
+	groups["torso"] = (torso_segs, set(range(len(names))) - limb_bones)
+
+	def seg_dist(X, segs):
+		best = np.full(len(X), np.inf)
+		for a, b_ in segs:
+			A, Bp = J_(a), J_(b_)
+			if a == "DEF-neck" and b_ == "DEF-head":
+				Bp = J_("DEF-head") + np.array([0, 0.22, 0])
+			ab = Bp - A
+			t = np.clip(((X - A) @ ab) / max(ab @ ab, 1e-9), 0, 1)
+			best = np.minimum(best, np.linalg.norm(X - (A + np.outer(t, ab)), axis=1))
+		return best
+
+	mdom_j = mesh["J"][np.arange(len(mesh["J"])), np.argmax(mesh["W"], axis=1)]
+	gnames = list(groups.keys())
+	m_group = np.zeros(len(Pm), int)
+	for gi, g in enumerate(gnames):
+		m_group[np.isin(mdom_j, list(groups[g][1]))] = gi
+	radius = {}
+	for gi, g in enumerate(gnames):
+		radius[g] = np.percentile(seg_dist(Pm[m_group == gi], groups[g][0]), 90)
+	score = np.stack([seg_dist(P, groups[g][0]) / radius[g] for g in gnames], 1)
+	p_group = np.argmin(score, 1)
+	print("части тела:", {g: int((p_group == gi).sum()) for gi, g in enumerate(gnames)})
 	nj = len(names)
 	Wfull = np.zeros((len(P), nj))
-	for k in range(6):
-		src = idx[:, k]
-		for c in range(4):
-			np.add.at(Wfull, (np.arange(len(P)), mesh["J"][src, c]), wv[:, k] * mesh["W"][src, c])
+	for gi, g in enumerate(gnames):
+		pm_idx = np.nonzero(m_group == gi)[0]
+		pv = np.nonzero(p_group == gi)[0]
+		if len(pv) == 0:
+			continue
+		tr = cKDTree(Pm[pm_idx])
+		d, idx = tr.query(P[pv], k=6)
+		wv = 1.0 / (d + 1e-4)
+		for k in range(6):
+			src = pm_idx[idx[:, k]]
+			for c in range(4):
+				np.add.at(Wfull, (pv, mesh["J"][src, c]), wv[:, k] * mesh["W"][src, c])
 	# сглаживание весов по соседям сетки — без рывков на сгибах
 	nb = [[] for _ in range(len(P))]
 	for a, b_, c in I:
@@ -131,6 +195,74 @@ def main():
 	# в позу покоя скелета
 	S_model = skin_matrices(G, ib, names, chain, theta, phi)
 	P_rest, _ = apply_skin(S_model, J, W, P, inverse=True)
+	# цвет рукавов берём с картинки по исходной (не растянутой) модели
+	P_pose0 = P.copy()
+	P_rest0 = P_rest.copy()
+	# руки модели и скелета разной длины. В позе покоя руки лежат вдоль ±X — находим запястье
+	# модели (самое узкое место перед перчаткой) и растягиваем руку так, чтобы оно легло на
+	# запястье скелета; всё дальше запястья сдвигается целиком
+	for side, sgn in (("L", 1.0), ("R", -1.0)):
+		sh_x = sgn * G[names.index("DEF-upper_arm." + side)][0, 3]
+		wr_x = sgn * G[names.index("DEF-hand." + side)][0, 3]
+		am = (p_group == gnames.index("arm" + side))
+		ax = sgn * P_rest[am, 0]
+		xmax = ax.max()
+		# перчатка — тёмная кожа, рукав — рыжий: запястье там, где начинается тёмное
+		dark = lum[am] < GLOVE_LUM
+		cand = ax[dark & (ax > xmax - 0.35)]
+		wm = float(np.percentile(cand, 8)) if len(cand) > 10 else xmax - 0.17
+		k = (wr_x - sh_x) / (wm - sh_x)
+		x = sgn * P_rest[am, 0]
+		nx = np.where(x < sh_x, x, np.where(x < wm, sh_x + (x - sh_x) * k, x + (wr_x - wm)))
+		P_rest[np.nonzero(am)[0], 0] = sgn * nx
+		print("рука %s: запястье модели %.3f, скелета %.3f — растяжение %.2f" % (side, wm, wr_x, k))
+	# кисти — как у манекена (и у всех остальных): сгенерированные пальцы модели плохо гнутся
+	# и оружие в них сидит криво. Кисти модели убираем, ставим кисти манекена чуть крупнее
+	# (перчатка толще руки манекена), с его весами.
+	hand_bones = np.array([("hand" in n or "f_" in n or "thumb" in n) for n in names])
+	# у модели кисть — всё, что дальше запястья вдоль руки (в позе покоя руки вдоль ±X)
+	wl = G[names.index("DEF-hand.L")][:3, 3]
+	wr = G[names.index("DEF-hand.R")][:3, 3]
+	# рукав оставляем чуть длиннее запястья — он прикрывает тонкое запястье манекена
+	is_hand = (P_rest[:, 0] > wl[0] + 0.035) | (P_rest[:, 0] < wr[0] - 0.035)
+	keep = ~(is_hand[I].any(1))
+	# цвет перчатки — с картинки, по вырезанным тёмным точкам кистей модели
+	gl = np.nonzero(is_hand & (lum < GLOVE_LUM))[0]
+	gx, gy, _ = xy_front(P_pose0[gl])
+	glove_col = np.median(fimg[np.clip(gy.astype(int), 0, fimg.shape[0] - 1), np.clip(gx.astype(int), 0, fimg.shape[1] - 1)].astype(np.float64), axis=0) if len(gl) else np.array([55.0, 48, 42])
+	print("цвет перчатки:", glove_col.round())
+	I = I[keep]
+	mdom = np.argmax(mesh["W"], axis=1)
+	mJd = mesh["J"][np.arange(len(mdom)), mdom]
+	mhand = hand_bones[mJd]
+	mfaces = mesh["I"][mhand[mesh["I"]].all(1)]
+	used = np.unique(mfaces)
+	remap = -np.ones(len(mesh["P"]), np.int64)
+	remap[used] = np.arange(len(used)) + len(P_rest)
+	hp = mesh["P"][used].copy()
+	for side in ("L", "R"):
+		wrist = G[names.index("DEF-hand." + side)][:3, 3]
+		sel = (mesh["J"][used] == names.index("DEF-hand." + side)).any(1) | np.array(
+			[names[j].endswith("." + side) for j in mJd[used]])
+		hp[sel] = wrist + (hp[sel] - wrist) * 1.2
+	n_model = len(P_rest)
+	P_rest = np.vstack([P_rest, hp])
+	P_pose0 = np.vstack([P_pose0, np.zeros_like(hp)])
+	P_rest0 = np.vstack([P_rest0, hp])
+	hand_v = np.r_[np.zeros(n_model, bool), np.ones(len(hp), bool)]
+	J = np.vstack([J, mesh["J"][used]])
+	W = np.vstack([W, mesh["W"][used]])
+	I = np.vstack([I, remap[mfaces]])
+	# убрать вершины, на которые больше не ссылается ни одна грань
+	alive = np.unique(I)
+	nid = -np.ones(len(P_rest), np.int64)
+	nid[alive] = np.arange(len(alive))
+	P_rest, J, W, I = P_rest[alive], J[alive], W[alive], nid[I]
+	P_pose0, P_rest0, hand_v = P_pose0[alive], P_rest0[alive], hand_v[alive]
+	P, _ = apply_skin(S_model, J, W, P_rest)
+	# для проекций: рукава — как на картинке (без растяжения), кисти — на своём месте
+	P_proj = np.where(hand_v[:, None], P, P_pose0)
+	print("кисти заменены: -%d граней модели, +%d граней кистей манекена" % ((~keep).sum(), len(mfaces)))
 	# нормали позы покоя
 	def normals(V, F):
 		n = np.zeros_like(V)
@@ -151,8 +283,8 @@ def main():
 	print("развёртка: %d вершин" % len(vmap))
 	# позы для проекций
 	S_sheet = skin_matrices(G, ib, names, chain, SHEET_THETA, SHEET_PHI)
-	P_sheet, _ = apply_skin(S_sheet, J, W, P_rest)
-	N_model = normals(P, I)
+	P_sheet, _ = apply_skin(S_sheet, J, W, P_rest0)
+	N_model = normals(P_proj, I)
 	N_sheet = normals(P_sheet, I)
 	# тексели
 	U = uvs[:, 0] * TEX
@@ -208,19 +340,7 @@ def main():
 			+ imgf[y0 + 1, x0] * (1 - fx) * fy + imgf[y0 + 1, x0 + 1] * fx * fy)
 		return col, w
 
-	# 1) спереди — картинка в позе модели
-	fimg = np.asarray(Image.open(front_path).convert("RGB"))
-	fmask = B.ref_masks(fimg)
-	ys_, xs_ = np.nonzero(fmask)
-	ftop, fbot = ys_.min(), ys_.max()
-	fs = (fbot - ftop) / top
-	rows = fmask[int(fbot - 0.15 * (fbot - ftop))]
-	fcx = np.nonzero(rows)[0].mean()
-
-	def xy_front(Q):
-		return fcx + Q[:, 0] * fs, fbot - Q[:, 1] * fs, Q[:, 2]
-
-	col, w = project(fimg, fmask, P, N_model, xy_front, np.array([0, 0, 1.0]), lambda n: 1.0, 1.0)
+	col, w = project(fimg, fmask, P_proj, N_model, xy_front, np.array([0, 0, 1.0]), lambda n: 1.0, 1.0)
 	acc += col * w[:, None]
 	wsum += w
 	print("вид спереди (картинка): %.0f%% текселей" % (100 * (w > 0).mean()))
@@ -251,6 +371,9 @@ def main():
 	acc += col * w[:, None]
 	wsum += w
 	print("лист, правый бок: %.0f%% текселей" % (100 * (w > 0).mean()))
+	on_hand = hand_v[F].any(1)
+	acc[on_hand] = glove_col * (0.9 + 0.2 * np.random.default_rng(1).random((on_hand.sum(), 1)))
+	wsum[on_hand] = 1.0
 	tex = np.zeros((TEX * TEX, 3))
 	have = np.zeros(TEX * TEX, bool)
 	ok = wsum > 0

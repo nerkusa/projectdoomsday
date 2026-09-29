@@ -613,6 +613,14 @@ func _click(sp: Vector2) -> void:
 ## В бою ходьба идёт по гексам (CombatManager).
 func _walk_to_hex(h: Vector2i, cb := Callable(), exact = null) -> bool:
 	var g := location.grid
+	# за край карты не выйти: цель прижимается к границе (с запасом 1,5 м)
+	var lim: Rect2 = location.map_rect.grow(-1.5)
+	var hw: Vector3 = g.to_world(h) if exact == null else Vector3(exact.x, 0, exact.z)
+	if not lim.has_point(Vector2(hw.x, hw.z)):
+		hw.x = clampf(hw.x, lim.position.x, lim.end.x)
+		hw.z = clampf(hw.z, lim.position.y, lim.end.y)
+		h = g.from_world(hw)
+		exact = hw
 	var from := g.from_world(player.global_position)
 	# герой может стоять на краю занятого гекса (у стены, на крыльце) — путь ищем от ближайшего свободного
 	if not g.is_free(from):

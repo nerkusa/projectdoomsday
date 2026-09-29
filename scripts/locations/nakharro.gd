@@ -153,7 +153,8 @@ func _apply_light() -> void:
 	var raid := phase() != "morning"
 	if env and env.environment:
 		env.environment.fog_light_color = Color("7a5a3c") if raid else Color("b3a07c").lerp(Color("9a7650"), k)
-		env.environment.fog_density = 0.01 if raid else lerpf(0.004, 0.008, k)
+		# камера далеко — даже малая плотность заметно выцвечивает; дым налёта чуть гуще
+		env.environment.fog_density = 0.0035 if raid else lerpf(0.001, 0.0025, k)
 		env.environment.adjustment_saturation = 0.75 if raid else lerpf(0.95, 0.82, k)
 	if sun:
 		sun.light_energy = 0.7 if raid else lerpf(1.05, 0.72, k)
