@@ -532,7 +532,8 @@ func _characters() -> void:
 		ch.add_to_group("defenders", true)
 	character(chars, "WoundedDefender", "villager", Vector3(60.5, 0, 57.8), 1.0, {"display_name": "Раненый", "start_pose": "down", "groups": R_})
 	# у северных ворот: часовой зовёт на помощь, пленные на коленях, двое нападавших
-	character(chars, "GateGuard", "defender", Vector3(62.0, 0, 36.4), PI, {"display_name": "Часовой Эрчим", "armed": true, "groups": R_})
+	var gg := character(chars, "GateGuard", "defender", Vector3(62.0, 0, 36.4), 0.45, {"display_name": "Часовой Эрчим", "armed": true, "groups": R_})
+	gg.add_to_group("defenders", true)
 	character(chars, "Doomed1", "villager", Vector3(60.9, 0, 43.2), PI, {"display_name": "Житель", "start_pose": "yield", "groups": R_})
 	character(chars, "Doomed2", "villager_f", Vector3(63.2, 0, 43.5), PI + 0.2, {"display_name": "Жительница", "start_pose": "yield", "groups": R_})
 	character(chars, "Executioner", "executioner", Vector3(62.1, 0, 45.6), PI, {"squad": "gate", "armed": true, "groups": R_})

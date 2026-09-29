@@ -319,7 +319,7 @@ func _ready() -> void:
 	await wait(24.0)
 	ok(not folk.visible, "дозорный ушёл домой")
 	# Внимательность решает, как начнётся засада
-	Game.hero.stats.PRC = 10 if stealth else -30
+	Game.hero.stats.PRC = 30 if stealth else -30
 	Game.hero.skills["Внимательность"] = 5 if stealth else 0
 	var hp0 := Game.hero_hp()
 	await tp(foods[4].global_position + Vector3(0.9, 0, 0))
@@ -381,7 +381,7 @@ func _ready() -> void:
 		if main.location.character(n).pose != "dead":
 			saved += 1
 	print("  пленных спасено: ", saved, " из 2")
-	ok(saved < 2, "стрелок успел выстрелить в пленного")
+	ok(saved == 0, "пленных расстреляли сразу, в сцене у ворот")
 	var r1: Character = main.location.character("Raider1")
 	await tp(r1.global_position + Vector3(1.2, 0, 0))
 	main.loot(r1)

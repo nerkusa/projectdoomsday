@@ -597,11 +597,14 @@ func _gate_scene() -> void:
 	var gg := character("GateGuard")
 	var gr := character("GateRaider")
 	var ex := character("Executioner")
-	gg.face_towards(main.player.global_position)
-	gg.act("wave")
+	# часовой уже отстреливается — прибежал на помощь; кричит герою, не опуская винтовки
+	if gr and gr.pose != "dead":
+		gg.face_towards(gr.global_position)
+	gg.aim_pose = true
+	gg.act("fire", Callable(), {"n": 1})
 	main.hud.float_text(gg.global_position + Vector3(0, 2.3, 0), "Напали! Помоги, они внутри!", "")
 	Game.log_line("Эрчим: «Напали! Помоги, они внутри!»", "", "miss")
-	await get_tree().create_timer(1.5, false).timeout
+	await get_tree().create_timer(1.2, false).timeout
 	if gr and gr.pose != "dead":
 		gr.face_towards(gg.global_position)
 		gr.aim_pose = true
@@ -610,7 +613,21 @@ func _gate_scene() -> void:
 	_kill_npc(gg, false)
 	main.hud.float_text(gg.global_position + Vector3(0, 1.6, 0), "Эрчим!", "hit")
 	main.say("thoughts", "gate_guard_dead")
-	await get_tree().create_timer(1.2, false).timeout
+	# казнь — сразу, как в катсцене: стрелок расстреливает обоих пленных
+	for n in ["Doomed1", "Doomed2"]:
+		await get_tree().create_timer(0.9, false).timeout
+		var v := character(n)
+		if ex == null or ex.pose == "dead" or v == null or v.pose != "yield":
+			continue
+		ex.face_towards(v.global_position)
+		ex.aim_pose = true
+		ex.act("fire", Callable(), {"n": 1})
+		_kill_npc(v)
+		Game.log_line("%s стреляет в пленного!" % ex.display_name, "", "hit")
+		main.hud.float_text(v.global_position + Vector3(0, 1.4, 0), "Нет!", "hit")
+	Game.set_flag("exec_done")
+	main.say("thoughts", "execution_after")
+	await get_tree().create_timer(1.0, false).timeout
 	for e in [ex, gr]:
 		if e and e.pose != "dead":
 			e.hostile = true

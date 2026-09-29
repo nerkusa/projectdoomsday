@@ -313,6 +313,27 @@ var _ik_right: Node3D
 var _shouldered := false
 var _hold := ""
 ## Оружие наготове, но не у плеча: перед телом, ствол вниз-влево, обе руки на нём
+var _chest: BoneAttachment3D
+## Положение грудной кости в позе покоя, в координатах rig
+var _chest_offset := Transform3D.IDENTITY
+
+
+func _chest_attach() -> BoneAttachment3D:
+	if _chest and is_instance_valid(_chest):
+		return _chest
+	var sk: Skeleton3D = (body as AnimBody).skel if body is AnimBody else null
+	if sk == null:
+		return null
+	var bi := sk.find_bone("DEF-spine.003")
+	if bi < 0:
+		return null
+	_chest = BoneAttachment3D.new()
+	_chest.bone_name = "DEF-spine.003"
+	sk.add_child(_chest)
+	_chest_offset = rig.global_transform.affine_inverse() * sk.global_transform * sk.get_bone_global_rest(bi)
+	return _chest
+
+
 const LOW_READY := Transform3D(Basis(Vector3.UP, 0.45) * Basis(Vector3.RIGHT, 0.55), Vector3(-0.12, 1.0, 0.24))
 
 
@@ -385,6 +406,15 @@ func _update_two_hands() -> void:
 	_ik.active = want
 	if not want:
 		return
+	# оружие идёт за грудью: смещается вместе с корпусом (на бегу, при покачивании),
+	# наклон корпуса берёт лишь отчасти — иначе на бегу ствол смотрел бы в землю
+	var chest := _chest_attach()
+	if chest:
+		var in_rig := Transform3D(Basis.IDENTITY, SHOULDER) if _shouldered else LOW_READY
+		var follow: Transform3D = chest.global_transform * (_chest_offset.affine_inverse() * in_rig)
+		var base: Transform3D = rig.global_transform * in_rig
+		var b := base.basis.orthonormalized().slerp(follow.basis.orthonormalized(), 0.35)
+		_held_node.global_transform = Transform3D(b, follow.origin)
 	var fg: Node3D = _held_node.get_node("Foregrip")
 	var lp: Vector3 = fg.global_position
 	if typ == "reload" and _held_node.get_node_or_null("Bolt"):
