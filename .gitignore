@@ -9,3 +9,5 @@ Thumbs.db
 
 # сборки игры
 build/
+__pycache__/
+*.npy
