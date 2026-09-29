@@ -59,6 +59,16 @@ func build(look := {}) -> bool:
 ## Кости те же, что у манекена, так что скелет и анимации остаются прежними.
 func _skin(mi: MeshInstance3D, look: Dictionary) -> void:
 	mi.mesh = load(str(look.skin_mesh))
+	# свои пропорции рук: модификатор скелета — первым, до IK рук
+	var rig_path := str(look.skin_mesh).replace("_mesh.res", "_rig.json")
+	if FileAccess.file_exists(rig_path) and skel.get_node_or_null("ArmLength") == null:
+		var cfg = JSON.parse_string(FileAccess.get_file_as_string(rig_path))
+		if cfg is Dictionary and cfg.has("arm_k"):
+			var al := ArmLength.new()
+			al.name = "ArmLength"
+			al.k = float(cfg.arm_k)
+			skel.add_child(al)
+			skel.move_child(al, 0)
 	var m := StandardMaterial3D.new()
 	m.albedo_texture = load(str(look.skin_tex))
 	m.roughness = 0.85

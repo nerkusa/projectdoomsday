@@ -1,0 +1,38 @@
+[gd_scene format=3]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_toyvx"]
+albedo_color = Color(0.5411765, 0.54901963, 0.5568628, 1)
+metallic = 0.6
+roughness = 0.45
+
+[sub_resource type="BoxMesh" id="BoxMesh_jyr2q"]
+size = Vector3(0.014, 0.03, 0.304)
+
+[sub_resource type="BoxMesh" id="BoxMesh_seoxg"]
+size = Vector3(0.018, 0.075, 0.05)
+
+[sub_resource type="BoxMesh" id="BoxMesh_6snb2"]
+size = Vector3(0.018, 0.022, 0.045)
+
+[node name="Wrench" type="Node3D" unique_id=775208358]
+metadata/length = 0.38
+
+[node name="Mesh0" type="MeshInstance3D" parent="." unique_id=1713234724]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.057)
+material_override = SubResource("StandardMaterial3D_toyvx")
+mesh = SubResource("BoxMesh_jyr2q")
+
+[node name="Mesh1" type="MeshInstance3D" parent="." unique_id=1032824975]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.012, 0.2242)
+material_override = SubResource("StandardMaterial3D_toyvx")
+mesh = SubResource("BoxMesh_seoxg")
+
+[node name="Mesh2" type="MeshInstance3D" parent="." unique_id=1438024035]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.04, 0.2736)
+material_override = SubResource("StandardMaterial3D_toyvx")
+mesh = SubResource("BoxMesh_6snb2")
+
+[node name="Mesh3" type="MeshInstance3D" parent="." unique_id=1263543782]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.018, 0.2736)
+material_override = SubResource("StandardMaterial3D_toyvx")
+mesh = SubResource("BoxMesh_6snb2")

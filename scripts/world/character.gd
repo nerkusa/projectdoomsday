@@ -298,6 +298,14 @@ func set_held(wkey: String) -> void:
 	if body is AnimBody:
 		_held_node.transform = body.grip(DB.is_gun(wkey), false, wkey in SHORT_BLADES)
 	hnd.add_child(_held_node)
+	# оружие в руках — часть тела для силуэта: не даёт пятна там, где закрывает кисть
+	for n in _held_node.find_children("*", "MeshInstance3D", true, false):
+		var mi := n as MeshInstance3D
+		if mi.material_override:
+			mi.material_override = _stencil_mat(mi.material_override)
+		elif mi.mesh:
+			for i in mi.mesh.get_surface_count():
+				mi.set_surface_override_material(i, _stencil_mat(mi.mesh.surface_get_material(i)))
 	_setup_two_hands()
 
 
@@ -335,6 +343,15 @@ func _chest_attach() -> BoneAttachment3D:
 
 
 const LOW_READY := Transform3D(Basis(Vector3.UP, 0.45) * Basis(Vector3.RIGHT, 0.55), Vector3(-0.12, 1.0, 0.24))
+
+
+## «Наготове» зависит от длины: короткий автомат — стволом вниз у бедра,
+## длинная винтовка — поперёк груди, почти горизонтально (иначе ствол упирается в землю)
+func _low_ready() -> Transform3D:
+	var ln: float = float(_held_node.get_meta("length", 0.8)) if _held_node else 0.8
+	if ln < 0.9:
+		return LOW_READY
+	return Transform3D(Basis(Vector3.UP, 0.8) * Basis(Vector3.RIGHT, 0.28), Vector3(-0.14, 1.08, 0.22))
 
 
 func _two_handed() -> bool:
@@ -399,7 +416,7 @@ func _update_two_hands() -> void:
 		if want:
 			if _held_node.get_parent() != rig:
 				_held_node.reparent(rig, false)
-			_held_node.transform = Transform3D(Basis.IDENTITY, SHOULDER) if _shouldered else LOW_READY
+			_held_node.transform = Transform3D(Basis.IDENTITY, SHOULDER) if _shouldered else _low_ready()
 		else:
 			_held_node.reparent(hnd, false)
 			_held_node.transform = (body as AnimBody).grip(true)
@@ -410,7 +427,7 @@ func _update_two_hands() -> void:
 	# наклон корпуса берёт лишь отчасти — иначе на бегу ствол смотрел бы в землю
 	var chest := _chest_attach()
 	if chest:
-		var in_rig := Transform3D(Basis.IDENTITY, SHOULDER) if _shouldered else LOW_READY
+		var in_rig := Transform3D(Basis.IDENTITY, SHOULDER) if _shouldered else _low_ready()
 		var follow: Transform3D = chest.global_transform * (_chest_offset.affine_inverse() * in_rig)
 		var base: Transform3D = rig.global_transform * in_rig
 		var b := base.basis.orthonormalized().slerp(follow.basis.orthonormalized(), 0.35)
@@ -1032,6 +1049,22 @@ func _stencil_write(mi: MeshInstance3D) -> void:
 			m.stencil_reference = 1
 			_mats[key] = m
 		mi.set_surface_override_material(i, _mats[key])
+
+
+## Копия материала, пишущая 1 в трафарет (для силуэта «сквозь стены»)
+func _stencil_mat(src: Material) -> Material:
+	var m := src as BaseMaterial3D
+	if m == null or m.stencil_mode == BaseMaterial3D.STENCIL_MODE_CUSTOM:
+		return src
+	var key := "stw%d" % m.get_instance_id()
+	if not _mats.has(key):
+		var d := m.duplicate() as BaseMaterial3D
+		d.stencil_mode = BaseMaterial3D.STENCIL_MODE_CUSTOM
+		d.stencil_flags = BaseMaterial3D.STENCIL_FLAG_WRITE
+		d.stencil_compare = BaseMaterial3D.STENCIL_COMPARE_ALWAYS
+		d.stencil_reference = 1
+		_mats[key] = d
+	return _mats[key]
 
 
 static func _sil_mat(c: Color, ghost := 0.0) -> ShaderMaterial:

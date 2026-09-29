@@ -37,6 +37,9 @@ const W := {
 	# у этой модели пистолетная рукоять стоит перед магазином — хват по ней, левая рука на цевье
 	"buran": {"file": "buran/buran.gltf", "rot": Vector3(0, -90, 0), "length": 0.74, "grip": Vector2(0.59, 0.45),
 		"keep_mats": true, "foregrip": 0.8, "foregrip_y": 0.72, "bolt": 0.5},
+	# труба и разводной ключ — простые модели прямо из примитивов (готовых файлов нет)
+	"pipe": {"proc": "pipe", "length": 0.62, "grip": Vector2(0.15, 0.5)},
+	"wrench": {"proc": "wrench", "length": 0.38, "grip": Vector2(0.25, 0.5)},
 	"machete": {"file": "machete/machete.fbx", "rot": Vector3(0, 0, 0), "length": 0.6, "grip": Vector2(0.12, 0.5),
 		"tex": {"albedo": "machete_albedo.png", "normal": "machete_normal.png", "rough": "machete_rough.png", "metal": "machete_metal.png"}},
 }
@@ -118,8 +121,65 @@ func _material(c: Dictionary, key: String) -> StandardMaterial3D:
 	return load(p)
 
 
+## Модель из примитивов (длинная сторона вдоль +Z, хват — в начале координат)
+func _build_proc(k: String, c: Dictionary) -> void:
+	var root := Node3D.new()
+	root.name = k.to_pascal_case()
+	var ln: float = c.length
+	var g: Vector2 = c.grip
+	var z0: float = -ln * g.x
+	var metal := StandardMaterial3D.new()
+	metal.albedo_color = Color("6e5a48") if k == "pipe" else Color("8a8c8e")
+	metal.metallic = 0.6
+	metal.roughness = 0.75 if k == "pipe" else 0.45
+	var parts := []
+	if k == "pipe":
+		var cy := CylinderMesh.new()
+		cy.top_radius = 0.021
+		cy.bottom_radius = 0.021
+		cy.height = ln
+		cy.radial_segments = 10
+		parts.append([cy, Transform3D(Basis(Vector3.RIGHT, PI / 2.0), Vector3(0, 0, z0 + ln / 2.0))])
+		var cap := CylinderMesh.new()
+		cap.top_radius = 0.027
+		cap.bottom_radius = 0.027
+		cap.height = 0.05
+		cap.radial_segments = 10
+		parts.append([cap, Transform3D(Basis(Vector3.RIGHT, PI / 2.0), Vector3(0, 0, z0 + ln - 0.03))])
+	else:
+		var hb := BoxMesh.new()
+		hb.size = Vector3(0.014, 0.03, ln * 0.8)
+		parts.append([hb, Transform3D(Basis.IDENTITY, Vector3(0, 0, z0 + ln * 0.4))])
+		var head := BoxMesh.new()
+		head.size = Vector3(0.018, 0.075, 0.05)
+		parts.append([head, Transform3D(Basis.IDENTITY, Vector3(0, 0.012, z0 + ln * 0.84))])
+		var jaw := BoxMesh.new()
+		jaw.size = Vector3(0.018, 0.022, 0.045)
+		parts.append([jaw, Transform3D(Basis.IDENTITY, Vector3(0, 0.04, z0 + ln * 0.97))])
+		parts.append([jaw, Transform3D(Basis.IDENTITY, Vector3(0, -0.018, z0 + ln * 0.97))])
+	var i := 0
+	for pt in parts:
+		var mi := MeshInstance3D.new()
+		mi.name = "Mesh%d" % i
+		mi.mesh = pt[0]
+		mi.transform = pt[1]
+		mi.material_override = metal
+		root.add_child(mi)
+		mi.owner = root
+		i += 1
+	root.set_meta("length", ln)
+	var ps := PackedScene.new()
+	ps.pack(root)
+	ResourceSaver.save(ps, OUT + k + ".tscn")
+	print("  %s: из примитивов, длина %.2f" % [k, ln])
+	root.free()
+
+
 func _build(k: String) -> void:
 	var c := _cfg(k)
+	if c.has("proc"):
+		_build_proc(k, c)
+		return
 	var meshes := _source_meshes(c)
 	if meshes.is_empty():
 		push_error("нет сетки для " + k)

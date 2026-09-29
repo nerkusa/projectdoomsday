@@ -201,7 +201,7 @@ func objective() -> String:
 	if not Game.flag("ded_dead"):
 		if Game.quest_stage("fire") <= 1:
 			return "Нахарро горит. Найти деда."
-		return "Дед у амбара!"
+		return "Дед ранен — подойти к нему." if Game.flag("ded_shot") else "Дед у амбара!"
 	var pack := pack_line()
 	return "Идти на запад по старой просеке, к старой черте." + pack
 
@@ -300,6 +300,7 @@ func _process(delta: float) -> void:
 func on_hero_moved(pos: Vector3) -> void:
 	if phase() != "raid":
 		return
+	_ded_near(pos)
 	if not Game.flag("fire_seen") and pos.z > FOREST_EDGE_Z:
 		Game.set_flag("fire_seen")
 		Game.set_quest("forest", 3)
@@ -947,9 +948,24 @@ func _ded_falls() -> void:
 	Game.set_quest("fire", 3)
 	var ded := character("DedRaid")
 	ded.dialog = "ded"
-	await get_tree().create_timer(0.8, false).timeout
-	main.player.face_towards(ded.global_position)
-	main.talk_to(ded, "last")
+	# разговор — только когда герой подойдёт сам (или кликнет по деду)
+	main.hud.float_text(ded.global_position + Vector3(0, 1.2, 0), "Внучок...", "")
+	main.think("Дед! Он ранен. Скорее к нему.")
+	main.hud.refresh_objective()
+
+
+## Дед лежит раненый — подошёл ближе 2,5 м: последний разговор
+const DED_TALK_R := 2.5
+
+
+func _ded_near(pos: Vector3) -> void:
+	if not Game.flag("ded_shot") or Game.flag("ded_dead") or main.dialog.visible or main.combat.on:
+		return
+	var ded := character("DedRaid")
+	if ded and ded.global_position.distance_to(pos) < DED_TALK_R:
+		main.player.stop()
+		main.player.face_towards(ded.global_position)
+		main.talk_to(ded, "last")
 
 
 func _fighting_cleaners() -> bool:
@@ -1014,27 +1030,40 @@ func _quest_item(it: Interactable) -> bool:
 
 
 func _update_quest_marks() -> void:
+	var dd := character("DedRaid")
+	if dd:
+		var want := Game.flag("ded_shot") and not Game.flag("ded_dead")
+		var dm: Label3D = _qmarks.get("DedRaid", null)
+		if want and dm == null:
+			dm = _mark_label(1.1)
+			dd.add_child(dm)
+			_qmarks["DedRaid"] = dm
+		if dm:
+			dm.visible = want
 	for it in items():
 		var on := _quest_item(it)
 		var m: Label3D = _qmarks.get(it.name, null)
 		if on and m == null:
-			m = Label3D.new()
-			m.text = "▼"
-			m.font_size = 64
-			m.pixel_size = 0.006
-			m.modulate = Color("ffb640")
-			m.outline_modulate = Color(0.1, 0.05, 0.0, 0.9)
-			m.outline_size = 10
-			m.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-			m.no_depth_test = true
-			m.fixed_size = false
-			var y: float = maxf(0.9, it.pick_size.y + 0.6)
-			m.position = Vector3(0, y, 0)
-			m.set_meta("y0", y)
+			m = _mark_label(maxf(0.9, it.pick_size.y + 0.6))
 			it.add_child(m)
 			_qmarks[it.name] = m
 		if m:
 			m.visible = on
+
+
+func _mark_label(y: float) -> Label3D:
+	var m := Label3D.new()
+	m.text = "▼"
+	m.font_size = 64
+	m.pixel_size = 0.006
+	m.modulate = Color("ffb640")
+	m.outline_modulate = Color(0.1, 0.05, 0.0, 0.9)
+	m.outline_size = 10
+	m.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	m.no_depth_test = true
+	m.position = Vector3(0, y, 0)
+	m.set_meta("y0", y)
+	return m
 
 
 # ---------------- сундук в амбаре ----------------

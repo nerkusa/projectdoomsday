@@ -1,0 +1,31 @@
+[gd_scene format=3]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_317tt"]
+albedo_color = Color(0.43137255, 0.3529412, 0.28235295, 1)
+metallic = 0.6
+roughness = 0.75
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_yd8vf"]
+top_radius = 0.021
+bottom_radius = 0.021
+height = 0.62
+radial_segments = 10
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_dyx71"]
+top_radius = 0.027
+bottom_radius = 0.027
+height = 0.05
+radial_segments = 10
+
+[node name="Pipe" type="Node3D" unique_id=1272030366]
+metadata/length = 0.62
+
+[node name="Mesh0" type="MeshInstance3D" parent="." unique_id=53858108]
+transform = Transform3D(1, 0, 0, 0, -4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 0, 0.217)
+material_override = SubResource("StandardMaterial3D_317tt")
+mesh = SubResource("CylinderMesh_yd8vf")
+
+[node name="Mesh1" type="MeshInstance3D" parent="." unique_id=1764562748]
+transform = Transform3D(1, 0, 0, 0, -4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 0, 0.497)
+material_override = SubResource("StandardMaterial3D_317tt")
+mesh = SubResource("CylinderMesh_dyx71")

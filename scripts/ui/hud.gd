@@ -34,6 +34,9 @@ var _bar: PanelContainer
 var _tape: PanelContainer
 ## До КПК интерфейс простой: только что в руке, и короткий журнал слева
 var _hand: Button
+## До КПК: сумка и (в бою) конец хода — рядом с рукой, вместо полной панели
+var _bag: Button
+var _end_small: Button
 var _mini_log: VBoxContainer
 ## Мысль над головой героя
 var _thought: Label
@@ -147,6 +150,22 @@ func _build() -> void:
 	_hand.tooltip_text = "Клик или Tab — сменить руку"
 	_hand.pressed.connect(action.emit.bind("swap"))
 	add_child(_hand)
+	_bag = UITheme.key("Сумка  [I]", "normal", 11)
+	_bag.set_anchors_and_offsets_preset(Control.PRESET_CENTER_BOTTOM)
+	_bag.offset_left = 140
+	_bag.offset_right = 250
+	_bag.offset_top = -74
+	_bag.offset_bottom = -44
+	_bag.pressed.connect(action.emit.bind("kpk"))
+	add_child(_bag)
+	_end_small = UITheme.key("Конец хода", "primary", 11)
+	_end_small.set_anchors_and_offsets_preset(Control.PRESET_CENTER_BOTTOM)
+	_end_small.offset_left = 140
+	_end_small.offset_right = 250
+	_end_small.offset_top = -40
+	_end_small.offset_bottom = -14
+	_end_small.pressed.connect(action.emit.bind("end"))
+	add_child(_end_small)
 	_mini_log = VBoxContainer.new()
 	_mini_log.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_LEFT)
 	_mini_log.offset_left = 16
@@ -352,12 +371,19 @@ func refresh() -> void:
 	_hp_bar.value = Game.hero_hp()
 	_hp_lbl.text = "%d/%d" % [Game.hero_hp(), Game.hero_max()]
 	var on := _combat.on
-	_bar.visible = on or Game.flag("kpk")
+	# полная панель — только с КПК; до него — рука, сумка и в бою конец хода
+	_bar.visible = Game.flag("kpk")
 	_tape.visible = Game.flag("kpk")
 	_hand.visible = not _bar.visible
+	_bag.visible = not _bar.visible
+	_end_small.visible = not _bar.visible and on
 	_mini_log.visible = not _bar.visible
 	var hw := DB.weapon(Game.hero_wkey())
 	_hand.text = "В РУКЕ: %s\n[Tab] другая рука: %s" % [hw.get("name", "—"), DB.weapon(str(h.hands[1 - int(h.active)])).get("name", "—")]
+	if on and not _bar.visible:
+		var cu := _combat.whose_turn()
+		_hand.text = ("ТВОЙ ХОД · %d ОД\n" % cu.ap if cu.is_hero else "ХОД: %s\n" % cu.name) + "В РУКЕ: %s  [Tab]" % hw.get("name", "—")
+		_end_small.disabled = not _combat.my_turn()
 	for c in _ap_row.get_children():
 		c.queue_free()
 	if on:
@@ -606,4 +632,4 @@ func mouse_over_ui() -> bool:
 	var mp := get_viewport().get_mouse_position()
 	if _hand.visible and _hand.get_global_rect().has_point(mp):
 		return true
-	return (_bar.visible and mp.y > size.y - 166) or (_zones.visible and _zones.get_global_rect().has_point(mp)) or _menu_bar.get_global_rect().has_point(mp)
+	return (_bar.visible and mp.y > size.y - 166) or (_bag.visible and _bag.get_global_rect().has_point(mp)) or (_end_small.visible and _end_small.get_global_rect().has_point(mp)) or (_hand.visible and _hand.get_global_rect().has_point(mp)) or (_zones.visible and _zones.get_global_rect().has_point(mp)) or _menu_bar.get_global_rect().has_point(mp)

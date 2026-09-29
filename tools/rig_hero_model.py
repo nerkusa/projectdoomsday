@@ -12,6 +12,7 @@
 
 Запуск: python3 tools/rig_hero_model.py tools/ref/hero_model.glb tools/ref/hero_front.webp
 """
+import json
 import os
 import struct
 import sys
@@ -32,10 +33,29 @@ OUT_TEX = os.path.join(ROOT, "assets/models/hero_model.png")
 OUT_MESH = os.path.join(ROOT, "assets/models/hero_model_mesh.bin")
 TEX = 2048
 TRIS = 16000
+HAND_LEN = 0.233  # запястье → кончики пальцев у манекена
+OUT_RIG = os.path.join(ROOT, "assets/models/hero_model_rig.json")
 GLOVE_LUM = 68.0
 # поза листа персонажа (подобрана tools/bake_hero_skin.py по силуэту)
 SHEET_THETA = np.radians(59)
 SHEET_PHI = np.radians(8)
+
+
+def short_arms(G, names, chain, k):
+	"""Скелет с укороченными руками: локальные смещения предплечья и кисти умножаются на k.
+	То же делает в игре scripts/world/arm_length.gd."""
+	G = G.copy()
+	for side in ("L", "R"):
+		sh = G[names.index("DEF-upper_arm." + side)][:3, 3].copy()
+		el = G[names.index("DEF-forearm." + side)][:3, 3].copy()
+		wr = G[names.index("DEF-hand." + side)][:3, 3].copy()
+		d_el = (el - sh) * (k - 1)
+		d_wr = d_el + (wr - el) * (k - 1)
+		for c in chain("DEF-forearm." + side):
+			G[c][:3, 3] += d_el
+		for c in chain("DEF-hand." + side):
+			G[c][:3, 3] += d_wr - d_el
+	return G
 
 
 def load_model(path):
@@ -163,6 +183,22 @@ def main():
 	score = np.stack([seg_dist(P, groups[g][0]) / radius[g] for g in gnames], 1)
 	p_group = np.argmin(score, 1)
 	print("части тела:", {g: int((p_group == gi).sum()) for gi, g in enumerate(gnames)})
+	# длина руки модели (плечо → кончики пальцев) против скелета: скелет героя укорачиваем
+	# (предплечье и кисть сдвигаются к плечу), модель не тянем. Кисть манекена той же длины.
+	tip_m = G[names.index("DEF-hand.L")][0, 3] - G[names.index("DEF-upper_arm.L")][0, 3] + HAND_LEN
+	ks = []
+	for side in ("L", "R"):
+		sh = jp[names.index("DEF-upper_arm." + side)]
+		hd = jp[names.index("DEF-hand." + side)]
+		d = (hd - sh) / np.linalg.norm(hd - sh)
+		tip = ((P[p_group == gnames.index("arm" + side)] - sh) @ d).max()
+		ks.append((tip - HAND_LEN) / (tip_m - HAND_LEN))
+	arm_k = float(np.clip(np.mean(ks), 0.6, 1.1))
+	print("рука модели к руке скелета: %.3f (L %.3f, R %.3f)" % (arm_k, ks[0], ks[1]))
+	G_std = G
+	G = short_arms(G, names, chain, arm_k)
+	Pm, _ = B.pose(mesh, G, ib, names, chain, theta, phi)
+	json.dump({"arm_k": arm_k}, open(OUT_RIG, "w"))
 	nj = len(names)
 	Wfull = np.zeros((len(P), nj))
 	for gi, g in enumerate(gnames):
@@ -198,33 +234,18 @@ def main():
 	# цвет рукавов берём с картинки по исходной (не растянутой) модели
 	P_pose0 = P.copy()
 	P_rest0 = P_rest.copy()
-	# руки модели и скелета разной длины. В позе покоя руки лежат вдоль ±X — находим запястье
-	# модели (самое узкое место перед перчаткой) и растягиваем руку так, чтобы оно легло на
-	# запястье скелета; всё дальше запястья сдвигается целиком
-	for side, sgn in (("L", 1.0), ("R", -1.0)):
-		sh_x = sgn * G[names.index("DEF-upper_arm." + side)][0, 3]
-		wr_x = sgn * G[names.index("DEF-hand." + side)][0, 3]
-		am = (p_group == gnames.index("arm" + side))
-		ax = sgn * P_rest[am, 0]
-		xmax = ax.max()
-		# перчатка — тёмная кожа, рукав — рыжий: запястье там, где начинается тёмное
-		dark = lum[am] < GLOVE_LUM
-		cand = ax[dark & (ax > xmax - 0.35)]
-		wm = float(np.percentile(cand, 8)) if len(cand) > 10 else xmax - 0.17
-		k = (wr_x - sh_x) / (wm - sh_x)
-		x = sgn * P_rest[am, 0]
-		nx = np.where(x < sh_x, x, np.where(x < wm, sh_x + (x - sh_x) * k, x + (wr_x - wm)))
-		P_rest[np.nonzero(am)[0], 0] = sgn * nx
-		print("рука %s: запястье модели %.3f, скелета %.3f — растяжение %.2f" % (side, wm, wr_x, k))
 	# кисти — как у манекена (и у всех остальных): сгенерированные пальцы модели плохо гнутся
 	# и оружие в них сидит криво. Кисти модели убираем, ставим кисти манекена чуть крупнее
 	# (перчатка толще руки манекена), с его весами.
 	hand_bones = np.array([("hand" in n or "f_" in n or "thumb" in n) for n in names])
 	# у модели кисть — всё, что дальше запястья вдоль руки (в позе покоя руки вдоль ±X)
+	# сравниваем в Т-позе укороченного скелета: запястья там, где кисти манекена
+	S_T = skin_matrices(G, ib, names, chain, 0.0, 0.0)
+	P_T, _ = apply_skin(S_T, J, W, P_rest)
 	wl = G[names.index("DEF-hand.L")][:3, 3]
 	wr = G[names.index("DEF-hand.R")][:3, 3]
 	# рукав оставляем чуть длиннее запястья — он прикрывает тонкое запястье манекена
-	is_hand = (P_rest[:, 0] > wl[0] + 0.035) | (P_rest[:, 0] < wr[0] - 0.035)
+	is_hand = (P_T[:, 0] > wl[0] + 0.035) | (P_T[:, 0] < wr[0] - 0.035)
 	keep = ~(is_hand[I].any(1))
 	# цвет перчатки — с картинки, по вырезанным тёмным точкам кистей модели
 	gl = np.nonzero(is_hand & (lum < GLOVE_LUM))[0]
@@ -241,10 +262,10 @@ def main():
 	remap[used] = np.arange(len(used)) + len(P_rest)
 	hp = mesh["P"][used].copy()
 	for side in ("L", "R"):
-		wrist = G[names.index("DEF-hand." + side)][:3, 3]
+		wrist = G_std[names.index("DEF-hand." + side)][:3, 3]
 		sel = (mesh["J"][used] == names.index("DEF-hand." + side)).any(1) | np.array(
 			[names[j].endswith("." + side) for j in mJd[used]])
-		hp[sel] = wrist + (hp[sel] - wrist) * 1.2
+		hp[sel] = wrist + (hp[sel] - wrist) * 1.1
 	n_model = len(P_rest)
 	P_rest = np.vstack([P_rest, hp])
 	P_pose0 = np.vstack([P_pose0, np.zeros_like(hp)])

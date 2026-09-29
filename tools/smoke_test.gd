@@ -421,6 +421,11 @@ func _ready() -> void:
 			return
 		ok(Game.flag("ded_shot"), "деда ранили по сюжету")
 		await wait(2.0)
+		ok(not main.dialog.visible, "издалека разговор с дедом не начинается")
+		var dr: Character = main.location.character("DedRaid")
+		await tp(dr.global_position + Vector3(1.5, 0, 0.5))
+		main.location.on_hero_moved(main.player.global_position)
+		await frames(3)
 	ok(main.dialog.visible and main.dialog.node_id == "last", "последний разговор с дедом")
 	var guard := 0
 	while main.dialog.visible and main.dialog.node_id != "kpk_on" and guard < 12:
