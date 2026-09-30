@@ -490,6 +490,7 @@ func _ready() -> void:
 	main.loot_win.take_all()
 	var mods: Dictionary = Game.hero.flags.get("modules", {})
 	ok(mods.get("radio", false), "модуль «Связь» с раненого")
+	ok(Game.flag("knows_kirk") and Game.quest_stage("who") == 2, "из модуля «Связь» герой узнаёт про Кирка")
 	for tb in ["inv", "stat", "cas", "map", "quests", "notes"]:
 		main.kpk.open(tb)
 		await frames(2)

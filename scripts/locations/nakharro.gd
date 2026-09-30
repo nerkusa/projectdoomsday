@@ -1235,6 +1235,7 @@ func _assemble_kpk() -> void:
 	Game.remove_item("bracelet")
 	Game.remove_item("minicomputer")
 	Game.set_flag("kpk")
+	Game.add_note("На браслете деда — знак: треугольник в круге. Такой же был на нашивках нападавших. Отец деда работал на них?")
 	# «Носитель» (состояние владельца) встроен в сам компьютер
 	var mods: Dictionary = Game.hero.flags.get("modules", {})
 	for m in ["carrier", "inventory", "map"]:
@@ -1262,7 +1263,10 @@ func _absorb_modules() -> void:
 			Game.log_line("Модуль вставлен: %s" % DB.item_name(k), "", "hit")
 			main.sfx("plug", -6.0)
 			if k == "module_radio":
-				Game.add_note("Обрывок переговоров (модуль «Связь»): «…проводник сказал, их там человек сорок. Старшего взять живым, остальных — по списку. Всё довоенное — в контейнер…»")
+				Game.add_note("Обрывок переговоров (модуль «Связь»): «…Кирк — второму: проводник сказал, их там человек сорок. Старшего взять живым, остальных — по списку. Всё довоенное — в контейнер…» Кирк. Так зовут того, кто командовал.")
+				Game.set_flag("knows_kirk")
+				if Game.quest_stage("who") == 1:
+					Game.set_quest("who", 2)
 	if changed:
 		Game.hero.flags["modules"] = mods
 		Game.hero_changed.emit()
