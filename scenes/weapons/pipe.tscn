@@ -17,15 +17,15 @@ bottom_radius = 0.027
 height = 0.05
 radial_segments = 10
 
-[node name="Pipe" type="Node3D" unique_id=1272030366]
+[node name="Pipe" type="Node3D" unique_id=1276328081]
 metadata/length = 0.62
 
-[node name="Mesh0" type="MeshInstance3D" parent="." unique_id=53858108]
+[node name="Mesh0" type="MeshInstance3D" parent="." unique_id=1066473618]
 transform = Transform3D(1, 0, 0, 0, -4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 0, 0.217)
 material_override = SubResource("StandardMaterial3D_317tt")
 mesh = SubResource("CylinderMesh_yd8vf")
 
-[node name="Mesh1" type="MeshInstance3D" parent="." unique_id=1764562748]
+[node name="Mesh1" type="MeshInstance3D" parent="." unique_id=2021669340]
 transform = Transform3D(1, 0, 0, 0, -4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 0, 0.497)
 material_override = SubResource("StandardMaterial3D_317tt")
 mesh = SubResource("CylinderMesh_dyx71")

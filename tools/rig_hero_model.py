@@ -265,7 +265,7 @@ def main():
 		wrist = G_std[names.index("DEF-hand." + side)][:3, 3]
 		sel = (mesh["J"][used] == names.index("DEF-hand." + side)).any(1) | np.array(
 			[names[j].endswith("." + side) for j in mJd[used]])
-		hp[sel] = wrist + (hp[sel] - wrist) * 1.1
+		hp[sel] = wrist + (hp[sel] - wrist) * 1.22
 	n_model = len(P_rest)
 	P_rest = np.vstack([P_rest, hp])
 	P_pose0 = np.vstack([P_pose0, np.zeros_like(hp)])

@@ -3,10 +3,10 @@
 [ext_resource type="Material" path="res://scenes/weapons/pistol_mat.tres" id="1_r3071"]
 [ext_resource type="ArrayMesh" path="res://scenes/weapons/pistol_mesh0.res" id="2_60a84"]
 
-[node name="Pistol" type="Node3D" unique_id=1904189035]
+[node name="Pistol" type="Node3D" unique_id=1544425731]
 metadata/length = 0.21
 
-[node name="Mesh0" type="MeshInstance3D" parent="." unique_id=353063029]
+[node name="Mesh0" type="MeshInstance3D" parent="." unique_id=489056754]
 transform = Transform3D(-4.6212065e-09, 0, 0.105720885, 0, 0.105720885, 0, -0.105720885, 0, -4.6212065e-09, 0.0006535555, 0.030331437, 0.05828514)
 material_override = ExtResource("1_r3071")
 mesh = ExtResource("2_60a84")
