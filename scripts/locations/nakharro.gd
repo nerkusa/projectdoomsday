@@ -856,7 +856,8 @@ func on_dialog_action(a: String, _sp: Character) -> bool:
 			return true
 		"leave_village":
 			main.dialog.close()
-			main.slides.finished.connect(func(): main.show_end("end_prologue"), CONNECT_ONE_SHOT)
+			Game.set_flag("act", 1)
+			main.slides.finished.connect(func(): main.world_map.open("nakharro"), CONNECT_ONE_SHOT)
 			main.slides.play(DB.intro.get("outro", []))
 			return true
 	return false

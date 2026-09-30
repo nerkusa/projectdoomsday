@@ -3,6 +3,8 @@ extends Node3D
 
 const LOCATIONS := {
 	"nakharro": "res://scenes/locations/nakharro.tscn",
+	"kresty": "res://scenes/locations/kresty.tscn",
+	"camp": "res://scenes/locations/camp.tscn",
 }
 const CAM_DIR := Vector3(1, 1, 1)
 ## Камера ортогональная: расстояние не меняет картинку, но от него зависит
@@ -27,6 +29,8 @@ var dialog: DialogBox
 var kpk: KPK
 var sheet: CharSheet
 var loot_win: LootWindow
+var trade_win: TradeWindow
+var world_map: WorldMap
 ## Меню действий по правой кнопке (взять, осмотреть, разобрать, обокрасть…)
 var actions: PopupMenu
 var _act_list: Array = []
@@ -46,6 +50,7 @@ var _look_t := 0.0
 const LOOK_DIST := 9.0
 var _hover: Object = null
 var _intro_pending := false
+var _slides_intro := false
 var _loading := false
 var _xray: Array = []
 var _xray_t := 0.0
@@ -115,6 +120,13 @@ func _build_ui() -> void:
 	loot_win = LootWindow.new()
 	root.add_child(loot_win)
 	loot_win.setup(self)
+	trade_win = TradeWindow.new()
+	root.add_child(trade_win)
+	trade_win.setup(self)
+	trade_win.closed.connect(_on_dialog_closed)
+	world_map = WorldMap.new()
+	root.add_child(world_map)
+	world_map.setup(self)
 	actions = PopupMenu.new()
 	actions.add_theme_font_override("font", UITheme.mono())
 	actions.add_theme_font_size_override("font_size", 14)
@@ -144,7 +156,7 @@ func space() -> PhysicsDirectSpaceState3D:
 
 
 func ui_blocked() -> bool:
-	return dialog.visible or kpk.visible or sheet.visible or loot_win.visible or menu.visible or slides.visible or plugging or _loading
+	return dialog.visible or kpk.visible or sheet.visible or loot_win.visible or trade_win.visible or world_map.visible or menu.visible or slides.visible or plugging or _loading
 
 
 ## Звук из assets/sounds/<name>.wav; громкость в децибелах
@@ -223,11 +235,16 @@ func _on_sheet_closed() -> void:
 	if _intro_pending:
 		_intro_pending = false
 		var lines: Array = DB.intro.get("prologue", ["Прошло пятьдесят лет."])
+		_slides_intro = true
 		slides.play(lines)
 	hud.refresh()
 
 
 func _on_slides_done() -> void:
+	# другие слайды (уход из деревни) ведёт сам сюжет
+	if not _slides_intro:
+		return
+	_slides_intro = false
 	hud.clear_log()
 	await load_location("nakharro", "Start")
 	location.on_new_game()
@@ -469,6 +486,10 @@ func say(dialog_id: String, node := "start", who: Character = null) -> void:
 func _on_dialog_action(a: String, sp: Character) -> void:
 	if location and location.on_dialog_action(a, sp):
 		return
+	# «reveal_<точка>» — отметить точку на карте мира
+	if a.begins_with("reveal_"):
+		WorldMap.reveal(a.trim_prefix("reveal_"))
+		return
 	match a:
 		"fight":
 			if sp:
@@ -486,6 +507,17 @@ func _on_dialog_action(a: String, sp: Character) -> void:
 			Game.log_line("Короткий отдых: ХП %d, стало %d" % [before, Game.hero_hp()], "2d6 (%d+%d)" % [a1, b1])
 		"end":
 			dialog.close()
+		"trade":
+			if sp:
+				dialog.close()
+				open_trade(sp)
+
+
+## Бартер с персонажем: запас берётся из шаблона ("trade") и дальше живёт в состоянии локации
+func open_trade(sp: Character) -> void:
+	var key := "trade_" + sp.uid()
+	var st: Dictionary = location.ws().misc.get(key, sp.tpl.get("trade", {}))
+	trade_win.open(sp.display_name, st, func(left: Dictionary): location.ws().misc[key] = left)
 
 
 func _on_dialog_closed() -> void:

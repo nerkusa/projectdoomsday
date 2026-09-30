@@ -72,6 +72,14 @@ func is_gun(key: String) -> bool:
 	return weapons.has(key) and int(weapons[key].get("mag", 0)) > 0
 
 
+## Цена в бартере; 0 — не меняется (сюжетные и памятные вещи)
+func item_value(key: String) -> int:
+	var d: Dictionary = weapons.get(key, items.get(key, {}))
+	if d.get("quest", false):
+		return 0
+	return int(d.get("value", 0))
+
+
 func item_name(key: String) -> String:
 	if weapons.has(key):
 		return weapons[key].name

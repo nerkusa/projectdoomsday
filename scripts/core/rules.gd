@@ -81,6 +81,17 @@ static func rep_title(v: int) -> String:
 	return "Боотур"
 
 
+## Бартер: во сколько раз торговец завышает свои вещи (x) и занижает твои (y).
+## Помогают Характер и Торг; добрая молва — скидка, дурная — наценка.
+static func trade_mults(cha: int, torg: int, rep: int) -> Vector2:
+	var k := (cha + torg - 6) * 0.025
+	if rep >= 30:
+		k += 0.08
+	elif rep <= -30:
+		k -= 0.1
+	return Vector2(clampf(1.2 - k, 1.0, 1.5), clampf(0.8 + k, 0.5, 0.95))
+
+
 const ZONES := [
 	{"r": 1, "name": "Голова", "mult": 3, "slot": "head", "ignore_armor": false},
 	{"r": 2, "name": "Шея", "mult": 2, "slot": "head", "ignore_armor": false},
