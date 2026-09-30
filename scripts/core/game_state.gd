@@ -5,6 +5,7 @@ signal log_added(head: String, detail: String, cls: String)
 signal hero_changed
 signal quest_changed(id: String)
 signal flag_changed(id: String)
+signal level_up(level: int)
 
 const SAVE_DIR := "user://saves/"
 const SETTINGS_PATH := "user://settings.json"
@@ -35,9 +36,10 @@ func new_hero() -> void:
 		"owned": ["father_pistol"], "hands": ["father_pistol", "fists"], "active": 0,
 		"mag": {"father_pistol": 8}, "ammo": {"9мм": 8, "7.62": 0},
 		"items": {},
+		"cassettes": [],
 		"flags": {}, "q": {}, "notes": [],
 		"sneak": false,
-		"humanity": Rules.HUMANITY_START,
+		"rep": 0,
 		"location": "nakharro", "pos": [],
 	}
 	world = {}
@@ -45,7 +47,16 @@ func new_hero() -> void:
 
 
 func hero_max() -> int:
-	return Rules.max_hp(hero.stats, int(hero.hp_roll))
+	return Rules.max_hp(effective_stats(), int(hero.hp_roll))
+
+
+## Характеристики с прибавками от кассет — для боя, ХП, ОД и проверок
+func effective_stats() -> Dictionary:
+	var out: Dictionary = hero.stats.duplicate()
+	var b := stat_bonus()
+	for k in b:
+		out[k] = clampi(int(out.get(k, 1)) + int(b[k]), 1, 12)
+	return out
 
 
 func hero_hp() -> int:
@@ -58,20 +69,24 @@ func set_hero_hp(v: int) -> void:
 	hero_changed.emit()
 
 
-func humanity() -> int:
-	return int(hero.get("humanity", Rules.HUMANITY_START))
+func rep() -> int:
+	return int(hero.get("rep", 0))
 
 
-## Поступок героя сдвигает человечность (+ добрый, − жестокий)
-func change_humanity(d: int, why := "") -> void:
+## Поступок меняет молву — если его кто-то видел (seen) или он слишком велик, чтобы спрятать (big)
+func change_rep(d: int, why := "", seen := true, big := false) -> void:
 	if d == 0:
 		return
-	var old := humanity()
-	hero.humanity = clampi(old + d, 0, 100)
-	var head := "Человечность %s%d" % ["+" if d > 0 else "−", absi(d)]
+	if not seen and not big:
+		if why != "":
+			log_line("Никто не видел: %s" % why, "молва не изменилась")
+		return
+	var old := rep()
+	hero.rep = clampi(old + d, -100, 100)
+	var head := "Молва %s%d" % ["+" if d > 0 else "−", absi(d)]
 	if why != "":
 		head += ": " + why
-	log_line(head, "%d → %d (%s)" % [old, int(hero.humanity), Rules.humanity_label(int(hero.humanity))], "hit" if d > 0 else "miss")
+	log_line(head, "%d → %d (%s)" % [old, int(hero.rep), Rules.rep_label(int(hero.rep))], "hit" if d > 0 else "miss")
 	hero_changed.emit()
 
 
@@ -90,14 +105,14 @@ func stat_cap() -> int:
 func grant_xp(n: int) -> String:
 	hero.xp = int(hero.xp) + n
 	var note := ""
-	while int(hero.xp) >= Rules.xp_for_level(int(hero.level) + 1):
+	while int(hero.level) < Rules.MAX_LEVEL and int(hero.xp) >= Rules.xp_for_level(int(hero.level) + 1):
 		hero.level = int(hero.level) + 1
 		var rw := Rules.level_reward(int(hero.level))
-		hero.stat_pts = int(hero.stat_pts) + rw.stat
 		hero.skill_pts = int(hero.skill_pts) + rw.skill
 		hero.locked_stats = hero.stats.duplicate()
 		hero.locked_skills = hero.skills.duplicate()
-		note += " Уровень %d: +%d очк. характеристик, +%d очк. навыков — открой «Дело»." % [hero.level, rw.stat, rw.skill]
+		note += " Уровень %d: +%d очк. навыков — открой «Дело» в КПК." % [hero.level, rw.skill]
+		level_up.emit(int(hero.level))
 	hero_changed.emit()
 	return note
 
@@ -233,16 +248,111 @@ func wstate(loc: String) -> Dictionary:
 
 
 # ---------------- проверки навыков ----------------
+## Бросок d10 + характеристика + навык против сложности (на 10 взрывается, на 1 — провал).
+## Старые имена (DEX, «Взлом замков»…) переводятся в новые.
 func skill_check(label: String, stat: String, skill: String, dc: int, bonus := 0) -> bool:
+	stat = Rules.norm_stat(stat)
+	skill = Rules.norm_skill(skill)
+	label = Rules.norm_skill(label)
 	var r := Rules.roll_hit()
-	var sv := int(hero.stats.get(stat, 0))
-	var kv := int(hero.skills.get(skill, 0))
+	var sv := int(hero_stat(stat))
+	var kv := int(effective_skills().get(skill, 0))
 	var t: int = r.d + sv + kv + bonus
-	var ok := t >= dc
+	var ok: bool = t >= dc and not r.fumble
 	log_line("[%s] %s" % [label, "успех" if ok else "провал"],
-		"d10(%d) + %s(%d) + %s(%d)%s = %d против %d" % [r.d, stat, sv, skill, kv,
+		"d10(%d) + %s(%d) + %s(%d)%s = %d против %d" % [r.d, Rules.stat_name(stat), sv, skill, kv,
 		(" + бонус(%d)" % bonus) if bonus else "", t, dc], "hit" if ok else "miss")
 	return ok
+
+
+## Характеристика героя с учётом кассет (+1 к характеристике)
+func hero_stat(key: String) -> int:
+	key = Rules.norm_stat(key)
+	return clampi(int(hero.stats.get(key, 1)) + int(stat_bonus().get(key, 0)), 1, 12)
+
+
+# ---------------- кассеты ----------------
+## КПК: 10 слотов. Браслет Эллэя поначалу держит только 2 рабочих, +1 за уровень.
+const CAS_SLOTS := 10
+
+
+func cas_working() -> int:
+	return clampi(1 + int(hero.level), 2, CAS_SLOTS)
+
+
+func cas_info(id: String) -> Dictionary:
+	return DB.items.get(id, {}).get("cassette", {})
+
+
+func is_cassette(id: String) -> bool:
+	return DB.items.has(id) and DB.items[id].has("cassette")
+
+
+## Вставленные и работающие (в рабочих слотах) кассеты
+func cas_active() -> Array:
+	var c: Array = hero.get("cassettes", [])
+	return c.slice(0, cas_working())
+
+
+func cas_has_tag(tag: String) -> bool:
+	for id in cas_active():
+		if tag in cas_info(id).get("tags", []):
+			return true
+	return false
+
+
+func cas_insert(id: String) -> bool:
+	var c: Array = hero.get("cassettes", [])
+	if c.size() >= CAS_SLOTS or item_count(id) <= 0:
+		return false
+	hero.items[id] = int(hero.items[id]) - 1
+	if int(hero.items[id]) <= 0:
+		hero.items.erase(id)
+	c.append(id)
+	hero.cassettes = c
+	log_line("Кассета вставлена: %s" % DB.item_name(id), "" if c.size() <= cas_working() else "слот заблокирован — браслет ещё не принял её", "hit")
+	hero_changed.emit()
+	return true
+
+
+func cas_eject(i: int) -> void:
+	var c: Array = hero.get("cassettes", [])
+	if i < 0 or i >= c.size():
+		return
+	var id: String = c[i]
+	c.remove_at(i)
+	hero.cassettes = c
+	hero.items[id] = int(hero.items.get(id, 0)) + 1
+	log_line("Кассета вынута: %s" % DB.item_name(id))
+	hero_changed.emit()
+
+
+## Прибавки к характеристикам от работающих кассет
+func stat_bonus() -> Dictionary:
+	var out := {}
+	for id in cas_active():
+		var st: Dictionary = cas_info(id).get("stats", {})
+		for k in st:
+			out[k] = int(out.get(k, 0)) + int(st[k])
+	return out
+
+
+func skill_bonus() -> Dictionary:
+	var out := {}
+	for id in cas_active():
+		var sk: Dictionary = cas_info(id).get("skills", {})
+		for k in sk:
+			out[k] = int(out.get(k, 0)) + int(sk[k])
+	return out
+
+
+## Навыки с прибавками от кассет — для боя и проверок
+func effective_skills() -> Dictionary:
+	var out: Dictionary = hero.skills.duplicate()
+	var b := skill_bonus()
+	for k in b:
+		out[k] = mini(12, int(out.get(k, 0)) + int(b[k]))
+	return out
 
 
 # ---------------- сохранения ----------------
@@ -285,8 +395,11 @@ func load_game(slot := "auto") -> bool:
 		if not base.has(k):
 			base[k] = hero[k]
 	hero = base
+	hero.stats = Rules.normalize_stats(hero.stats)
 	hero.skills = Rules.normalize_skills(hero.skills)
+	hero.locked_stats = Rules.normalize_stats(hero.locked_stats) if not hero.locked_stats.is_empty() else {}
 	hero.locked_skills = Rules.normalize_skills(hero.locked_skills)
+	hero.stat_pts = 0
 	world = d.get("world", {})
 	hero_changed.emit()
 	return true

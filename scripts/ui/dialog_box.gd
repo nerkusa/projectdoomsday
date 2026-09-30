@@ -172,7 +172,7 @@ func _choose(i: int) -> void:
 		var bonus := int(c.get("bonus", 0))
 		if c.get("bonus_gun", 0) and DB.is_gun(Game.hero_wkey()):
 			bonus += int(c.bonus_gun)
-		var ok := Game.skill_check(c.get("label", c.get("skill", "")), c.get("stat", "EMP"), c.get("skill", ""), int(c.get("dc", 12)), bonus)
+		var ok := Game.skill_check(c.get("label", c.get("skill", "")), c.get("stat", "CHA"), c.get("skill", ""), int(c.get("dc", 12)), bonus)
 		nxt = o.get("success") if ok else o.get("fail")
 		if ok and o.has("xp_success"):
 			var note := Game.grant_xp(int(o.xp_success))
@@ -207,12 +207,13 @@ func _apply_effects(o: Dictionary) -> void:
 		Game.log_line("Опыт +%d" % int(o.xp), note.strip_edges())
 	if o.has("note"):
 		Game.add_note(o.note)
-	if o.has("humanity"):
-		Game.change_humanity(int(o.humanity))
+	# молва: собеседник — свидетель
+	if o.has("rep"):
+		Game.change_rep(int(o.rep), str(o.get("rep_why", "")))
 
 
 ## Условия показа: {"flag": "...", "not_flag": "...", "flags": [...], "not_flags": [...], "quest": "id", "stage_min": 1,
-## "stage_max": 2, "item": "ключ", "no_item": "ключ", "humanity_min": 50, "humanity_max": 30,
+## "stage_max": 2, "item": "ключ", "no_item": "ключ", "rep_min": 10, "rep_max": -10,
 ## "cond": "имя проверки в скрипте локации"}
 func _cond_ok(c: Dictionary) -> bool:
 	if c.is_empty():
@@ -241,9 +242,9 @@ func _cond_ok(c: Dictionary) -> bool:
 		return false
 	if c.has("hurt") and Game.hero_hp() >= Game.hero_max():
 		return false
-	if c.has("humanity_min") and Game.humanity() < int(c.humanity_min):
+	if c.has("rep_min") and Game.rep() < int(c.rep_min):
 		return false
-	if c.has("humanity_max") and Game.humanity() > int(c.humanity_max):
+	if c.has("rep_max") and Game.rep() > int(c.rep_max):
 		return false
 	if c.has("cond"):
 		var loc = get_tree().get_first_node_in_group("location")

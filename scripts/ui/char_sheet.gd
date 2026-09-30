@@ -200,7 +200,7 @@ func render() -> void:
 	var h := Game.hero
 	var L: bool = h.locked
 	if L:
-		_pools.text = "Уровень %d · опыт %d/%d\nОчки характеристик: %d\nОчки навыков: %d" % [h.level, h.xp, Rules.xp_for_level(int(h.level) + 1), h.stat_pts, h.skill_pts]
+		_pools.text = "Уровень %d/%d · опыт %d/%d\nОчки навыков: %d\nХарактеристики растут только через кассеты" % [h.level, Rules.MAX_LEVEL, h.xp, Rules.xp_for_level(int(h.level) + 1), h.skill_pts]
 	else:
 		_pools.text = "Характеристики: %d/%d\nНавыки: %d/%d\nПотолок характеристики: %d" % [Rules.sum_stats(h.stats), Game.stat_pool(), Rules.sum_skill_points(h.skills), Game.skill_pool(), Game.stat_cap()]
 	_rand.visible = not L
@@ -209,18 +209,20 @@ func render() -> void:
 		c.queue_free()
 	for s in Rules.STATS:
 		var row := HBoxContainer.new()
-		row.add_child(_fixed(UITheme.label(s.key, 14, UITheme.AMBER_HOT), 54))
 		var nm := UITheme.label(s.full, 14)
+		nm.tooltip_text = s.hint
+		nm.mouse_filter = Control.MOUSE_FILTER_PASS
 		nm.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		row.add_child(nm)
 		row.add_child(_pm("−", can_s(s.key, -1), ch_stat.bind(s.key, -1)))
-		var val := UITheme.label(str(h.stats[s.key]), 14, UITheme.AMBER_HOT)
+		var bonus := int(Game.stat_bonus().get(s.key, 0))
+		var val := UITheme.label(str(h.stats[s.key]) + ("+%d" % bonus if bonus else ""), 14, UITheme.AMBER_HOT)
 		val.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		row.add_child(_fixed(val, 30))
 		row.add_child(_pm("+", can_s(s.key, 1), ch_stat.bind(s.key, 1)))
 		_stats_box.add_child(row)
 	var mx := Game.hero_max()
-	_derived.text = "ХП: %d\nОД в бою: %d\nЧеловечность: %d/100 — %s" % [mx, Rules.ap_for(h.stats, mx, mx), Game.humanity(), Rules.humanity_label(Game.humanity())]
+	_derived.text = "ХП: %d  (Тело×2 + Реакция×2 + d10)\nОД в бою: %d  (5 + Реакция/2)\nМолва: %+d — %s" % [mx, Rules.ap_for(Game.effective_stats(), mx, mx), Game.rep(), Rules.rep_label(Game.rep())]
 	for c in _skills_box.get_children():
 		c.queue_free()
 	for s in Rules.STATS:

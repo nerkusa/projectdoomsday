@@ -27,7 +27,7 @@
           "fail": "diag_bad"
         },
         {
-          "text": "[Первая помощь] Сделаю холодный компресс.",
+          "text": "[Медицина] Сделаю холодный компресс.",
           "if": {
             "not_flags": [
               "sick_compress",
@@ -36,7 +36,7 @@
           },
           "check": {
             "stat": "PRC",
-            "skill": "Первая помощь",
+            "skill": "Медицина",
             "dc": 10
           },
           "success": "compress_ok",
@@ -88,7 +88,7 @@
     "compress_ok": {
       "text": "Ох... холодненько. Хорошо. Спасибо.",
       "xp": 15,
-      "humanity": 1,
+      "rep": 3,
       "set_flags": {
         "sick_compress": true
       },
@@ -117,7 +117,7 @@
         "canned": 1
       },
       "xp": 30,
-      "humanity": 3,
+      "rep": 9,
       "set_flags": {
         "sick_cured": true
       },

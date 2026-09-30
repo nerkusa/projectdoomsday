@@ -1,9 +1,9 @@
 class_name CombatManager
 extends Node
 ## Пошаговый бой на гексах. Правила и ИИ перенесены из прототипа «Недострой»:
-##  ОД = 5 + ⌊(REF+DEX)/4⌋ (−1 если ранен ниже 50%)
+##  ОД = 5 + ⌊Реакция / 2⌋ (−1 если ранен ниже 50%)
 ##  атака d10 + хар-ка + навык + бонус − прицел − дальность − очередь
-##  против уклонения d10 + DEX + Уклонение + оборона
+##  против уклонения d10 + Реакция + Уклонение + оборона
 ##  несъеденные ОД в конце хода -> оборона (+ половина к уклонению)
 
 signal changed
@@ -159,7 +159,7 @@ func start(foe_chars: Array, opts := {}) -> void:
 	for x in ini:
 		if x.u == hero_f:
 			hero_init = x.v
-		parts.append("%s: d10(%d) + REF(%d) = %d" % [x.u.name, x.d, x.u.stats.get("REF", 0), x.v])
+		parts.append("%s: d10(%d) + Реакция(%d) = %d" % [x.u.name, x.d, x.u.stats.get("REF", 0), x.v])
 	var head: String = "Инициатива: первым ходит " + str(order[0].name)
 	if opts.get("ambush", false):
 		head = "Внезапность: ты ходишь первым"
@@ -191,7 +191,7 @@ func begin_turn() -> void:
 	pending = {}
 	main.hud.hide_zones()
 	var mx := u.max_hp if not u.is_hero else Game.hero_max()
-	clog("Ход: %s · %d ОД" % [u.name, u.ap], "5 + (REF %d + DEX %d) / 4, с округлением вниз%s" % [u.stats.get("REF", 0), u.stats.get("DEX", 0), " − 1 (ранен)" if u.hp < mx * 0.5 else ""])
+	clog("Ход: %s · %d ОД" % [u.name, u.ap], "5 + Реакция(%d) / 2, с округлением вниз%s" % [u.stats.get("REF", 0), " − 1 (ранен)" if u.hp < mx * 0.5 else ""])
 	main.location.on_combat_round(round_n)
 	if not on:
 		return
@@ -726,7 +726,7 @@ func resolve_attack(att: Fighter, dfn: Fighter, w: Dictionary, aim_z, dist: int,
 	var Q := Rules.roll_hit()
 	var dt: int = Q.d + D.total
 	clog("%s уклоняется%s" % [dfn.name, " · КРИТ" if Q.crit else (" · ПРОВАЛ" if Q.fumble else "")],
-		"d10(%d) + DEX(%d) + Уклонение(%d)%s = %d" % [Q.d, D.dv, D.dg, (" + оборона(%d)" % D.db) if D.db else "", dt] if show else "")
+		"d10(%d) + Реакция(%d) + Уклонение(%d)%s = %d" % [Q.d, D.dv, D.dg, (" + оборона(%d)" % D.db) if D.db else "", dt] if show else "")
 	if dt >= t:
 		clog("» Мимо: уклонение %d не меньше атаки %d" % [dt, t], "", "miss")
 		return {"hit": false}
@@ -776,11 +776,11 @@ func resolve_attack(att: Fighter, dfn: Fighter, w: Dictionary, aim_z, dist: int,
 		elif dfn.lethal and dfn.hp < dfn.max_hp * dfn.flee_threshold and not dfn.fleeing:
 			var W := Rules.roll_hit()
 			var wv := int(dfn.stats.get("WILL", 0))
-			var fear := int(dfn.skills.get("Сопротивление страху", 0))
+			var fear := int(dfn.skills.get("Выдержка", 0))
 			var v: int = W.d + wv + fear
 			if v < dfn.will_dc:
 				dfn.fleeing = true
-				clog("%s дрогнул" % dfn.name, "воля d10(%d) + WILL(%d) + Сопротивление страху(%d) = %d < %d" % [W.d, wv, fear, v, dfn.will_dc])
+				clog("%s дрогнул" % dfn.name, "воля d10(%d) + Воля(%d) + Выдержка(%d) = %d < %d" % [W.d, wv, fear, v, dfn.will_dc])
 	return {"hit": true, "dmg": ae.hd, "zone": z.name}
 
 

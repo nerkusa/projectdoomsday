@@ -350,7 +350,8 @@ func can_pick(it: Interactable) -> bool:
 # ---------------- воровство до налёта ----------------
 ## Пока деревня жива, чужое брать нельзя: всё, кроме грибов, ягод, корзины и досок
 ## для Степана, и кроме вещей из своей (дедовой) избы. Заметили — вещь остаётся
-## на месте, отругают, человечность падает вдвое сильнее. После налёта брать можно.
+## на месте, отругают, молва падает вдвое сильнее; не видел никто — молва не меняется.
+## После налёта брать можно.
 const FREE_PICK := ["mushroom", "berries", "basket", "planks"]
 const THEFT_H := 3
 const WITNESS_R := 9.0
@@ -389,10 +390,10 @@ func _steal(_it: Interactable) -> bool:
 		var line: String = SCOLD[randi() % SCOLD.size()]
 		main.hud.float_text(w.global_position + Vector3(0, 2.0, 0), line, "miss")
 		Game.log_line("%s: «%s»" % [w.display_name if w.display_name != "" else "Житель", line], "", "miss")
-		Game.change_humanity(-THEFT_H * 2, "поймали на воровстве")
+		Game.change_rep(-THEFT_H * 2, "поймали на воровстве")
 		main.think("Заметили... Стыдно-то как.")
 		return false
-	Game.change_humanity(-THEFT_H, "взял чужое")
+	Game.change_rep(-THEFT_H, "взял чужое", false)
 	if not Game.flag("theft_thought"):
 		Game.set_flag("theft_thought")
 		main.think("Никто не видел. Только на душе всё равно гадко.")
@@ -846,8 +847,8 @@ func on_dialog_action(a: String, _sp: Character) -> bool:
 			main.combat.start(targets, {"kind": "range"})
 			return true
 		"range_reward":
-			Game.hero.skills["Дальний бой"] = int(Game.hero.skills.get("Дальний бой", 0)) + 1
-			Game.log_line("Дальний бой +1 — урок Бэргэна.", "", "hit")
+			Game.hero.skills["Огнестрел"] = mini(10, int(Game.hero.skills.get("Огнестрел", 0)) + 1)
+			Game.log_line("Огнестрел +1 — урок Бэргэна.", "", "hit")
 			Game.hero_changed.emit()
 			return true
 		"open_kpk":
@@ -1093,7 +1094,7 @@ func _chest(it: Interactable, act: String) -> void:
 			if phase() == "morning" and not _steal(it):
 				return
 			main.player.act("pickup")
-			if not Game.skill_check("Взлом замков", "DEX", "Взлом замков", 11, 2):
+			if not Game.skill_check("Воровство", "REF", "Воровство", 11, 2):
 				Game.remove_item("hairpin")
 				Game.log_line("Шпилька сломалась в замке. Нужна другая.", "", "miss")
 				return
@@ -1110,7 +1111,7 @@ func _chest(it: Interactable, act: String) -> void:
 func _open_chest(it: Interactable) -> void:
 	var gen := func() -> Array:
 		return [{"id": "buran", "n": 1, "ok": not Game.hero.owned.has("buran"), "why": "уже есть"},
-			{"id": "ammo762", "n": 30, "ok": true}, {"id": "canned", "n": 1, "ok": true}]
+			{"id": "ammo762", "n": 30, "ok": true}, {"id": "canned", "n": 1, "ok": true}, {"id": "cas_body", "n": 1, "ok": true}]
 	main.open_loot("LockedBox", "Сундук в амбаре", gen)
 
 
@@ -1130,7 +1131,12 @@ func item_actions(it: Interactable) -> Array:
 	if n == "BorderExit":
 		return [["Перейти черту", "use"]]
 	if it.kind == "item":
-		return [["Взять (это воровство)" if _is_theft(it) else "Взять", "use"]]
+		if _is_theft(it):
+			# кассета «Свидетель» подсказывает, видят ли тебя
+			if Game.cas_has_tag("witness"):
+				return [["Взять (воровство — тебя видят!)" if _witness() else "Взять (воровство, никто не видит)", "use"]]
+			return [["Взять (это воровство)", "use"]]
+		return [["Взять", "use"]]
 	return []
 
 
@@ -1165,7 +1171,7 @@ func _mend_fence() -> void:
 	main.player.act("pickup")
 	for k in 3:
 		get_tree().create_timer(0.35 + k * 0.3).timeout.connect(func(): main.sfx("hit_blunt", -6.0, 1.4))
-	if Game.skill_check("Механика", "CRA", "Механика", 10):
+	if Game.skill_check("Механика", "INT", "Механика", 10):
 		Game.log_line("Доски прибиты ровно — забор Степана снова цел.", "", "hit")
 		Game.grant_xp(25)
 	else:

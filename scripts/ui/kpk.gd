@@ -87,7 +87,7 @@ func close() -> void:
 
 func has_tab(t: String) -> bool:
 	if Game.flag("kpk"):
-		return t in ["inv", "stat", "map", "quests", "notes"]
+		return t in ["inv", "stat", "cas", "map", "quests", "notes"]
 	return t in ["inv", "quests"]
 
 
@@ -96,10 +96,10 @@ func render() -> void:
 	_brand.text = "CT14 INC. · КПК НА БРАСЛЕТЕ" if kpk else "СУМКА"
 	for c in _tabs.get_children():
 		c.queue_free()
-	var names := {"inv": "Инвентарь", "stat": "Дело", "map": "Карта", "quests": "Задания", "notes": "Записи"}
+	var names := {"inv": "Инвентарь", "stat": "Дело", "cas": "Кассеты", "map": "Карта", "quests": "Задания", "notes": "Записи"}
 	if not has_tab(tab):
 		tab = "inv" if has_tab("inv") else ("stat" if has_tab("stat") else "quests")
-	for t in ["inv", "stat", "map", "quests", "notes"]:
+	for t in ["inv", "stat", "cas", "map", "quests", "notes"]:
 		if not has_tab(t):
 			continue
 		var b := UITheme.key(names[t], "sel" if t == tab else "normal", 12)
@@ -115,6 +115,8 @@ func render() -> void:
 			_render_inv()
 		"stat":
 			_render_stat()
+		"cas":
+			_render_cas()
 		"map":
 			_render_map()
 		"quests":
@@ -260,7 +262,7 @@ func _render_stat() -> void:
 	pb.add_theme_stylebox_override("background", b)
 	_screen.add_child(pb)
 	var g := GridContainer.new()
-	g.columns = 4
+	g.columns = 3
 	g.add_theme_constant_override("h_separation", 10)
 	g.add_theme_constant_override("v_separation", 8)
 	_screen.add_child(g)
@@ -272,13 +274,14 @@ func _render_stat() -> void:
 		var l1 := _g(s.full, 11, UITheme.GREEN_DIM)
 		l1.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		vb.add_child(l1)
-		var l2 := UITheme.label(str(h.stats.get(s.key, 0)), 22, UITheme.GREEN_HI, true)
+		var l2 := UITheme.label(str(Game.hero_stat(s.key)), 22, UITheme.GREEN_HI, true)
+		p.tooltip_text = s.hint
 		l2.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		vb.add_child(l2)
 		g.add_child(p)
-	var ap := Rules.ap_for(h.stats, Game.hero_hp(), Game.hero_max())
+	var ap := Rules.ap_for(Game.effective_stats(), Game.hero_hp(), Game.hero_max())
 	_screen.add_child(_g("ОД в бою: %d" % ap, 13))
-	_screen.add_child(_g("Человечность: %d/100 — %s" % [Game.humanity(), Rules.humanity_label(Game.humanity())], 13))
+	_screen.add_child(_g("Молва: %+d — %s" % [Game.rep(), Rules.rep_label(Game.rep())], 13))
 	var top := []
 	for k in h.skills:
 		if int(h.skills[k]) > 0:
@@ -297,6 +300,56 @@ func _open_sheet() -> void:
 	close()
 	main.sheet.closed.connect(func(): open("stat"), CONNECT_ONE_SHOT)
 	main.sheet.open()
+
+
+## Кассеты: 10 слотов КПК; рабочих — сколько принял браслет Эллэя (2 + уровень − 1)
+func _render_cas() -> void:
+	var work := Game.cas_working()
+	var c: Array = Game.hero.get("cassettes", [])
+	_screen.add_child(_g("Браслет принял слотов: %d из %d. Кассета грузится из КПК в браслет и меняет тебя самого." % [work, Game.CAS_SLOTS], 12, UITheme.GREEN_DIM))
+	var in_fight: bool = main.combat.on
+	for i in Game.CAS_SLOTS:
+		var row := HBoxContainer.new()
+		row.add_theme_constant_override("separation", 8)
+		_screen.add_child(row)
+		var locked := i >= work
+		var txt := "%2d · " % (i + 1)
+		if i < c.size():
+			txt += DB.item_name(c[i]) + ("   [память закрыта]" if locked else "")
+		else:
+			txt += "ЗАБЛОКИРОВАНО" if locked else "— пусто —"
+		var l := _g(txt, 14, UITheme.GREEN_DIM if locked else UITheme.GREEN)
+		l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		if i < c.size():
+			l.tooltip_text = str(DB.items.get(c[i], {}).get("desc", ""))
+			l.mouse_filter = Control.MOUSE_FILTER_PASS
+		row.add_child(l)
+		if i < c.size():
+			var b := UITheme.key("Вынуть", "normal", 11)
+			b.disabled = in_fight
+			var idx := i
+			b.pressed.connect(func(): Game.cas_eject(idx))
+			row.add_child(b)
+	var spare := []
+	for k in Game.hero.items:
+		if Game.is_cassette(k):
+			spare.append(k)
+	_screen.add_child(_g("В СУМКЕ", 11, UITheme.GREEN_DIM))
+	if spare.is_empty():
+		_screen.add_child(_g("— кассет нет. Их находят, получают за дела, покупают.", 13, UITheme.GREEN_DIM))
+	for k in spare:
+		var row2 := HBoxContainer.new()
+		_screen.add_child(row2)
+		var l2 := _g("%s — %s" % [DB.item_name(k), DB.items[k].get("desc", "")], 13)
+		l2.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		row2.add_child(l2)
+		var b2 := UITheme.key("Вставить", "primary", 11)
+		b2.disabled = in_fight or c.size() >= Game.CAS_SLOTS
+		var key: String = k
+		b2.pressed.connect(func(): Game.cas_insert(key))
+		row2.add_child(b2)
+	if in_fight:
+		_screen.add_child(_g("В бою кассеты не меняют.", 12, UITheme.GREEN_DIM))
 
 
 func _render_map() -> void:

@@ -68,7 +68,20 @@ func _ready() -> void:
 	combat.setup(self)
 	_build_ui()
 	Graphics.apply(get_tree())
+	Game.level_up.connect(_on_level_up)
 	menu.open("main")
+
+
+## Новый уровень: браслет Эллэя принимает ещё один слот кассет — всплывает обрывок его памяти
+func _on_level_up(lv: int) -> void:
+	if not Game.flag("kpk"):
+		return
+	var mem: Array = DB._load("res://data/elley.json").get("memories", [])
+	var i := lv - 2
+	if i >= 0 and i < mem.size():
+		Game.add_note("Память браслета: " + str(mem[i]))
+		Game.log_line("Браслет открыл слот кассет: %d из %d" % [Game.cas_working(), Game.CAS_SLOTS], str(mem[i]), "hit")
+		hud.toast("Браслет открыл новый слот кассет", 3.0)
 
 
 func _build_ui() -> void:
@@ -347,7 +360,7 @@ func _on_hud_action(a: String) -> void:
 			if not combat.on:
 				Game.hero.sneak = not Game.hero.get("sneak", false)
 				var r := _sneak_radius(9.0)
-				Game.log_line("Крадёшься. Враги заметят тебя примерно с %.1f м (DEX + Скрытность)." % r if Game.hero.sneak else "Идёшь обычным шагом.")
+				Game.log_line("Крадёшься. Враги заметят тебя примерно с %.1f м (Реакция + Скрытность)." % r if Game.hero.sneak else "Идёшь обычным шагом.")
 				Game.hero_changed.emit()
 		"give":
 			combat.give_up()
@@ -416,7 +429,7 @@ func _move_speed(pts: Array) -> float:
 func _sneak_radius(base: float) -> float:
 	if not Game.hero.get("sneak", false):
 		return base
-	var v := int(Game.hero.stats.get("DEX", 0)) + int(Game.hero.skills.get("Скрытность", 0))
+	var v := Game.hero_stat("REF") + int(Game.hero.skills.get("Скрытность", 0))
 	return maxf(2.5, base - 1.0 - v / 2.0)
 
 
@@ -819,7 +832,7 @@ func open_loot(key: String, title: String, gen: Callable, after := Callable()) -
 
 
 ## Залезть в чужой карман: Ловкость + «Воровство» против бдительности.
-## Удачно — человечность −3 и окно с содержимым карманов; попался — отругают, −6.
+## Удачно — никто не видел, молва не меняется; попался — отругают, молва −6.
 func pickpocket(ch: Character) -> void:
 	var st := location.ws()
 	if ch == null or ch.pose == "dead" or ch.hostile:
@@ -828,10 +841,10 @@ func pickpocket(ch: Character) -> void:
 		hud.flash_tip("%s теперь следит за карманами" % ch.display_name)
 		return
 	player.act("pickup")
-	if st.misc.has("pocket_ok_" + ch.uid()) or Game.skill_check("Воровство", "DEX", "Воровство", 12, 2 if Game.hero.get("sneak", false) else 0):
+	if st.misc.has("pocket_ok_" + ch.uid()) or Game.skill_check("Воровство", "REF", "Воровство", 12, 2 if Game.hero.get("sneak", false) else 0):
 		if not st.misc.has("pocket_ok_" + ch.uid()):
 			st.misc["pocket_ok_" + ch.uid()] = true
-			Game.change_humanity(-3, "залез в чужой карман")
+			Game.change_rep(-3, "залез в чужой карман", false)
 		var gen := func() -> Array:
 			var out := []
 			var pk: Dictionary = ch.tpl.get("pockets", {})
@@ -846,7 +859,7 @@ func pickpocket(ch: Character) -> void:
 	var line := "Ах ты ж! Руки из моего кармана — живо!"
 	hud.float_text(ch.global_position + Vector3(0, 2.0, 0), line, "miss")
 	Game.log_line("%s: «%s»" % [ch.display_name, line], "", "miss")
-	Game.change_humanity(-6, "поймали за руку")
+	Game.change_rep(-6, "поймали за руку")
 	think("Попался. Теперь вся деревня узнает.")
 
 

@@ -11,7 +11,7 @@
             "not_flag": "guard_lied"
           },
           "check": {
-            "stat": "EMP",
+            "stat": "CHA",
             "skill": "Обман",
             "dc": 12
           },
@@ -33,7 +33,7 @@
       "give": {
         "ammo9": 6
       },
-      "humanity": -2,
+      "rep": -6,
       "xp": 20,
       "set_flags": {
         "guard_lied": true

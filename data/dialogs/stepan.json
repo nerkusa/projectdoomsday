@@ -17,7 +17,7 @@
     "planks": {
       "text": "О, другое дело. Прибьёшь сам? Гвозди вон в ящике. Или давай я, а ты держи.",
       "options": [
-        {"text": "[Механика] Прибью сам.", "check": {"stat": "CRA", "skill": "Механика", "dc": 10}, "success": "fix_ok", "fail": "fix_bad", "take": {"planks": 1}},
+        {"text": "[Механика] Прибью сам.", "check": {"stat": "INT", "skill": "Механика", "dc": 10}, "success": "fix_ok", "fail": "fix_bad", "take": {"planks": 1}},
         {"text": "Давай ты, я подержу.", "next": "fix_help", "take": {"planks": 1}}
       ]
     },

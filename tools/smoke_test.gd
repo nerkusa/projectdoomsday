@@ -99,8 +99,7 @@ func _ready() -> void:
 	ok(main.sheet.visible, "лист персонажа открыт")
 	Game.hero.name = "Тестер"
 	Game.hero.stats.REF = 7
-	Game.hero.stats.DEX = 6
-	Game.hero.skills["Дальний бой"] = 5
+	Game.hero.skills["Огнестрел"] = 5
 	Game.hero.skills["Ближний бой"] = 4
 	main.sheet.close()
 	await frames(2)
@@ -193,12 +192,12 @@ func _ready() -> void:
 	# воровство до налёта: на глазах у Степана чужое не взять, человечность −6
 	var stp: Character = main.location.character("Stepan")
 	await tp(stp.global_position + Vector3(1.2, 0, 0.8))
-	var hum0 := Game.humanity()
+	var hum0 := Game.rep()
 	var loot: Interactable = main.location.item("Take_Izba2_table")
-	ok(main.location._is_theft(loot) and not main.location.can_pick(loot) and Game.humanity() == hum0 - 6,
-		"воровство на глазах: вещь не взята, человечность %d → %d" % [hum0, Game.humanity()])
+	ok(main.location._is_theft(loot) and not main.location.can_pick(loot) and Game.rep() == hum0 - 6,
+		"воровство на глазах: вещь не взята, молва %d → %d" % [hum0, Game.rep()])
 	ok(not main.location._is_theft(main.location.item("Basket")), "корзину брать можно")
-	Game.change_humanity(hum0 - Game.humanity())
+	Game.change_rep(hum0 - Game.rep())
 	await wait(1.0)
 	main.interact(main.location.item("Basket"))
 	await wait(1.0)
@@ -246,7 +245,7 @@ func _ready() -> void:
 		await choose(0)
 		guard2 += 1
 	ok(Game.quest_stage("elder") >= 1, "старик: убеждение (%s)" % ("рассказал" if Game.flag("elder_told") else "не уговорил"))
-	for who in [["Smith", "Что у тебя", "[Наука]"], ["GuardN", "[Обман]", ""], ["Nyurguyana", "[Обольщение]", ""], ["Gambler", "[Внимательность]", ""], ["Sick", "[Медицина]", ""]]:
+	for who in [["Smith", "Что у тебя", "[Знания]"], ["GuardN", "[Обман]", ""], ["Nyurguyana", "[Убеждение]", ""], ["Gambler", "[Внимательность]", ""], ["Sick", "[Медицина]", ""]]:
 		main.talk_to(main.location.character(who[0]))
 		await frames(2)
 		await choose(find_opt(who[1]))
@@ -270,7 +269,7 @@ func _ready() -> void:
 	ok(main.combat.on and main.combat.kind == "range", "стрельбище: бой по мишеням")
 	await fight(60)
 	await wait(1.5)
-	ok(Game.flag("range_done") and int(Game.hero.skills.get("Дальний бой", 0)) >= 6, "урок стрельбы пройден (Дальний бой %d)" % int(Game.hero.skills.get("Дальний бой", 0)))
+	ok(Game.flag("range_done") and int(Game.hero.skills.get("Огнестрел", 0)) >= 6, "урок стрельбы пройден (Огнестрел %d)" % int(Game.hero.skills.get("Огнестрел", 0)))
 	await close_dialogs()
 	# охотник в лесу: драка на кулаках
 	var hunter: Character = main.location.character("Hunter")
@@ -491,10 +490,26 @@ func _ready() -> void:
 	main.loot_win.take_all()
 	var mods: Dictionary = Game.hero.flags.get("modules", {})
 	ok(mods.get("radio", false), "модуль «Связь» с раненого")
-	for tb in ["inv", "stat", "map", "quests", "notes"]:
+	for tb in ["inv", "stat", "cas", "map", "quests", "notes"]:
 		main.kpk.open(tb)
 		await frames(2)
 		ok(main.kpk.tab == tb, "вкладка КПК: " + tb)
+	main.kpk.close()
+
+	# --- кассеты ---
+	ok(Game.cas_working() == clampi(1 + int(Game.hero.level), 2, 10), "рабочих слотов кассет: %d (уровень %d)" % [Game.cas_working(), Game.hero.level])
+	ok(Game.item_count("cas_witness") == 1, "кассета «Свидетель» с тела нападавшего")
+	var sk0 := int(Game.effective_skills().get("Скрытность", 0))
+	ok(Game.cas_insert("cas_witness") and int(Game.effective_skills().get("Скрытность", 0)) == sk0 + 2 and Game.cas_has_tag("witness"), "кассета вставлена: +2 Скрытность")
+	Game.hero.cassettes = ["cas_body", "cas_body", "cas_witness"]
+	var lv0 := int(Game.hero.level)
+	Game.hero.level = 1
+	ok(not Game.cas_has_tag("witness"), "кассета в закрытом слоте не работает")
+	Game.hero.level = lv0
+	Game.hero.cassettes = ["cas_witness"]
+	main.kpk.open("cas")
+	await frames(2)
+	ok(main.kpk.tab == "cas", "вкладка «Кассеты»")
 	main.kpk.close()
 
 	# --- ключ с тела Варвары, сундук в амбаре, автомат «Буран» ---
@@ -528,13 +543,21 @@ func _ready() -> void:
 	var ok_load: bool = Game.load_game("auto")
 	ok(ok_load and Game.flag("kpk") and int(Game.hero.level) == lvl, "сохранение/загрузка")
 
-	# --- навыки и человечность ---
+	# --- навыки, характеристики и молва ---
 	var old := Rules.normalize_skills({"Простое оружие": 2, "Боевое оружие": 4, "Этикет": 3, "Ловкость рук": 1})
 	ok(old.get("Ближний бой") == 4 and old.get("Воровство") == 1 and not old.has("Этикет"), "старые навыки переводятся в новые")
-	var hum := Game.humanity()
-	Game.change_humanity(-15, "проверка")
-	ok(Game.humanity() == hum - 15, "человечность меняется")
-	Game.change_humanity(15)
+	var hum := Game.rep()
+	Game.change_rep(-15, "проверка")
+	ok(Game.rep() == hum - 15, "молва меняется при свидетелях")
+	Game.change_rep(-15, "тайком", false)
+	ok(Game.rep() == hum - 15, "без свидетелей молва не меняется")
+	Game.change_rep(-15, "большое дело", false, true)
+	ok(Game.rep() == hum - 30, "большие поступки молва видит всегда")
+	Game.change_rep(30)
+	ok(Rules.rep_title(40) == "Эллэй-Боотур" and Rules.rep_title(0) == "Боотур" and Rules.rep_title(-40) == "Моҕус", "имя героя по молве")
+	var st := Rules.normalize_stats({"DEX": 7, "REF": 4, "EMP": 6, "CRA": 3, "INT": 5})
+	ok(st.REF == 7 and st.CHA == 6 and st.INT == 5 and not st.has("DEX"), "старые характеристики переводятся в новые")
+	ok(Rules.ap_for({"REF": 7}, 10, 10) == 8, "ОД = 5 + ⌊Реакция/2⌋")
 
 	# --- уход ---
 	main.interact(main.location.item("BorderExit"))

@@ -53,8 +53,8 @@ static func for_hero(n: Character) -> Fighter:
 	f.is_hero = true
 	f.node = n
 	f.name = Game.hero.name
-	f.stats = Game.hero.stats
-	f.skills = Game.hero.skills
+	f.stats = Game.effective_stats()
+	f.skills = Game.effective_skills()
 	f.max_hp = Game.hero_max()
 	f.lethal = true
 	return f
@@ -66,11 +66,7 @@ static func for_npc(n: Character, tpl: Dictionary) -> Fighter:
 	f.id = n.uid()
 	f.node = n
 	f.name = n.display_name if n.display_name != "" else tpl.get("name", "?")
-	f.stats = tpl.get("stats", Rules.empty_stats()).duplicate()
-	for k in Rules.STATS:
-		if not f.stats.has(k.key):
-			f.stats[k.key] = 1
-		f.stats[k.key] = int(f.stats[k.key])
+	f.stats = Rules.normalize_stats(tpl.get("stats", {}))
 	f.skills = Rules.normalize_skills(tpl.get("skills", {}))
 	f.hp_roll = int(tpl.get("hp_roll", 5))
 	f.max_hp = Rules.max_hp(f.stats, f.hp_roll)
