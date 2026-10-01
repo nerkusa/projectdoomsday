@@ -23,7 +23,8 @@ func on_hero_moved(pos: Vector3) -> void:
 	var d := pos.distance_to(t.global_position)
 	# первый раз окликает издалека; дальше линии, где он стоит, не пускает
 	var first := not Game.flag("camp_stopped") and d < THUG_R
-	var past := pos.x > t.global_position.x - 0.8 and absf(pos.z - t.global_position.z) < 14.0
+	# поляна лагеря вся восточнее Дуолана — мимо него, лесом, тоже не обойти
+	var past := pos.x > t.global_position.x - 0.8
 	if first or past:
 		Game.set_flag("camp_stopped")
 		main.player.stop()
@@ -40,6 +41,9 @@ func on_dialog_action(a: String, _sp: Character) -> bool:
 		"give_food3":
 			give_food(3)
 			return true
+		"fight":
+			# саму драку начинает main; здесь только помним, что она была
+			Game.set_flag("camp_thug_fought")
 	return false
 
 
@@ -81,7 +85,7 @@ func describe(it: Interactable) -> String:
 		"Stash":
 			return "Штабель старых брёвен у лесопилки."
 		"WestExit":
-			return "Дорога на север — к Крестам."
+			return "Тропа обратно на большую дорогу — к Крестам."
 	return ""
 
 

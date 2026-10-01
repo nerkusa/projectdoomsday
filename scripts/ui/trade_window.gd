@@ -159,6 +159,10 @@ func _sum_of(d: Dictionary) -> float:
 
 ## Положить одну штуку на обмен: side = "give" (твоё) или "take" (его)
 func offer(id: String, side: String, n := 1) -> void:
+	# второе такое же оружие не нужно: в руках и так есть
+	if side == "take" and DB.weapons.has(id) and Game.hero.owned.has(id):
+		_sum.text = "%s у тебя уже есть." % DB.item_name(id)
+		return
 	var src: Dictionary = mine() if side == "give" else _stock
 	var dst: Dictionary = _give if side == "give" else _take
 	var left := int(src.get(id, 0)) - int(dst.get(id, 0))
@@ -200,6 +204,7 @@ func exchange() -> bool:
 		if int(_stock[k]) <= 0:
 			_stock.erase(k)
 		got.append(_line(k, n))
+	main.player.set_held(Game.hero_wkey())
 	Game.log_line("Обмен: %s" % ", ".join(got), "отдано: " + (", ".join(gave) if gave else "ничего"), "hit")
 	main.sfx("pickup", -8.0)
 	_give.clear()

@@ -583,6 +583,8 @@ func _ready() -> void:
 	var wm: WorldMap = main.world_map
 	ok(wm.visible and wm.at == "nakharro", "после черты — карта мира")
 	ok(wm.can_go("kresty") and not wm.can_go("camp") and not wm.can_go("sungar"), "с карты можно только в Кресты")
+	ok(wm._np("kresty").x < wm._np("nakharro").x and wm._np("sungar").x < wm._np("kresty").x and wm._np("camp").y > wm._np("kresty").y,
+		"карта сходится с текстами: Кресты на запад от черты, Сунгар дальше на запад, лагерь к югу")
 
 	# ======== АКТ I: Кресты ========
 	await wm.travel("kresty")
@@ -638,6 +640,10 @@ func _ready() -> void:
 		extra += 1
 	var salt0 := Game.item_count("salt")
 	ok(tw.can_exchange() and tw.exchange() and Game.item_count("salt") == salt0 + 1 and Game.item_count("fur") == fur0, "шкурку (и патроны: %d) — на соль" % extra)
+	Game.add_item("knife")
+	tw.offer("knife", "take")
+	ok(tw.take_value() == 0, "второй такой же нож не купить")
+	Game.remove_item("knife")
 	tw.offer("father_pistol", "give")
 	ok(not tw.mine().has("father_pistol") and not tw.mine().has("oyun"), "отцовский пистолет и «Ойун» не меняются")
 	tw.close()
@@ -686,6 +692,10 @@ func _ready() -> void:
 	await choose(find_opt("Отдать 2 еды"))
 	await shut()
 	ok(Game.flag("camp_passed"), "заплатил едой — пропустили")
+	main.talk_to(thug)
+	await frames(2)
+	ok(find_opt("Отдать 2 еды") < 0 and find_opt("возьми") < 0, "после прохода Дуолан плату не просит")
+	await shut()
 	var boss: Character = loc.character("Boss")
 	await tp(boss.global_position + Vector3(1.2, 0, 0))
 	main.talk_to(boss)

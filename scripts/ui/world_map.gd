@@ -319,6 +319,7 @@ func _unhandled_key_input(e: InputEvent) -> void:
 	if not visible or not (e is InputEventKey) or not e.pressed or e.echo:
 		return
 	if e.keycode == KEY_ESCAPE:
+		# от черты назад пути нет — Esc просто не закрывает карту, но и меню не открывает
 		close()
 		get_viewport().set_input_as_handled()
 	elif e.keycode == KEY_ENTER or e.keycode == KEY_KP_ENTER:

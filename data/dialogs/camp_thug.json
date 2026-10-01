@@ -17,13 +17,20 @@
           "text": "[Отдать 2 еды] Держи.",
           "next": "paid",
           "if": {
-            "cond": "has_food2"
+            "cond": "has_food2",
+            "not_flag": "camp_passed"
           },
           "action": "pay_food"
         },
         {
           "text": "[Запугивание] Я только что похоронил деревню. Отойди.",
           "next": null,
+          "if": {
+            "not_flags": [
+              "camp_passed",
+              "camp_thug_tried"
+            ]
+          },
           "check": {
             "stat": "BODY",
             "skill": "Запугивание",
@@ -35,6 +42,12 @@
         {
           "text": "[Убеждение] Я не за добычей. Мне нужен ваш старший — говорить.",
           "next": null,
+          "if": {
+            "not_flags": [
+              "camp_passed",
+              "camp_thug_tried"
+            ]
+          },
           "check": {
             "stat": "CHA",
             "skill": "Убеждение",
@@ -46,6 +59,9 @@
         {
           "text": "Попробуй возьми.",
           "next": null,
+          "if": {
+            "not_flag": "camp_passed"
+          },
           "action": "fight"
         },
         {
@@ -93,7 +109,10 @@
       ]
     },
     "not_scared": {
-      "text": "Чего? Ха! Слыхал, Кылаа? Он нам тут байки травит. Плати или вали.",
+      "text": "Чего? Ха! Слыхали? Он нам тут байки травит. Плати или вали.",
+      "set_flags": {
+        "camp_thug_tried": true
+      },
       "options": [
         {
           "text": "[Отдать 2 еды] Ладно. Держи.",

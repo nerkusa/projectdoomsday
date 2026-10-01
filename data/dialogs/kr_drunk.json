@@ -16,7 +16,10 @@
           "text": "[Проницательность] Ты не такой пьяный, как кажешься.",
           "next": null,
           "if": {
-            "not_flag": "kr_drunk_sober"
+            "not_flags": [
+              "kr_drunk_sober",
+              "kr_drunk_sober_try"
+            ]
           },
           "check": {
             "stat": "PRC",

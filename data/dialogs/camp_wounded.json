@@ -19,7 +19,8 @@
           "next": null,
           "if": {
             "quest": "camp_wounded",
-            "stage_max": 1
+            "stage_max": 1,
+            "not_flag": "tuya_try"
           },
           "check": {
             "stat": "INT",

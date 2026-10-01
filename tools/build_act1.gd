@@ -366,10 +366,12 @@ func _kresty() -> void:
 	_meadow.append(Rect2(4, 28, 12, 7))  # погост
 	_mud.append(Rect2(-10, 64.5, 112, 3.0))  # берег
 	_clear.append(Rect2(14, 20, 76, 46))
+	_clear.append(Rect2(80, 26, 14, 26))
 	_clear.append(Rect2(60, 4, 30, 18))
 	_clear.append(Rect2(-2, 24, 20, 30))
 	_clear.append(Rect2(-10, 60, 112, 30))
 	_no_edge.append(Rect2(-40, 63, 180, 35))
+	_no_edge.append(Rect2(92, 28, 14, 20))  # у въезда с востока лес реже — не закрывает героя
 	_ground_for("kresty")
 	# река: вода и невидимая стена по берегу
 	var river := group(root, "River")
@@ -424,8 +426,9 @@ func _kresty() -> void:
 	# низкая ограда погоста
 	for x in [5.0, 9.0, 13.0]:
 		put(P.fence_broken if x == 9.0 else P.fence, cem, Vector3(x, 0, 34.4), 0.0)
-	_cross(vil, Vector3(9.5, 0, 35.4), 3.2)
-	_cross(vil, Vector3(9.5, 0, 40.6), 3.2)
+	# два высоких креста у въезда со стороны черты (с востока) — по ним и название
+	_cross(vil, Vector3(88.5, 0, 35.2), 3.2)
+	_cross(vil, Vector3(88.5, 0, 40.8), 3.2)
 	# у реки
 	_net_rack(vil, Vector3(53.5, 0, 63.0), 0.0)
 	_net_rack(vil, Vector3(60, 0, 63.3), 0.08)
@@ -446,7 +449,7 @@ func _kresty() -> void:
 	_woods(900)
 
 	var chars := group(root, "Characters")
-	character(chars, "KrGuard", "kr_guard", Vector3(12.5, 0, 36.2), -PI / 2.0, {"dialog": "kr_guard", "armed": true})
+	character(chars, "KrGuard", "kr_guard", Vector3(77.5, 0, 36.0), PI / 2.0, {"dialog": "kr_guard", "armed": true})
 	character(chars, "KrHead", "kr_head", Vector3(47, 0, 30.2), 0.0, {"dialog": "kr_head"})
 	character(chars, "Brewer", "kr_brewer", Vector3(33, 0, 42.2), 0.0, {"dialog": "kr_brewer"})
 	character(chars, "Trader", "kr_trader", Vector3(50.8, 0, 36.6), 0.0, {"dialog": "kr_trader"})
@@ -473,8 +476,8 @@ func _kresty() -> void:
 	_use(items, "NetTracks", "Следы у сушилки", Vector3(62.6, 0, 62.4), Vector3(1.6, 0.4, 1.4))
 	_use(items, "Cemetery", "Погост", Vector3(10, 0, 31.2), Vector3(8.0, 1.5, 4.0))
 	item(items, P.item_herbs, "Take_Herbs", Vector3(26.3, 0, 60.5))
-	_spawn("Start", Vector3(4.5, 0, 38))
-	_spawn("Road", Vector3(4.5, 0, 38))
+	_spawn("Start", Vector3(81.5, 0, 38.6))
+	_spawn("Road", Vector3(81.5, 0, 38.6))
 	marker(root, "MarkHead", Vector3(47, 0, 25.5), "Староста")
 	marker(root, "MarkBrew", Vector3(33, 0, 46.5), "Пивоварня")
 	marker(root, "MarkRiver", Vector3(47, 0, 64), "Мостки")
@@ -536,7 +539,7 @@ func _camp() -> void:
 
 	var chars := group(root, "Characters")
 	character(chars, "Thug", "camp_thug", Vector3(13.5, 0, 30.4), -PI / 2.0, {"dialog": "camp_thug", "squad": "thugs", "armed": true})
-	character(chars, "Thug2", "camp_thug2", Vector3(15.5, 0, 27.8), -PI / 2.0 - 0.4, {"dialog": "camp_thug", "squad": "thugs", "armed": true})
+	character(chars, "Thug2", "camp_thug2", Vector3(15.5, 0, 27.8), -PI / 2.0 - 0.4, {"squad": "thugs", "armed": true})
 	character(chars, "Boss", "camp_boss", Vector3(33.6, 0, 31.4), -0.6, {"dialog": "camp_boss"})
 	character(chars, "Nyurgun", "camp_nyurgun", Vector3(45.5, 0, 29.5), -1.2, {"dialog": "camp_nyurgun",
 		"patrol": PackedVector3Array([Vector3(45.5, 0, 29.5), Vector3(50, 0, 32.5)]), "patrol_wait": 6.0})
