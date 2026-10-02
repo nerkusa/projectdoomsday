@@ -58,6 +58,13 @@ func on_interact(it: Interactable) -> bool:
 	return super.on_interact(it)
 
 
+## Дикий хмель для Дьулуса
+func on_picked(it: Interactable) -> void:
+	if String(it.name).begins_with("Take_Hops") and Game.item_count("hops") >= 3 and Game.quest_stage("hops") == 1:
+		Game.set_quest("hops", 2)
+		main.hud.refresh_objective()
+
+
 func on_combat_end(res: String, _kind: String) -> void:
 	var c := character("Chuchuna")
 	if res == "win" and c and (c.pose == "dead" or ws().misc.has("gone_" + c.uid())) and Game.quest_stage("traps") == 1:

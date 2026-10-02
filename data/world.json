@@ -1,5 +1,5 @@
 {
-  "_help": "Карта мира. Картинка: assets/textures/world_map.jpg, 1935×812. pos — точка в пикселях картинки (на карте в игре внизу слева видно координаты под курсором — по ним и ставить). name, desc — подпись и описание; loc — локация (сцена), spawn — точка появления; known — видна с начала; locked — почему не войти; end — экран конца сборки; burned — пепелище. Точку без known открывают, проходя рядом (radius, по умолчанию 45 пикселей) или из разговоров. encounters — случайные встречи в пути: chance — шанс на каждые 100 пикселей пути.",
+  "_help": "Карта мира. Картинка: assets/textures/world_map.jpg, 1935×812. pos — точка в пикселях картинки (на карте в игре внизу слева видно координаты под курсором — по ним и ставить). name, desc — подпись и описание; loc — локация (сцена), spawn — точка появления; known — видна с начала; locked — почему не войти; end — экран конца сборки; burned — пепелище. Точку без known открывают, проходя рядом (radius, по умолчанию 45 пикселей) или из разговоров. encounters — случайные встречи в пути: chance — шанс на каждые 100 пикселей пути. zones — места с заданной местностью для встреч: type (field / forest / swamp / dead), pos, r. В остальных местах местность берётся по цвету картинки. encounters: enemies — враги, npcs — мирные ([шаблон, сколько, {pose, dialog, name, armed}]), notice_dc — сложность заметить врагов первым (провал — засада), biomes — где встречается чаще (only_biomes — только там), once — один раз за игру, flag / not_flag — условие.",
   "image": "res://assets/textures/world_map.jpg",
   "size": [
     1935,
@@ -126,7 +126,27 @@
           3
         ]
       ],
-      "desc": "Стая одичавших псов"
+      "desc": "Стая одичавших псов",
+      "biomes": [
+        "field",
+        "forest"
+      ],
+      "notice_dc": 12
+    },
+    "wolves": {
+      "weight": 3,
+      "enemies": [
+        [
+          "taiga_wolf",
+          3
+        ]
+      ],
+      "desc": "Волки",
+      "biomes": [
+        "forest",
+        "dead"
+      ],
+      "notice_dc": 13
     },
     "looters": {
       "weight": 3,
@@ -140,8 +160,32 @@
           1
         ]
       ],
-      "desc": "Мародёры на дороге",
-      "fire": true
+      "desc": "Мародёры у костра",
+      "fire": true,
+      "biomes": [
+        "field",
+        "forest"
+      ],
+      "notice_dc": 11
+    },
+    "bog_raiders": {
+      "weight": 2,
+      "enemies": [
+        [
+          "raider",
+          1
+        ],
+        [
+          "raider_gun",
+          2
+        ]
+      ],
+      "desc": "Болотные грабители",
+      "biomes": [
+        "swamp"
+      ],
+      "only_biomes": true,
+      "notice_dc": 13
     },
     "mercs": {
       "weight": 2,
@@ -157,7 +201,22 @@
       ],
       "min_level": 3,
       "desc": "Наёмники с нашивками",
-      "cond": "who2"
+      "cond": "who2",
+      "notice_dc": 13
+    },
+    "cleaners": {
+      "weight": 1,
+      "enemies": [
+        [
+          "cleaner",
+          2
+        ]
+      ],
+      "min_level": 4,
+      "desc": "Разведка чистильщиков",
+      "cond": "who2",
+      "notice_dc": 15,
+      "once": true
     },
     "chuchuna": {
       "weight": 1,
@@ -167,15 +226,23 @@
           1
         ]
       ],
-      "min_level": 4,
-      "desc": "Чучуна"
+      "min_level": 3,
+      "desc": "Чучуна",
+      "biomes": [
+        "dead",
+        "swamp"
+      ],
+      "notice_dc": 15
     },
     "jaeger": {
       "weight": 2,
       "npcs": [
         [
           "jaeger",
-          1
+          1,
+          {
+            "armed": true
+          }
         ]
       ],
       "desc": "Йегерь на дороге"
@@ -189,7 +256,10 @@
         ]
       ],
       "desc": "Торговец из Сунгара",
-      "fire": true
+      "fire": true,
+      "biomes": [
+        "field"
+      ]
     },
     "refugees": {
       "weight": 2,
@@ -202,13 +272,107 @@
       "desc": "Беженцы",
       "fire": true
     },
+    "deserter": {
+      "weight": 2,
+      "npcs": [
+        [
+          "deserter",
+          1,
+          {
+            "pose": "down"
+          }
+        ]
+      ],
+      "desc": "Раненый наёмник",
+      "cond": "who2",
+      "once": true
+    },
+    "lost_kid": {
+      "weight": 2,
+      "npcs": [
+        [
+          "lost_kid",
+          1
+        ]
+      ],
+      "desc": "Мальчишка в лесу",
+      "once": true,
+      "biomes": [
+        "forest",
+        "field"
+      ]
+    },
+    "shaman": {
+      "weight": 1,
+      "npcs": [
+        [
+          "shaman",
+          1
+        ]
+      ],
+      "desc": "Ойуун у костра",
+      "fire": true,
+      "once": true,
+      "biomes": [
+        "field",
+        "forest"
+      ]
+    },
+    "trial": {
+      "weight": 2,
+      "npcs": [
+        [
+          "jaeger",
+          2,
+          {
+            "armed": true,
+            "dialog": "enc_trial"
+          }
+        ],
+        [
+          "accused",
+          1,
+          {
+            "pose": "yield",
+            "dialog": "enc_accused"
+          }
+        ]
+      ],
+      "desc": "Суд йегерей",
+      "once": true
+    },
+    "trapped": {
+      "weight": 2,
+      "npcs": [
+        [
+          "trapped_hunter",
+          1,
+          {
+            "pose": "down"
+          }
+        ]
+      ],
+      "desc": "Человек в капкане",
+      "once": true,
+      "biomes": [
+        "forest",
+        "dead"
+      ]
+    },
     "bear": {
       "weight": 2,
-      "text": true
+      "text": true,
+      "biomes": [
+        "forest"
+      ]
     },
     "ford": {
       "weight": 2,
-      "text": true
+      "text": true,
+      "biomes": [
+        "swamp",
+        "field"
+      ]
     },
     "hut": {
       "weight": 2,
@@ -216,20 +380,163 @@
     },
     "truck": {
       "weight": 2,
-      "text": true
+      "text": true,
+      "biomes": [
+        "field"
+      ]
     },
     "night": {
       "weight": 2,
       "text": true
     },
     "cache": {
-      "weight": 1,
+      "weight": 2,
       "text": true
     },
     "radio": {
       "weight": 1,
       "text": true,
       "cond": "kpk"
+    },
+    "radio_kirk": {
+      "weight": 2,
+      "text": true,
+      "cond": "kpk",
+      "flag": "knows_kirk"
+    },
+    "glade": {
+      "weight": 2,
+      "text": true,
+      "biomes": [
+        "dead",
+        "swamp"
+      ]
+    },
+    "crater": {
+      "weight": 2,
+      "text": true,
+      "biomes": [
+        "dead"
+      ],
+      "only_biomes": true
+    },
+    "bog": {
+      "weight": 2,
+      "text": true,
+      "biomes": [
+        "swamp"
+      ],
+      "only_biomes": true
+    },
+    "grave": {
+      "weight": 1,
+      "text": true
     }
-  }
+  },
+  "zones": [
+    {
+      "type": "dead",
+      "pos": [
+        390,
+        160
+      ],
+      "r": 95
+    },
+    {
+      "type": "dead",
+      "pos": [
+        1270,
+        555
+      ],
+      "r": 115
+    },
+    {
+      "type": "dead",
+      "pos": [
+        790,
+        690
+      ],
+      "r": 55
+    },
+    {
+      "type": "dead",
+      "pos": [
+        830,
+        410
+      ],
+      "r": 35
+    },
+    {
+      "type": "dead",
+      "pos": [
+        800,
+        205
+      ],
+      "r": 30
+    },
+    {
+      "type": "dead",
+      "pos": [
+        1830,
+        200
+      ],
+      "r": 50
+    },
+    {
+      "type": "swamp",
+      "pos": [
+        1700,
+        420
+      ],
+      "r": 120
+    },
+    {
+      "type": "swamp",
+      "pos": [
+        1720,
+        700
+      ],
+      "r": 50
+    },
+    {
+      "type": "swamp",
+      "pos": [
+        60,
+        180
+      ],
+      "r": 55
+    },
+    {
+      "type": "swamp",
+      "pos": [
+        310,
+        625
+      ],
+      "r": 35
+    },
+    {
+      "type": "swamp",
+      "pos": [
+        1360,
+        705
+      ],
+      "r": 45
+    },
+    {
+      "type": "swamp",
+      "pos": [
+        1430,
+        125
+      ],
+      "r": 35
+    },
+    {
+      "type": "field",
+      "pos": [
+        700,
+        560
+      ],
+      "r": 60
+    }
+  ]
 }

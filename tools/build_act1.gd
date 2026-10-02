@@ -568,44 +568,15 @@ func _camp() -> void:
 
 
 # ======================================================================
-# ПОЛЯНА ДЛЯ СЛУЧАЙНЫХ ВСТРЕЧ: дорога через лес, кострище (видно не всегда),
-# метки E1..E5 для врагов и N1..N3 для мирных (encounter.gd ставит их сам).
+# СЛУЧАЙНАЯ ВСТРЕЧА: в сцене только свет и пустые группы — местность
+# (поле, лес, болото, мёртвый лес) и людей собирает scripts/locations/encounter.gd на лету.
 # ======================================================================
 func _encounter() -> void:
-	var rect := Rect2(0, 0, 52, 42)
+	var rect := Rect2(0, 0, 46, 46)
 	_begin("encounter", "Тайга", rect, "res://scripts/locations/encounter.gd")
-	strip(null, Vector2(-4, 18), Vector2(56, 19.5), 2.6, "ground_dirt")
-	_meadow.append(Rect2(8, 6, 36, 28))
-	_mud.append(Rect2(18, 25, 8, 4))
-	# поляна шире самой стычки: с камеры (сверху-сбоку) враги не прячутся за кронами
-	_clear.append(Rect2(3, 2, 47, 38))
-	_ground_for("encounter")
-	var vil := group(root, "Village")
-	var fire := put(P.fire, vil, Vector3(24, 0.2, 14.5), 0.0, "Campfire")
-	fire.set("strength", 0.7)
-	for lg in [[Vector3(22.5, 0, 13.2), 0.3], [Vector3(25.8, 0, 16.0), -0.6]]:
-		put(P.log_fallen, vil, lg[0], lg[1], "", 0.7)
-	for p in [Vector3(14, 0, 11), Vector3(31, 0, 24.5), Vector3(36, 0, 11.5)]:
-		put(P.rock_big if randf() < 0.5 else P.rock, vil, p, randf() * TAU)
-	put(P.log_fallen, vil, Vector3(17, 0, 24), 1.2)
-	put(P.dead_tree, vil, Vector3(28, 0, 9), 0.0)
-	put(P.cart, vil, Vector3(20.5, 0, 22.0), 0.8, "Cart")
-	var mk := group(root, "Marks")
-	var i := 0
-	for p in [Vector3(31, 0, 15), Vector3(33, 0, 19.5), Vector3(30, 0, 23), Vector3(36, 0, 16.5), Vector3(35, 0, 22)]:
-		i += 1
-		_spawn_mark(mk, "E%d" % i, p)
-	i = 0
-	for p in [Vector3(23.5, 0, 17.5), Vector3(25.5, 0, 18.5), Vector3(22, 0, 19.5)]:
-		i += 1
-		_spawn_mark(mk, "N%d" % i, p)
 	group(root, "Characters")
-	var items := group(root, "Items")
-	_exit(items, "WestExit", "Уйти", Vector3(1.0, 0, 18), Vector3(1.6, 2.2, 6.0))
-	_exit(items, "EastExit", "Уйти", Vector3(51.0, 0, 19.5), Vector3(1.6, 2.2, 6.0))
-	_spawn("Start", Vector3(6, 0, 18.2))
-	_woods(300)
-	_dress(Rect2(4, 4, 44, 34), 600)
+	group(root, "Items")
+	_spawn("Start", Vector3(23, 0, 23))
 	_finish("encounter")
 
 
@@ -664,6 +635,13 @@ func _zaimka() -> void:
 	var t2 := _use(items, "Trap2", "Капкан", Vector3(36.5, 0, 3.0), Vector3(1.2, 0.5, 1.2))
 	box(t2, Vector3(0.7, 0.08, 0.7), Vector3(0, 0.04, 0), "rust", Vector3(0, 0.6, 0.3)).owner = root
 	item(items, P.item_herbs, "Take_Herbs", Vector3(18, 0, 10))
+	# дикий хмель в распадке — для Дьулуса
+	var hi := 0
+	for p in [Vector3(44, 0, 14), Vector3(46.5, 0, 17.5), Vector3(42.5, 0, 33.5), Vector3(17, 0, 21)]:
+		hi += 1
+		var h := item(items, P.item_herbs, "Take_Hops%d" % hi, p)
+		h.set("item_id", "hops")
+		h.set("label", "Дикий хмель")
 	_spawn("Start", Vector3(4.5, 0, 29.8))
 	_spawn("Road", Vector3(4.5, 0, 29.8))
 	marker(root, "MarkHut", Vector3(30, 0, 20.5), "Избушка")

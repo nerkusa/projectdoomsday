@@ -92,6 +92,8 @@ func dialog_cond(id: String) -> bool:
 			return food_count() >= 2
 		"has_food3":
 			return food_count() >= 3
+		"has_herbs3":
+			return Game.item_count("herbs") >= 3
 	return true
 
 

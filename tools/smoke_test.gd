@@ -744,6 +744,33 @@ func _ready() -> void:
 	await choose(find_opt("аптечку"))
 	await shut()
 	ok(Game.quest_stage("camp_wounded") == 2, "Туйаара спасена")
+	# кашель в лагере
+	main.dialog.close()
+	main.talk_to(loc.character("Wounded"))
+	await frames(2)
+	await choose(find_opt("стряслось"))
+	await choose(0)
+	ok(Game.quest_stage("camp_cough") == 1, "в лагере кашляют дети — нужны травы")
+	await shut()
+	Game.add_item("herbs", 3)
+	main.talk_to(loc.character("Wounded"))
+	await frames(2)
+	await choose(find_opt("3 пучка"))
+	ok(Game.quest_stage("camp_cough") == 2, "травы отданы — детям легче")
+	await shut()
+	# реванш Дуолана на кулаках
+	main.talk_to(loc.character("Thug"))
+	await frames(2)
+	await choose(find_opt("Чего смотришь"))
+	await choose(find_opt("Давай"))
+	await frames(3)
+	ok(main.combat.on and main.combat.kind == "spar", "реванш: драка на кулаках")
+	await fight(300)
+	await wait(1.5)
+	ok(main.dialog.visible and main.dialog.node_id in ["rematch_won", "rematch_lost"], "Дуолан после драки: " + main.dialog.node_id)
+	await choose(0)
+	await shut()
+	ok(Game.quest_stage("rematch") == 2, "реванш состоялся")
 	main.open_trade(loc.character("CampTrader"))
 	await frames(2)
 	ok(main.trade_win.stock().has("cas_reflex"), "у менялы — кассета")
@@ -778,7 +805,7 @@ func _ready() -> void:
 	wm.start_road_event("dogs")
 	await frames(2)
 	ok(main.dialog.visible and main.dialog.node_id == "dogs", "встреча в пути: псы")
-	await choose(find_opt("Принять бой"))
+	await choose(find_opt("Ударить первым"))
 	while main._loading or wm._entering:
 		await frames(2)
 	await frames(3)
@@ -812,6 +839,143 @@ func _ready() -> void:
 	ok(Game.hero.notes.size() > 0 and "Счастливой лодке" in str(Game.hero.notes), "торговец рассказал про Боотура в Сунгаре")
 	await shut()
 	loc.on_interact(loc.item("EastExit"))
+	await frames(2)
+
+	# ======== генератор местности: все четыре вида ========
+	for bio in ["field", "forest", "swamp", "dead"]:
+		Game.hero.flags["enc"] = "refugees"
+		Game.hero.flags["enc_mode"] = "peace"
+		Game.hero.flags["enc_biome"] = bio
+		wm.visible = false
+		await main.load_location("encounter", "Start")
+		await frames(2)
+		loc = main.location
+		var free_n := 0
+		for hx in loc.grid.free:
+			if loc.grid.free[hx]:
+				free_n += 1
+		ok(loc.biome == bio and free_n > 900 and free_n < loc.grid.free.size() and loc.grid.is_free(loc.grid.from_world(main.player.global_position)), "местность «%s»: проходимых гексов %d, герой в центре на свободном" % [bio, free_n])
+	# ======== нападение: засада сразу ========
+	Game.force_check = -1
+	wm.open("encounter")
+	Game.set_flag("visited_kresty")
+	wm.encounters_on = true
+	var old_ch: float = wm.data["encounter_chance"]
+	wm.data["encounter_chance"] = 1.0
+	var tries := 0
+	while tries < 30:
+		tries += 1
+		var eid := wm.pick_encounter()
+		if not wm.data["encounters"][eid].get("enemies", []).is_empty():
+			# прогоняем ту же развилку, что и в пути
+			Game.hero.flags["road_seen"] = []
+			wm._roll_encounter_with(eid)
+			break
+	while main._loading or wm._entering:
+		await frames(2)
+	await frames(3)
+	loc = main.location
+	ok(loc.location_id == "encounter" and main.combat.on and main.combat.order[0] != main.combat.hero_f, "не заметил — засада: бой сразу, враги ходят первыми")
+	await fight(300)
+	await wait(1.0)
+	Game.force_check = 1
+	wm.data["encounter_chance"] = old_ch
+	wm.encounters_on = false
+	loc.on_interact(loc.item("NorthExit"))
+	await frames(2)
+	# ======== заметил первым: подкрасться ========
+	wm.start_road_event("looters")
+	await frames(2)
+	ok(main.dialog.visible and find_opt("Подкрасться") >= 0 and find_opt("Залечь") >= 0 and find_opt("Ударить первым") >= 0, "заметил первым: ударить / подкрасться / залечь / обойти")
+	await choose(find_opt("Подкрасться"))
+	await choose(find_opt("[Подкрасться]"))
+	while main._loading or wm._entering:
+		await frames(2)
+	await frames(4)
+	loc = main.location
+	ok(main.hidden and not main.combat.on and loc.foes().size() == 3, "подкрался: сидит в кустах, бандиты у костра не видят")
+	loc.leave_hide()
+	main.start_fight([loc.foes()[0]], {"ambush": true})
+	await frames(2)
+	ok(main.combat.on and main.combat.order[0] == main.combat.hero_f, "из кустов — первый удар")
+	await fight(300)
+	await wait(1.0)
+	loc.on_interact(loc.item("SouthExit"))
+	await frames(2)
+	# залечь и переждать
+	wm.start_road_event("wolves")
+	await frames(2)
+	await choose(find_opt("Залечь"))
+	ok(main.dialog.node_id == "wolves_hide" and find_opt("Идти дальше") >= 0, "залёг — прошли мимо")
+	await choose(find_opt("Идти дальше"))
+	Game.force_check = 0
+
+	# ======== суд йегерей: исходы ========
+	Game.force_check = 1
+	if not wm.visible:
+		wm.open("encounter")
+	wm.start_road_event("trial")
+	await frames(2)
+	await choose(find_opt("Подойти"))
+	while main._loading or wm._entering:
+		await frames(2)
+	await frames(3)
+	loc = main.location
+	var acc: Character = null
+	var jg: Character = null
+	for c in loc.characters():
+		if c.char_id == "accused":
+			acc = c
+		elif c.char_id == "jaeger":
+			jg = c
+	ok(acc != null and acc.pose == "yield" and jg != null, "суд: подсудимый на коленях, йегеря рядом")
+	main.talk_to(acc)
+	await frames(2)
+	await choose(0)
+	ok(Game.flag("trial_truth"), "подсудимый рассказал про долг «Горизонту»")
+	main.talk_to(jg)
+	await frames(2)
+	var rep_t := Game.rep()
+	await choose(find_opt("Убеждение +"))
+	ok(Game.flag("trial_spared") and Game.rep() > rep_t, "уговорил йегерей пощадить вора (молва растёт)")
+	await shut()
+	loc.on_interact(loc.item("WestExit"))
+	await frames(2)
+	# мальчишка в лесу → Кресты
+	wm.start_road_event("lost_kid")
+	await frames(2)
+	await choose(find_opt("Подойти"))
+	while main._loading or wm._entering:
+		await frames(2)
+	await frames(3)
+	loc = main.location
+	main.talk_to(loc.characters()[0])
+	await frames(2)
+	await choose(find_opt("отведу"))
+	ok(Game.quest_stage("lost_kid") == 1, "мальчишку отправил домой")
+	await shut()
+	# дезертир
+	Game.set_quest("who", maxi(2, Game.quest_stage("who")))
+	loc.on_interact(loc.item("WestExit"))
+	await frames(2)
+	Game.add_item("bandage")
+	wm.start_road_event("deserter")
+	await frames(2)
+	await choose(find_opt("Подойти"))
+	while main._loading or wm._entering:
+		await frames(2)
+	await frames(3)
+	loc = main.location
+	var des: Character = loc.characters()[0]
+	ok(des.pose == "down", "раненый наёмник лежит")
+	main.talk_to(des)
+	await frames(2)
+	await choose(find_opt("Отдать бинт"))
+	await choose(0)
+	ok(Game.flag("des_talked") and "списку Б" in str(Game.hero.notes), "дезертир рассказал про «список Б» и проводника")
+	await shut()
+	Game.force_check = 0
+	loc.on_interact(loc.item("WestExit"))
 	await frames(2)
 
 	# ======== заимка: капканы и чучуна ========
@@ -855,6 +1019,14 @@ func _ready() -> void:
 	await choose(find_opt("робы"))
 	ok(Game.quest_stage("traps") == 3 and Game.item_count("cas_tongue") >= 1, "Дьаакып узнал номер на робе, дал кассету")
 	await shut()
+	# дикий хмель для Дьулуса
+	Game.set_quest("hops", 1)
+	for hn in ["Take_Hops1", "Take_Hops2", "Take_Hops3"]:
+		var hop: Interactable = loc.item(hn)
+		await tp(hop.global_position + Vector3(0.8, 0, 0))
+		main.interact(hop)
+		await wait(1.0)
+	ok(Game.item_count("hops") >= 3 and Game.quest_stage("hops") == 2, "хмель собран (%d)" % Game.item_count("hops"))
 
 	# ======== ржавый конвой ========
 	loc.on_interact(loc.item("WestExit"))
@@ -931,6 +1103,31 @@ func _ready() -> void:
 	await frames(2)
 	await choose(find_opt("накладную"))
 	ok(Game.quest_stage("caravan") == 3, "Аграфена узнала про караван")
+	await shut()
+	# долг Сэмэна: заплатить самому
+	main.talk_to(loc.character("Trader"))
+	await frames(2)
+	await choose(find_opt("помочь"))
+	await choose(0)
+	ok(Game.quest_stage("debt") == 1, "Аграфена просит стребовать долг Сэмэна")
+	await shut()
+	Game.add_item("salt")
+	main.talk_to(loc.character("Trader"))
+	await frames(2)
+	await choose(find_opt("Отдать свою соль"))
+	ok(Game.quest_stage("debt") == 3, "заплатил долг за Сэмэна сам")
+	await shut()
+	# хмель — Дьулусу: он вспоминает про Нью-Рбу
+	main.talk_to(loc.character("Brewer"))
+	await frames(2)
+	await choose(find_opt("Отдать хмель"))
+	ok(Game.quest_stage("hops") == 3 and "Нью-Рбе" in str(Game.hero.notes), "Дьулус: Боотур говорил про Нью-Рбу")
+	await shut()
+	# мальчишка дома
+	main.talk_to(loc.character("KrVillager1"))
+	await frames(2)
+	await choose(find_opt("Мичээр"))
+	ok(Game.quest_stage("lost_kid") == 2, "Кресты встречают мальчишку")
 	await shut()
 
 	# сохранение и загрузка в новой локации

@@ -340,6 +340,9 @@ func enter(id: String) -> void:
 
 # ---------------- встречи ----------------
 ## Каждые 100 пикселей пути — шанс встречи. Первый переход до Крестов — без встреч.
+## Враги: проверка Внимательности. Провал — засада, бой сразу (враги ходят первыми).
+## Успех — заметил их первым: разговор-развилка (ударить первым / подкрасться /
+## спрятаться и переждать / обойти).
 func _roll_encounter() -> bool:
 	if not encounters_on or not Game.flag("visited_kresty"):
 		return false
@@ -348,18 +351,74 @@ func _roll_encounter() -> bool:
 	var id := pick_encounter()
 	if id == "":
 		return false
-	start_road_event(id)
+	_roll_encounter_with(id)
 	return true
+
+
+## Встреча началась: враги — сперва проверка, заметил ли герой их первым
+func _roll_encounter_with(id: String) -> void:
+	var e: Dictionary = data.get("encounters", {}).get(id, {})
+	if not e.get("enemies", []).is_empty() and not e.get("always_notice", false):
+		if not Game.skill_check("Внимательность", "PRC", "Внимательность", int(e.get("notice_dc", 12))):
+			_mark_seen(id)
+			Game.log_line("Засада! " + str(e.get("desc", "")), "", "miss")
+			start_encounter(id, "caught")
+			return
+	start_road_event(id)
+
+
+## Тип местности под точкой карты: сначала зоны из world.json (кратеры — мёртвый лес,
+## болота), потом цвет самой картинки (синеватое — болото, бурое — поле, тёмное — лес)
+var _img: Image = null
+
+
+func biome_at(p: Vector2) -> String:
+	for z in data.get("zones", []):
+		var zp: Array = z.get("pos", [0, 0])
+		if p.distance_to(Vector2(float(zp[0]), float(zp[1]))) < float(z.get("r", 50)):
+			return str(z.get("type", "forest"))
+	if _img == null and _tex.texture:
+		_img = _tex.texture.get_image()
+		if _img and _img.is_compressed():
+			_img.decompress()
+	var b := "forest"
+	if _img:
+		var q := Vector2i(clampi(int(p.x / img_size.x * _img.get_width()), 0, _img.get_width() - 1),
+			clampi(int(p.y / img_size.y * _img.get_height()), 0, _img.get_height() - 1))
+		var c := Color(0, 0, 0)
+		var n := 0
+		for dx in range(-6, 7, 3):
+			for dy in range(-6, 7, 3):
+				var qq := Vector2i(clampi(q.x + dx, 0, _img.get_width() - 1), clampi(q.y + dy, 0, _img.get_height() - 1))
+				c += _img.get_pixelv(qq)
+				n += 1
+		c /= float(n)
+		if c.b > c.r * 0.82 and c.b > c.g * 0.82:
+			b = "swamp"
+		elif c.r > c.g * 1.12:
+			b = "field"
+	# немного случайности: тайга пёстрая
+	if randf() < 0.2:
+		b = ["field", "forest", "swamp", "dead"][randi() % 4] if randf() < 0.3 else ("field" if b == "forest" else "forest")
+	return b
 
 
 func pick_encounter() -> String:
 	var seen: Array = Game.hero.flags.get("road_seen", [])
 	var pool := []
+	var weights := {}
 	var total := 0.0
 	var encs: Dictionary = data.get("encounters", {})
+	var here := biome_at(pos)
 	for id in encs:
 		var e: Dictionary = encs[id]
-		if e.get("text", false) and seen.has(id):
+		if (e.get("text", false) or e.get("once", false)) and seen.has(id):
+			continue
+		if e.has("biomes") and not here in e.biomes and e.get("only_biomes", false):
+			continue
+		if e.has("flag") and not Game.flag(str(e.flag)):
+			continue
+		if e.has("not_flag") and Game.flag(str(e.not_flag)):
 			continue
 		if int(Game.hero.level) < int(e.get("min_level", 0)):
 			continue
@@ -370,24 +429,32 @@ func pick_encounter() -> String:
 			"kpk":
 				if not Game.flag("kpk"):
 					continue
+		var w := float(e.get("weight", 1))
+		if e.has("biomes") and here in e.biomes:
+			w *= 2.5
 		pool.append(id)
-		total += float(e.get("weight", 1))
+		weights[id] = w
+		total += w
 	var r := randf() * total
 	for id in pool:
-		r -= float(encs[id].get("weight", 1))
+		r -= float(weights[id])
 		if r <= 0.0:
 			return id
 	return pool[-1] if not pool.is_empty() else ""
 
 
 ## Начать встречу: разговор-развилка из road.json, дальше — действие enc_*
-func start_road_event(id: String) -> void:
-	_paused = true
-	Game.hero.flags["enc"] = id
+func _mark_seen(id: String) -> void:
 	var seen: Array = Game.hero.flags.get("road_seen", [])
 	if not seen.has(id):
 		seen.append(id)
 	Game.hero.flags["road_seen"] = seen
+
+
+func start_road_event(id: String) -> void:
+	_paused = true
+	Game.hero.flags["enc"] = id
+	_mark_seen(id)
 	main.dialog.open("road", id, null)
 	if not main.dialog.closed.is_connected(_on_dialog_closed):
 		main.dialog.closed.connect(_on_dialog_closed)
@@ -398,16 +465,30 @@ func _on_dialog_closed() -> void:
 		_paused = false
 
 
-## Действия из road.json: enc_fight / enc_go — на поляну встречи, enc_skip — идти дальше
+## Действия из road.json:
+##   enc_fight — бой (обычная инициатива), enc_first — ударить первым, enc_caught — заметили,
+##   враги ходят первыми, enc_sneak — подкрасться (герой в кустах у края), enc_go — мирная
+##   встреча, enc_skip — идти дальше
 func on_action(a: String) -> void:
+	var id := str(Game.hero.flags.get("enc", "dogs"))
 	match a:
-		"enc_fight", "enc_go":
-			start_encounter(str(Game.hero.flags.get("enc", "dogs")))
+		"enc_fight":
+			start_encounter(id, "fight")
+		"enc_first":
+			start_encounter(id, "first")
+		"enc_caught":
+			start_encounter(id, "caught")
+		"enc_sneak":
+			start_encounter(id, "sneak")
+		"enc_go":
+			start_encounter(id, "peace")
 		"enc_skip":
 			_paused = false
 
 
-func start_encounter(id: String) -> void:
+func start_encounter(id: String, mode := "fight") -> void:
+	Game.hero.flags["enc_mode"] = mode
+	Game.hero.flags["enc_biome"] = biome_at(pos)
 	_entering = true
 	moving = false
 	_enter_on_arrive = ""

@@ -41,7 +41,12 @@ func on_dialog_action(a: String, sp: Character) -> bool:
 	return super.on_dialog_action(a, sp)
 
 
-func on_combat_end(res: String, _kind: String) -> void:
+func on_combat_end(res: String, kind: String) -> void:
+	# реванш с Дуоланом на кулаках
+	if kind == "spar" and Game.quest_stage("rematch") == 1:
+		await get_tree().create_timer(0.6, false).timeout
+		main.talk_to(character("Thug"), "rematch_won" if res == "win" else "rematch_lost")
+		return
 	if res != "win" or Game.flag("camp_passed"):
 		return
 	var t := character("Thug")
@@ -55,12 +60,13 @@ func on_interact(it: Interactable) -> bool:
 	if String(it.name) == "Stash":
 		if Game.flag("camp_stash"):
 			main.think("Пусто.")
-		elif Game.skill_check("Внимательность", "PRC", "Внимательность", 12):
+		elif Game.flag("stash_told") or Game.skill_check("Внимательность", "PRC", "Внимательность", 12):
 			Game.set_flag("camp_stash")
 			main.loot_win.open("Тайник под брёвнами", [{"id": "ammo9", "n": 4, "name": DB.item_name("ammo9")},
 				{"id": "canned", "n": 1, "name": DB.item_name("canned")}], func(e):
 				Game.add_item(e.id, int(e.get("n", 1)))
-				Game.change_rep(-2, "взял из чужого тайника", false)
+				if not Game.flag("stash_told"):
+					Game.change_rep(-2, "взял из чужого тайника", false)
 				return true)
 		else:
 			main.think("Брёвна как брёвна. Хотя одно лежит как-то не так…")
