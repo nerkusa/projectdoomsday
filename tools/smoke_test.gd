@@ -73,6 +73,9 @@ func fight(max_turns := 80) -> void:
 	while main.combat.on and guard < max_turns * 20:
 		guard += 1
 		await frames(1)
+		# сюжетный тест: героя не дают убить и на чужом ходу
+		if not "fair" in OS.get_cmdline_user_args() and Game.hero_hp() < Game.hero_max() / 2:
+			Game.set_hero_hp(Game.hero_max())
 		if main.combat.my_turn():
 			if not "fair" in OS.get_cmdline_user_args():
 				Game.set_hero_hp(Game.hero_max())
@@ -808,6 +811,8 @@ func _ready() -> void:
 	# случайные встречи проверяются отдельно ниже
 	wm.encounters_on = false
 	ok(wm.visible and wm.at == "nakharro", "после черты — карта мира")
+	await frames(2)
+	ok(wm._tex.size.x > wm._view.size.x * 1.5, "карта приближена: видно только окрестности (%d > %d)" % [wm._tex.size.x, wm._view.size.x])
 	ok(wm.can_go("kresty") and not wm.can_go("camp") and not wm.can_go("sungar"), "с карты можно только в Кресты")
 	ok(wm.node_pos("kresty").x > wm.node_pos("nakharro").x and wm.node_pos("sungar").x > wm.node_pos("kresty").x and wm.node_pos("camp").y > wm.node_pos("kresty").y,
 		"карта сходится с дизайн-доком: путь на восток — Нахарро, Кресты, Сунгар; лагерь к югу за рекой")
@@ -816,6 +821,7 @@ func _ready() -> void:
 	await wm.travel("kresty")
 	await frames(3)
 	ok(main.location != null and main.location.location_id == "kresty" and not wm.visible, "пришёл в Кресты")
+	ok(wm.hours() > 20.0, "до Крестов — больше суток пути (%.0f ч)" % wm.hours())
 	main.dialog.close()
 	var loc = main.location
 	var head: Character = loc.character("KrHead")
@@ -823,9 +829,9 @@ func _ready() -> void:
 	main.talk_to(head)
 	await frames(2)
 	await choose(find_opt("Боотура"))
-	await choose(0)
-	ok(Game.quest_stage("bootur") == 2, "след Боотура: наградили пивом, ушёл в Сунгар")
+	ok(Game.quest_stage("bootur") == 2 and main.dialog.node_id == "bootur_no" and not wm.can_go("sungar"), "староста чужаку про Боотура не рассказывает")
 	await shut()
+	ok(loc.objective().contains("псами"), "цель: помочь Крестам, чтобы поверили")
 	main.talk_to(head)
 	await frames(2)
 	await choose(find_opt("помочь"))
@@ -850,6 +856,18 @@ func _ready() -> void:
 	var rep0 := Game.rep()
 	await choose(find_opt("Псы"))
 	ok(Game.quest_stage("kr_dogs") == 3 and Game.item_count("fur") == fur0 + 1 and Game.rep() > rep0, "награда старосты и молва")
+	await shut()
+	main.talk_to(head)
+	await frames(2)
+	await choose(find_opt("Теперь расскажешь"))
+	await choose(0)
+	ok(Game.quest_stage("bootur") == 3 and not wm.can_go("sungar"), "после выгона староста рассказал: Боотур жил у пивовара")
+	await shut()
+	main.talk_to(loc.character("Brewer"))
+	await frames(2)
+	await choose(find_opt("знал Боотура"))
+	await choose(find_opt("Куда он ушёл"))
+	ok(main.dialog.node_id == "bootur_sore" and Game.quest_stage("bootur") == 3, "Дьулусу не до Боотура, пока ему не помог")
 	await shut()
 	# бартер
 	var tr: Character = loc.character("Trader")
@@ -1445,6 +1463,20 @@ func _ready() -> void:
 	await choose(find_opt("Отдать хмель"))
 	ok(Game.quest_stage("hops") == 3 and "Нью-Рбе" in str(Game.hero.notes), "Дьулус: Боотур говорил про Нью-Рбу")
 	await shut()
+	# теперь Дьулус расскажет, куда ушёл Боотур, а Сэмэн — дорогу
+	main.talk_to(loc.character("Brewer"))
+	await frames(2)
+	await choose(find_opt("знал Боотура"))
+	await choose(find_opt("Куда он ушёл"))
+	ok(Game.quest_stage("bootur") == 4 and not wm.can_go("sungar"), "Дьулус: ушёл с сунгарским торговцем, дорогу знает Сэмэн")
+	await shut()
+	main.talk_to(loc.character("Drunk"))
+	await frames(2)
+	await choose(find_opt("провожал Боотура"))
+	ok(find_opt("долг Аграфене") >= 0 and find_opt("[Запугивание]") >= 0, "Сэмэна можно разговорить разными способами")
+	await choose(find_opt("долг Аграфене"))
+	ok(Game.quest_stage("bootur") == 5 and wm.known("sungar") and "гать" in str(Game.hero.notes), "Сэмэн рассказал дорогу через болота")
+	await shut()
 	# мальчишка дома
 	main.talk_to(loc.character("KrVillager1"))
 	await frames(2)
@@ -1529,7 +1561,7 @@ func _ready() -> void:
 	# Сунгар — конец сборки
 	loc.on_interact(loc.item("EastExit"))
 	await frames(2)
-	ok(wm.can_go("sungar"), "в Сунгар можно, когда известно про Боотура")
+	ok(wm.can_go("sungar"), "в Сунгар можно, когда известна дорога")
 	await wm.travel("sungar")
 	await frames(3)
 	ok(main.menu.visible and main.menu.mode == "end_act1", "экран «Дорога на Сунгар»")

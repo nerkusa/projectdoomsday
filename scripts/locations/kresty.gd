@@ -128,9 +128,32 @@ func describe(it: Interactable) -> String:
 	return ""
 
 
+## Доверие Крестов: про Боотура чужому не расскажут, пока не поможешь
+func dialog_cond(id: String) -> bool:
+	match id:
+		"kr_trust":
+			# староста: выгон от псов, или сети рыбака, или добрая слава
+			return Game.quest_stage("kr_dogs") >= 3 or Game.quest_stage("kr_nets") >= 6 or Game.rep() >= 25
+		"brewer_trust":
+			# пивовар: вернул бочонок (или честно сказал, где он), или принёс хмель
+			return Game.quest_stage("barrel") >= 4 or Game.flag("keg_left") or Game.quest_stage("hops") >= 3
+	return super.dialog_cond(id)
+
+
 func objective() -> String:
-	if Game.quest_stage("bootur") == 1:
-		return "Расспросить в Крестах про Боотура. Староста живёт на площади."
+	match Game.quest_stage("bootur"):
+		1:
+			return "Расспросить в Крестах про Боотура. Староста живёт на площади."
+		2:
+			if not dialog_cond("kr_trust"):
+				return "Прокопий не расскажет про Боотура чужаку. Помочь Крестам — например, с псами на выгоне."
+			return "Кресты мне теперь верят. Спросить Прокопия про Боотура."
+		3:
+			if not dialog_cond("brewer_trust"):
+				return "Дьулусу не до Боотура: у него пропал бочонок и кончился хмель. Помочь ему."
+			return "Спросить пивовара Дьулуса, куда ушёл Боотур."
+		4:
+			return "Сэмэн провожал Боотура — разговорить его (пиво, долг, безделушка или кулак)."
 	if Game.quest_stage("kr_dogs") == 1:
 		return "Перебить или отогнать псов на выгоне (северо-восток)."
 	if Game.quest_stage("kr_dogs") == 2:

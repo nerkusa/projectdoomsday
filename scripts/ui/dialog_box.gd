@@ -259,7 +259,7 @@ func _apply_effects(o: Dictionary) -> void:
 
 ## Условия показа: {"flag": "...", "not_flag": "...", "flags": [...], "not_flags": [...], "quest": "id", "stage_min": 1,
 ## "stage_max": 2, "item": "ключ", "no_item": "ключ", "rep_min": 10, "rep_max": -10,
-## "cond": "имя проверки в скрипте локации", "sakha": true — герой понимает старый язык,
+## "cond": "имя проверки в скрипте локации", "not_cond": — проверка не выполнена, "sakha": true — герой понимает старый язык,
 ## "trinket": true — в сумке есть безделушка}
 func _cond_ok(c: Dictionary) -> bool:
 	if c.is_empty():
@@ -299,6 +299,10 @@ func _cond_ok(c: Dictionary) -> bool:
 	if c.has("cond"):
 		var loc = get_tree().get_first_node_in_group("location")
 		if loc and loc.has_method("dialog_cond") and not loc.dialog_cond(c.cond):
+			return false
+	if c.has("not_cond"):
+		var loc2 = get_tree().get_first_node_in_group("location")
+		if loc2 and loc2.has_method("dialog_cond") and loc2.dialog_cond(c.not_cond):
 			return false
 	return true
 

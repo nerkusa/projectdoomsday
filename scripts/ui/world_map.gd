@@ -12,7 +12,11 @@ signal closed
 signal arrived
 
 ## Скорость значка героя: пикселей картинки в секунду
-const SPEED := 160.0
+const SPEED := 55.0
+## Приближение карты: камера ходит за героем. Колесо мыши, +/− — ближе / дальше
+const ZOOM_MIN := 1.0
+const ZOOM_MAX := 4.0
+const ZOOM_START := 2.6
 ## Насколько близко к точке надо подойти, чтобы считалось «на месте»
 const NEAR := 12.0
 ## Радиус открытия точек по умолчанию (пиксели картинки)
@@ -39,6 +43,8 @@ var _paused := false
 var _entering := false
 var _hover := Vector2(-1, -1)
 var _t := 0.0
+var zoom := ZOOM_START
+var _view: Control
 
 var _tex: TextureRect
 var _canvas: Control
@@ -80,15 +86,18 @@ func setup(m: Node) -> void:
 	_time = UITheme.label("", 14, UITheme.INK_2, true)
 	head.add_child(_time)
 	v.add_child(UITheme.stripe(4))
-	var ar := AspectRatioContainer.new()
-	ar.ratio = img_size.x / img_size.y
-	ar.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	v.add_child(ar)
+	# окно карты: картинка крупнее окна, камера держит героя в центре
+	_view = Control.new()
+	_view.clip_contents = true
+	_view.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	_view.mouse_filter = Control.MOUSE_FILTER_PASS
+	v.add_child(_view)
+	_view.resized.connect(_layout)
 	_tex = TextureRect.new()
 	_tex.texture = load(str(data.get("image", "res://assets/textures/world_map.jpg")))
 	_tex.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	_tex.stretch_mode = TextureRect.STRETCH_SCALE
-	ar.add_child(_tex)
+	_view.add_child(_tex)
 	_canvas = Control.new()
 	UITheme.full_rect(_canvas)
 	_canvas.mouse_filter = Control.MOUSE_FILTER_STOP
@@ -130,6 +139,29 @@ func setup(m: Node) -> void:
 	visible = false
 
 
+## Масштаб и сдвиг картинки: при zoom 1 карта целиком, дальше — крупнее, герой в центре
+func _layout() -> void:
+	if _view == null or _view.size.x < 2.0:
+		return
+	var base := minf(_view.size.x / img_size.x, _view.size.y / img_size.y)
+	var k := base * zoom
+	var sz := img_size * k
+	_tex.size = sz
+	var p := _view.size * 0.5 - pos * k
+	for i in 2:
+		if sz[i] <= _view.size[i]:
+			p[i] = (_view.size[i] - sz[i]) * 0.5
+		else:
+			p[i] = clampf(p[i], _view.size[i] - sz[i], 0.0)
+	_tex.position = p
+
+
+func set_zoom(z: float) -> void:
+	zoom = clampf(z, ZOOM_MIN, ZOOM_MAX)
+	_layout()
+	_canvas.queue_redraw()
+
+
 # ---------------- данные ----------------
 func nodes() -> Dictionary:
 	return data.get("nodes", {})
@@ -164,7 +196,8 @@ func can_go(id: String) -> bool:
 	if n.is_empty() or not known(id):
 		return false
 	if n.has("end"):
-		return Game.quest_stage("bootur") >= 2
+		# в Сунгар через болота не дойти, пока не узнаешь дорогу
+		return Game.quest_stage("bootur") >= 5
 	return n.has("loc") and not n.get("burned", false)
 
 
@@ -205,6 +238,7 @@ func open(from_id: String) -> void:
 	_save_pos()
 	_reveal_near()
 	visible = true
+	_layout()
 	_refresh()
 
 
@@ -282,6 +316,7 @@ func _process(delta: float) -> void:
 			_arrive()
 		_save_pos()
 		_refresh_time()
+		_layout()
 	_canvas.queue_redraw()
 
 
@@ -521,7 +556,7 @@ func _refresh() -> void:
 	var n: Dictionary = nodes().get(sel, {})
 	if sel == "" or n.is_empty():
 		_name.text = "ТАЙГА" if at == "" else ""
-		_desc.text = "Кликни по карте — пойдёшь туда. Кликни по отметке — узнаешь, что там."
+		_desc.text = "Кликни по карте — пойдёшь туда. Кликни по отметке — узнаешь, что там. Колесо мыши или +/− — приблизить / отдалить."
 		_info.text = "В пути. До цели около %.0f ч." % hours_to(target) if moving else ""
 		_go.disabled = true
 		return
@@ -588,7 +623,8 @@ func _draw_map() -> void:
 	# координаты под курсором — чтобы расставлять точки в world.json
 	if _hover.x >= 0:
 		var ip := _from_px(_hover)
-		_text(c, Vector2(10, c.size.y - 10), "X %d · Y %d" % [roundi(ip.x), roundi(ip.y)], 12, Color("e8dcc0"))
+		# в углу видимой части окна, а не всей (увеличенной) картинки
+		_text(c, -_tex.position + Vector2(10, _view.size.y - 10), "X %d · Y %d" % [roundi(ip.x), roundi(ip.y)], 12, Color("e8dcc0"))
 
 
 func _node_at(local: Vector2) -> String:
@@ -608,7 +644,15 @@ func _on_canvas_input(e: InputEvent) -> void:
 	if e is InputEventMouseMotion:
 		_hover = e.position
 		return
-	if not (e is InputEventMouseButton) or not e.pressed or _entering or main.dialog.visible:
+	if not (e is InputEventMouseButton) or not e.pressed:
+		return
+	if e.button_index == MOUSE_BUTTON_WHEEL_UP:
+		set_zoom(zoom * 1.15)
+		return
+	if e.button_index == MOUSE_BUTTON_WHEEL_DOWN:
+		set_zoom(zoom / 1.15)
+		return
+	if _entering or main.dialog.visible:
 		return
 	if e.button_index == MOUSE_BUTTON_RIGHT:
 		halt()
@@ -645,4 +689,10 @@ func _unhandled_key_input(e: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 	elif e.keycode == KEY_SPACE:
 		halt()
+		get_viewport().set_input_as_handled()
+	elif e.keycode in [KEY_EQUAL, KEY_PLUS, KEY_KP_ADD]:
+		set_zoom(zoom * 1.25)
+		get_viewport().set_input_as_handled()
+	elif e.keycode in [KEY_MINUS, KEY_KP_SUBTRACT]:
+		set_zoom(zoom / 1.25)
 		get_viewport().set_input_as_handled()
