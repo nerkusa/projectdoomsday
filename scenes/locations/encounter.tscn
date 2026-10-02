@@ -20,19 +20,19 @@ adjustment_enabled = true
 adjustment_contrast = 1.1
 adjustment_saturation = 0.95
 
-[node name="Encounter" type="Node3D" unique_id=1065405208]
+[node name="Encounter" type="Node3D" unique_id=1446718543]
 script = ExtResource("1_bfy7d")
 location_id = "encounter"
 title = "Тайга"
 map_rect = Rect2(0, 0, 46, 46)
 camera_start = Vector3(23, 0, 23)
 
-[node name="Env" type="Node3D" parent="." unique_id=256814117]
+[node name="Env" type="Node3D" parent="." unique_id=2060059510]
 
-[node name="WorldEnvironment" type="WorldEnvironment" parent="Env" unique_id=493704235]
+[node name="WorldEnvironment" type="WorldEnvironment" parent="Env" unique_id=973038337]
 environment = SubResource("Environment_nw2eq")
 
-[node name="Sun" type="DirectionalLight3D" parent="Env" unique_id=630567699]
+[node name="Sun" type="DirectionalLight3D" parent="Env" unique_id=874990196]
 transform = Transform3D(-0.50000006, 0.64358234, -0.57948405, 0, 0.66913056, 0.74314487, 0.8660254, 0.37157246, -0.3345653, 0, 0, 0)
 light_color = Color(1, 0.94509804, 0.8392157, 1)
 light_energy = 1.1
@@ -43,11 +43,11 @@ shadow_blur = 0.6
 directional_shadow_blend_splits = true
 directional_shadow_max_distance = 70.0
 
-[node name="Characters" type="Node3D" parent="." unique_id=1464838699]
+[node name="Characters" type="Node3D" parent="." unique_id=1098095005]
 
-[node name="Items" type="Node3D" parent="." unique_id=818025708]
+[node name="Items" type="Node3D" parent="." unique_id=452973441]
 
-[node name="Spawns" type="Node3D" parent="." unique_id=630450044]
+[node name="Spawns" type="Node3D" parent="." unique_id=934626849]
 
-[node name="Start" type="Marker3D" parent="Spawns" unique_id=1961693992]
+[node name="Start" type="Marker3D" parent="Spawns" unique_id=1001623370]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 23, 0, 23)

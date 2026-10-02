@@ -23,6 +23,8 @@ func _build() -> void:
 	_zaimka()
 	_convoy()
 	_ruin()
+	_cellar()
+	_bunker()
 
 
 func _begin(id: String, title: String, rect: Rect2, script: String) -> void:
@@ -468,7 +470,7 @@ func _kresty() -> void:
 		"patrol": PackedVector3Array([Vector3(24, 0, 38.8), Vector3(80, 0, 38.8)]), "patrol_wait": 5.0})
 	character(chars, "KrVillager2", "villager_f", Vector3(64, 0, 49.5), 0.0, {"display_name": "Хозяйка", "dialog": "kr_rumors",
 		"patrol": PackedVector3Array([Vector3(64, 0, 49.5), Vector3(47, 0, 49.5), Vector3(47, 0, 58)]), "patrol_wait": 4.0})
-	character(chars, "KrKid", "kid", Vector3(44, 0, 44), 0.5, {"display_name": "Мальчишка", "dialog": "kr_rumors",
+	character(chars, "KrKid", "kid", Vector3(44, 0, 44), 0.5, {"display_name": "Мальчишка Уйгун", "dialog": "kr_kid",
 		"patrol": PackedVector3Array([Vector3(44, 0, 44), Vector3(40, 0, 40), Vector3(45, 0, 38.5)]), "patrol_wait": 2.0})
 	# псы на выгоне: появляются, когда староста попросит
 	for i in 3:
@@ -806,5 +808,230 @@ func _ruin() -> void:
 	_use(items, "Burnt", "Пепелище", Vector3(9, 0, 45), Vector3(5.0, 1.0, 5.0))
 	_spawn("Start", Vector3(4.5, 0, 27))
 	_spawn("Road", Vector3(4.5, 0, 27))
+	# вентиляционная шахта бункера — с решёткой; по верёвке — вниз
+	var sh := _use(items, "Shaft", "Вентшахта", Vector3(46.5, 0, 22.0), Vector3(1.6, 1.4, 1.6))
+	box(sh, Vector3(1.3, 0.9, 1.3), Vector3(0, 0.45, 0), "stone_wall").owner = root
+	box(sh, Vector3(1.1, 0.04, 1.1), Vector3(0, 0.92, 0), "metal_dark").owner = root
+	for i in 5:
+		box(sh, Vector3(0.04, 0.05, 1.1), Vector3(-0.44 + i * 0.22, 0.96, 0), "rust").owner = root
+	_own(collider(sh, Vector3(1.3, 0.9, 1.3), Vector3(0, 0.45, 0)), root)
+	_spawn("Shaft", Vector3(45.0, 0, 22.0))
 	_dress(Rect2(14, 6, 42, 40), 500)
 	_finish("ruin")
+
+
+# ======================================================================
+# ПОДЗЕМНЫЕ УРОВНИ: темно, свет — свой. Сцены без выхода на карту мира:
+# наверх ведёт лестница / верёвка обратно в ту локацию, откуда спустились.
+# ======================================================================
+func _dark_env(ambient: Color, energy: float) -> void:
+	var env_g := group(root, "Env")
+	var we := WorldEnvironment.new()
+	we.name = "WorldEnvironment"
+	var env := Environment.new()
+	env.background_mode = Environment.BG_COLOR
+	env.background_color = Color("050403")
+	env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
+	env.ambient_light_color = ambient
+	env.ambient_light_energy = energy
+	env.tonemap_mode = Environment.TONE_MAPPER_FILMIC
+	env.glow_enabled = true
+	env.glow_intensity = 0.8
+	we.environment = env
+	env_g.add_child(we)
+	we.owner = root
+
+
+func _lamp(parent: Node, nm: String, pos: Vector3, col: Color, energy: float, rng_m := 7.0, on := true) -> OmniLight3D:
+	var l := OmniLight3D.new()
+	l.name = nm
+	l.position = pos
+	l.light_color = col
+	l.light_energy = energy
+	l.omni_range = rng_m
+	l.shadow_enabled = true
+	l.visible = on
+	parent.add_child(l)
+	l.owner = root
+	return l
+
+
+## Пол, стены, потолка нет (камера сверху): комната = прямоугольник стен
+func _room_walls(parent: Node, r: Rect2, h: float, mat: String, gaps := []) -> void:
+	var sides := [[Vector2(r.position.x, r.position.y), Vector2(r.end.x, r.position.y)], [Vector2(r.position.x, r.end.y), Vector2(r.end.x, r.end.y)],
+		[Vector2(r.position.x, r.position.y), Vector2(r.position.x, r.end.y)], [Vector2(r.end.x, r.position.y), Vector2(r.end.x, r.end.y)]]
+	for sd in sides:
+		var a: Vector2 = sd[0]
+		var b: Vector2 = sd[1]
+		var horiz := absf(a.y - b.y) < 0.01
+		# стену режем проёмами
+		var cuts := [[a, b]]
+		for g in gaps:
+			var gp: Vector2 = g[0]
+			var gw: float = g[1]
+			var nc := []
+			for c in cuts:
+				var c0: Vector2 = c[0]
+				var c1: Vector2 = c[1]
+				var on_line := (horiz and absf(gp.y - c0.y) < 0.2 and gp.x > c0.x and gp.x < c1.x) or (not horiz and absf(gp.x - c0.x) < 0.2 and gp.y > c0.y and gp.y < c1.y)
+				if on_line:
+					if horiz:
+						nc.append([c0, Vector2(gp.x - gw / 2.0, c0.y)])
+						nc.append([Vector2(gp.x + gw / 2.0, c0.y), c1])
+					else:
+						nc.append([c0, Vector2(c0.x, gp.y - gw / 2.0)])
+						nc.append([Vector2(c0.x, gp.y + gw / 2.0), c1])
+				else:
+					nc.append(c)
+			cuts = nc
+		for c in cuts:
+			var c0: Vector2 = c[0]
+			var c1: Vector2 = c[1]
+			var ln := c0.distance_to(c1)
+			if ln < 0.05:
+				continue
+			var mid := (c0 + c1) / 2.0
+			var size := Vector3(ln + 0.3, h, 0.3) if horiz else Vector3(0.3, h, ln + 0.3)
+			box(parent, size, Vector3(mid.x, h / 2.0, mid.y), mat).owner = root
+			_own(collider(parent, size, Vector3(mid.x, h / 2.0, mid.y)), root)
+
+
+func _floor(parent: Node, r: Rect2, mat: String) -> void:
+	box(parent, Vector3(r.size.x, 0.1, r.size.y), Vector3(r.get_center().x, -0.05, r.get_center().y), mat).owner = root
+
+
+# ---------------- подпол избы деда ----------------
+func _cellar() -> void:
+	var rect := Rect2(0, 0, 8, 7)
+	seed(77)
+	root = Node3D.new()
+	root.name = "NakharroCellar"
+	root.set_script(load("res://scripts/locations/nakharro_cellar.gd"))
+	root.set("location_id", "nakharro_cellar")
+	root.set("title", "Подпол деда")
+	root.set("map_rect", rect)
+	root.set("camera_start", Vector3(4, 0, 3.5))
+	_dark_env(Color("3a2c1c"), 0.25)
+	var v := group(root, "Village")
+	_floor(v, rect.grow(0.3), "planks_old")
+	_room_walls(v, rect, 1.6, "log_weathered")
+	# полки с банками вдоль северной стены
+	for x in [1.6, 4.0, 6.4]:
+		box(v, Vector3(2.0, 0.06, 0.45), Vector3(x, 0.7, 0.45), "planks_old").owner = root
+		box(v, Vector3(2.0, 0.06, 0.45), Vector3(x, 1.2, 0.45), "planks_old").owner = root
+		for k in 5:
+			cyl(v, 0.09, 0.09, 0.22, Vector3(x - 0.8 + k * 0.4, 0.84, 0.45), "glass").owner = root
+			cyl(v, 0.08, 0.08, 0.2, Vector3(x - 0.7 + k * 0.35, 1.33, 0.45), "berry" if k % 2 else "glass").owner = root
+	_own(collider(v, Vector3(7.0, 1.4, 0.5), Vector3(4.0, 0.7, 0.45)), root)
+	put(P.barrel, v, Vector3(6.9, 0, 5.9), 0.3)
+	put(P.barrel, v, Vector3(6.2, 0, 6.1), 1.0)
+	put(P.crates, v, Vector3(1.0, 0, 5.8), 0.2)
+	# лестница наверх
+	for i in 6:
+		box(v, Vector3(0.7, 0.05, 0.08), Vector3(4.0, 0.25 + i * 0.25, 6.6), "log").owner = root
+	for x in [3.65, 4.35]:
+		box(v, Vector3(0.06, 1.6, 0.06), Vector3(x, 0.8, 6.62), "log").owner = root
+	var items := group(root, "Items")
+	var up := _use(items, "UpExit", "Лестница наверх", Vector3(4.0, 0, 6.3), Vector3(1.2, 1.8, 0.8))
+	up.set("reach", 2)
+	var candle := _use(items, "Candle", "Свеча в плошке", Vector3(2.4, 0, 3.4), Vector3(0.8, 1.0, 0.8))
+	box(candle, Vector3(0.6, 0.6, 0.6), Vector3(0, 0.3, 0), "planks_old").owner = root
+	cyl(candle, 0.05, 0.05, 0.16, Vector3(0, 0.68, 0), "paper").owner = root
+	_own(collider(candle, Vector3(0.6, 0.6, 0.6), Vector3(0, 0.3, 0)), root)
+	_lamp(candle, "Flame", Vector3(0, 1.0, 0), Color("ffb060"), 2.2, 7.0, false)
+	var jar := _use(items, "Jam", "Банка варенья", Vector3(4.4, 0, 0.9), Vector3(0.8, 1.4, 0.6))
+	jar.set("reach", 2)
+	var trunk := _use(items, "Trunk", "Старый сундук", Vector3(1.6, 0, 3.9), Vector3(1.2, 0.8, 0.8))
+	box(trunk, Vector3(1.1, 0.55, 0.65), Vector3(0, 0.28, 0), "log_dark").owner = root
+	box(trunk, Vector3(1.12, 0.06, 0.67), Vector3(0, 0.58, 0), "metal_dark").owner = root
+	_own(collider(trunk, Vector3(1.1, 0.6, 0.65), Vector3(0, 0.3, 0)), root)
+	# тусклый свет из люка сверху
+	_lamp(v, "HatchLight", Vector3(4.0, 2.4, 6.2), Color("c8b48a"), 0.9, 4.5)
+	group(root, "Characters")
+	_spawn("Start", Vector3(4.0, 0, 5.6))
+	_spawn("Down", Vector3(4.0, 0, 5.6))
+	_finish("nakharro_cellar")
+
+
+# ---------------- бункер под Сытыганом ----------------
+func _bunker() -> void:
+	var rect := Rect2(0, 0, 34, 22)
+	seed(1414)
+	root = Node3D.new()
+	root.name = "RuinBunker"
+	root.set_script(load("res://scripts/locations/ruin_bunker.gd"))
+	root.set("location_id", "ruin_bunker")
+	root.set("title", "Бункер под Сытыганом")
+	root.set("map_rect", rect)
+	root.set("camera_start", Vector3(4, 0, 4))
+	_dark_env(Color("2a2a30"), 0.18)
+	var v := group(root, "Village")
+	_floor(v, rect.grow(0.3), "stone")
+	# комнаты: шахта (вход), коридор, казарма, генераторная, архив
+	var shaft := Rect2(1, 1, 6, 6)
+	var corr := Rect2(7, 2.5, 20, 3)
+	var bar := Rect2(9, 7, 9, 7)
+	var gen := Rect2(19, 7, 7, 6)
+	var arch := Rect2(27, 1, 6, 12)
+	_room_walls(v, shaft, 1.3, "stone_wall", [[Vector2(7, 4), 2.0]])
+	_room_walls(v, corr, 1.3, "stone_wall", [[Vector2(7, 4), 2.0], [Vector2(13.5, 5.5), 1.6], [Vector2(22.5, 5.5), 1.6], [Vector2(27, 4), 1.6]])
+	_room_walls(v, bar, 1.3, "stone_wall", [[Vector2(13.5, 7), 1.6]])
+	_room_walls(v, gen, 1.3, "stone_wall", [[Vector2(22.5, 7), 1.6]])
+	_room_walls(v, arch, 1.3, "stone_wall", [[Vector2(27, 4), 1.6]])
+	# дверь архива — электрозамок: коллизия, пока не открыта
+	var door := Node3D.new()
+	door.name = "ArchiveDoor"
+	v.add_child(door)
+	door.owner = root
+	box(door, Vector3(0.2, 1.3, 1.6), Vector3(27, 0.65, 4), "metal_dark").owner = root
+	var dc := collider(door, Vector3(0.3, 2.2, 1.6), Vector3(27, 1.1, 4))
+	_own(dc, root)
+	# завал под шахтой и свет сверху
+	for i in 6:
+		put(P.rock_small, v, Vector3(randf_range(2, 5), 0, randf_range(2, 5)), randf() * TAU, "", randf_range(0.8, 1.4))
+	_lamp(v, "ShaftLight", Vector3(3.5, 3.5, 3.5), Color("c8c0a8"), 1.2, 6.0)
+	# аварийные красные лампы
+	var em := group(v, "Emergency")
+	for p in [Vector3(10, 2.2, 4), Vector3(17, 2.2, 4), Vector3(24, 2.2, 4), Vector3(13.5, 2.2, 10.5), Vector3(22.5, 2.2, 10)]:
+		_lamp(em, "Red", p, Color("ff3322"), 0.9, 6.5)
+	# основной свет (включается генератором)
+	var main_l := group(v, "MainLights")
+	for p in [Vector3(4, 2.4, 4), Vector3(12, 2.4, 4), Vector3(20, 2.4, 4), Vector3(13.5, 2.4, 10.5), Vector3(22.5, 2.4, 10), Vector3(30, 2.4, 7)]:
+		_lamp(main_l, "Lamp", p, Color("e8f0ff"), 1.6, 8.0, false)
+	# казарма: двухъярусные койки и шкафчики
+	for i in 3:
+		var bx := 10.5 + i * 2.6
+		box(v, Vector3(0.9, 0.08, 2.0), Vector3(bx, 0.45, 12.6), "metal_dark").owner = root
+		box(v, Vector3(0.9, 0.08, 2.0), Vector3(bx, 1.35, 12.6), "metal_dark").owner = root
+		box(v, Vector3(0.85, 0.15, 1.9), Vector3(bx, 0.55, 12.6), "cloth_sack").owner = root
+		_own(collider(v, Vector3(0.9, 1.5, 2.0), Vector3(bx, 0.75, 12.6)), root)
+	for i in 4:
+		box(v, Vector3(0.6, 1.9, 0.5), Vector3(10.0 + i * 0.65, 0.95, 7.45), "paint_faded").owner = root
+	_own(collider(v, Vector3(2.6, 1.9, 0.5), Vector3(11.0, 0.95, 7.45)), root)
+	# генераторная
+	box(v, Vector3(2.4, 1.4, 1.4), Vector3(22.5, 0.7, 11.6), "metal_dark").owner = root
+	cyl(v, 0.35, 0.35, 1.6, Vector3(21.0, 0.8, 11.6), "rust").owner = root
+	_own(collider(v, Vector3(3.6, 1.5, 1.5), Vector3(22.0, 0.75, 11.6)), root)
+	# архив: стеллажи с папками
+	for z in [2.2, 5.6, 9.0, 11.8]:
+		box(v, Vector3(4.5, 2.0, 0.5), Vector3(30.5, 1.0, z), "metal_dark").owner = root
+		for k in 9:
+			box(v, Vector3(0.12, 0.32, 0.3), Vector3(28.6 + k * 0.45, 1.25, z), "paper").owner = root
+		_own(collider(v, Vector3(4.5, 2.0, 0.5), Vector3(30.5, 1.0, z)), root)
+	for i in 10:
+		box(v, Vector3(0.3, 0.01, 0.4), Vector3(randf_range(8, 26), 0.02, randf_range(3, 5)), "paper", Vector3(0, randf() * TAU, 0)).owner = root
+	var chars := group(root, "Characters")
+	character(chars, "DeadCleaner", "cleaner_dead", Vector3(15.5, 0, 9.5), 0.6, {"start_dead": true})
+	character(chars, "Squatter1", "ruin_looter", Vector3(12.5, 0, 10.5), -0.8, {"hostile": true, "aggro_radius": 7.0, "squad": "squat"})
+	character(chars, "Squatter2", "ruin_looter_gun", Vector3(16.0, 0, 11.5), -1.4, {"hostile": true, "aggro_radius": 7.0, "squad": "squat"})
+	var items := group(root, "Items")
+	var up := _use(items, "UpRope", "Верёвка наверх", Vector3(3.2, 0, 3.2), Vector3(1.0, 2.4, 1.0))
+	cyl(up, 0.03, 0.03, 3.6, Vector3(0, 1.8, 0), "rope_mat").owner = root
+	_use(items, "Generator", "Генератор", Vector3(22.5, 0, 10.4), Vector3(2.4, 1.6, 1.2))
+	_use(items, "DoorLock", "Электрозамок", Vector3(26.4, 0, 4.0), Vector3(0.8, 1.8, 1.6))
+	_use(items, "Lockers", "Шкафчики", Vector3(11.0, 0, 8.2), Vector3(2.6, 1.8, 0.8))
+	_use(items, "Files", "Шкаф с делами", Vector3(30.5, 0, 6.5), Vector3(3.5, 2.0, 1.0))
+	_use(items, "Registry", "Ведомость", Vector3(30.5, 0, 10.2), Vector3(3.5, 2.0, 1.0))
+	_spawn("Start", Vector3(3.8, 0, 4.6))
+	_spawn("Down", Vector3(3.8, 0, 4.6))
+	_finish("ruin_bunker")

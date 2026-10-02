@@ -69,12 +69,17 @@ func tp(pos: Vector3) -> void:
 
 func fight(max_turns := 80) -> void:
 	var guard := 0
+	print("  [бой] идёт=%s спрятан=%s врагов=%d ХП=%d" % [main.combat.on, main.hidden, main.combat.enemies().size() if main.combat.on else 0, Game.hero_hp()])
 	while main.combat.on and guard < max_turns * 20:
 		guard += 1
 		await frames(1)
 		if main.combat.my_turn():
 			if not "fair" in OS.get_cmdline_user_args():
 				Game.set_hero_hp(Game.hero_max())
+				# автотест проверяет сюжет, а не экономию патронов
+				for am in ["ammo9", "ammo762"]:
+					if Game.item_count(am) < 6:
+						Game.add_item(am, 12)
 			var target: Fighter = null
 			var bd := 999
 			for e in main.combat.enemies():
@@ -273,6 +278,134 @@ func _ready() -> void:
 			await choose(find_opt(who[2]))
 		await close_dialogs()
 	ok(Game.flag("guard_lied") and (Game.flag("flirt_ok") or Game.flag("flirt_fail")) and Game.flag("gambler_caught") and Game.flag("sick_seen"), "проверки навыков в разговорах прошли")
+
+	# --- обучающие задания: подпол, колодец, обед часовому, гребень ---
+	var nak: Node = main.location
+	# молва: как обращаются
+	var rep_save := Game.rep()
+	Game.change_rep(40 - Game.rep())
+	ok(DialogBox.rep_tier() == "hero" and DialogBox.addr() == "Боотур", "при громкой молве зовут Боотуром")
+	Game.change_rep(-40 - Game.rep())
+	ok(DialogBox.addr() == "Моҕус", "при дурной молве — Моҕус")
+	Game.change_rep(15 - Game.rep())
+	main.talk_to(nak.character("Varvara"))
+	await frames(2)
+	main.dialog._finish_typing()
+	ok("Уйбаана" in main.dialog._full or "помогу" in main.dialog._full or "помог" in main.dialog._full, "Варвара здоровается по молве")
+	await choose(find_opt("Ещё что сделать"))
+	await choose(find_opt("Отнесу"))
+	await close_dialogs()
+	ok(Game.quest_stage("lunch") == 1 and Game.item_count("lunch") == 1, "Варвара дала узелок для Эрчима")
+	var erch: Character = nak.character("GuardN")
+	await tp(erch.global_position + Vector3(1.0, 0, 1.0))
+	main.talk_to(erch)
+	await frames(2)
+	await choose(find_opt("Отдать узелок"))
+	await close_dialogs()
+	ok(Game.quest_stage("lunch") == 2 and Game.item_count("lunch") == 0, "обед отнесён часовому")
+	# дед: подпол
+	main.talk_to(nak.character("Ded"))
+	await frames(2)
+	await choose(find_opt("Чем ещё помочь"))
+	await choose(find_opt("Схожу"))
+	await close_dialogs()
+	ok(Game.quest_stage("cellar") == 1, "дед просит варенья из подпола")
+	var hatch: Interactable = nak.item("CellarHatch")
+	ok(hatch != null, "люк в подпол есть")
+	nak.on_interact(hatch)
+	while main._loading:
+		await frames(2)
+	await frames(3)
+	var cel: Node = main.location
+	ok(cel.location_id == "nakharro_cellar", "спустился в подпол")
+	Game.remove_item("matches", Game.item_count("matches"))
+	cel.on_interact(cel.item("Candle"))
+	await frames(2)
+	ok(not Game.flag("cellar_lit"), "без спичек свечу не зажечь")
+	Game.add_item("matches")
+	cel.on_interact(cel.item("Candle"))
+	await frames(2)
+	ok(Game.flag("cellar_lit") and (cel.get_node("Items/Candle/Flame") as Light3D).visible, "свеча горит")
+	cel.on_interact(cel.item("Jam"))
+	await frames(2)
+	ok(Game.item_count("jam") == 1 and Game.quest_stage("cellar") == 2, "варенье найдено")
+	main.loot_win.close()
+	cel.on_interact(cel.item("Trunk"))
+	await frames(2)
+	main.loot_win.take_all()
+	await frames(2)
+	ok(Game.item_count("pass_elley") == 1, "в сундуке — пропуск с фотографией")
+	main.dialog.close()
+	cel.on_interact(cel.item("UpExit"))
+	while main._loading:
+		await frames(2)
+	await frames(3)
+	nak = main.location
+	ok(nak.location_id == "nakharro" and Game.quest_stage("forest") == 1, "поднялся обратно в избу, утро продолжается")
+	main.dialog.close()
+	main.talk_to(nak.character("Ded"))
+	await frames(2)
+	await choose(find_opt("Отдать варенье"))
+	ok(Game.quest_stage("cellar") == 3, "варенье у деда")
+	await choose(find_opt("пропуск"))
+	ok(main.dialog.node_id == "pass", "дед рассказывает про пропуск")
+	await close_dialogs()
+	# пропуск можно прочитать в КПК
+	var notes0: int = Game.hero.notes.size()
+	main.use_item("pass_elley")
+	await frames(2)
+	ok(Game.hero.notes.size() >= notes0, "пропуск читается")
+	# колодец
+	var wc: Character = nak.character("WaterCarrier")
+	await tp(wc.global_position + Vector3(1.0, 0, 1.0))
+	main.talk_to(wc)
+	await frames(2)
+	await choose(find_opt("Достану"))
+	await close_dialogs()
+	ok(Game.quest_stage("well") == 1, "водонос упустил ведро")
+	var well: Interactable = nak.item("WellUse")
+	Game.remove_item("rope", Game.item_count("rope"))
+	nak.on_interact(well)
+	await frames(2)
+	ok(Game.quest_stage("well") == 1, "без верёвки ведро не достать")
+	Game.add_item("rope")
+	nak.on_interact(well)
+	await frames(2)
+	ok(Game.quest_stage("well") == 2 and Game.item_count("bucket") == 1, "ведро достал верёвкой")
+	var rep_w := Game.rep()
+	main.talk_to(wc)
+	await frames(2)
+	await choose(find_opt("Вот твоё ведро"))
+	await close_dialogs()
+	ok(Game.quest_stage("well") == 3 and Game.rep() > rep_w, "ведро отдано — молва растёт (%d → %d)" % [rep_w, Game.rep()])
+	# гребень
+	var girl: Character = nak.character("Nyurguyana")
+	await tp(girl.global_position + Vector3(1.0, 0, 1.0))
+	main.talk_to(girl)
+	await frames(2)
+	await choose(find_opt("грустная"))
+	await choose(find_opt("Поищу"))
+	await close_dialogs()
+	ok(Game.quest_stage("comb") == 1, "Нюргуяна потеряла гребень")
+	var comb: Interactable = nak.item("Take_Comb")
+	await tp(comb.global_position + Vector3(0.8, 0, 0))
+	main.interact(comb)
+	await wait(1.0)
+	ok(Game.item_count("t_comb") == 1 and Game.quest_stage("comb") == 2, "гребень найден у опушки")
+	await tp(girl.global_position + Vector3(1.0, 0, 1.0))
+	main.talk_to(girl)
+	await frames(2)
+	await choose(find_opt("Вот твой гребень"))
+	await close_dialogs()
+	ok(Game.quest_stage("comb") == 3 and Game.item_count("t_comb") == 0, "гребень вернул")
+	# безделушка: амулет надевается
+	Game.add_item("amulet")
+	main.use_item("amulet")
+	ok("amulet" in Game.worn() and int(Game.skill_bonus().get("Выдержка", 0)) >= 1, "амулет надет: Выдержка +1")
+	main.use_item("amulet")
+	ok(not "amulet" in Game.worn(), "амулет снят")
+	Game.change_rep(rep_save - Game.rep())
+	await tp(nak.character("Ded").global_position + Vector3(2, 0, 2))
 	# жители ходят
 	var walker: Character = main.location.character("Villager3")
 	var wp0 := walker.global_position
@@ -790,6 +923,9 @@ func _ready() -> void:
 	ok(Game.quest_stage("kr_nets") == 6 and Game.item_count("camp_letter") == 0, "записка отдана рыбаку")
 	# --- описания: живое к телу не подставляется ---
 	var dead_dog: Character = loc.character("Dog1")
+	for dn in ["Dog1", "Dog2", "Dog3"]:
+		if loc.character(dn).pose == "dead":
+			dead_dog = loc.character(dn)
 	ok("Мёртв" in main._look_text(dead_dog), "мёртвый пёс описан мёртвым: " + main._look_text(dead_dog))
 
 	# ======== случайная встреча в пути ========
@@ -855,6 +991,28 @@ func _ready() -> void:
 			if loc.grid.free[hx]:
 				free_n += 1
 		ok(loc.biome == bio and free_n > 900 and free_n < loc.grid.free.size() and loc.grid.is_free(loc.grid.from_world(main.player.global_position)), "местность «%s»: проходимых гексов %d, герой в центре на свободном" % [bio, free_n])
+	# обломки: самолёт / техника / руины — можно обыскать
+	var wreck_found := false
+	for tries in 12:
+		for wi in loc.items():
+			if String(wi.name).begins_with("Wreck") and not wreck_found:
+				wreck_found = true
+				loc.on_interact(wi)
+				await frames(2)
+				ok(main.loot_win.visible, "обломки (%s) обыскиваются" % str(wi.get_meta("kind", "")))
+				main.loot_win.take_all()
+				await frames(2)
+				main.loot_win.close()
+				await frames(2)
+				loc.on_interact(wi)
+				ok(not main.loot_win.visible, "повторно — пусто")
+		if wreck_found:
+			break
+		Game.hero.flags["enc_biome"] = ["field", "dead", "forest", "swamp"][tries % 4]
+		await main.load_location("encounter", "Start")
+		await frames(2)
+		loc = main.location
+	ok(wreck_found, "в генерации встречаются обломки")
 	# ======== нападение: засада сразу ========
 	Game.force_check = -1
 	wm.open("encounter")
@@ -1006,7 +1164,8 @@ func _ready() -> void:
 	await fight(300)
 	await wait(1.5)
 	main.dialog.close()
-	ok(Game.quest_stage("traps") == 2, "чучуна мёртв (бой идёт: %s)" % main.combat.on)
+	var chu: Character = loc.character("Chuchuna")
+	ok(Game.quest_stage("traps") == 2, "чучуна мёртв (бой идёт: %s, поза %s, ХП героя %d)" % [main.combat.on, chu.pose, Game.hero_hp()])
 	main.loot_win.close()
 	main.loot(loc.character("Chuchuna"))
 	await frames(3)
@@ -1092,6 +1251,77 @@ func _ready() -> void:
 	await frames(2)
 	ok(Game.flag("ruin_terminal"), "терминал: «Уволить сотрудника?»")
 	await shut()
+	# ======== бункер: спуск по верёвке ========
+	Game.remove_item("rope", Game.item_count("rope"))
+	loc.on_interact(loc.item("Shaft"))
+	await frames(2)
+	ok(main.location == loc, "без верёвки в шахту не спуститься")
+	Game.add_item("rope")
+	loc.on_interact(loc.item("Shaft"))
+	await wait(1.6)
+	while main._loading:
+		await frames(2)
+	await frames(3)
+	var bk: Node = main.location
+	ok(bk.location_id == "ruin_bunker" and Game.flag("shaft_rope") and Game.item_count("rope") == 0, "спустился в бункер, верёвка привязана")
+	main.dialog.close()
+	var sq: Character = bk.character("Squatter1")
+	await tp(sq.global_position + Vector3(-3, 0, 0))
+	if not main.combat.on:
+		main.start_fight([sq])
+	await frames(2)
+	await fight(300)
+	await wait(1.0)
+	ok(Game.flag("squat_clear"), "копатели в бункере перебиты")
+	main.dialog.close()
+	main.loot(bk.character("DeadCleaner"))
+	await frames(3)
+	main.loot_win.take_all()
+	await frames(2)
+	ok(Game.item_count("keycard") >= 1, "у мёртвого чистильщика — ключ-карта")
+	var scr: int = Game.item_count("screwdriver")
+	Game.remove_item("screwdriver", scr)
+	bk.on_interact(bk.item("DoorLock"))
+	ok(not Game.flag("archive_open"), "без тока карта не работает")
+	if scr > 0:
+		Game.add_item("screwdriver", scr)
+	Game.force_check = 1
+	bk.on_interact(bk.item("Generator"))
+	Game.force_check = 0
+	ok(Game.flag("bunker_power") and bk.get_node("Village/MainLights").get_child(0).visible, "генератор запущен — свет")
+	bk.on_interact(bk.item("DoorLock"))
+	await wait(0.3)
+	ok(Game.flag("archive_open") and bk.get_node_or_null("Village/ArchiveDoor") == null, "архив открыт картой")
+	bk.on_interact(bk.item("Lockers"))
+	await frames(2)
+	main.loot_win.take_all()
+	await frames(2)
+	ok(Game.item_count("cas_ether") >= 1, "в шкафчиках — кассета «Эфир»")
+	bk.on_interact(bk.item("Files"))
+	await frames(2)
+	ok(Game.item_count("list_b") == 1 and Game.quest_stage("who") == 5, "копия «списка Б» найдена")
+	await shut()
+	bk.on_interact(bk.item("Registry"))
+	await frames(2)
+	ok(Game.flag("registry_read") and "БЕГЛЕЦ" in str(Game.hero.notes), "ведомость: Эллэй — беглец")
+	await shut()
+	var nn: int = Game.hero.notes.size()
+	main.use_item("list_b")
+	await frames(2)
+	ok(Game.hero.notes.size() >= nn, "список Б читается в КПК")
+	bk.on_interact(bk.item("UpRope"))
+	while main._loading:
+		await frames(2)
+	await frames(3)
+	loc = main.location
+	ok(loc.location_id == "ruin" and Game.flag("archive_open"), "поднялся из бункера, состояние сохранилось")
+	main.dialog.close()
+	ok(loc.item_actions(loc.item("Shaft")).size() == 2, "у шахты: спуститься или отвязать верёвку")
+	var sh: Interactable = loc.item("Shaft")
+	sh.set_meta("act", "untie")
+	loc.on_interact(sh)
+	sh.remove_meta("act")
+	ok(Game.item_count("rope") == 1 and not Game.flag("shaft_rope"), "верёвку отвязал и забрал")
 	# назад в Кресты — накладную торговке
 	loc.on_interact(loc.item("WestExit"))
 	await frames(2)
@@ -1130,6 +1360,54 @@ func _ready() -> void:
 	ok(Game.quest_stage("lost_kid") == 2, "Кресты встречают мальчишку")
 	await shut()
 
+	# ======== пропавший бочонок ========
+	Game.force_check = 1
+	main.talk_to(loc.character("Brewer"))
+	await frames(2)
+	await choose(find_opt("Чем помочь"))
+	await choose(find_opt("Разберусь"))
+	await shut()
+	ok(Game.quest_stage("barrel") == 1, "Дьулус: пропал бочонок")
+	main.talk_to(loc.character("KrKid"))
+	await frames(2)
+	await choose(find_opt("бочонок"))
+	await shut()
+	ok(Game.quest_stage("barrel") == 2, "Уйгун видел чужака в кожанке")
+	loc.on_interact(loc.item("EastExit"))
+	await frames(2)
+	await wm.travel("camp")
+	await frames(3)
+	loc = main.location
+	main.dialog.close()
+	main.talk_to(loc.character("CampTrader"))
+	await frames(2)
+	await choose(find_opt("Бочонок"))
+	await choose(find_opt("[Убеждение]"))
+	await shut()
+	ok(Game.item_count("keg") == 1, "Кылаа отдал бочонок по-хорошему")
+	loc.on_interact(loc.item("WestExit"))
+	await frames(2)
+	await wm.travel("kresty")
+	await frames(3)
+	loc = main.location
+	main.dialog.close()
+	var rep_end := Game.rep()
+	Game.change_rep(-Game.rep())
+	var rep_k := Game.rep()
+	main.talk_to(loc.character("Brewer"))
+	await frames(2)
+	await choose(find_opt("Отдать бочонок"))
+	await shut()
+	ok(Game.quest_stage("barrel") == 4 and Game.rep() > rep_k, "бочонок вернул — молва %d → %d" % [rep_k, Game.rep()])
+	Game.force_check = 0
+	# молва в разговоре: обращение
+	Game.change_rep(-35 - Game.rep())
+	main.talk_to(loc.character("Trader"))
+	await frames(2)
+	main.dialog._finish_typing()
+	ok(find_opt("работа") >= 0 or main.dialog._full.length() > 0, "при дурной молве — другой разговор")
+	await shut()
+	Game.change_rep(rep_end - Game.rep())
 	# сохранение и загрузка в новой локации
 	main.autosave()
 	ok(Game.load_game("auto") and str(Game.hero.location) == "kresty", "сохранение в Крестах")

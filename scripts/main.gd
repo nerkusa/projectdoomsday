@@ -9,6 +9,8 @@ const LOCATIONS := {
 	"convoy": "res://scenes/locations/convoy.tscn",
 	"ruin": "res://scenes/locations/ruin.tscn",
 	"encounter": "res://scenes/locations/encounter.tscn",
+	"nakharro_cellar": "res://scenes/locations/nakharro_cellar.tscn",
+	"ruin_bunker": "res://scenes/locations/ruin_bunker.tscn",
 }
 const CAM_DIR := Vector3(1, 1, 1)
 ## Камера ортогональная: расстояние не меняет картинку, но от него зависит
@@ -120,7 +122,7 @@ func _build_ui() -> void:
 	kpk = KPK.new()
 	root.add_child(kpk)
 	kpk.setup(self)
-	kpk.use_item.connect(combat.use_med)
+	kpk.use_item.connect(use_item)
 	sheet = CharSheet.new()
 	root.add_child(sheet)
 	sheet.setup()
@@ -422,6 +424,59 @@ func open_kpk(t := "") -> void:
 		zoom = z
 		kpk.open(t)
 	player.act("plug", done, {"dur": 3.2 if first else 1.3})
+
+
+## «Использовать» из КПК: лечит, читается, надевается, меряет, ориентирует
+func use_item(id: String) -> void:
+	var it: Dictionary = DB.items.get(id, {})
+	match str(it.get("use", "")):
+		"read":
+			Game.add_note("%s: %s" % [it.get("name", id), it.get("read", it.get("desc", ""))])
+			kpk.close()
+			think(str(it.get("read", it.get("desc", ""))))
+			return
+		"wear":
+			var w: Array = Game.hero.flags.get("worn", [])
+			if w.has(id):
+				w.erase(id)
+				Game.log_line("Снял: " + str(it.get("name", id)))
+			else:
+				w.append(id)
+				Game.log_line("Надел: " + str(it.get("name", id)), "", "hit")
+			Game.hero.flags["worn"] = w
+			Game.hero_changed.emit()
+			return
+		"measure":
+			var lvl := 1
+			if location and location.location_id == "encounter":
+				lvl = {"dead": 4, "swamp": 2}.get(location.get("biome"), 1)
+			elif location and location.location_id in ["ruin", "ruin_bunker"]:
+				lvl = 3
+			var txt: String = ["", "Щелчки редкие, ленивые. Фон обычный.", "Щёлкает почаще. Воду отсюда лучше не пить.",
+				"Трещит! Тут что-то довоенное и «светится». Долго не стоять.", "Треск сплошной, стрелка в красном. Уходить. Сейчас."][lvl]
+			kpk.close()
+			think("Дозиметр: " + txt)
+			return
+		"orient":
+			kpk.close()
+			var wm := world_map
+			var best := ""
+			var bd := 1e9
+			var here: Vector2 = wm.node_pos(Game.hero.get("location", "kresty")) if wm.nodes().has(str(Game.hero.get("location", ""))) else Vector2(Game.hero.flags.get("wm_pos", [400, 500])[0], Game.hero.flags.get("wm_pos", [400, 500])[1])
+			for nid in wm.nodes():
+				if wm.known(nid) or wm.nodes()[nid].has("locked") and not wm.nodes()[nid].has("loc"):
+					continue
+				var d: float = wm.node_pos(nid).distance_to(here)
+				if d < bd:
+					bd = d
+					best = nid
+			if best == "" or not Game.flag("kpk"):
+				think("Стрелка смотрит на север. Больше компас ничего не знает.")
+			else:
+				WorldMap.reveal(best)
+				think("Сверился с компасом и старыми зарубками на деревьях. Похоже, где-то рядом — %s." % wm.nodes()[best].get("name", best))
+			return
+	combat.use_med(id)
 
 
 func _swap_hands() -> void:

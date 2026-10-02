@@ -52,7 +52,8 @@
           "next": "debt",
           "if": {
             "quest": "debt",
-            "stage_max": 0
+            "stage_max": 0,
+            "rep_min": -29
           }
         },
         {
@@ -84,6 +85,13 @@
             "stage_max": 2,
             "flag": "kr_drunk_sober",
             "not_flag": "debt_force"
+          }
+        },
+        {
+          "text": "Может, работа какая есть?",
+          "next": "refuse",
+          "if": {
+            "rep_max": -30
           }
         },
         {
@@ -226,6 +234,15 @@
       },
       "xp": 50,
       "rep": 3,
+      "options": [
+        {
+          "text": "…",
+          "next": "start"
+        }
+      ]
+    },
+    "refuse": {
+      "text": "«Работа? Тебе?» Взгляд — как на чучуну. «Нет. Ничего нет. Ступай».",
       "options": [
         {
           "text": "…",

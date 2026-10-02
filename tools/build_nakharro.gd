@@ -79,6 +79,7 @@ func _build() -> void:
 	_details()
 	_clear_overlaps()
 	_fence_mend()
+	_tutorial_extras()
 	var ps := PackedScene.new()
 	var err := ps.pack(root)
 	if err != OK:
@@ -991,3 +992,41 @@ func _building_boxes() -> Array:
 			if String(b.scene_file_path).ends_with("/garden.tscn"):
 				boxes.append([b.transform, Vector3(5, 1, 3)])
 	return boxes
+
+
+# ---------------- обучающие мелочи (ставятся в самом конце, чтобы не сдвигать случайную раскладку) ----------------
+## Люк в подпол избы деда (второй уровень: подпол), место у колодца (ведро на верёвке),
+## гребень Нюргуяны у опушки.
+func _tutorial_extras() -> void:
+	var items: Node = root.get_node("Items")
+	var izba: Node3D = root.get_node("Village/IzbaDed")
+	var fl: Node3D = izba.get_node("Slot_floor")
+	var hp: Vector3 = izba.transform * (fl.position + Vector3(0.0, 0.0, 0.5))
+	var hatch := _item_base("CellarHatch")
+	hatch.set("kind", "use")
+	hatch.set("label", "Люк в подпол")
+	hatch.set("pick_size", Vector3(1.0, 0.3, 1.0))
+	hatch.position = Vector3(hp.x, 0.0, hp.z)
+	hatch.rotation.y = izba.rotation.y
+	items.add_child(hatch)
+	hatch.owner = root
+	box(hatch, Vector3(0.9, 0.04, 0.9), Vector3(0, 0.07, 0), "planks_old").owner = root
+	box(hatch, Vector3(0.2, 0.05, 0.06), Vector3(0, 0.11, 0.3), "metal").owner = root
+	var well: Node3D = root.get_node("Village/Well")
+	var wu := _item_base("WellUse")
+	wu.set("kind", "use")
+	wu.set("label", "Колодец")
+	wu.set("pick_size", Vector3(1.8, 1.4, 1.8))
+	wu.position = well.position
+	items.add_child(wu)
+	wu.owner = root
+	var comb := item(items, P.item_hairpin, "Take_Comb", Vector3(49.5, 0, 22.6), ["phase_morning"])
+	comb.set("item_id", "t_comb")
+	comb.set("label", "Костяной гребень")
+	var sp := Marker3D.new()
+	sp.name = "FromCellar"
+	sp.position = Vector3(hp.x, 0, hp.z) + izba.transform.basis * Vector3(0.6, 0, 0)
+	root.get_node("Spawns").add_child(sp)
+	sp.owner = root
+	var wc: Node = root.get_node("Characters/WaterCarrier")
+	wc.set("dialog", "water")

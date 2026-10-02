@@ -362,7 +362,7 @@ func can_pick(it: Interactable) -> bool:
 ## для Степана, и кроме вещей из своей (дедовой) избы. Заметили — вещь остаётся
 ## на месте, отругают, молва падает вдвое сильнее; не видел никто — молва не меняется.
 ## После налёта брать можно.
-const FREE_PICK := ["mushroom", "berries", "basket", "planks"]
+const FREE_PICK := ["mushroom", "berries", "basket", "planks", "t_comb"]
 const THEFT_H := 3
 const WITNESS_R := 9.0
 const SCOLD := ["Эй! Положи, где взял!", "Ты что творишь? А ну верни!", "Совсем стыд потерял? Не твоё — не трогай.",
@@ -422,6 +422,10 @@ func on_picked(it: Interactable) -> void:
 		_apply_light()
 		main.hud.refresh_objective()
 	else:
+		if it.item_id == "t_comb" and Game.quest_stage("comb") == 1:
+			Game.set_quest("comb", 2)
+			main.think("Гребень Нюргуяны — в траве у опушки. Вернуть? Или… красивый.")
+			main.hud.refresh_objective()
 		_check_pack()
 		main.hud.refresh_objective()
 
@@ -796,6 +800,24 @@ func on_looted(ch: Character) -> void:
 
 
 func on_interact(it: Interactable) -> bool:
+	if it.name == "CellarHatch":
+		if phase() == "raid":
+			main.think("Не до подпола. Там — дед.")
+		else:
+			main.load_location("nakharro_cellar", "Down")
+		return true
+	if it.name == "WellUse":
+		if Game.quest_stage("well") == 1:
+			if Game.item_count("rope") > 0:
+				Game.add_item("bucket")
+				Game.set_quest("well", 2)
+				main.think("Привязал к верёвке крюк из гвоздя, опустил. Третий заход — зацепил. Вот оно, ведро.")
+				main.hud.refresh_objective()
+			else:
+				main.think("Ведро видно — блестит на дне. Без верёвки не достать.")
+		else:
+			main.think("Вода в колодце чистая, холодная. Пахнет железом.")
+		return true
 	if it.name == "FenceMend":
 		_mend_fence()
 		return true
@@ -1160,6 +1182,12 @@ func item_actions(it: Interactable) -> Array:
 		return [["Спрятаться", "use"]]
 	if n == "FenceMend":
 		return [["Заделать досками", "use"]]
+	if n == "CellarHatch":
+		return [["Спуститься в подпол", "use"]]
+	if n == "WellUse":
+		if Game.quest_stage("well") == 1:
+			return [["Достать ведро (верёвка)" if Game.item_count("rope") > 0 else "Достать ведро (нужна верёвка)", "use"]]
+		return [["Заглянуть в колодец", "use"]]
 	if n == "BorderExit":
 		return [["Перейти черту", "use"]]
 	if it.kind == "item":
@@ -1184,6 +1212,10 @@ func describe(it: Interactable) -> String:
 		return "Дыра в заборе Степана: штакетник выломан, жердь висит. Пара досок — и будет как новый."
 	if n == "BorderExit":
 		return "Старая черта: дальше за неё жителям ходить запрещено."
+	if n == "CellarHatch":
+		return "Люк в подпол. Дед хранит там соленья и старьё."
+	if n == "WellUse":
+		return "Колодец с воротом. Цепь оборвана — ведро ушло на дно." if Game.quest_stage("well") == 1 else "Колодец с воротом."
 	return ""
 
 

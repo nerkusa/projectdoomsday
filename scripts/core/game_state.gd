@@ -144,6 +144,7 @@ func quest_stage(id: String) -> int:
 func set_quest(id: String, stage: int) -> void:
 	if quest_stage(id) == stage:
 		return
+	var was := quest_stage(id)
 	hero.q[id] = stage
 	var q: Dictionary = DB.quests.get(id, {})
 	var st: Dictionary = q.get("stages", {})
@@ -151,6 +152,9 @@ func set_quest(id: String, stage: int) -> void:
 	var title: String = q.get("title", id)
 	if stage >= int(q.get("done_stage", 999)):
 		log_line("Задание «%s» выполнено." % title, "", "hit")
+		# всякое доведённое до конца дело люди замечают
+		if was < int(q.get("done_stage", 999)) and int(q.get("rep", 0)) != 0:
+			change_rep(int(q.rep), "задание «%s»" % title)
 	elif txt != "":
 		log_line("Задание «%s»: %s" % [title, txt], "", "hit")
 	quest_changed.emit(id)
@@ -349,6 +353,20 @@ func skill_bonus() -> Dictionary:
 		var sk: Dictionary = cas_info(id).get("skills", {})
 		for k in sk:
 			out[k] = int(out.get(k, 0)) + int(sk[k])
+	# надетое (оберег и т. п.)
+	for id in worn():
+		var b: Dictionary = DB.items.get(id, {}).get("bonus", {})
+		for k in b:
+			out[k] = int(out.get(k, 0)) + int(b[k])
+	return out
+
+
+## Что надето: вещи с use = wear, которые герой надел (и они ещё при нём)
+func worn() -> Array:
+	var out := []
+	for id in hero.flags.get("worn", []):
+		if item_count(id) > 0:
+			out.append(id)
 	return out
 
 

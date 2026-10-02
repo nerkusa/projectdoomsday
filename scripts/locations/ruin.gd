@@ -51,7 +51,30 @@ func on_interact(it: Interactable) -> bool:
 		"Burnt":
 			main.say("thoughts", "ruin_burnt")
 			return true
+		"Shaft":
+			if Game.flag("shaft_rope") and String(it.get_meta("act", "")) == "untie":
+				Game.set_flag("shaft_rope", false)
+				Game.add_item("rope")
+				Game.log_line("Отвязал верёвку.", "", "hit")
+			elif Game.flag("shaft_rope"):
+				main.load_location("ruin_bunker", "Down")
+			elif Game.item_count("rope") > 0:
+				Game.set_flag("shaft_rope")
+				Game.remove_item("rope")
+				Game.log_line("Верёвка привязана к решётке шахты.", "", "hit")
+				main.think("Сорвал ржавую решётку, обвязал верёвку за скобу. Внизу — темнота и красный отсвет. Аварийный свет? Через пятьдесят лет?")
+				_descend_later()
+			else:
+				main.think("Шахта уходит вниз, метров на пять. Без верёвки — только сломать ноги.")
+			return true
 	return super.on_interact(it)
+
+
+## спуск чуть погодя, чтобы успеть прочесть мысль (on_interact сам ждать не должен)
+func _descend_later() -> void:
+	await get_tree().create_timer(1.2, false).timeout
+	if main.location == self and not main.combat.on:
+		main.load_location("ruin_bunker", "Down")
 
 
 func on_combat_end(res: String, _kind: String) -> void:
@@ -68,6 +91,10 @@ func item_actions(it: Interactable) -> Array:
 			return [["Включить терминал", "use"]]
 		"Hatch", "ContainerUse", "Papers", "Burnt":
 			return [["Осмотреть", "use"]]
+		"Shaft":
+			if Game.flag("shaft_rope"):
+				return [["Спуститься по верёвке", "use"], ["Отвязать верёвку", "use:untie"]]
+			return [["Обвязать верёвку и спуститься" if Game.item_count("rope") > 0 else "Спуститься (нужна верёвка)", "use"]]
 	return super.item_actions(it)
 
 
@@ -85,6 +112,8 @@ func describe(it: Interactable) -> String:
 			return "Ветер гоняет по двору обгорелые листы."
 		"Burnt":
 			return "Пепелище за оградой — круги от палаток."
+		"Shaft":
+			return "Вентиляционная шахта бункера. " + ("Моя верёвка уходит вниз." if Game.flag("shaft_rope") else "Решётка проржавела.")
 		"WestExit":
 			return "Дорога назад."
 	return ""

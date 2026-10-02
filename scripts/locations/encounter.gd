@@ -112,6 +112,7 @@ func _build() -> void:
 	var t1 := _center - Vector2(cos(a), sin(a)) * 30.0
 	_ground(nz, nf, t0, t1)
 	_taken.append([_center, 3.5])
+	_landmarks(t0, t1)
 	match biome:
 		"field":
 			_scatter_props(["birch", "birch_b"], 10, 12, 40, 2.0)
@@ -157,6 +158,333 @@ func _build() -> void:
 		ex.position = e[1]
 		items.add_child(ex)
 	_spawn_people()
+
+
+# ---------------- следы старого мира ----------------
+## Разбитая дорога, самолёт, техника, руины, ЛЭП — то, что осталось с войны.
+## Ставятся до деревьев: лес обходит их, а не растёт сквозь.
+func _landmarks(t0: Vector2, t1: Vector2) -> void:
+	var road_ch: float = {"field": 0.55, "dead": 0.5, "forest": 0.25, "swamp": 0.15}[biome]
+	if rng.randf() < road_ch:
+		_asphalt(t0, t1)
+	if rng.randf() < 0.35:
+		_power_line()
+	var n := 0
+	if rng.randf() < 0.8:
+		n = 1 if rng.randf() < 0.7 else 2
+	var kinds := ["plane", "vehicle", "ruin", "vehicle", "ruin"]
+	if biome == "swamp":
+		kinds = ["plane", "vehicle", "ruin"]
+	for i in n:
+		var k: String = kinds[rng.randi() % kinds.size()]
+		var r: float = {"plane": 6.5, "vehicle": 3.6, "ruin": 4.5}[k]
+		for t in 40:
+			var a := rng.randf() * TAU
+			var p := _center + Vector2(cos(a), sin(a)) * rng.randf_range(9.0, 15.0)
+			if p.x < r + 2 or p.y < r + 2 or p.x > SIZE - r - 2 or p.y > SIZE - r - 2 or not _free(p, r):
+				continue
+			_taken.append([p, r])
+			match k:
+				"plane":
+					_plane(p, rng.randf() * TAU)
+				"vehicle":
+					_vehicle(p, rng.randf() * TAU)
+				"ruin":
+					_ruin_house(p, rng.randf() * TAU)
+			_wreck_loot(p, k, i)
+			break
+
+
+func _m(n: String) -> Material:
+	return load("res://assets/materials/%s.tres" % n)
+
+
+var _cmats := {}
+
+
+func _cm(hex: String, rough := 0.9, metal := 0.0) -> Material:
+	if not _cmats.has(hex):
+		var m := StandardMaterial3D.new()
+		m.albedo_color = Color(hex)
+		m.roughness = rough
+		m.metallic = metal
+		_cmats[hex] = m
+	return _cmats[hex]
+
+
+func _bx(parent: Node3D, size: Vector3, pos: Vector3, mat: Material, rot := Vector3.ZERO) -> MeshInstance3D:
+	var mi := MeshInstance3D.new()
+	var b := BoxMesh.new()
+	b.size = size
+	mi.mesh = b
+	mi.material_override = mat
+	mi.position = pos
+	mi.rotation = rot
+	parent.add_child(mi)
+	return mi
+
+
+func _cy(parent: Node3D, r_top: float, r_bot: float, h: float, pos: Vector3, mat: Material, rot := Vector3.ZERO, seg := 12) -> MeshInstance3D:
+	var mi := MeshInstance3D.new()
+	var c := CylinderMesh.new()
+	c.top_radius = r_top
+	c.bottom_radius = r_bot
+	c.height = h
+	c.radial_segments = seg
+	c.rings = 1
+	mi.mesh = c
+	mi.material_override = mat
+	mi.position = pos
+	mi.rotation = rot
+	parent.add_child(mi)
+	return mi
+
+
+func _col(parent: Node3D, size: Vector3, pos: Vector3, rot_y := 0.0) -> void:
+	var sb := StaticBody3D.new()
+	sb.collision_mask = 0
+	var cs := CollisionShape3D.new()
+	var b := BoxShape3D.new()
+	b.size = size
+	cs.shape = b
+	sb.add_child(cs)
+	sb.position = pos
+	sb.rotation.y = rot_y
+	parent.add_child(sb)
+
+
+func _holder(p: Vector2, rot: float, nm: String) -> Node3D:
+	var h := Node3D.new()
+	h.name = nm
+	h.position = Vector3(p.x, 0, p.y)
+	h.rotation.y = rot
+	get_node("Terrain").add_child(h)
+	return h
+
+
+## Разбитый асфальт по тропе: плиты с выбоинами, остатки разметки, покосившийся знак
+func _asphalt(t0: Vector2, t1: Vector2) -> void:
+	var road := Node3D.new()
+	road.name = "OldRoad"
+	get_node("Terrain").add_child(road)
+	var dir := (t1 - t0).normalized()
+	var ang := atan2(dir.x, dir.y)
+	var asph := _cm("3b3a37", 0.97)
+	var asph2 := _cm("4a4843", 0.97)
+	var line := _cm("c9c3a8", 0.9)
+	var len := t0.distance_to(t1)
+	var step := 2.2
+	var k := 0
+	var d := 0.0
+	while d < len:
+		var c := t0 + dir * d
+		d += step
+		k += 1
+		if rng.randf() < 0.22:
+			continue  # выбоина — плита провалилась
+		var w := rng.randf_range(3.6, 4.4)
+		var tilt := Vector3(rng.randf_range(-0.03, 0.03), ang + rng.randf_range(-0.06, 0.06), rng.randf_range(-0.04, 0.04))
+		var y := 0.03 + rng.randf_range(0.0, 0.05)
+		_bx(road, Vector3(w, 0.08, step - rng.randf_range(0.05, 0.35)), Vector3(c.x, y, c.y), asph if k % 3 else asph2, tilt)
+		if k % 2 == 0 and rng.randf() < 0.7:
+			_bx(road, Vector3(0.14, 0.02, 1.0), Vector3(c.x, y + 0.05, c.y), line, tilt)
+		# обломки асфальта по обочине
+		if rng.randf() < 0.25:
+			var side := Vector2(dir.y, -dir.x) * (w / 2.0 + rng.randf_range(0.3, 1.0)) * (1.0 if rng.randf() < 0.5 else -1.0)
+			var q := c + side
+			_bx(road, Vector3(rng.randf_range(0.5, 1.1), 0.12, rng.randf_range(0.4, 0.9)), Vector3(q.x, 0.06, q.y), asph,
+				Vector3(rng.randf_range(-0.3, 0.3), rng.randf() * TAU, rng.randf_range(-0.3, 0.3)))
+	# столбик и знак у дороги
+	var sp := t0.lerp(t1, rng.randf_range(0.25, 0.4)) + Vector2(dir.y, -dir.x) * 3.0
+	if _free(sp, 0.8) and sp.distance_to(_center) > 4.0:
+		var sign := _holder(sp, ang + rng.randf_range(-0.3, 0.3), "RoadSign")
+		_cy(sign, 0.04, 0.04, 2.2, Vector3(0, 1.1, 0), _m("metal_dark"), Vector3(0, 0, rng.randf_range(-0.25, 0.25)))
+		_bx(sign, Vector3(0.9, 0.6, 0.04), Vector3(0, 2.0, 0), _cm("2d5a8a", 0.7), Vector3(0, 0, rng.randf_range(-0.2, 0.2)))
+		_taken.append([sp, 0.8])
+
+
+## Разбившийся Ан-2: фюзеляж переломлен, крыло отломано, хвост торчит вверх
+func _plane(p: Vector2, rot: float) -> void:
+	var h := _holder(p, rot, "Plane")
+	var body := _cm("4f574c", 0.85, 0.0)
+	var rust := _m("rust")
+	var white := _m("paint_white")
+	# передняя часть: кабина и мотор
+	_cy(h, 0.85, 0.95, 4.2, Vector3(0, 0.9, 1.6), body, Vector3(PI / 2.0, 0, 0.08))
+	_cy(h, 0.75, 0.85, 0.9, Vector3(0, 0.95, 4.1), _m("metal_dark"), Vector3(PI / 2.0, 0, 0))
+	_bx(h, Vector3(0.12, 2.2, 0.18), Vector3(0, 1.0, 4.65), _m("metal_dark"), Vector3(0, 0, 0.6))
+	_bx(h, Vector3(1.1, 0.5, 0.05), Vector3(0, 1.75, 3.1), _m("glass"), Vector3(-0.5, 0, 0))
+	# хвостовая часть — отломилась и лежит под углом
+	_cy(h, 0.5, 0.85, 4.6, Vector3(0.6, 0.7, -3.0), body, Vector3(PI / 2.0 - 0.12, 0.35, 0))
+	_bx(h, Vector3(0.12, 1.6, 1.2), Vector3(1.4, 1.6, -5.0), white, Vector3(0, 0.35, 0.1))
+	_bx(h, Vector3(2.8, 0.08, 0.8), Vector3(1.4, 0.75, -5.0), white, Vector3(0, 0.35, 0.2))
+	# крылья: верхнее целое, нижнее отломано и лежит рядом
+	_bx(h, Vector3(12.0, 0.14, 1.7), Vector3(0, 2.1, 2.2), body, Vector3(0, 0, -0.05))
+	for x in [-3.0, 3.0]:
+		_cy(h, 0.04, 0.04, 1.3, Vector3(x, 1.45, 2.2), _m("metal_dark"))
+	_bx(h, Vector3(5.5, 0.12, 1.5), Vector3(-3.4, 0.35, 2.4), body, Vector3(0, 0, 0.0))
+	_bx(h, Vector3(4.0, 0.12, 1.5), Vector3(5.6, 0.12, 0.6), rust, Vector3(0.1, 0.5, 0.15))
+	# звезда/бортовой номер полосой
+	_bx(h, Vector3(0.02, 0.35, 2.0), Vector3(0.93, 1.0, 1.0), _cm("8a2a22", 0.7))
+	# гарь под мотором
+	var ash := MeshInstance3D.new()
+	var pm := PlaneMesh.new()
+	pm.size = Vector2(5, 7)
+	ash.mesh = pm
+	ash.material_override = _cm("201c18", 1.0)
+	ash.position = Vector3(0, 0.015, 1.5)
+	h.add_child(ash)
+	_col(h, Vector3(2.0, 2.0, 5.0), Vector3(0, 1.0, 1.8))
+	_col(h, Vector3(1.6, 1.6, 4.6), Vector3(0.6, 0.8, -3.0), 0.35)
+	_col(h, Vector3(5.4, 0.6, 1.5), Vector3(-3.4, 0.3, 2.4))
+
+
+## Брошенная техника: грузовик, автобус или БТР
+func _vehicle(p: Vector2, rot: float) -> void:
+	var h := _holder(p, rot, "Vehicle")
+	var kind := rng.randi() % 3
+	var tire := _m("tire")
+	match kind:
+		0:  # грузовик
+			var paint := _cm(["5a6a4a", "6a3a2a", "3a4a5a"][rng.randi() % 3], 0.85)
+			_bx(h, Vector3(2.3, 1.1, 1.9), Vector3(0, 1.05, 2.6), paint)
+			_bx(h, Vector3(2.2, 0.9, 1.6), Vector3(0, 2.0, 2.5), paint)
+			_bx(h, Vector3(2.0, 0.55, 0.05), Vector3(0, 2.05, 3.32), _m("glass"))
+			_bx(h, Vector3(2.4, 0.25, 4.6), Vector3(0, 0.75, -0.9), _m("rust"))
+			for sx in [-1.18, 1.18]:
+				_bx(h, Vector3(0.08, 0.6, 4.6), Vector3(sx, 1.15, -0.9), _m("planks_old"))
+			for wz in [2.6, -0.4, -2.2]:
+				for sx in [-1.15, 1.15]:
+					if rng.randf() < 0.85:
+						_cy(h, 0.48, 0.48, 0.32, Vector3(sx, 0.48, wz), tire, Vector3(0, 0, PI / 2.0))
+			h.rotation.z = rng.randf_range(-0.08, 0.08)
+			_col(h, Vector3(2.5, 2.4, 6.8), Vector3(0, 1.2, 0.0))
+		1:  # автобус ПАЗ — ржавая коробка с окнами
+			var paint := _cm("7d6c34", 0.9)
+			_bx(h, Vector3(2.4, 2.4, 7.2), Vector3(0, 1.55, 0), paint)
+			_bx(h, Vector3(2.45, 0.35, 7.25), Vector3(0, 0.55, 0), _m("rust"))
+			for z in range(-3, 4):
+				for sx in [-1.21, 1.21]:
+					_bx(h, Vector3(0.03, 0.75, 0.8), Vector3(sx, 2.0, z * 0.95), _m("glass") if rng.randf() < 0.4 else _cm("1c1a18"))
+			for wz in [2.5, -2.5]:
+				for sx in [-1.1, 1.1]:
+					_cy(h, 0.5, 0.5, 0.3, Vector3(sx, 0.5, wz), tire, Vector3(0, 0, PI / 2.0))
+			h.rotation.z = rng.randf_range(0.05, 0.15)
+			_col(h, Vector3(2.5, 2.8, 7.4), Vector3(0, 1.4, 0))
+		_:  # БТР — сгоревший, люки открыты
+			var olive := _cm("4a5236", 0.8, 0.1)
+			_bx(h, Vector3(2.8, 1.3, 7.0), Vector3(0, 1.25, 0), olive)
+			_bx(h, Vector3(2.4, 0.7, 2.0), Vector3(0, 2.1, 2.6), olive, Vector3(-0.35, 0, 0))
+			_cy(h, 0.6, 0.65, 0.5, Vector3(0, 2.15, 0.3), olive)
+			_cy(h, 0.07, 0.07, 2.2, Vector3(0, 2.2, 1.6), _m("metal_dark"), Vector3(PI / 2.0 - 0.15, 0, 0))
+			for wz in [2.4, 0.8, -0.8, -2.4]:
+				for sx in [-1.35, 1.35]:
+					_cy(h, 0.55, 0.55, 0.4, Vector3(sx, 0.55, wz), tire, Vector3(0, 0, PI / 2.0))
+			var burn := MeshInstance3D.new()
+			var pm := PlaneMesh.new()
+			pm.size = Vector2(4.5, 8.5)
+			burn.mesh = pm
+			burn.material_override = _cm("201c18", 1.0)
+			burn.position = Vector3(0, 0.015, 0)
+			h.add_child(burn)
+			_col(h, Vector3(2.9, 2.4, 7.2), Vector3(0, 1.2, 0))
+
+
+## Руины: кирпичная коробка дома без крыши, стены обломаны на разной высоте
+func _ruin_house(p: Vector2, rot: float) -> void:
+	var h := _holder(p, rot, "Ruin")
+	var brick := _m("stone_wall")
+	var w := rng.randf_range(5.0, 7.0)
+	var d := rng.randf_range(4.0, 5.5)
+	var segs := 6
+	for side in 4:
+		var horiz := side < 2
+		var ln := w if horiz else d
+		for k in segs:
+			var t := (k + 0.5) / segs - 0.5
+			if side == 0 and k == segs / 2:
+				continue  # дверной проём
+			if rng.randf() < 0.18:
+				continue  # обрушено
+			var hh := rng.randf_range(0.6, 3.0)
+			var seg_l := ln / segs + 0.05
+			var pos := Vector3(t * w, hh / 2.0, (d / 2.0) * (1 if side == 0 else -1)) if horiz else Vector3((w / 2.0) * (1 if side == 2 else -1), hh / 2.0, t * d)
+			var sz := Vector3(seg_l, hh, 0.35) if horiz else Vector3(0.35, hh, seg_l)
+			_bx(h, sz, pos, brick)
+			_col(h, sz, pos)
+	# мусор внутри и рядом
+	for i in rng.randi_range(3, 6):
+		var q := Vector2(rng.randf_range(-w / 2.0, w / 2.0), rng.randf_range(-d / 2.0, d / 2.0))
+		_bx(h, Vector3(rng.randf_range(0.3, 0.8), rng.randf_range(0.15, 0.4), rng.randf_range(0.3, 0.7)), Vector3(q.x, 0.15, q.y), brick,
+			Vector3(rng.randf_range(-0.4, 0.4), rng.randf() * TAU, rng.randf_range(-0.4, 0.4)))
+	if rng.randf() < 0.5:
+		var bed := _bx(h, Vector3(0.9, 0.08, 1.9), Vector3(w / 2.0 - 1.0, 0.35, 0), _m("rust"), Vector3(0, 0.2, 0.15))
+		bed.name = "BedFrame"
+
+
+## ЛЭП: деревянные опоры через поляну, провода, одна опора упала
+func _power_line() -> void:
+	var a := rng.randf() * TAU
+	var dir := Vector2(cos(a), sin(a))
+	var off := Vector2(dir.y, -dir.x) * rng.randf_range(6.0, 14.0) * (1.0 if rng.randf() < 0.5 else -1.0)
+	var base := _center + off
+	var poles := []
+	for k in range(-3, 4):
+		var q := base + dir * (k * 9.0)
+		if q.x < -10 or q.y < -10 or q.x > SIZE + 10 or q.y > SIZE + 10:
+			continue
+		poles.append(q)
+	var fallen := rng.randi() % maxi(1, poles.size())
+	var wood := _m("log_dark")
+	var wire := _cm("1a1a1a", 0.6, 0.4)
+	var tops := []
+	for i in poles.size():
+		var q: Vector2 = poles[i]
+		var h := _holder(q, atan2(dir.x, dir.y), "Pole")
+		if i == fallen:
+			_cy(h, 0.12, 0.16, 7.0, Vector3(0, 0.25, 3.0), wood, Vector3(PI / 2.0 - 0.05, 0, 0))
+			_bx(h, Vector3(2.0, 0.12, 0.12), Vector3(0, 0.3, 6.2), wood)
+			_col(h, Vector3(0.5, 0.6, 6.6), Vector3(0, 0.3, 3.0))
+			tops.append(null)
+		else:
+			var lean := rng.randf_range(-0.08, 0.08)
+			_cy(h, 0.11, 0.15, 7.0, Vector3(0, 3.5, 0), wood, Vector3(lean, 0, 0))
+			_bx(h, Vector3(2.0, 0.12, 0.12), Vector3(0, 6.6, 0), wood)
+			_col(h, Vector3(0.4, 3.0, 0.4), Vector3(0, 1.5, 0))
+			tops.append(Vector3(q.x, 6.7, q.y))
+		_taken.append([q, 0.7])
+	# провода между стоящими опорами
+	for i in poles.size() - 1:
+		if tops[i] == null or tops[i + 1] == null:
+			continue
+		for side in [-0.9, 0.9]:
+			var sv: Vector3 = Vector3(dir.y, 0, -dir.x) * float(side)
+			var p0: Vector3 = tops[i] + sv
+			var p1: Vector3 = tops[i + 1] + sv
+			var mid := (p0 + p1) / 2.0 - Vector3(0, 0.8, 0)
+			for seg in [[p0, mid], [mid, p1]]:
+				var s0: Vector3 = seg[0]
+				var s1: Vector3 = seg[1]
+				var mi := MeshInstance3D.new()
+				var bm := BoxMesh.new()
+				bm.size = Vector3(0.025, 0.025, s0.distance_to(s1))
+				mi.mesh = bm
+				mi.material_override = wire
+				get_node("Terrain").add_child(mi)
+				mi.look_at_from_position((s0 + s1) / 2.0, s1, Vector3.UP)
+
+
+## В обломках можно порыться: что-то да найдётся
+func _wreck_loot(p: Vector2, kind: String, i: int) -> void:
+	var it := Interactable.new()
+	it.name = "Wreck%d" % i
+	it.kind = "use"
+	it.label = {"plane": "Обломки самолёта", "vehicle": "Брошенная машина", "ruin": "Руины"}[kind]
+	it.pick_size = Vector3(3.0, 1.6, 3.0)
+	it.reach = 2
+	it.position = Vector3(p.x, 0, p.y)
+	it.set_meta("kind", kind)
+	get_node("Items").add_child(it)
 
 
 func _seg_d(p: Vector2, a: Vector2, b: Vector2) -> float:
@@ -385,6 +713,58 @@ func on_enter() -> void:
 
 func leave_hide() -> void:
 	main.hidden = false
+
+
+const WRECK_LOOT := {
+	"plane": [["ammo9", 4], ["medkit", 1], ["rope", 1], ["t_badge", 1], ["canned", 2], ["t_postcard", 1], ["bandage", 2]],
+	"vehicle": [["screwdriver", 1], ["ammo762", 3], ["canned", 1], ["t_lighter", 1], ["matches", 1], ["rope", 1], ["t_coin", 2]],
+	"ruin": [["t_photo", 1], ["t_cross", 1], ["herbs", 1], ["rusks", 1], ["t_coin", 1], ["bandage", 1], ["hairpin", 1]],
+}
+
+
+func on_interact(it: Interactable) -> bool:
+	if String(it.name).begins_with("Wreck"):
+		if ws().misc.has("searched_" + it.name):
+			main.think("Больше ничего полезного.")
+			return true
+		ws().misc["searched_" + it.name] = true
+		var kind := str(it.get_meta("kind", "ruin"))
+		var table: Array = WRECK_LOOT.get(kind, [])
+		var picks := []
+		var used := {}
+		for k in rng.randi_range(1, 3):
+			var e: Array = table[rng.randi() % table.size()]
+			if used.has(e[0]):
+				continue
+			used[e[0]] = true
+			picks.append({"id": e[0], "n": int(e[1]), "name": DB.item_name(e[0])})
+		var line: String = {"plane": "В кабине — истлевшие ремни, планшет пилота, сумка. Пятьдесят лет никто не заглядывал.",
+			"vehicle": "Бардачок, ящик под сиденьем, кузов. Растащили почти всё — почти.",
+			"ruin": "Под обломками кирпича — чья-то жизнь: посуда, тряпки, жестянка."}[kind]
+		main.think(line)
+		main.loot_win.open(it.label, picks, func(e):
+			Game.add_item(e.id, int(e.get("n", 1)))
+			return true)
+		return true
+	return super.on_interact(it)
+
+
+func item_actions(it: Interactable) -> Array:
+	if String(it.name).begins_with("Wreck"):
+		return [["Обыскать", "use"]]
+	return super.item_actions(it)
+
+
+func describe(it: Interactable) -> String:
+	if String(it.name).begins_with("Wreck"):
+		match str(it.get_meta("kind", "")):
+			"plane":
+				return "Ан-2, «кукурузник». Упал давно — крыло отломано, хвост в стороне. На борту ещё читается красная полоса."
+			"vehicle":
+				return "Брошенная довоенная техника. Ржавчина, выбитые стёкла, спущенные колёса."
+			"ruin":
+				return "Кирпичная коробка дома. Крыши нет, стены обломаны, внутри — березняк."
+	return ""
 
 
 ## Действия из разговоров на встрече

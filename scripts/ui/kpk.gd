@@ -222,8 +222,30 @@ func _render_inv() -> void:
 		right.add_child(_g(it.get("desc", ""), 13))
 		if it.has("heal"):
 			right.add_child(_g("Лечит · %d ОД в бою" % int(it.get("ap", 2)), 13))
-			var b := UITheme.key("Использовать", "primary", 11)
-			b.pressed.connect(func(): use_item.emit(_sel))
+		if it.has("bonus"):
+			var bs := []
+			for k in it.bonus:
+				bs.append("%s +%d" % [k, int(it.bonus[k])])
+			right.add_child(_g("Если надеть: " + ", ".join(bs), 13))
+		if it.get("trinket", false):
+			right.add_child(_g("Безделушка. Можно выменять или подарить.", 12, UITheme.GREEN_DIM))
+		var label := ""
+		if it.has("heal"):
+			label = "Съесть" if it.get("travel", "") == "food" else "Использовать"
+		match str(it.get("use", "")):
+			"read":
+				label = "Прочитать"
+			"wear":
+				label = "Снять" if Game.worn().has(_sel) else "Надеть"
+			"measure":
+				label = "Включить"
+			"orient":
+				label = "Свериться"
+		if label != "":
+			var b := UITheme.key(label, "primary", 11)
+			b.pressed.connect(func():
+				use_item.emit(_sel)
+				render())
 			right.add_child(b)
 
 

@@ -105,7 +105,7 @@ func show_node(id: String) -> void:
 	var title: String = n.get("title", data.get("title", who)) if not n.has("speaker") else n.get("title", who)
 	_who.text = title.to_upper()
 	_face.text = who.left(1).to_upper() if who != "" else "…"
-	_full = _subst(_pick_text(n))
+	_full = _subst(_rep_greet(id, n) + _pick_text(n))
 	_chars = 0.0
 	var d: float = DELAY.get(Game.settings.get("text_speed", "normal"), 0.028)
 	_typing = d > 0.0
@@ -260,7 +260,52 @@ func _cond_ok(c: Dictionary) -> bool:
 
 
 func _subst(s: String) -> String:
-	return s.replace("{hero}", str(Game.hero.name))
+	return s.replace("{hero}", str(Game.hero.name)).replace("{addr}", addr())
+
+
+## Ступень молвы: hero / good / plain / bad / monster
+static func rep_tier() -> String:
+	var r := Game.rep()
+	if r >= 30:
+		return "hero"
+	if r >= 10:
+		return "good"
+	if r <= -30:
+		return "monster"
+	if r <= -10:
+		return "bad"
+	return "plain"
+
+
+## Как к герою обращаются — по молве
+static func addr() -> String:
+	return str(DB._load("res://data/rep_greet.json").get("addr", {}).get(rep_tier(), "парень"))
+
+
+## Приветствие по молве перед первой репликой — если у разговора нет своего
+## варианта по молве. Мысли, дорожные случаи и чужие тут не здороваются.
+func _rep_greet(id: String, n: Dictionary) -> String:
+	if id != "start" or speaker == null or not visible:
+		return ""
+	var did: String = str(data.get("speaker", ""))
+	if speaker.hostile or speaker.char_id in ["accused", "lost_kid", "target"]:
+		return ""
+	for alt in n.get("text_if", []):
+		var c: Dictionary = alt.get("if", {})
+		if c.has("rep_min") or c.has("rep_max"):
+			return ""
+	var tier := rep_tier()
+	if tier == "plain":
+		return ""
+	var g := DB._load("res://data/rep_greet.json")
+	var key := tier
+	var loc = get_tree().get_first_node_in_group("location")
+	if loc and loc.location_id == "nakharro":
+		key = "village_good" if tier in ["hero", "good"] else "village_bad"
+	var lines: Array = g.get(key, [])
+	if lines.is_empty():
+		return ""
+	return str(lines[absi(hash(speaker.uid() + did)) % lines.size()]) + "\n"
 
 
 func _finish_typing() -> void:
