@@ -88,8 +88,17 @@ func fight(max_turns := 80) -> void:
 			main.combat.click(target.node, null)
 			await frames(2)
 			if main.combat.my_turn() and main.combat.hero_f.ap == ap_before:
-				main.combat.end_turn()
+				# не вышло ударить/выстрелить — может, кончился магазин
+				main.combat.reload()
+				await frames(2)
+				if main.combat.my_turn() and main.combat.hero_f.ap == ap_before:
+					main.combat.end_turn()
 		await wait(0.02)
+	if main.combat.on:
+		var st := []
+		for e in main.combat.enemies():
+			st.append("%s ХП %d гекс %s" % [e.name, e.hp, e.hex])
+		print("  !! бой не закончился: герой %s, гекс %s, оружие %s, патроны %s; враги: %s" % [Game.hero_hp(), main.combat.hero_f.hex, Game.hero_wkey(), Game.hero.ammo, ", ".join(st)])
 
 
 func _ready() -> void:
@@ -154,7 +163,13 @@ func _ready() -> void:
 	ok(not main.hud._bar.visible and not main.hud._tape.visible and main.hud._hand.visible, "до КПК: только слот «в руке»")
 	main.open_kpk()
 	await frames(2)
-	ok(not main.kpk.visible and not main.plugging, "до КПК сумку не открыть")
+	ok(main.kpk.visible and not main.plugging and main.kpk.tab == "inv" and not main.kpk.has_tab("stat"), "до КПК по [I] открывается сумка (только вещи и задания)")
+	main.kpk.close()
+	main.hud._bag.pressed.emit()
+	await frames(2)
+	ok(main.kpk.visible, "кнопка «Сумка» тоже открывает")
+	main.kpk.close()
+	await frames(1)
 	# свободная ходьба: герой встаёт ровно в точку клика, а не в центр гекса
 	var start: Vector3 = main.player.global_position
 	var spot := start + Vector3(1.37, 0, 0.61)
@@ -824,10 +839,10 @@ func _ready() -> void:
 	ok(main.dialog.visible and loc.character("Chuchuna").visible, "у второго капкана — чучуна")
 	await shut()
 	await frames(3)
-	await fight()
+	await fight(300)
 	await wait(1.5)
 	main.dialog.close()
-	ok(Game.quest_stage("traps") == 2, "чучуна мёртв")
+	ok(Game.quest_stage("traps") == 2, "чучуна мёртв (бой идёт: %s)" % main.combat.on)
 	main.loot_win.close()
 	main.loot(loc.character("Chuchuna"))
 	await frames(3)
@@ -887,8 +902,13 @@ func _ready() -> void:
 	if not main.combat.on:
 		main.start_fight([dg])
 	await frames(2)
-	await fight()
+	await fight(300)
 	await wait(1.0)
+	if not loc.squad_cleared("diggers") and not main.combat.on:
+		# кто-то остался стоять в стороне — добиваем вторым боем
+		for dn in ["Digger1", "Digger2", "Digger3"]:
+			var dd: Character = loc.character(dn)
+			print("  ", dn, ": ", dd.pose, " видим=", dd.visible, " бежал=", loc.ws().misc.has("gone_" + dn))
 	ok(loc.squad_cleared("diggers"), "копатели перебиты")
 	main.dialog.close()
 	loc.on_interact(loc.item("WallMap"))

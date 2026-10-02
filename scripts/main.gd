@@ -402,7 +402,14 @@ func _on_hud_action(a: String) -> void:
 func open_kpk(t := "") -> void:
 	if combat.on and not combat.my_turn():
 		return
-	if not Game.flag("kpk") or plugging:
+	if plugging:
+		return
+	# до браслета КПК нет — открывается просто сумка, без подключения кабеля
+	if not Game.flag("kpk"):
+		if kpk.visible:
+			kpk.close()
+		else:
+			kpk.open("inv")
 		return
 	var first := not Game.flag("kpk_plugged")
 	Game.set_flag("kpk_plugged")

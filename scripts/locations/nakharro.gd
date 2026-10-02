@@ -87,6 +87,8 @@ func on_world_state_applied() -> void:
 
 
 func on_enter() -> void:
+	# сцена у ворот идёт на таймерах; после загрузки её уже нет — бой начнётся у ворот сам
+	Game.set_flag("gate_scene_running", false)
 	_apply_phase()
 
 
@@ -312,6 +314,14 @@ func on_hero_moved(pos: Vector3) -> void:
 			if ch.visible and ch.start_dead and ch.char_id.begins_with("raider_dead") and ch.global_position.distance_to(pos) < 4.0:
 				Game.set_flag("strangers_seen")
 				main.say("thoughts", "strangers")
+				break
+	# сцена у ворот уже была (или Эрчима убили, пока герой шёл другой дорогой):
+	# подошёл к воротам — бой, даже если крадёшься
+	if Game.flag("gate_started") and not main.combat.on and not Game.flag("gate_scene_running"):
+		for n in ["Executioner", "GateRaider", "GateGuard"]:
+			var e := character(n)
+			if e and e.global_position.distance_to(pos) < 9.0 and _gate_enemies_left():
+				_gate_fight()
 				break
 	if Game.flag("fire_seen") and not Game.flag("gate_started"):
 		var gg := character("GateGuard")
@@ -594,8 +604,17 @@ func leave_hide() -> void:
 # ---------------- северные ворота: часовой, пленные, бой ----------------
 ## Часовой зовёт на помощь — его тут же застреливают. Начинается бой с двумя
 ## нападавшими; в первых раундах один из них расстреливает пленных, если его не остановить.
+func _gate_enemies_left() -> bool:
+	for n in ["Executioner", "GateRaider"]:
+		var e := character(n)
+		if e and e.visible and e.pose != "dead" and not ws().misc.has("gone_" + e.uid()):
+			return true
+	return false
+
+
 func _gate_scene() -> void:
 	Game.set_flag("gate_started")
+	Game.set_flag("gate_scene_running")
 	main.player.stop()
 	var gg := character("GateGuard")
 	var gr := character("GateRaider")
@@ -631,12 +650,24 @@ func _gate_scene() -> void:
 	Game.set_flag("exec_done")
 	main.say("thoughts", "execution_after")
 	await get_tree().create_timer(1.0, false).timeout
+	Game.set_flag("gate_scene_running", false)
 	for e in [ex, gr]:
 		if e and e.pose != "dead":
 			e.hostile = true
 			e.aggro_radius = 8.0
-	if not main.combat.on and ex and ex.pose != "dead":
-		main.start_fight([ex])
+	_gate_fight()
+
+
+## Бой у северных ворот: с тем, кто из двоих ещё жив (раньше бой начинался,
+## только если жив стрелок над пленными)
+func _gate_fight() -> void:
+	if main.combat.on:
+		return
+	for n in ["Executioner", "GateRaider"]:
+		var e := character(n)
+		if e and e.visible and e.pose != "dead" and not ws().misc.has("gone_" + e.uid()):
+			main.start_fight([e])
+			return
 
 
 ## После налёта в деревне не остаётся живых: защитники у западных ворот, раненый,
