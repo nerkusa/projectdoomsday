@@ -5,6 +5,10 @@ const LOCATIONS := {
 	"nakharro": "res://scenes/locations/nakharro.tscn",
 	"kresty": "res://scenes/locations/kresty.tscn",
 	"camp": "res://scenes/locations/camp.tscn",
+	"zaimka": "res://scenes/locations/zaimka.tscn",
+	"convoy": "res://scenes/locations/convoy.tscn",
+	"ruin": "res://scenes/locations/ruin.tscn",
+	"encounter": "res://scenes/locations/encounter.tscn",
 }
 const CAM_DIR := Vector3(1, 1, 1)
 ## Камера ортогональная: расстояние не меняет картинку, но от него зависит
@@ -104,6 +108,10 @@ func _build_ui() -> void:
 	hud.action.connect(_on_hud_action)
 	hud.zone_chosen.connect(combat.zone_picked)
 	hud.visible = false
+	# карта мира под окном разговора: встречи в пути идут разговором поверх карты
+	world_map = WorldMap.new()
+	root.add_child(world_map)
+	world_map.setup(self)
 	dialog = DialogBox.new()
 	root.add_child(dialog)
 	dialog.setup()
@@ -124,9 +132,6 @@ func _build_ui() -> void:
 	root.add_child(trade_win)
 	trade_win.setup(self)
 	trade_win.closed.connect(_on_dialog_closed)
-	world_map = WorldMap.new()
-	root.add_child(world_map)
-	world_map.setup(self)
 	actions = PopupMenu.new()
 	actions.add_theme_font_override("font", UITheme.mono())
 	actions.add_theme_font_size_override("font_size", 14)
@@ -485,6 +490,10 @@ func say(dialog_id: String, node := "start", who: Character = null) -> void:
 
 func _on_dialog_action(a: String, sp: Character) -> void:
 	if location and location.on_dialog_action(a, sp):
+		return
+	# встречи в пути (road.json)
+	if a.begins_with("enc_"):
+		world_map.on_action(a)
 		return
 	# «reveal_<точка>» — отметить точку на карте мира
 	if a.begins_with("reveal_"):
@@ -995,7 +1004,7 @@ func _process(delta: float) -> void:
 			if ch:
 				var t := ch.display_name
 				if ch.pose == "dead":
-					t += " · мёртв" + ("" if location.ws().looted.has(ch.uid()) else " · обыскать")
+					t += (" · мертва" if ch.tpl.get("female", false) else " · мёртв") + ("" if location.ws().looted.has(ch.uid()) else " · обыскать")
 				elif ch.hostile or attack_mode:
 					t += " · атаковать"
 				elif ch.dialog != "":
@@ -1115,7 +1124,9 @@ func _look_around() -> void:
 	for ch in location.characters():
 		if not ch.visible or ch == player or ch.is_in_group("range_targets") or ch.name == "Prowler":
 			continue
-		var key: String = "seen_" + ch.uid()
+		# живого и мёртвого замечаем по отдельности: увидел часового живым, потом —
+		# его тело; описание живого к телу не цепляется
+		var key: String = ("seen_dead_" if ch.pose == "dead" else "seen_") + ch.uid()
 		if st.misc.has(key):
 			continue
 		if ch.global_position.distance_to(player.global_position) > LOOK_DIST:
@@ -1123,17 +1134,28 @@ func _look_around() -> void:
 		if not location.grid.line_clear(ch.global_position, player.global_position, space()):
 			continue
 		st.misc[key] = true
+		st.misc["seen_" + ch.uid()] = true
 		Game.log_line("Вы видите: " + _look_text(ch), "", "look")
 		return
 
 
+## Описание персонажа по его состоянию. В observations.json: «Имя» — живой и на ногах,
+## «Имя_dead» — тело, «Имя_down» — ранен и лежит. Живое описание к телу не подставляется.
 func _look_text(ch: Character) -> String:
-	var t: String = DB.observations.get(String(ch.name), "")
+	var n := ch.display_name
+	var state := ""
+	if ch.pose == "dead":
+		state = "_dead"
+	elif ch.pose == "down":
+		state = "_down"
+	var t: String = DB.observations.get(String(ch.name) + state, "")
+	# тела, которые лежат с самого начала (Степан, Варвара), описаны без «_dead»
+	if t == "" and (state == "" or ch.start_dead):
+		t = DB.observations.get(String(ch.name), "")
 	if t != "":
 		return t
-	var n := ch.display_name
 	if ch.pose == "dead":
-		return "%s лежит на земле. Не шевелится." % n
+		return "%s лежит на земле. %s." % [n, "Мертва" if ch.tpl.get("female", false) else "Мёртв"]
 	if ch.hostile:
 		return "%s. Оружие наготове, смотрит по сторонам." % n
 	match ch.pose:

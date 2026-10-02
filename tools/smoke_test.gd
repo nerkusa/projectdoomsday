@@ -323,8 +323,9 @@ func _ready() -> void:
 	await wait(24.0)
 	ok(not folk.visible, "дозорный ушёл домой")
 	# Внимательность решает, как начнётся засада
-	Game.hero.stats.PRC = 30 if stealth else -30
-	Game.hero.skills["Внимательность"] = 5 if stealth else 0
+	# характеристики ограничены 1..10 и d10 взрывается на 10 — честный бросок мог пройти;
+	# исход проверки задаём прямо
+	Game.force_check = 1 if stealth else -1
 	var hp0 := Game.hero_hp()
 	await tp(foods[4].global_position + Vector3(0.9, 0, 0))
 	main.interact(foods[4])
@@ -356,7 +357,7 @@ func _ready() -> void:
 		ok(main.combat.on, "бой с нападавшим")
 		await fight()
 		ok(prowler.pose == "dead" and Game.flag("ambush_done"), "нападавший с монтировкой убит")
-	Game.hero.stats.PRC = 5
+	Game.force_check = 0
 	await tp(Vector3(62, 0, 26.6))
 	await wait(0.6)
 	ok(Game.flag("fire_seen"), "увидел пожар")
@@ -581,10 +582,12 @@ func _ready() -> void:
 	await frames(2)
 	ok(main.location.location_id == "nakharro", "после слайдов Нахарро не перезагружается")
 	var wm: WorldMap = main.world_map
+	# случайные встречи проверяются отдельно ниже
+	wm.encounters_on = false
 	ok(wm.visible and wm.at == "nakharro", "после черты — карта мира")
 	ok(wm.can_go("kresty") and not wm.can_go("camp") and not wm.can_go("sungar"), "с карты можно только в Кресты")
-	ok(wm._np("kresty").x < wm._np("nakharro").x and wm._np("sungar").x < wm._np("kresty").x and wm._np("camp").y > wm._np("kresty").y,
-		"карта сходится с текстами: Кресты на запад от черты, Сунгар дальше на запад, лагерь к югу")
+	ok(wm.node_pos("kresty").x > wm.node_pos("nakharro").x and wm.node_pos("sungar").x > wm.node_pos("kresty").x and wm.node_pos("camp").y > wm.node_pos("kresty").y,
+		"карта сходится с дизайн-доком: путь на восток — Нахарро, Кресты, Сунгар; лагерь к югу за рекой")
 
 	# ======== АКТ I: Кресты ========
 	await wm.travel("kresty")
@@ -743,6 +746,173 @@ func _ready() -> void:
 	await choose(0)
 	await shut()
 	ok(Game.quest_stage("kr_nets") == 6 and Game.item_count("camp_letter") == 0, "записка отдана рыбаку")
+	# --- описания: живое к телу не подставляется ---
+	var dead_dog: Character = loc.character("Dog1")
+	ok("Мёртв" in main._look_text(dead_dog), "мёртвый пёс описан мёртвым: " + main._look_text(dead_dog))
+
+	# ======== случайная встреча в пути ========
+	loc.on_interact(loc.item("EastExit"))
+	await frames(2)
+	var wpos := wm.pos
+	ok(wm.visible and wm._can_back(), "карта открыта из Крестов — можно вернуться")
+	wm._go_to(wm.pos + Vector2(60, -30))
+	await wait(0.6)
+	ok(wm.pos.distance_to(wpos) > 10.0 and wm.hours() > 0.0, "герой идёт по карте сам, время идёт (%s)" % wm.time_text())
+	wm.halt()
+	ok(not wm._can_back(), "ушёл с места — назад в локацию уже нельзя")
+	wm.start_road_event("dogs")
+	await frames(2)
+	ok(main.dialog.visible and main.dialog.node_id == "dogs", "встреча в пути: псы")
+	await choose(find_opt("Принять бой"))
+	while main._loading or wm._entering:
+		await frames(2)
+	await frames(3)
+	loc = main.location
+	ok(loc.location_id == "encounter" and loc.characters().size() == 3, "поляна встречи: три пса")
+	var ed: Character = loc.characters()[0]
+	await tp(ed.global_position + Vector3(-3, 0, 0))
+	if not main.combat.on:
+		main.start_fight([ed])
+	await frames(2)
+	await fight()
+	await wait(1.0)
+	ok(loc.squad_cleared("enc"), "псы перебиты")
+	var mpos: Vector2 = wm.pos
+	loc.on_interact(loc.item("WestExit"))
+	await frames(2)
+	ok(wm.visible and wm.at == "" and wm.pos.distance_to(mpos) < 1.0, "с поляны — обратно на карту, туда же, где был")
+	# мирная встреча — торговец
+	wm.start_road_event("trader")
+	await frames(2)
+	await choose(find_opt("Подойти"))
+	while main._loading or wm._entering:
+		await frames(2)
+	await frames(3)
+	loc = main.location
+	var rt: Character = loc.characters()[0]
+	ok(loc.location_id == "encounter" and rt.char_id == "road_trader" and not rt.hostile, "торговец у костра")
+	main.talk_to(rt)
+	await frames(2)
+	await choose(find_opt("Боотура"))
+	ok(Game.hero.notes.size() > 0 and "Счастливой лодке" in str(Game.hero.notes), "торговец рассказал про Боотура в Сунгаре")
+	await shut()
+	loc.on_interact(loc.item("EastExit"))
+	await frames(2)
+
+	# ======== заимка: капканы и чучуна ========
+	WorldMap.reveal("zaimka")
+	await wm.travel("zaimka")
+	await frames(3)
+	loc = main.location
+	ok(loc.location_id == "zaimka", "пришёл на заимку")
+	main.dialog.close()
+	var hermit: Character = loc.character("Hermit")
+	ok(not loc.character("Chuchuna").visible, "чучуны не видно, пока не попросили")
+	main.talk_to(hermit)
+	await frames(2)
+	await choose(find_opt("чучуну"))
+	await shut()
+	main.talk_to(hermit)
+	await frames(2)
+	await choose(find_opt("помощь"))
+	await choose(0)
+	ok(Game.quest_stage("traps") == 1, "Дьаакып просит проверить капканы")
+	await shut()
+	await tp(loc.item("Trap2").global_position + Vector3(-1.5, 0, 0))
+	loc.on_interact(loc.item("Trap2"))
+	await frames(2)
+	ok(main.dialog.visible and loc.character("Chuchuna").visible, "у второго капкана — чучуна")
+	await shut()
+	await frames(3)
+	await fight()
+	await wait(1.5)
+	main.dialog.close()
+	ok(Game.quest_stage("traps") == 2, "чучуна мёртв")
+	main.loot_win.close()
+	main.loot(loc.character("Chuchuna"))
+	await frames(3)
+	main.loot_win.take_all()
+	await frames(2)
+	if Game.item_count("robe_scrap") == 0:
+		Game.add_item("robe_scrap")
+	main.talk_to(hermit)
+	await frames(2)
+	await choose(find_opt("робы"))
+	ok(Game.quest_stage("traps") == 3 and Game.item_count("cas_tongue") >= 1, "Дьаакып узнал номер на робе, дал кассету")
+	await shut()
+
+	# ======== ржавый конвой ========
+	loc.on_interact(loc.item("WestExit"))
+	await frames(2)
+	WorldMap.reveal("convoy")
+	Game.set_quest("caravan", 1)
+	await wm.travel("convoy")
+	await frames(3)
+	loc = main.location
+	ok(loc.location_id == "convoy", "ржавый конвой")
+	main.dialog.close()
+	var amb: Character = loc.character("Ambusher1")
+	await tp(amb.global_position + Vector3(-3, 0, 0))
+	if not main.combat.on:
+		main.start_fight([amb])
+	await frames(2)
+	await fight()
+	await wait(1.0)
+	ok(loc.squad_cleared("ambush"), "засада у грузовиков перебита")
+	var drv: Character = loc.character("Driver")
+	await tp(drv.global_position + Vector3(-1.2, 0, 0))
+	main.loot(drv)
+	await frames(3)
+	main.loot_win.take_all()
+	await frames(2)
+	ok(Game.item_count("waybill") == 1 and Game.quest_stage("caravan") == 2, "накладная у возчика")
+	main.dialog.close()
+	Game.set_flag("convoy_safe_try")
+	loc.on_interact(loc.item("CabSafe"))
+	await frames(2)
+	main.loot_win.take_all()
+	ok(Game.item_count("cas_surgeon") >= 1, "ящик в кабине: кассета «Хирург»")
+
+	# ======== база на Сытыгане ========
+	loc.on_interact(loc.item("WestExit"))
+	await frames(2)
+	WorldMap.reveal("ruin")
+	await wm.travel("ruin")
+	await frames(3)
+	loc = main.location
+	ok(loc.location_id == "ruin", "база на Сытыгане")
+	main.dialog.close()
+	var dg: Character = loc.character("Digger1")
+	await tp(dg.global_position + Vector3(-3, 0, 0))
+	if not main.combat.on:
+		main.start_fight([dg])
+	await frames(2)
+	await fight()
+	await wait(1.0)
+	ok(loc.squad_cleared("diggers"), "копатели перебиты")
+	main.dialog.close()
+	loc.on_interact(loc.item("WallMap"))
+	await frames(2)
+	ok(Game.quest_stage("who") == 4 and wm.known("markun"), "карта на стене: Нахарро в списке, следующий — Мар-Кун")
+	await shut()
+	Game.set_flag("ruin_terminal_try")
+	loc.on_interact(loc.item("Terminal"))
+	await frames(2)
+	ok(Game.flag("ruin_terminal"), "терминал: «Уволить сотрудника?»")
+	await shut()
+	# назад в Кресты — накладную торговке
+	loc.on_interact(loc.item("WestExit"))
+	await frames(2)
+	await wm.travel("kresty")
+	await frames(3)
+	loc = main.location
+	main.dialog.close()
+	main.talk_to(loc.character("Trader"))
+	await frames(2)
+	await choose(find_opt("накладную"))
+	ok(Game.quest_stage("caravan") == 3, "Аграфена узнала про караван")
+	await shut()
+
 	# сохранение и загрузка в новой локации
 	main.autosave()
 	ok(Game.load_game("auto") and str(Game.hero.location) == "kresty", "сохранение в Крестах")

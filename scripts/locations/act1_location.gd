@@ -5,6 +5,8 @@ extends Location
 
 ## Мысль при первом входе (ключ узла в thoughts.json)
 var arrive_thought := ""
+## Сохраняться ли при входе (на случайной поляне — нет: там всё одноразовое)
+var autosave_on_enter := true
 
 
 func _ready() -> void:
@@ -30,7 +32,8 @@ func on_enter() -> void:
 		if arrive_thought != "":
 			await get_tree().create_timer(0.8, false).timeout
 			main.say("thoughts", arrive_thought)
-	main.autosave()
+	if autosave_on_enter:
+		main.autosave()
 
 
 ## Выходы: всё, что зовётся *Exit, открывает карту мира
@@ -58,6 +61,18 @@ func food_items() -> Array:
 	return out
 
 
+## Плата и подарки едой — общие для всех локаций акта
+func on_dialog_action(a: String, _sp: Character) -> bool:
+	match a:
+		"pay_food":
+			give_food(2)
+			return true
+		"give_food3":
+			give_food(3)
+			return true
+	return false
+
+
 func food_count() -> int:
 	return food_items().size()
 
@@ -83,3 +98,11 @@ func dialog_cond(id: String) -> bool:
 ## Задача на экране: первая незакрытая из заданий этой локации, потом общие
 func objective() -> String:
 	return ""
+
+
+## Все ли враги отряда мертвы или сбежали
+func squad_cleared(squad: String) -> bool:
+	for ch in characters():
+		if ch.squad == squad and ch.pose != "dead" and ch.visible and not ws().misc.has("gone_" + ch.uid()):
+			return false
+	return true

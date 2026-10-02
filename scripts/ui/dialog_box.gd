@@ -207,6 +207,12 @@ func _apply_effects(o: Dictionary) -> void:
 		Game.log_line("Опыт +%d" % int(o.xp), note.strip_edges())
 	if o.has("note"):
 		Game.add_note(o.note)
+	# урон без боя (дорожные случаи): не убивает, оставляет 1 ХП
+	if o.has("hurt"):
+		Game.set_hero_hp(maxi(1, Game.hero_hp() - int(o.hurt)))
+		Game.log_line("−%d ХП" % int(o.hurt), "", "miss")
+	if o.has("reveal"):
+		WorldMap.reveal(str(o.reveal))
 	# молва: собеседник — свидетель
 	if o.has("rep"):
 		Game.change_rep(int(o.rep), str(o.get("rep_why", "")))

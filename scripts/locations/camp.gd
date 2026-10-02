@@ -33,18 +33,12 @@ func on_hero_moved(pos: Vector3) -> void:
 		main.talk_to(t)
 
 
-func on_dialog_action(a: String, _sp: Character) -> bool:
-	match a:
-		"pay_food":
-			give_food(2)
-			return true
-		"give_food3":
-			give_food(3)
-			return true
-		"fight":
-			# саму драку начинает main; здесь только помним, что она была
-			Game.set_flag("camp_thug_fought")
-	return false
+func on_dialog_action(a: String, sp: Character) -> bool:
+	if a == "fight":
+		# саму драку начинает main; здесь только помним, что она была
+		Game.set_flag("camp_thug_fought")
+		return false
+	return super.on_dialog_action(a, sp)
 
 
 func on_combat_end(res: String, _kind: String) -> void:

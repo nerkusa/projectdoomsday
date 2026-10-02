@@ -13,5 +13,6 @@
   "rifle": {"name": "Винтовка «Тайга»", "type": "Guns", "dmg": "3d6", "dmg_type": "П", "bonus": 0, "ap": 5, "range": 40, "eff_range": 14, "mag": 5, "ammo": "7.62", "two": true, "value": 70},
   "smg": {"name": "Автомат «Ураган»", "type": "Guns", "dmg": "2d6", "dmg_type": "П", "bonus": 1, "ap": 4, "range": 30, "eff_range": 9, "mag": 30, "ammo": "7.62", "two": true, "burst": {"n": 3, "ap": 6, "pen": 2}, "value": 90},
   "buran": {"name": "Автомат «Буран»", "type": "Guns", "dmg": "2d6", "dmg_type": "П", "bonus": 2, "ap": 4, "range": 35, "eff_range": 10, "mag": 30, "ammo": "7.62", "two": true, "burst": {"n": 3, "ap": 6, "pen": 2}, "desc": "Укороченный довоенный автомат с песочным цевьём. Кто-то смазал его, завернул в мешковину и запер в общем сундуке — «на чёрный день».", "value": 110},
-  "bite": {"name": "Клыки", "type": "Brawl", "dmg": "1d6", "dmg_type": "К", "bonus": 0, "ap": 3, "range": 1, "natural": true}
+  "bite": {"name": "Клыки", "type": "Brawl", "dmg": "1d6", "dmg_type": "К", "bonus": 0, "ap": 3, "range": 1, "natural": true},
+  "claws": {"name": "Когти", "type": "Brawl", "dmg": "2d6", "dmg_type": "Р", "bonus": 1, "ap": 3, "range": 1, "natural": true}
 }

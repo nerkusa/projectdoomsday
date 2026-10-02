@@ -41,13 +41,13 @@ func _dogs_left() -> int:
 	return n
 
 
-func on_dialog_action(a: String, _sp: Character) -> bool:
+func on_dialog_action(a: String, sp: Character) -> bool:
 	match a:
 		"dogs_start":
 			_apply_dogs()
 			main.hud.refresh_objective()
 			return true
-	return false
+	return super.on_dialog_action(a, sp)
 
 
 func on_combat_end(res: String, _kind: String) -> void:
@@ -104,11 +104,11 @@ func describe(it: Interactable) -> String:
 		"NetTracks":
 			return "Вокруг сушилки для сетей натоптано."
 		"Cemetery":
-			return "Старый погост на западной окраине. Кресты серые, покосившиеся, на некоторых — вырезанные имена."
+			return "Старый погост у западного въезда. Кресты серые, покосившиеся, на некоторых — вырезанные имена."
 		"WestExit":
-			return "Дорога на запад. Говорят, к Сунгару."
+			return "Дорога на запад — к черте, к пепелищу."
 		"EastExit":
-			return "Дорога на восток — к черте, к пепелищу."
+			return "Дорога на восток. Говорят, к Сунгару."
 	return ""
 
 

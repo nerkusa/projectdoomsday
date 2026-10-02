@@ -250,6 +250,10 @@ func wstate(loc: String) -> Dictionary:
 # ---------------- проверки навыков ----------------
 ## Бросок d10 + характеристика + навык против сложности (на 10 взрывается, на 1 — провал).
 ## Старые имена (DEX, «Взлом замков»…) переводятся в новые.
+## Для автотестов: 1 — следующие проверки всегда успешны, -1 — всегда провал, 0 — честный бросок
+var force_check := 0
+
+
 func skill_check(label: String, stat: String, skill: String, dc: int, bonus := 0) -> bool:
 	stat = Rules.norm_stat(stat)
 	skill = Rules.norm_skill(skill)
@@ -259,6 +263,8 @@ func skill_check(label: String, stat: String, skill: String, dc: int, bonus := 0
 	var kv := int(effective_skills().get(skill, 0))
 	var t: int = r.d + sv + kv + bonus
 	var ok: bool = t >= dc and not r.fumble
+	if force_check != 0:
+		ok = force_check > 0
 	log_line("[%s] %s" % [label, "успех" if ok else "провал"],
 		"d10(%d) + %s(%d) + %s(%d)%s = %d против %d" % [r.d, Rules.stat_name(stat), sv, skill, kv,
 		(" + бонус(%d)" % bonus) if bonus else "", t, dc], "hit" if ok else "miss")

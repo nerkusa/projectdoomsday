@@ -1,0 +1,98 @@
+extends Act1Location
+## База на Сытыгане — довоенный объект. Весной здесь сожгли стоянку оборванцев,
+## а «отдел безопасности» вывез бумаги. Карта на стене показывает закономерность:
+## Нахарро и Сытыган зачёркнуты, следующий — Мар-Кун.
+
+
+func _ready() -> void:
+	location_id = "ruin"
+	title = "База на Сытыгане"
+	arrive_thought = "ruin_arrive"
+	super._ready()
+
+
+func on_interact(it: Interactable) -> bool:
+	match String(it.name):
+		"WallMap":
+			main.say("thoughts", "ruin_map")
+			if not Game.flag("ruin_map"):
+				Game.set_flag("ruin_map")
+				if Game.quest_stage("who") < 4:
+					Game.set_quest("who", 4)
+				WorldMap.reveal("markun")
+				Game.add_note("База на Сытыгане: карта района с карандашными пометками. Нахарро — зачёркнуто, стоянка у Сытыгана — зачёркнута, Мар-Кун — обведён дважды. Рядом: «ждать проводника».")
+				Game.grant_xp(80)
+			return true
+		"Terminal":
+			if Game.flag("ruin_terminal"):
+				main.say("thoughts", "ruin_terminal_again")
+			elif Game.skill_check("Техника", "INT", "Техника", 12) or Game.flag("ruin_terminal_try"):
+				Game.set_flag("ruin_terminal")
+				main.say("thoughts", "ruin_terminal")
+				Game.add_note("Терминал на Сытыгане: «Отдел безопасности. Изъятие документации завершено 14.04.2062. Объект списан». Внизу экрана: «Сотрудников на объекте: 0. Уволить сотрудника? [Д/Н]».")
+				Game.grant_xp(40)
+			else:
+				Game.set_flag("ruin_terminal_try")
+				main.think("Экран мигает зелёным и гаснет. Надо понять, как он включается.")
+			return true
+		"Hatch":
+			main.say("thoughts", "ruin_hatch")
+			return true
+		"ContainerUse":
+			main.think("Пустой контейнер. На двери бирка: «Сдать: отдел безопасности. Опись прилагается». Описи нет.")
+			return true
+		"Papers":
+			if not Game.flag("ruin_papers"):
+				Game.set_flag("ruin_papers")
+				main.say("thoughts", "ruin_papers")
+			else:
+				main.think("Обгорелые листы. Ничего больше не разобрать.")
+			return true
+		"Burnt":
+			main.say("thoughts", "ruin_burnt")
+			return true
+	return super.on_interact(it)
+
+
+func on_combat_end(res: String, _kind: String) -> void:
+	if res == "win" and squad_cleared("diggers") and not Game.flag("ruin_clear"):
+		Game.set_flag("ruin_clear")
+		main.think("Копатели. Рылись в том, что не успели увезти другие.")
+
+
+func item_actions(it: Interactable) -> Array:
+	match String(it.name):
+		"WallMap":
+			return [["Рассмотреть карту", "use"]]
+		"Terminal":
+			return [["Включить терминал", "use"]]
+		"Hatch", "ContainerUse", "Papers", "Burnt":
+			return [["Осмотреть", "use"]]
+	return super.item_actions(it)
+
+
+func describe(it: Interactable) -> String:
+	match String(it.name):
+		"WallMap":
+			return "Под навесом у двери — карта района, приколотая ржавыми кнопками."
+		"Terminal":
+			return "Довоенный терминал в нише стены. Экран целый."
+		"Hatch":
+			return "Круглый люк в бетоне. По краю — свежий шов сварки."
+		"ContainerUse":
+			return "Морской контейнер, двери нараспашку."
+		"Papers":
+			return "Ветер гоняет по двору обгорелые листы."
+		"Burnt":
+			return "Пепелище за оградой — круги от палаток."
+		"WestExit":
+			return "Дорога назад."
+	return ""
+
+
+func objective() -> String:
+	if not squad_cleared("diggers"):
+		return "Во дворе копатели — злые и вооружённые."
+	if not Game.flag("ruin_map"):
+		return "Осмотреть базу: что здесь искали?"
+	return ""

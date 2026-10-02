@@ -14,10 +14,15 @@ var _no_edge: Array = []  # Rect2, где нет и пояса леса за к�
 
 
 func _build() -> void:
-	for n in ["cloth_sack", "cloth_red", "rope_mat", "rust", "metal_dark", "tin", "hay", "bark_dark", "planks_old"]:
+	for n in ["cloth_sack", "cloth_red", "rope_mat", "rust", "metal_dark", "tin", "hay", "bark_dark", "planks_old",
+			"stone_wall", "tire", "paper", "metal_roof", "glass", "paint_faded"]:
 		M[n] = load(MAT_DIR + n + ".tres")
 	_kresty()
 	_camp()
+	_encounter()
+	_zaimka()
+	_convoy()
+	_ruin()
 
 
 func _begin(id: String, title: String, rect: Rect2, script: String) -> void:
@@ -371,7 +376,7 @@ func _kresty() -> void:
 	_clear.append(Rect2(-2, 24, 20, 30))
 	_clear.append(Rect2(-10, 60, 112, 30))
 	_no_edge.append(Rect2(-40, 63, 180, 35))
-	_no_edge.append(Rect2(92, 28, 14, 20))  # у въезда с востока лес реже — не закрывает героя
+	_no_edge.append(Rect2(-14, 28, 14, 20))  # у въезда с запада лес реже — не закрывает героя
 	_ground_for("kresty")
 	# река: вода и невидимая стена по берегу
 	var river := group(root, "River")
@@ -426,9 +431,9 @@ func _kresty() -> void:
 	# низкая ограда погоста
 	for x in [5.0, 9.0, 13.0]:
 		put(P.fence_broken if x == 9.0 else P.fence, cem, Vector3(x, 0, 34.4), 0.0)
-	# два высоких креста у въезда со стороны черты (с востока) — по ним и название
-	_cross(vil, Vector3(88.5, 0, 35.2), 3.2)
-	_cross(vil, Vector3(88.5, 0, 40.8), 3.2)
+	# два высоких креста у въезда со стороны черты (с запада) — по ним и название
+	_cross(vil, Vector3(9.5, 0, 35.4), 3.2)
+	_cross(vil, Vector3(9.5, 0, 40.6), 3.2)
 	# у реки
 	_net_rack(vil, Vector3(53.5, 0, 63.0), 0.0)
 	_net_rack(vil, Vector3(60, 0, 63.3), 0.08)
@@ -449,7 +454,7 @@ func _kresty() -> void:
 	_woods(900)
 
 	var chars := group(root, "Characters")
-	character(chars, "KrGuard", "kr_guard", Vector3(77.5, 0, 36.0), PI / 2.0, {"dialog": "kr_guard", "armed": true})
+	character(chars, "KrGuard", "kr_guard", Vector3(12.5, 0, 36.2), -PI / 2.0, {"dialog": "kr_guard", "armed": true})
 	character(chars, "KrHead", "kr_head", Vector3(47, 0, 30.2), 0.0, {"dialog": "kr_head"})
 	character(chars, "Brewer", "kr_brewer", Vector3(33, 0, 42.2), 0.0, {"dialog": "kr_brewer"})
 	character(chars, "Trader", "kr_trader", Vector3(50.8, 0, 36.6), 0.0, {"dialog": "kr_trader"})
@@ -476,8 +481,8 @@ func _kresty() -> void:
 	_use(items, "NetTracks", "Следы у сушилки", Vector3(62.6, 0, 62.4), Vector3(1.6, 0.4, 1.4))
 	_use(items, "Cemetery", "Погост", Vector3(10, 0, 31.2), Vector3(8.0, 1.5, 4.0))
 	item(items, P.item_herbs, "Take_Herbs", Vector3(26.3, 0, 60.5))
-	_spawn("Start", Vector3(81.5, 0, 38.6))
-	_spawn("Road", Vector3(81.5, 0, 38.6))
+	_spawn("Start", Vector3(4.5, 0, 38))
+	_spawn("Road", Vector3(4.5, 0, 38))
 	marker(root, "MarkHead", Vector3(47, 0, 25.5), "Староста")
 	marker(root, "MarkBrew", Vector3(33, 0, 46.5), "Пивоварня")
 	marker(root, "MarkRiver", Vector3(47, 0, 64), "Мостки")
@@ -560,3 +565,268 @@ func _camp() -> void:
 	marker(root, "MarkMill", Vector3(48, 0, 20), "Лесопилка")
 	_dress(Rect2(8, 12, 56, 38), 700)
 	_finish("camp")
+
+
+# ======================================================================
+# ПОЛЯНА ДЛЯ СЛУЧАЙНЫХ ВСТРЕЧ: дорога через лес, кострище (видно не всегда),
+# метки E1..E5 для врагов и N1..N3 для мирных (encounter.gd ставит их сам).
+# ======================================================================
+func _encounter() -> void:
+	var rect := Rect2(0, 0, 52, 42)
+	_begin("encounter", "Тайга", rect, "res://scripts/locations/encounter.gd")
+	strip(null, Vector2(-4, 18), Vector2(56, 19.5), 2.6, "ground_dirt")
+	_meadow.append(Rect2(8, 6, 36, 28))
+	_mud.append(Rect2(18, 25, 8, 4))
+	# поляна шире самой стычки: с камеры (сверху-сбоку) враги не прячутся за кронами
+	_clear.append(Rect2(3, 2, 47, 38))
+	_ground_for("encounter")
+	var vil := group(root, "Village")
+	var fire := put(P.fire, vil, Vector3(24, 0.2, 14.5), 0.0, "Campfire")
+	fire.set("strength", 0.7)
+	for lg in [[Vector3(22.5, 0, 13.2), 0.3], [Vector3(25.8, 0, 16.0), -0.6]]:
+		put(P.log_fallen, vil, lg[0], lg[1], "", 0.7)
+	for p in [Vector3(14, 0, 11), Vector3(31, 0, 24.5), Vector3(36, 0, 11.5)]:
+		put(P.rock_big if randf() < 0.5 else P.rock, vil, p, randf() * TAU)
+	put(P.log_fallen, vil, Vector3(17, 0, 24), 1.2)
+	put(P.dead_tree, vil, Vector3(28, 0, 9), 0.0)
+	put(P.cart, vil, Vector3(20.5, 0, 22.0), 0.8, "Cart")
+	var mk := group(root, "Marks")
+	var i := 0
+	for p in [Vector3(31, 0, 15), Vector3(33, 0, 19.5), Vector3(30, 0, 23), Vector3(36, 0, 16.5), Vector3(35, 0, 22)]:
+		i += 1
+		_spawn_mark(mk, "E%d" % i, p)
+	i = 0
+	for p in [Vector3(23.5, 0, 17.5), Vector3(25.5, 0, 18.5), Vector3(22, 0, 19.5)]:
+		i += 1
+		_spawn_mark(mk, "N%d" % i, p)
+	group(root, "Characters")
+	var items := group(root, "Items")
+	_exit(items, "WestExit", "Уйти", Vector3(1.0, 0, 18), Vector3(1.6, 2.2, 6.0))
+	_exit(items, "EastExit", "Уйти", Vector3(51.0, 0, 19.5), Vector3(1.6, 2.2, 6.0))
+	_spawn("Start", Vector3(6, 0, 18.2))
+	_woods(300)
+	_dress(Rect2(4, 4, 44, 34), 600)
+	_finish("encounter")
+
+
+func _spawn_mark(parent: Node, nm: String, pos: Vector3) -> void:
+	var m := Marker3D.new()
+	m.name = nm
+	m.position = pos
+	parent.add_child(m)
+	m.owner = root
+
+
+# ======================================================================
+# ЗАИМКА ДЬААКЫПА: избушка охотника в распадке, коптильня, вешала с рыбой,
+# тропа на север к капканам. Там, когда Дьаакып попросит, — чучуна.
+# ======================================================================
+func _zaimka() -> void:
+	var rect := Rect2(0, 0, 60, 50)
+	_begin("zaimka", "Заимка Дьаакыпа", rect, "res://scripts/locations/zaimka.gd")
+	var d := "ground_dirt"
+	strip(null, Vector2(-4, 30), Vector2(28, 28), 2.0, d)
+	strip(null, Vector2(30, 24), Vector2(30, 4), 1.3, d)
+	strip(null, Vector2(30, 4), Vector2(42, 3), 1.2, d)
+	road_segs.append([Vector2(26, 26), Vector2(34, 30), 3.0])
+	_meadow.append(Rect2(16, 16, 26, 20))
+	_clear.append(Rect2(14, 14, 32, 26))
+	_clear.append(Rect2(18, 0, 28, 8))
+	_clear.append(Rect2(-4, 25, 20, 10))
+	_ground_for("zaimka")
+	var vil := group(root, "Village")
+	put(P.izba_small, vil, Vector3(30, 0, 20.5), 0.05, "Hut")
+	put(P.shed, vil, Vector3(39, 0, 22), -0.15, "Smokehouse")
+	put(P.woodpile, vil, Vector3(23.5, 0, 19), 0.1)
+	put(P.table, vil, Vector3(26.5, 0, 31), 0.2, "Table")
+	put(P.bench, vil, Vector3(26.5, 0, 32.4), 0.2)
+	_net_rack(vil, Vector3(36, 0, 31), 0.1)
+	for p in [Vector3(34.6, 0, 30.4), Vector3(37.4, 0, 30.6)]:
+		put(P.barrel, vil, p, randf() * TAU)
+	put(P.hay_bale, vil, Vector3(42, 0, 27), 0.4)
+	# конура
+	var k := group(vil, "Kennel")
+	k.position = Vector3(22, 0, 25)
+	box(k, Vector3(1.0, 0.8, 1.2), Vector3(0, 0.4, 0), "planks_old").owner = root
+	prism(k, Vector3(1.2, 0.4, 1.3), Vector3(0, 1.0, 0), "roof").owner = root
+	_own(collider(k, Vector3(1.0, 1.0, 1.2), Vector3(0, 0.5, 0)), root)
+	# черепа и рога на стене — охотник
+	for x in [-0.8, 0.8]:
+		box(vil, Vector3(0.6, 0.06, 0.06), Vector3(30 + x, 2.0, 22.9), "bark_birch", Vector3(0, 0, 0.5)).owner = root
+	_woods(800)
+	var chars := group(root, "Characters")
+	character(chars, "Hermit", "hermit", Vector3(27.5, 0, 29.5), 0.3, {"dialog": "hermit", "armed": true})
+	character(chars, "Chuchuna", "chuchuna", Vector3(44, 0, 2.5), -PI / 2.0, {"hostile": true, "aggro_radius": 11.0, "groups": ["chuchuna"]})
+	var items := group(root, "Items")
+	_exit(items, "WestExit", "Тропа обратно", Vector3(1.0, 0, 30), Vector3(1.6, 2.2, 5.0))
+	var t1 := _use(items, "Trap1", "Капкан", Vector3(24.5, 0, 5.5), Vector3(1.2, 0.5, 1.2))
+	box(t1, Vector3(0.7, 0.08, 0.7), Vector3(0, 0.04, 0), "rust").owner = root
+	var t2 := _use(items, "Trap2", "Капкан", Vector3(36.5, 0, 3.0), Vector3(1.2, 0.5, 1.2))
+	box(t2, Vector3(0.7, 0.08, 0.7), Vector3(0, 0.04, 0), "rust", Vector3(0, 0.6, 0.3)).owner = root
+	item(items, P.item_herbs, "Take_Herbs", Vector3(18, 0, 10))
+	_spawn("Start", Vector3(4.5, 0, 29.8))
+	_spawn("Road", Vector3(4.5, 0, 29.8))
+	marker(root, "MarkHut", Vector3(30, 0, 20.5), "Избушка")
+	marker(root, "MarkTraps", Vector3(30, 0, 4), "Капканы")
+	_dress(Rect2(14, 2, 32, 36), 600)
+	_finish("zaimka")
+
+
+# ======================================================================
+# РЖАВЫЙ КОНВОЙ: три грузовика на старой дороге, разбитый караван, засада.
+# ======================================================================
+func _truck(parent: Node, nm: String, pos: Vector3, rot: float, tilt := 0.0, paint := "paint_faded") -> Node3D:
+	var t := Node3D.new()
+	t.name = nm
+	parent.add_child(t, true)
+	t.owner = root
+	t.position = pos
+	t.rotation = Vector3(0, rot, tilt)
+	# кабина спереди (+z), кузов сзади
+	box(t, Vector3(2.3, 1.1, 1.9), Vector3(0, 1.05, 2.6), paint).owner = root
+	box(t, Vector3(2.2, 0.9, 1.6), Vector3(0, 2.0, 2.5), paint).owner = root
+	box(t, Vector3(2.0, 0.55, 0.05), Vector3(0, 2.05, 3.32), "glass").owner = root
+	box(t, Vector3(2.4, 0.25, 4.6), Vector3(0, 0.75, -0.9), "rust").owner = root
+	for sx in [-1.18, 1.18]:
+		box(t, Vector3(0.08, 0.6, 4.6), Vector3(sx, 1.15, -0.9), "planks_old").owner = root
+	box(t, Vector3(2.4, 0.6, 0.08), Vector3(0, 1.15, -3.2), "planks_old").owner = root
+	for wz in [2.6, -0.4, -2.2]:
+		for sx in [-1.15, 1.15]:
+			cyl(t, 0.48, 0.48, 0.32, Vector3(sx, 0.48, wz), "tire", Vector3(0, 0, PI / 2.0), 12).owner = root
+	_own(collider(t, Vector3(2.5, 2.4, 6.8), Vector3(0, 1.2, 0.0)), root)
+	return t
+
+
+func _convoy() -> void:
+	var rect := Rect2(0, 0, 66, 42)
+	_begin("convoy", "Ржавый конвой", rect, "res://scripts/locations/convoy.gd")
+	strip(null, Vector2(-4, 20), Vector2(70, 22.5), 3.4, "ground_dirt")
+	_meadow.append(Rect2(10, 10, 46, 22))
+	_mud.append(Rect2(26, 24, 9, 4))
+	_clear.append(Rect2(8, 8, 50, 26))
+	_clear.append(Rect2(-4, 15, 14, 10))
+	_ground_for("convoy")
+	var vil := group(root, "Village")
+	_truck(vil, "Truck1", Vector3(23, 0, 19.0), PI / 2.0 + 0.08)
+	_truck(vil, "Truck2", Vector3(32.5, 0, 25.8), PI / 2.0 + 0.5, 0.12, "rust")
+	_truck(vil, "Truck3", Vector3(42, 0, 19.2), PI / 2.0 - 0.15)
+	put(P.cart, vil, Vector3(48.5, 0, 24.5), 2.6, "BrokenCart")
+	for dd in [["crates", Vector3(27.5, 0, 17.0)], ["crates", Vector3(28.6, 0, 16.4)], ["barrel", Vector3(36.5, 0, 17.4)],
+			["crates", Vector3(46.5, 0, 16.0)], ["barrel", Vector3(19.5, 0, 22.6)], ["junk", Vector3(38.5, 0, 28.0)],
+			["hay_bale", Vector3(50.5, 0, 21.0)]]:
+		put(P[dd[0]], vil, dd[1], randf() * TAU)
+	_woods(700)
+	var chars := group(root, "Characters")
+	character(chars, "Driver", "driver_dead", Vector3(29.5, 0, 21.2), 1.2, {"start_dead": true})
+	character(chars, "Ambusher1", "convoy_raider", Vector3(44.5, 0, 15.0), -PI / 2.0, {"hostile": true, "aggro_radius": 9.0, "squad": "ambush"})
+	character(chars, "Ambusher2", "convoy_raider2", Vector3(47.5, 0, 26.0), -PI / 2.0, {"hostile": true, "aggro_radius": 9.0, "squad": "ambush"})
+	var items := group(root, "Items")
+	_exit(items, "WestExit", "Дорога назад", Vector3(1.0, 0, 20), Vector3(1.6, 2.2, 5.0))
+	_exit(items, "EastExit", "Дорога к Сунгару", Vector3(65.0, 0, 22.5), Vector3(1.6, 2.2, 5.0))
+	_use(items, "CabSafe", "Ящик в кабине", Vector3(23.3, 0, 21.6), Vector3(1.4, 1.6, 1.4))
+	_use(items, "Cargo", "Разбитые ящики", Vector3(28, 0, 16.6), Vector3(2.2, 1.0, 1.6))
+	_spawn("Start", Vector3(4.5, 0, 20.2))
+	_spawn("Road", Vector3(4.5, 0, 20.2))
+	_dress(Rect2(8, 8, 50, 26), 700)
+	_finish("convoy")
+
+
+# ======================================================================
+# БАЗА НА СЫТЫГАНЕ: бетонная ограда, два корпуса, вышка, заваренный люк.
+# Здесь весной сожгли стоянку оборванцев и вывезли бумаги. Внутри — копатели.
+# ======================================================================
+func _block(parent: Node, nm: String, pos: Vector3, size: Vector3, rot := 0.0) -> Node3D:
+	var b := Node3D.new()
+	b.name = nm
+	parent.add_child(b, true)
+	b.owner = root
+	b.position = pos
+	b.rotation.y = rot
+	box(b, size, Vector3(0, size.y / 2.0, 0), "stone_wall").owner = root
+	box(b, Vector3(size.x + 0.3, 0.2, size.z + 0.3), Vector3(0, size.y + 0.1, 0), "metal_roof").owner = root
+	# окна-проёмы и дверь по фасаду (+z)
+	for x in range(int(-size.x / 2.0) + 1, int(size.x / 2.0), 2):
+		box(b, Vector3(0.9, 0.7, 0.05), Vector3(x, size.y * 0.62, size.z / 2.0 + 0.01), "metal_dark").owner = root
+	box(b, Vector3(1.2, 2.1, 0.06), Vector3(0, 1.05, size.z / 2.0 + 0.02), "rust").owner = root
+	_own(collider(b, size, Vector3(0, size.y / 2.0, 0)), root)
+	return b
+
+
+func _ruin() -> void:
+	var rect := Rect2(0, 0, 66, 54)
+	_begin("ruin", "База на Сытыгане", rect, "res://scripts/locations/ruin.gd")
+	strip(null, Vector2(-4, 27), Vector2(22, 27), 2.6, "ground_dirt")
+	strip(null, Vector2(22, 27), Vector2(44, 27), 3.0, "ground_dirt")
+	_mud.append(Rect2(24, 34, 14, 6))
+	_mud.append(Rect2(4, 40, 12, 8))
+	_meadow.append(Rect2(18, 10, 34, 32))
+	_clear.append(Rect2(14, 6, 42, 40))
+	_clear.append(Rect2(-4, 22, 20, 10))
+	_clear.append(Rect2(2, 36, 16, 14))
+	_ground_for("ruin")
+	var vil := group(root, "Village")
+	# ограда из бетонных плит с проломом-воротами на западе
+	var fence := group(vil, "Fence")
+	var x := 19.0
+	while x < 52.0:
+		box(fence, Vector3(2.0, 2.2, 0.25), Vector3(x + 1.0, 1.1, 10.0), "stone_wall").owner = root
+		if not (x > 33 and x < 37):  # пролом в южной стене
+			box(fence, Vector3(2.0, 2.2, 0.25), Vector3(x + 1.0, 1.1, 42.0), "stone_wall").owner = root
+		x += 2.05
+	var z := 10.0
+	while z < 42.0:
+		if absf(z + 1.0 - 27.0) > 2.2:
+			box(fence, Vector3(0.25, 2.2, 2.0), Vector3(19.0, 1.1, z + 1.0), "stone_wall").owner = root
+		box(fence, Vector3(0.25, 2.2, 2.0), Vector3(52.0, 1.1, z + 1.0), "stone_wall").owner = root
+		z += 2.05
+	var fb := StaticBody3D.new()
+	fb.name = "Collision"
+	fence.add_child(fb)
+	fb.owner = root
+	for c in [[Vector3(35.5, 1.1, 10.0), Vector3(33.5, 2.2, 0.4)], [Vector3(26.5, 1.1, 42.0), Vector3(15.5, 2.2, 0.4)],
+			[Vector3(45.0, 1.1, 42.0), Vector3(14.5, 2.2, 0.4)], [Vector3(19.0, 1.1, 17.7), Vector3(0.4, 2.2, 15.4)],
+			[Vector3(19.0, 1.1, 36.3), Vector3(0.4, 2.2, 11.4)], [Vector3(52.0, 1.1, 26.0), Vector3(0.4, 2.2, 32.4)]]:
+		var cs := CollisionShape3D.new()
+		var bs := BoxShape3D.new()
+		bs.size = c[1]
+		cs.shape = bs
+		cs.position = c[0]
+		fb.add_child(cs)
+		cs.owner = root
+	_block(vil, "Office", Vector3(30, 0, 16.5), Vector3(10, 3.4, 6))
+	_block(vil, "Store", Vector3(44, 0, 33), Vector3(8, 3.0, 6), PI)
+	put(P.tower, vil, Vector3(48.5, 0, 14), 0.0, "Watchtower")
+	put(P.shed, vil, Vector3(24, 0, 37.5), 0.3)
+	# заваренный люк бункера
+	cyl(vil, 0.9, 0.9, 0.25, Vector3(40, 0.12, 22.5), "metal_dark", Vector3.ZERO, 16).owner = root
+	box(vil, Vector3(1.6, 0.06, 0.12), Vector3(40, 0.27, 22.5), "rust").owner = root
+	# пустой контейнер и бумаги
+	box(vil, Vector3(2.4, 2.4, 5.6), Vector3(26, 1.2, 30), "paint_faded", Vector3(0, 0.2, 0), "Container").owner = root
+	_own(collider(vil, Vector3(2.4, 2.4, 5.6), Vector3(26, 1.2, 30), 0.2), root)
+	for i in 14:
+		box(vil, Vector3(0.3, 0.01, 0.4), Vector3(randf_range(27, 37), 0.02, randf_range(20, 25)), "paper", Vector3(0, randf() * TAU, 0)).owner = root
+	for dd in [["crates", Vector3(36.5, 0, 31.5)], ["barrel", Vector3(47.5, 0, 26.5)], ["junk", Vector3(33, 0, 36)],
+			["crates", Vector3(22.5, 0, 22.0)], ["barrel", Vector3(22.0, 0, 21.0)]]:
+		put(P[dd[0]], vil, dd[1], randf() * TAU)
+	# сгоревшая стоянка оборванцев за оградой
+	var burnt := group(vil, "Burnt")
+	for p in [Vector3(7, 0, 42), Vector3(11, 0, 45), Vector3(8.5, 0, 47.5)]:
+		box(burnt, Vector3(2.4, 0.04, 2.8), p + Vector3(0, 0.03, 0), "ash").owner = root
+		cyl(burnt, 0.04, 0.04, 1.3, p + Vector3(0.9, 0.5, 1.2), "log_dark", Vector3(0.6, 0, 0.3)).owner = root
+	_woods(700)
+	var chars := group(root, "Characters")
+	character(chars, "Digger1", "ruin_looter", Vector3(33, 0, 22.5), 0.4, {"hostile": true, "aggro_radius": 8.0, "squad": "diggers"})
+	character(chars, "Digger2", "ruin_looter", Vector3(41, 0, 25.0), -1.2, {"hostile": true, "aggro_radius": 8.0, "squad": "diggers"})
+	character(chars, "Digger3", "ruin_looter_gun", Vector3(44, 0, 29.0), PI, {"hostile": true, "aggro_radius": 8.0, "squad": "diggers"})
+	var items := group(root, "Items")
+	_exit(items, "WestExit", "Дорога назад", Vector3(1.0, 0, 27), Vector3(1.6, 2.2, 5.0))
+	_use(items, "WallMap", "Карта на стене", Vector3(28, 0, 19.8), Vector3(1.6, 2.0, 0.8))
+	_use(items, "Terminal", "Терминал", Vector3(32.5, 0, 19.9), Vector3(1.0, 1.6, 0.8))
+	_use(items, "Hatch", "Люк", Vector3(40, 0, 22.5), Vector3(1.8, 0.5, 1.8))
+	_use(items, "ContainerUse", "Контейнер", Vector3(27.5, 0, 30.5), Vector3(1.4, 2.0, 2.0))
+	_use(items, "Papers", "Бумаги", Vector3(32, 0, 22.5), Vector3(3.0, 0.4, 2.0))
+	_use(items, "Burnt", "Пепелище", Vector3(9, 0, 45), Vector3(5.0, 1.0, 5.0))
+	_spawn("Start", Vector3(4.5, 0, 27))
+	_spawn("Road", Vector3(4.5, 0, 27))
+	_dress(Rect2(14, 6, 42, 40), 500)
+	_finish("ruin")
