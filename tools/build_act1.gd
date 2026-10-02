@@ -461,6 +461,7 @@ func _kresty() -> void:
 	character(chars, "Brewer", "kr_brewer", Vector3(33, 0, 42.2), 0.0, {"dialog": "kr_brewer"})
 	character(chars, "Trader", "kr_trader", Vector3(50.8, 0, 36.6), 0.0, {"dialog": "kr_trader"})
 	character(chars, "Fisher", "kr_fisher", Vector3(50.5, 0, 62.2), -0.4, {"dialog": "kr_fisher"})
+	character(chars, "KrOld", "kr_old", Vector3(38.6, 0, 62.4), 0.2, {"dialog": "kr_old"})
 	var tbl: Node3D = root.get_node("Village/SquareTable")
 	var s1 := _seat(tbl, -0.6, 1.0)
 	var s2 := _seat(tbl, 0.5, -1.0)
@@ -482,6 +483,10 @@ func _kresty() -> void:
 	_exit(items, "EastExit", "Дорога на восток", Vector3(91.0, 0, 38), Vector3(1.6, 2.2, 5.0))
 	_use(items, "NetTracks", "Следы у сушилки", Vector3(62.6, 0, 62.4), Vector3(1.6, 0.4, 1.4))
 	_use(items, "Cemetery", "Погост", Vector3(10, 0, 31.2), Vector3(8.0, 1.5, 4.0))
+	# одинокая лиственница у восточной дороги: под ней сын Байбала зарыл карабин
+	put(P.pine_b, vil, Vector3(84.5, 0, 32.2), 0.7, "OldLarchTree", 1.35)
+	var lr := _use(items, "OldLarch", "Одинокая лиственница", Vector3(84.5, 0, 33.6), Vector3(1.6, 0.6, 1.4))
+	box(lr, Vector3(1.0, 0.12, 0.8), Vector3(0, 0.03, 0), "ground_dirt", Vector3(0, 0.4, 0)).owner = root
 	item(items, P.item_herbs, "Take_Herbs", Vector3(26.3, 0, 60.5))
 	_spawn("Start", Vector3(4.5, 0, 38))
 	_spawn("Road", Vector3(4.5, 0, 38))
@@ -626,12 +631,41 @@ func _zaimka() -> void:
 	# черепа и рога на стене — охотник
 	for x in [-0.8, 0.8]:
 		box(vil, Vector3(0.6, 0.06, 0.06), Vector3(30 + x, 2.0, 22.9), "bark_birch", Vector3(0, 0, 0.5)).owner = root
+	# араҥас — могила ойууна на помосте, в лесу к северо-западу
+	_clear.append(Rect2(5, 3, 15, 14))
+	strip(null, Vector2(18, 12), Vector2(12, 10), 1.0, d)
+	var ar := group(vil, "Arangas")
+	ar.position = Vector3(11.5, 0, 9.5)
+	ar.rotation.y = 0.35
+	for c in [Vector2(-0.9, -0.5), Vector2(0.9, -0.5), Vector2(-0.9, 0.5), Vector2(0.9, 0.5)]:
+		cyl(ar, 0.09, 0.11, 2.3, Vector3(c.x, 1.15, c.y), "log_dark").owner = root
+	box(ar, Vector3(2.3, 0.1, 1.4), Vector3(0, 2.3, 0), "log_dark").owner = root
+	box(ar, Vector3(1.9, 0.5, 0.7), Vector3(0, 2.6, 0), "log_weathered").owner = root
+	prism(ar, Vector3(2.0, 0.3, 0.8), Vector3(0, 3.0, 0), "log_dark").owner = root
+	_own(collider(ar, Vector3(2.0, 2.4, 1.2), Vector3(0, 1.2, 0)), root)
+	var mir := MeshInstance3D.new()
+	var cm := CylinderMesh.new()
+	cm.top_radius = 0.13
+	cm.bottom_radius = 0.13
+	cm.height = 0.02
+	mir.mesh = cm
+	var mm := StandardMaterial3D.new()
+	mm.albedo_color = Color(0.72, 0.45, 0.22)
+	mm.metallic = 0.8
+	mm.roughness = 0.35
+	mir.material_override = mm
+	mir.name = "Mirror"
+	mir.position = Vector3(1.0, 1.7, 0.6)
+	mir.rotation = Vector3(PI / 2.0, 0, 0)
+	ar.add_child(mir)
+	mir.owner = root
 	_woods(800)
 	var chars := group(root, "Characters")
 	character(chars, "Hermit", "hermit", Vector3(27.5, 0, 29.5), 0.3, {"dialog": "hermit", "armed": true})
 	character(chars, "Chuchuna", "chuchuna", Vector3(44, 0, 2.5), -PI / 2.0, {"hostile": true, "aggro_radius": 11.0, "groups": ["chuchuna"]})
 	var items := group(root, "Items")
 	_exit(items, "WestExit", "Тропа обратно", Vector3(1.0, 0, 30), Vector3(1.6, 2.2, 5.0))
+	_use(items, "Arangas", "Араҥас", Vector3(13.5, 0, 11.0), Vector3(2.6, 3.2, 1.8))
 	var t1 := _use(items, "Trap1", "Капкан", Vector3(24.5, 0, 5.5), Vector3(1.2, 0.5, 1.2))
 	box(t1, Vector3(0.7, 0.08, 0.7), Vector3(0, 0.04, 0), "rust").owner = root
 	var t2 := _use(items, "Trap2", "Капкан", Vector3(36.5, 0, 3.0), Vector3(1.2, 0.5, 1.2))

@@ -1030,3 +1030,75 @@ func _tutorial_extras() -> void:
 	sp.owner = root
 	var wc: Node = root.get_node("Characters/WaterCarrier")
 	wc.set("dialog", "water")
+	_sacred_tree(items)
+	# эбээ Кэтириис — говорит только на старом языке, сидит у колодца
+	character(root.get_node("Characters"), "Ebee", "ebee", Vector3(65.6, 0, 54.4), PI * 0.6, {"dialog": "ebee", "groups": ["phase_morning"]})
+
+
+## Аар Луук Мас — старая лиственница у опушки: истлевшие лоскуты, а когда герой
+## повесит сэлэ — новые, яркие (Ribbons, показывает скрипт локации по флагу)
+func _sacred_tree(items: Node) -> void:
+	var at := Vector3(54.5, 0, 21.2)
+	var forest: Node = root.get_node("Forest")
+	for t in forest.get_children():
+		if t is Node3D and Vector2(t.position.x, t.position.z).distance_to(Vector2(at.x, at.z)) < 3.2:
+			t.free()
+	var holder := Node3D.new()
+	holder.name = "SacredTree"
+	root.get_node("Village").add_child(holder)
+	holder.owner = root
+	holder.position = at
+	put(P.pine_b, holder, Vector3.ZERO, 0.4, "Tree", 1.55)
+	var rag := func(parent: Node, col: Color, i: int, n: int, long: float) -> void:
+		var a := TAU * i / n + randf() * 0.15
+		var r := 0.36
+		var mi := MeshInstance3D.new()
+		var bm := BoxMesh.new()
+		bm.size = Vector3(0.11, long, 0.015)
+		mi.mesh = bm
+		var m := StandardMaterial3D.new()
+		m.albedo_color = col
+		m.roughness = 0.95
+		m.cull_mode = BaseMaterial3D.CULL_DISABLED
+		mi.material_override = m
+		# свисают с верёвки вокруг ствола и отлетают по ветру наружу
+		var out := randf_range(0.5, 0.95)
+		var dir := Vector3(cos(a), 0, sin(a))
+		var tangent := Vector3(-sin(a), 0, cos(a))
+		mi.basis = Basis(tangent, out) * Basis(Vector3.UP, -a + PI / 2.0)
+		mi.position = dir * r + Vector3(0, 1.62, 0) + (Basis(tangent, out) * Vector3(0, -long * 0.5, 0))
+		parent.add_child(mi)
+		mi.owner = root
+	var old := Node3D.new()
+	old.name = "OldRags"
+	holder.add_child(old)
+	old.owner = root
+	for i in 6:
+		rag.call(old, Color(0.42, 0.39, 0.34), i, 6, randf_range(0.2, 0.35))
+	var rib := Node3D.new()
+	rib.name = "Ribbons"
+	rib.visible = false
+	holder.add_child(rib)
+	rib.owner = root
+	var cols := [Color(0.85, 0.12, 0.1), Color(0.95, 0.85, 0.85), Color(0.15, 0.35, 0.8), Color(0.95, 0.75, 0.1), Color(0.2, 0.6, 0.3)]
+	for i in 18:
+		rag.call(rib, cols[i % cols.size()], i, 18, randf_range(0.35, 0.7))
+	# сама сэлэ — волосяная верёвка вокруг ствола
+	var rope := MeshInstance3D.new()
+	var tm := TorusMesh.new()
+	tm.inner_radius = 0.26
+	tm.outer_radius = 0.31
+	rope.mesh = tm
+	var rm := StandardMaterial3D.new()
+	rm.albedo_color = Color(0.12, 0.1, 0.08)
+	rope.material_override = rm
+	rope.position = Vector3(0, 1.6, 0)
+	rib.add_child(rope)
+	rope.owner = root
+	var use := _item_base("SacredTree")
+	use.set("kind", "use")
+	use.set("label", "Старая лиственница")
+	use.set("pick_size", Vector3(1.6, 3.0, 1.6))
+	use.position = at + Vector3(0.9, 0, 0.9)
+	items.add_child(use)
+	use.owner = root

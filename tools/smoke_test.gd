@@ -284,14 +284,14 @@ func _ready() -> void:
 	# молва: как обращаются
 	var rep_save := Game.rep()
 	Game.change_rep(40 - Game.rep())
-	ok(DialogBox.rep_tier() == "hero" and DialogBox.addr() == "Боотур", "при громкой молве зовут Боотуром")
+	ok(DialogBox.rep_tier() == "hero" and DialogBox.addr() == "парень", "добрая молва прозвищ не даёт")
 	Game.change_rep(-40 - Game.rep())
-	ok(DialogBox.addr() == "Моҕус", "при дурной молве — Моҕус")
+	ok(DialogBox.addr() == "чужак", "при дурной молве — чужак")
 	Game.change_rep(15 - Game.rep())
 	main.talk_to(nak.character("Varvara"))
 	await frames(2)
 	main.dialog._finish_typing()
-	ok("Уйбаана" in main.dialog._full or "помогу" in main.dialog._full or "помог" in main.dialog._full, "Варвара здоровается по молве")
+	ok("помощничек" in main.dialog._full, "Варвара здоровается по молве — своими словами")
 	await choose(find_opt("Ещё что сделать"))
 	await choose(find_opt("Отнесу"))
 	await close_dialogs()
@@ -404,6 +404,81 @@ func _ready() -> void:
 	ok("amulet" in Game.worn() and int(Game.skill_bonus().get("Выдержка", 0)) >= 1, "амулет надет: Выдержка +1")
 	main.use_item("amulet")
 	ok(not "amulet" in Game.worn(), "амулет снят")
+	# --- дурная молва: люди сторонятся, пока не уговоришь ---
+	Game.change_rep(-35 - Game.rep())
+	var kid: Character = nak.character("Kid")
+	main.talk_to(kid)
+	await frames(2)
+	ok(main.dialog.node_id == "__avoid" and find_opt("[Убеждение]") >= 0 and find_opt("[Запугивание]") >= 0, "при дурной молве Мичил сторонится")
+	Game.force_check = 1
+	await choose(find_opt("[Убеждение]"))
+	ok(main.dialog.node_id == "start", "уговорил выслушать")
+	await shut()
+	Game.change_rep(0 - Game.rep())
+	# --- своя ветка у Мичила: за черту ---
+	main.talk_to(kid)
+	await frames(2)
+	await choose(find_opt("загадочный"))
+	await choose(find_opt("[Убеждение]"))
+	ok(Game.flag("kid_stays") and Game.item_count("t_whistle") >= 1, "Мичил остаётся ждать, отдал свисток")
+	await close_dialogs()
+	# --- кузнец: самопал под рогожей ---
+	var smith: Character = nak.character("Smith")
+	await tp(smith.global_position + Vector3(1.0, 0, 1.0))
+	var am0: int = Game.item_count("ammo9")
+	main.talk_to(smith)
+	await frames(2)
+	await choose(find_opt("рогожей"))
+	await choose(find_opt("[Внимательность]"))
+	ok(main.dialog.node_id == "gun", "Тимир куёт самопал")
+	await choose(find_opt("никому"))
+	ok(Game.flag("smith_trust") and Game.item_count("ammo9") == am0 + 3, "сохранил тайну — Тимир отлил пули")
+	await shut()
+	Game.force_check = 0
+	# --- старый язык: без Разума не понять ---
+	var int0: int = int(Game.hero.stats.get("INT", 5))
+	var zn0: int = int(Game.hero.skills.get("Знания", 0))
+	Game.hero.stats["INT"] = 3
+	Game.hero.skills["Знания"] = 0
+	var ebee: Character = nak.character("Ebee")
+	ok(ebee != null and ebee.visible, "эбээ Кэтириис у колодца")
+	await tp(ebee.global_position + Vector3(1.0, 0, 1.0))
+	main.talk_to(ebee)
+	await frames(2)
+	var sk_opts := 0
+	for vo in main.dialog._visible_opts:
+		if vo.has("sakha"):
+			sk_opts += 1
+	ok(sk_opts == 0 and find_opt("Не понимаю") >= 0 and "Дорообо" in main.dialog._full and not "присядь" in main.dialog._full, "без Разума — только звучание, без перевода")
+	await shut()
+	Game.hero.stats["INT"] = 7
+	main.talk_to(ebee)
+	await frames(2)
+	ok("присядь" in main.dialog._full and find_opt("Что нового") >= 0, "с Разумом — перевод и ответы по-якутски")
+	await choose(find_opt("Что нового"))
+	await choose(find_opt("Повешу"))
+	await close_dialogs()
+	ok(Game.quest_stage("salama") == 1 and Game.item_count("salama") == 1, "скрытое задание: повесить сэлэ")
+	var tree: Interactable = nak.item("SacredTree")
+	await tp(tree.global_position + Vector3(1.0, 0, 0.5))
+	nak.on_interact(tree)
+	await frames(2)
+	ok(Game.quest_stage("salama") == 2 and nak.get_node("Village/SacredTree/Ribbons").visible, "сэлэ на лиственнице — ленты видны")
+	await tp(ebee.global_position + Vector3(1.0, 0, 1.0))
+	main.talk_to(ebee)
+	await frames(2)
+	await choose(find_opt("повесил сэлэ"))
+	ok(Game.quest_stage("salama") == 3 and Game.item_count("ebee_charm") == 1, "эбээ дала оберег")
+	await choose(find_opt("Эллэя"))
+	ok("звезда" in str(Game.hero.notes), "эбээ: «на руке у него будет звезда»")
+	await shut()
+	main.talk_to(nak.character("Elder1"))
+	await frames(2)
+	await choose(find_opt("бормочешь"))
+	ok("сохнет" in main.dialog._full, "старик бормочет по-старому — понятно")
+	await shut()
+	Game.hero.stats["INT"] = int0
+	Game.hero.skills["Знания"] = zn0
 	Game.change_rep(rep_save - Game.rep())
 	await tp(nak.character("Ded").global_position + Vector3(2, 0, 2))
 	# жители ходят
@@ -1186,6 +1261,23 @@ func _ready() -> void:
 		main.interact(hop)
 		await wait(1.0)
 	ok(Game.item_count("hops") >= 3 and Game.quest_stage("hops") == 2, "хмель собран (%d)" % Game.item_count("hops"))
+	# араҥас: Дьаакып по-старому
+	var int2: int = int(Game.hero.stats.get("INT", 5))
+	Game.hero.stats["INT"] = 7
+	main.talk_to(hermit)
+	await frames(2)
+	await choose(find_opt("по-нашему"))
+	await choose(find_opt("прячется"))
+	await shut()
+	ok(Game.quest_stage("arangas") == 1, "Дьаакып рассказал про араҥас")
+	Game.hero.stats["INT"] = int2
+	Game.add_item("rusks")
+	var ara: Interactable = loc.item("Arangas")
+	ok(loc.item_actions(ara).size() == 3, "у араҥаса: осмотреть, оставить еду, снять бляху")
+	ara.set_meta("act", "offer")
+	loc.on_interact(ara)
+	ara.remove_meta("act")
+	ok(Game.quest_stage("arangas") == 2 and Game.flag("arangas_blessed"), "оставил еду у араҥаса")
 
 	# ======== ржавый конвой ========
 	loc.on_interact(loc.item("WestExit"))
@@ -1408,6 +1500,29 @@ func _ready() -> void:
 	ok(find_opt("работа") >= 0 or main.dialog._full.length() > 0, "при дурной молве — другой разговор")
 	await shut()
 	Game.change_rep(rep_end - Game.rep())
+	# ======== Байбал: скрытое задание на старом языке ========
+	var int1: int = int(Game.hero.stats.get("INT", 5))
+	Game.hero.stats["INT"] = 7
+	var bai: Character = loc.character("KrOld")
+	ok(bai != null, "огонньор Байбал у реки")
+	main.talk_to(bai)
+	await frames(2)
+	await choose(find_opt("Поговорить"))
+	await choose(find_opt("Деревню сожгли"))
+	await choose(find_opt("Куда он ушёл"))
+	await choose(find_opt("Принесу"))
+	await close_dialogs()
+	ok(Game.quest_stage("son_gun") == 1, "Байбал просит выкопать карабин сына")
+	loc.on_interact(loc.item("OldLarch"))
+	await frames(2)
+	ok(Game.item_count("carbine") == 1 and Game.quest_stage("son_gun") == 2, "карабин под лиственницей")
+	main.talk_to(bai)
+	await frames(2)
+	await choose(find_opt("Поговорить"))
+	await choose(find_opt("Я нашёл карабин"))
+	ok(Game.quest_stage("son_gun") == 3 and "сунгарским" in str(Game.hero.notes), "вернул карабин — Байбал рассказал про проводника")
+	await shut()
+	Game.hero.stats["INT"] = int1
 	# сохранение и загрузка в новой локации
 	main.autosave()
 	ok(Game.load_game("auto") and str(Game.hero.location) == "kresty", "сохранение в Крестах")

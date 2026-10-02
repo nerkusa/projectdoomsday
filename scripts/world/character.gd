@@ -454,7 +454,7 @@ func _update_two_hands() -> void:
 
 func _make_weapon_mesh(wkey: String) -> Node3D:
 	# готовая модель из scenes/weapons (собирает tools/build_weapons.gd)
-	var sp := "res://scenes/weapons/%s.tscn" % wkey
+	var sp := "res://scenes/weapons/%s.tscn" % str(DB.weapon(wkey).get("model", wkey))
 	if ResourceLoader.exists(sp):
 		return (load(sp) as PackedScene).instantiate()
 	var n := Node3D.new()

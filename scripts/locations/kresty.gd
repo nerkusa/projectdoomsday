@@ -65,6 +65,18 @@ func on_interact(it: Interactable) -> bool:
 		"Cemetery":
 			main.say("thoughts", "kresty_cemetery")
 			return true
+		"OldLarch":
+			if Game.flag("larch_dug"):
+				main.think("Яма под корнями. Пусто.")
+			elif Game.quest_stage("son_gun") >= 1 or Game.skill_check("Внимательность", "PRC", "Внимательность", 13):
+				Game.set_flag("larch_dug")
+				Game.add_item("carbine")
+				Game.set_quest("son_gun", 2)
+				Game.grant_xp(30)
+				main.think("Под корнями, в промасленной мешковине — карабин. На прикладе вырезано: «Ыйылаан». Чистый. Кто-то его берёг.")
+			else:
+				main.think("Старая лиственница. Под корнями земля чуть просела — или кажется.")
+			return true
 	return super.on_interact(it)
 
 
@@ -96,6 +108,8 @@ func item_actions(it: Interactable) -> Array:
 			return [["Осмотреть следы", "use"]]
 		"Cemetery":
 			return [["Постоять у крестов", "use"]]
+		"OldLarch":
+			return [["Раскопать под корнями", "use"]] if Game.quest_stage("son_gun") == 1 and not Game.flag("larch_dug") else [["Осмотреть", "use"]]
 	return super.item_actions(it)
 
 
@@ -109,6 +123,8 @@ func describe(it: Interactable) -> String:
 			return "Дорога на запад — к черте, к пепелищу."
 		"EastExit":
 			return "Дорога на восток. Говорят, к Сунгару."
+		"OldLarch":
+			return "Одинокая лиственница у восточной дороги. Ветки у самой земли обломаны."
 	return ""
 
 

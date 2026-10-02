@@ -5,45 +5,128 @@
     "start": {
       "text": "Здорово. Видишь дыру? Коза ночью вылезла, полдеревни её ловило. Доски у поленницы лежат, а у меня спину прихватило — не донесу.",
       "text_if": [
-        {"if": {"flag": "fence_done"}, "text": "Стоит забор, как влитой. Коза теперь только через крышу уйдёт. Спасибо, выручил."}
+        {
+          "if": {
+            "flag": "fence_done"
+          },
+          "text": "Стоит забор, как влитой. Коза теперь только через крышу уйдёт. Спасибо, выручил."
+        }
       ],
       "options": [
-        {"text": "Вот доски. [Отдать доски]", "next": "planks", "if": {"item": "planks", "not_flag": "fence_done"}},
-        {"text": "Сейчас принесу.", "next": null, "if": {"no_item": "planks", "not_flag": "fence_done"}},
-        {"text": "Как спина?", "next": "back"},
-        {"text": "[Уйти]", "next": null}
+        {
+          "text": "Вот доски. [Отдать доски]",
+          "next": "planks",
+          "if": {
+            "item": "planks",
+            "not_flag": "fence_done"
+          }
+        },
+        {
+          "text": "Сейчас принесу.",
+          "next": null,
+          "if": {
+            "no_item": "planks",
+            "not_flag": "fence_done"
+          }
+        },
+        {
+          "text": "Как спина?",
+          "next": "back"
+        },
+        {
+          "text": "[Уйти]",
+          "next": null
+        }
       ]
     },
     "planks": {
       "text": "О, другое дело. Прибьёшь сам? Гвозди вон в ящике. Или давай я, а ты держи.",
       "options": [
-        {"text": "[Механика] Прибью сам.", "check": {"stat": "INT", "skill": "Механика", "dc": 10}, "success": "fix_ok", "fail": "fix_bad", "take": {"planks": 1}},
-        {"text": "Давай ты, я подержу.", "next": "fix_help", "take": {"planks": 1}}
+        {
+          "text": "[Механика] Прибью сам.",
+          "check": {
+            "stat": "INT",
+            "skill": "Механика",
+            "dc": 10
+          },
+          "success": "fix_ok",
+          "fail": "fix_bad",
+          "take": {
+            "planks": 1
+          }
+        },
+        {
+          "text": "Давай ты, я подержу.",
+          "next": "fix_help",
+          "take": {
+            "planks": 1
+          }
+        }
       ]
     },
     "fix_ok": {
       "text": "Ровно! Ну надо же. Руки у тебя, видать, от деда. Спасибо, парень.",
       "xp": 25,
-      "set_flags": {"fence_done": true},
-      "options": [{"text": "Обращайся.", "next": null}]
+      "set_flags": {
+        "fence_done": true
+      },
+      "options": [
+        {
+          "text": "Обращайся.",
+          "next": null
+        }
+      ]
     },
     "fix_bad": {
       "text": "Эээ, по пальцам-то зачем? Дай сюда. Вот так, под углом. Ладно, держи крепче... Готово. Спасибо, что донёс.",
-      "set_flags": {"fence_done": true},
-      "options": [{"text": "Прости.", "next": null}]
+      "set_flags": {
+        "fence_done": true
+      },
+      "options": [
+        {
+          "text": "Прости.",
+          "next": null
+        }
+      ]
     },
     "fix_help": {
       "text": "Держи... Держи, говорю! Вот. Стоит. Спасибо, что донёс, без тебя бы до вечера корячился.",
-      "set_flags": {"fence_done": true},
-      "options": [{"text": "Обращайся.", "next": null}]
+      "set_flags": {
+        "fence_done": true
+      },
+      "options": [
+        {
+          "text": "Обращайся.",
+          "next": null
+        }
+      ]
     },
     "back": {
       "text": "Как у старого трактора — ноет и не заводится. Вот Боотур детали привезёт — и трактор починим, и меня заодно. Шучу.",
-      "options": [{"text": "Думаешь, он вернётся?", "next": "back2"}, {"text": "Ладно.", "next": "start"}]
+      "options": [
+        {
+          "text": "Думаешь, он вернётся?",
+          "next": "back2"
+        },
+        {
+          "text": "Ладно.",
+          "next": "start"
+        }
+      ]
     },
     "back2": {
       "text": "Год уже. Раньше говорил — вернётся. Сейчас молчу. Язык не поворачивается.",
-      "options": [{"text": "Ясно.", "next": "start"}]
+      "options": [
+        {
+          "text": "Ясно.",
+          "next": "start"
+        }
+      ]
     }
-  }
+  },
+  "greet": {
+    "good": "(Степан машет молотком.) О! Подсобить пришёл?",
+    "bad": "(Степан хмурится.) Опять ты."
+  },
+  "must_talk": true
 }

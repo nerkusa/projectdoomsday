@@ -92,12 +92,22 @@ func close() -> void:
 
 func show_node(id: String) -> void:
 	var nodes: Dictionary = data.get("nodes", {})
-	if not nodes.has(id):
+	# уговорил того, кто сторонился, — дальше говорит как обычно
+	if id == "start" and node_id == "__avoid" and speaker:
+		Game.set_flag("heard_" + speaker.uid())
+	var n: Dictionary
+	if id == "start" and _avoids():
+		id = "__avoid"
+		n = _avoid_node()
+	elif id == "__avoid_no":
+		n = {"text": _greet_line("avoid_no", AVOID_NO), "options": [{"text": "[Уйти]", "next": null}]}
+	elif nodes.has(id):
+		n = nodes[id]
+	else:
 		push_warning("Нет узла диалога: " + id)
 		close()
 		return
 	node_id = id
-	var n: Dictionary = nodes[id]
 	# эффекты узла: quest / set_flags / xp / note прямо в узле или в "on_enter"
 	_apply_effects(n)
 	_apply_effects(n.get("on_enter", {}))
@@ -105,7 +115,7 @@ func show_node(id: String) -> void:
 	var title: String = n.get("title", data.get("title", who)) if not n.has("speaker") else n.get("title", who)
 	_who.text = title.to_upper()
 	_face.text = who.left(1).to_upper() if who != "" else "…"
-	_full = _subst(_rep_greet(id, n) + _pick_text(n))
+	_full = _subst(_rep_greet(id, n) + _node_text(n))
 	_chars = 0.0
 	var d: float = DELAY.get(Game.settings.get("text_speed", "normal"), 0.028)
 	_typing = d > 0.0
@@ -114,6 +124,24 @@ func show_node(id: String) -> void:
 	_build_options(n.get("options", []))
 	if n.has("action"):
 		action.emit(n.action, speaker)
+
+
+## Текст узла. "sakha" — реплика на старом языке: с Разумом герой понимает
+## и видит перевод (text), без него — только звучание и text_nosakha.
+func _node_text(n: Dictionary) -> String:
+	var t := _pick_text(n)
+	if not n.has("sakha"):
+		return t
+	if Game.knows_sakha():
+		_sakha_noticed()
+		return "«%s»\n— %s" % [n.sakha, t]
+	return "«%s»\n%s" % [n.sakha, n.get("text_nosakha", "(Говорит на старом языке — саха тыла. Ты ловишь отдельные слова, но смысл ускользает.)")]
+
+
+func _sakha_noticed() -> void:
+	if not Game.flag("sakha_noticed"):
+		Game.set_flag("sakha_noticed")
+		Game.log_line("[Разум] Старый язык: понимаешь, о чём говорят.", "", "hit")
 
 
 func _pick_text(n: Dictionary) -> String:
@@ -130,13 +158,19 @@ func _build_options(opts: Array) -> void:
 	for o in opts:
 		if not _cond_ok(o.get("if", {})):
 			continue
+		# ответить на старом языке может только тот, кто его понимает
+		if o.has("sakha") and not Game.knows_sakha():
+			continue
 		_visible_opts.append(o)
 	if _visible_opts.is_empty():
 		_visible_opts.append({"text": "[Дальше]", "next": null})
 	for i in _visible_opts.size():
 		var o: Dictionary = _visible_opts[i]
 		var b := Button.new()
-		b.text = "%d. %s" % [i + 1, _subst(o.get("text", "…"))]
+		var ot := _subst(o.get("text", "…"))
+		if o.has("sakha"):
+			ot = "[Саха] «%s» (%s)" % [o.sakha, ot]
+		b.text = "%d. %s" % [i + 1, ot]
 		b.alignment = HORIZONTAL_ALIGNMENT_LEFT
 		b.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		b.focus_mode = Control.FOCUS_NONE
@@ -166,6 +200,11 @@ func _choose(i: int) -> void:
 		_finish_typing()
 	var o: Dictionary = _visible_opts[i]
 	_apply_effects(o)
+	if o.get("give_trinket", false):
+		var tk := _a_trinket()
+		if tk != "":
+			Game.remove_item(tk)
+			Game.log_line("Отдано: %s" % DB.item_name(tk))
 	var nxt = o.get("next", null)
 	if o.has("check"):
 		var c: Dictionary = o.check
@@ -220,7 +259,8 @@ func _apply_effects(o: Dictionary) -> void:
 
 ## Условия показа: {"flag": "...", "not_flag": "...", "flags": [...], "not_flags": [...], "quest": "id", "stage_min": 1,
 ## "stage_max": 2, "item": "ключ", "no_item": "ключ", "rep_min": 10, "rep_max": -10,
-## "cond": "имя проверки в скрипте локации"}
+## "cond": "имя проверки в скрипте локации", "sakha": true — герой понимает старый язык,
+## "trinket": true — в сумке есть безделушка}
 func _cond_ok(c: Dictionary) -> bool:
 	if c.is_empty():
 		return true
@@ -247,6 +287,10 @@ func _cond_ok(c: Dictionary) -> bool:
 	if c.has("no_item") and Game.item_count(c.no_item) > 0:
 		return false
 	if c.has("hurt") and Game.hero_hp() >= Game.hero_max():
+		return false
+	if c.has("sakha") and bool(c.sakha) != Game.knows_sakha():
+		return false
+	if c.has("trinket") and (_a_trinket() != "") != bool(c.trinket):
 		return false
 	if c.has("rep_min") and Game.rep() < int(c.rep_min):
 		return false
@@ -277,9 +321,56 @@ static func rep_tier() -> String:
 	return "plain"
 
 
-## Как к герою обращаются — по молве
+## Как к герою обращаются. Прозвищ по молве нет: добрая слава — «парень»,
+## дурная — «чужак», даже если свой.
 static func addr() -> String:
 	return str(DB._load("res://data/rep_greet.json").get("addr", {}).get(rep_tier(), "парень"))
+
+
+const AVOID_NO := "(Отворачивается.) Не о чем нам говорить."
+
+
+## Своя строка собеседника из "greet" его разговора, иначе — общая
+func _greet_line(key: String, fallback: String) -> String:
+	var own = data.get("greet", {}).get(key, null)
+	var lines: Array = []
+	if own is Array:
+		lines = own
+	elif own != null:
+		lines = [own]
+	else:
+		lines = DB._load("res://data/rep_greet.json").get(key, [])
+	if lines.is_empty():
+		return fallback
+	var seed := (speaker.uid() if speaker else "") + str(data.get("speaker", ""))
+	return str(lines[absi(hash(seed)) % lines.size()])
+
+
+## Сторонится ли собеседник героя: при очень дурной молве люди не хотят говорить —
+## пока не уговоришь, не запугаешь или не задобришь. Сюжетно важные — говорят всегда.
+func _avoids() -> bool:
+	if speaker == null or speaker.hostile or data.get("must_talk", false):
+		return false
+	if speaker.char_id in ["accused", "lost_kid", "target"] or speaker.pose in ["down", "yield", "dead"]:
+		return false
+	if rep_tier() != "monster" or Game.flag("heard_" + speaker.uid()):
+		return false
+	return true
+
+
+func _avoid_node() -> Dictionary:
+	return {"text": _greet_line("avoid", "(Отводит глаза и отходит.) Иди своей дорогой."), "options": [
+		{"text": "[Убеждение] Выслушай. Про меня врут.", "check": {"stat": "CHA", "skill": "Убеждение", "dc": 14}, "success": "start", "fail": "__avoid_no"},
+		{"text": "[Запугивание] Говорить будешь, когда спрашивают.", "check": {"stat": "BODY", "skill": "Запугивание", "dc": 13}, "success": "start", "fail": "__avoid_no", "rep": -2, "rep_why": "запугал человека"},
+		{"text": "[Отдать безделушку] Держи. Просто так.", "if": {"trinket": true}, "give_trinket": true, "next": "start"},
+		{"text": "[Уйти]", "next": null}]}
+
+
+func _a_trinket() -> String:
+	for k in Game.hero.items:
+		if DB.items.get(k, {}).get("trinket", false) and int(Game.hero.items[k]) > 0:
+			return str(k)
+	return ""
 
 
 ## Приветствие по молве перед первой репликой — если у разговора нет своего
@@ -287,7 +378,6 @@ static func addr() -> String:
 func _rep_greet(id: String, n: Dictionary) -> String:
 	if id != "start" or speaker == null or not visible:
 		return ""
-	var did: String = str(data.get("speaker", ""))
 	if speaker.hostile or speaker.char_id in ["accused", "lost_kid", "target"]:
 		return ""
 	for alt in n.get("text_if", []):
@@ -297,15 +387,17 @@ func _rep_greet(id: String, n: Dictionary) -> String:
 	var tier := rep_tier()
 	if tier == "plain":
 		return ""
-	var g := DB._load("res://data/rep_greet.json")
-	var key := tier
+	var key := "good" if tier in ["hero", "good"] else "bad"
 	var loc = get_tree().get_first_node_in_group("location")
+	var generic := key
 	if loc and loc.location_id == "nakharro":
-		key = "village_good" if tier in ["hero", "good"] else "village_bad"
-	var lines: Array = g.get(key, [])
-	if lines.is_empty():
-		return ""
-	return str(lines[absi(hash(speaker.uid() + did)) % lines.size()]) + "\n"
+		generic = "village_" + key
+	# свой голос у собеседника важнее общих строк
+	var own = data.get("greet", {}).get(key, null)
+	if own != null:
+		return _greet_line(key, "") + "\n"
+	var line := _greet_line(generic, "")
+	return (line + "\n") if line != "" else ""
 
 
 func _finish_typing() -> void:

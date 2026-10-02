@@ -10,7 +10,14 @@ func _ready() -> void:
 	super._ready()
 
 
+func _apply_arangas() -> void:
+	var m := get_node_or_null("Village/Arangas/Mirror")
+	if m:
+		m.visible = Game.quest_stage("arangas") != 3
+
+
 func on_world_state_applied() -> void:
+	_apply_arangas()
 	_apply_beast()
 
 
@@ -55,6 +62,35 @@ func on_interact(it: Interactable) -> bool:
 			else:
 				main.think("Здесь всё и случилось.")
 			return true
+		"Arangas":
+			var act := String(it.get_meta("act", ""))
+			var st := Game.quest_stage("arangas")
+			if st >= 2:
+				main.think("Помост, столбы, тишина. Ничего здесь больше не трогать.")
+			elif act == "offer":
+				var food := ""
+				for f in ["dried_fish", "rusks", "canned", "jam", "berries", "mushroom", "lunch"]:
+					if Game.item_count(f) > 0:
+						food = f
+						break
+				if food == "":
+					main.think("Положить нечего. Пустыми руками сюда не ходят.")
+				else:
+					Game.remove_item(food)
+					Game.set_quest("arangas", 2)
+					Game.set_flag("arangas_blessed")
+					Game.grant_xp(40)
+					main.think("Положил у столба: %s. Постоял. Ветер стих — разом, будто кто-то кивнул." % DB.item_name(food).to_lower())
+			elif act == "take":
+				Game.add_item("shaman_mirror")
+				Game.set_quest("arangas", 3)
+				_apply_arangas()
+				Game.set_hero_hp(maxi(1, Game.hero_hp() - 3))
+				Game.change_rep(-4, "осквернил могилу ойууна", false, true)
+				main.think("Сорвал медную бляху со столба. Холодно — до костей, на миг. Будто кто-то дохнул в затылок.")
+			else:
+				main.think("Араҥас: на четырёх столбах — колода-гроб. Старый обычай: шаманов не зарывали. На столбе висит позеленевшая медная бляха.")
+			return true
 	return super.on_interact(it)
 
 
@@ -76,6 +112,10 @@ func on_combat_end(res: String, _kind: String) -> void:
 func item_actions(it: Interactable) -> Array:
 	if String(it.name).begins_with("Trap"):
 		return [["Осмотреть капкан", "use"]]
+	if String(it.name) == "Arangas":
+		if Game.quest_stage("arangas") >= 2:
+			return [["Осмотреть", "use"]]
+		return [["Осмотреть", "use"], ["Оставить еду", "use:offer"], ["Снять медную бляху", "use:take"]]
 	return super.item_actions(it)
 
 
@@ -83,6 +123,8 @@ func describe(it: Interactable) -> String:
 	match String(it.name):
 		"Trap1", "Trap2":
 			return "Капкан Дьаакыпа на звериной тропе."
+		"Arangas":
+			return "Помост на четырёх столбах, на нём — колода. Могила ойууна, шамана." if Game.quest_stage("arangas") >= 1 else "Помост на четырёх столбах, на нём — тёмная колода. Странное место. Птицы здесь не поют."
 		"WestExit":
 			return "Тропа обратно на большую дорогу."
 	return ""

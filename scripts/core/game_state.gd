@@ -153,8 +153,10 @@ func set_quest(id: String, stage: int) -> void:
 	if stage >= int(q.get("done_stage", 999)):
 		log_line("Задание «%s» выполнено." % title, "", "hit")
 		# всякое доведённое до конца дело люди замечают
-		if was < int(q.get("done_stage", 999)) and int(q.get("rep", 0)) != 0:
-			change_rep(int(q.rep), "задание «%s»" % title)
+		# no_rep — исходы, которые молвы не прибавляют (обманул, оставил себе)
+		var r := 0 if str(stage) in q.get("no_rep", []) else int(q.get("rep", 0))
+		if was < int(q.get("done_stage", 999)) and r != 0:
+			change_rep(r, "задание «%s»" % title)
 	elif txt != "":
 		log_line("Задание «%s»: %s" % [title, txt], "", "hit")
 	quest_changed.emit(id)
@@ -273,6 +275,15 @@ func skill_check(label: String, stat: String, skill: String, dc: int, bonus := 0
 		"d10(%d) + %s(%d) + %s(%d)%s = %d против %d" % [r.d, Rules.stat_name(stat), sv, skill, kv,
 		(" + бонус(%d)" % bonus) if bonus else "", t, dc], "hit" if ok else "miss")
 	return ok
+
+
+## Понимает ли герой старый язык — саха тыла. Старики в деревнях говорят на нём,
+## молодёжь почти забыла. Хватает Разума 6 (или 5 и Знаний 3), либо научили.
+func knows_sakha() -> bool:
+	if flag("sakha_learned"):
+		return true
+	var i := hero_stat("INT")
+	return i >= 6 or (i >= 5 and int(effective_skills().get("Знания", 0)) >= 3)
 
 
 ## Характеристика героя с учётом кассет (+1 к характеристике)

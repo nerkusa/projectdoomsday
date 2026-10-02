@@ -84,12 +84,22 @@ func on_new_game() -> void:
 
 func on_world_state_applied() -> void:
 	_apply_phase()
+	_apply_sacred()
+
+
+## на лиственнице — новая сэлэ с лентами, если герой её повесил
+func _apply_sacred() -> void:
+	var t := get_node_or_null("Village/SacredTree")
+	if t:
+		t.get_node("Ribbons").visible = Game.flag("salama_tied")
+		t.get_node("OldRags").visible = not Game.flag("salama_tied")
 
 
 func on_enter() -> void:
 	# сцена у ворот идёт на таймерах; после загрузки её уже нет — бой начнётся у ворот сам
 	Game.set_flag("gate_scene_running", false)
 	_apply_phase()
+	_apply_sacred()
 
 
 func _apply_phase() -> void:
@@ -800,6 +810,19 @@ func on_looted(ch: Character) -> void:
 
 
 func on_interact(it: Interactable) -> bool:
+	if it.name == "SacredTree":
+		if Game.quest_stage("salama") == 1 and Game.item_count("salama") > 0:
+			Game.remove_item("salama")
+			Game.set_flag("salama_tied")
+			Game.set_quest("salama", 2)
+			Game.grant_xp(20)
+			_apply_sacred()
+			main.think("Обвязал ствол волосяной верёвкой, расправил ленты. Ветер шевелит их — красные, белые, синие. Будто дерево вздохнуло.")
+		elif Game.flag("salama_tied"):
+			main.think("Ленты треплет ветер. Красиво. И как-то спокойнее.")
+		else:
+			main.think("Старая лиственница, самая большая у опушки. На нижних ветках — истлевшие серые лоскуты. Кто-то когда-то их вешал.")
+		return true
 	if it.name == "CellarHatch":
 		if phase() == "raid":
 			main.think("Не до подпола. Там — дед.")
@@ -1172,6 +1195,10 @@ func _open_chest(it: Interactable) -> void:
 ## Действия по правой кнопке для вещей и мест этой локации
 func item_actions(it: Interactable) -> Array:
 	var n := String(it.name)
+	if n == "SacredTree":
+		if Game.quest_stage("salama") == 1 and Game.item_count("salama") > 0:
+			return [["Повесить сэлэ", "use"]]
+		return [["Осмотреть", "use"]]
 	if n.begins_with("Junk"):
 		return [["Разобрать", "use"]]
 	if n == "LockedBox":
@@ -1202,6 +1229,8 @@ func item_actions(it: Interactable) -> Array:
 
 func describe(it: Interactable) -> String:
 	var n := String(it.name)
+	if n == "SacredTree":
+		return "Аар Луук Мас — так старики зовут эту лиственницу. Самая старая у опушки." + (" На ней — новая сэлэ с лентами." if Game.flag("salama_tied") else "")
 	if n == "LockedBox":
 		return "Тяжёлый общий сундук с навесным замком. Ключ носит тётка Варвара." if not Game.flag("box_open") else "Сундук открыт."
 	if n.begins_with("Junk"):
