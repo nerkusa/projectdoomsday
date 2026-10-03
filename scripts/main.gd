@@ -65,6 +65,7 @@ var _plants: Array = []
 
 
 func _ready() -> void:
+	Clock.main = self
 	camera = Camera3D.new()
 	camera.projection = Camera3D.PROJECTION_ORTHOGONAL
 	camera.size = zoom
@@ -297,6 +298,7 @@ func load_location(id: String, spawn := "Start", pos = null) -> void:
 		player.char_id = "hero"
 	location.add_child(player)
 	player.display_name = Game.hero.name
+	player.apply_hero_skin()
 	player.pose = ""
 	var p: Vector3 = pos if pos != null else location.spawn_point(spawn)
 	player.global_position = Vector3(p.x, 0, p.z)
@@ -311,6 +313,9 @@ func load_location(id: String, spawn := "Start", pos = null) -> void:
 	hud.refresh()
 	hud.refresh_objective()
 	location.on_enter()
+	# жители — по расписанию, свет — по времени суток
+	Clock.update_schedules(true)
+	Clock.apply_light(location)
 
 
 func autosave() -> void:
@@ -342,7 +347,7 @@ func show_end(mode := "end_prologue") -> void:
 func status_text() -> String:
 	if location == null:
 		return ""
-	return "%s · %s" % [location.title, location.status_line() if location.has_method("status_line") else ""]
+	return "%s · %s · %s" % [location.title, location.status_line() if location.has_method("status_line") else "", Clock.text().to_lower()]
 
 
 func objective_text() -> String:
@@ -519,6 +524,8 @@ func _sneak_radius(base: float) -> float:
 
 func on_combat_start() -> void:
 	attack_mode = false
+	for ch in location.characters():
+		ch.show_cone(false, 0.0)
 	_pending = {}
 	if dialog.visible:
 		dialog.close()
@@ -527,7 +534,57 @@ func on_combat_start() -> void:
 
 
 # ---------------- диалоги ----------------
+## Обычные жители — без разговора: по клику бросают реплику над головой
+const FILLER_DIALOGS := ["rumors", "kr_rumors", "camp_rumors"]
+
+
+func is_filler(ch: Character) -> bool:
+	return not ch.hostile and ch.pose != "dead" and not ch.is_in_group("range_targets") \
+		and (ch.dialog == "" or ch.dialog in FILLER_DIALOGS)
+
+
+func filler_bark(ch: Character) -> void:
+	var b := DB._load("res://data/barks.json")
+	var lid: String = location.location_id if location else ""
+	var text := ""
+	var tier := DialogBox.rep_tier()
+	if tier == "hero":
+		tier = "good"
+	var asleep: bool = ch.has_meta("asleep") and ch.get_meta("asleep")
+	if asleep or (has_node("/root/Clock") and Clock.is_night() and lid != "encounter"):
+		var nl: Array = b.get("night", [])
+		text = str(nl[randi() % nl.size()])
+	else:
+		# слух: сперва важные (once), иначе иногда — случайный, если не сторонятся
+		var rumors: Array = b.get("rumors", {}).get("kresty" if lid == "kresty" else ("camp" if lid == "camp" else lid), [])
+		var pick = null
+		for r in rumors:
+			if r.has("once") and not Game.flag(str(r.once)) and dialog._cond_ok(r.get("if", {})):
+				pick = r
+				break
+		if pick == null and tier in ["good", "plain"] and randf() < 0.4:
+			var plain := rumors.filter(func(r): return not r.has("once"))
+			if not plain.is_empty():
+				pick = plain[randi() % plain.size()]
+		if pick != null:
+			text = str(pick.text)
+			if pick.has("once"):
+				Game.set_flag(str(pick.once))
+			dialog._apply_effects(pick)
+		else:
+			var lines: Dictionary = b.get("village" if lid == "nakharro" else "generic", {})
+			var arr: Array = lines.get(tier, lines.get("plain", ["…"]))
+			text = str(arr[randi() % arr.size()])
+	if ch.pose == "" and not asleep:
+		ch.face_towards(player.global_position)
+	ch.bark(text)
+	Game.log_line("%s: «%s»" % [ch.display_name, text], "", "look")
+
+
 func talk_to(ch: Character, node := "") -> void:
+	if is_filler(ch):
+		filler_bark(ch)
+		return
 	if ch.dialog == "":
 		return
 	player.face_towards(ch.global_position)
@@ -576,6 +633,8 @@ func _on_dialog_action(a: String, sp: Character) -> void:
 			var before := Game.hero_hp()
 			Game.set_hero_hp(before + a1 + b1)
 			Game.log_line("Короткий отдых: ХП %d, стало %d" % [before, Game.hero_hp()], "2d6 (%d+%d)" % [a1, b1])
+			Clock.advance(2.0)
+			Clock.update_schedules(true)
 		"end":
 			dialog.close()
 		"trade":
@@ -657,10 +716,28 @@ func _unhandled_input(e: InputEvent) -> void:
 					combat.aim = not combat.aim
 					combat.burst = false
 					combat.changed.emit()
+			KEY_T:
+				wait_time(e.shift_pressed)
 			KEY_F5:
 				quicksave()
 			KEY_F9:
 				_load_slot("quick")
+
+
+## Подождать: час, или (until_morning) до восьми утра. Нельзя в бою и когда рядом враги
+func wait_time(until_morning := false) -> void:
+	if combat.on or location == null:
+		return
+	for ch in location.characters():
+		if ch.hostile and ch.visible and ch.pose != "dead" and ch.global_position.distance_to(player.global_position) < 20.0:
+			hud.flash_tip("Рядом враги — не до отдыха")
+			return
+	var dh := Clock.until(8.0) if until_morning else 1.0
+	Clock.advance(dh)
+	Clock.update_schedules(true)
+	Clock.apply_light(location)
+	Game.log_line("Ждёшь %s. %s" % ["до утра" if until_morning else "час", Clock.text().to_lower()])
+	hud.refresh()
 
 
 func _pick(screen_pos: Vector2) -> Dictionary:
@@ -859,10 +936,14 @@ func interact(it: Interactable) -> void:
 	if location.on_interact(it):
 		return
 	if it.kind != "item" or it.item_id == "":
+		# своей реакции у места нет — герой хотя бы скажет, что видит
+		examine(it)
 		return
 	if not location.can_pick(it):
 		return
 	var take := func():
+		if not is_instance_valid(it) or location == null:
+			return
 		location.ws().picked[it.uid()] = true
 		it.set_active(false)
 		Game.add_item(it.item_id, it.count)
@@ -977,8 +1058,9 @@ func examine(target: Node3D) -> void:
 		if t == "" and it.item_id != "":
 			t = str(DB.items.get(it.item_id, {}).get("desc", DB.weapon(it.item_id).get("desc", "")))
 		if t == "":
-			t = it.title() + "."
-	Game.log_line(t, "", "look")
+			t = it.title() + ". Ничего особенного."
+	# осмотр виден сразу — мыслью над головой (и в журнале)
+	hud.think(t)
 
 
 ## Меню по правой кнопке: список действий для того, что под курсором
@@ -998,7 +1080,9 @@ func _open_actions(sp: Vector2) -> bool:
 		elif ch.hostile:
 			_act_list.append(["Атаковать", ch, "attack"])
 		else:
-			if ch.dialog != "":
+			if is_filler(ch):
+				_act_list.append(["Окликнуть", ch, "talk"])
+			elif ch.dialog != "":
 				_act_list.append(["Говорить", ch, "talk"])
 			if not ch.is_in_group("range_targets"):
 				_act_list.append(["Обокрасть", ch, "steal"])
@@ -1164,13 +1248,21 @@ func _set_alpha(n: Node, a: float) -> void:
 
 
 func _check_aggro() -> void:
+	# конусы зрения врагов видны, пока герой крадётся
+	var cones: bool = Game.hero.get("sneak", false) and not combat.on
+	for ch in location.characters():
+		if ch.hostile and ch.aggro_radius > 0 and ch.visible and ch.pose != "dead":
+			ch.show_cone(cones, _sneak_radius(ch.aggro_radius))
+		elif ch._cone:
+			ch.show_cone(false, 0.0)
 	if hidden:
 		return
 	for ch in location.characters():
 		if not ch.hostile or ch.aggro_radius <= 0 or ch.pose == "dead" or not ch.visible:
 			continue
-		var d := Vector2(ch.global_position.x - player.global_position.x, ch.global_position.z - player.global_position.z).length()
-		if d <= _sneak_radius(ch.aggro_radius) and location.grid.line_clear(ch.global_position, player.global_position, space()):
+		# видит в секторе перед собой; вплотную — слышит (крадучись — ближе)
+		var hear := 1.2 if Game.hero.get("sneak", false) else 2.5
+		if ch.in_view(player.global_position, _sneak_radius(ch.aggro_radius), hear) and location.grid.line_clear(ch.global_position, player.global_position, space()):
 			player.stop()
 			if location.has_method("on_noticed") and location.on_noticed(ch):
 				return

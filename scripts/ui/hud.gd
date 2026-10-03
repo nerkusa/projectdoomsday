@@ -554,9 +554,11 @@ func hide_tip() -> void:
 		_tip.visible = false
 
 
+## Короткий отклик на действие: у курсора и мыслью над героем (и в журнале)
 func flash_tip(t: String) -> void:
 	show_tip(t)
 	_tip_timer = 1.3
+	think(t)
 
 
 func toast(t: String, dur := 2.5) -> void:

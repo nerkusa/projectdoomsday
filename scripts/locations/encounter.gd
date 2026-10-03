@@ -872,4 +872,4 @@ func objective() -> String:
 
 
 func status_line() -> String:
-	return "2062 · в пути · " + main.world_map.time_text().to_lower()
+	return "2062 · в пути"

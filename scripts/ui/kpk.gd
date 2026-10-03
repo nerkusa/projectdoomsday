@@ -303,7 +303,21 @@ func _render_stat() -> void:
 		g.add_child(p)
 	var ap := Rules.ap_for(Game.effective_stats(), Game.hero_hp(), Game.hero_max())
 	_screen.add_child(_g("ОД в бою: %d" % ap, 13))
-	_screen.add_child(_g("Молва: %+d — %s" % [Game.rep(), Rules.rep_label(Game.rep())], 13))
+	_screen.add_child(_g("Молва: %+d (шкала −100…+100) — %s" % [Game.rep(), Rules.rep_label(Game.rep())], 13))
+	# шкала молвы: середина — ноль, влево дурная слава, вправо добрая
+	var bar := ProgressBar.new()
+	bar.min_value = -100
+	bar.max_value = 100
+	bar.value = Game.rep()
+	bar.show_percentage = false
+	bar.custom_minimum_size = Vector2(0, 8)
+	var fill := StyleBoxFlat.new()
+	fill.bg_color = UITheme.GREEN_HI if Game.rep() >= 0 else UITheme.RED
+	var bg := StyleBoxFlat.new()
+	bg.bg_color = Color(UITheme.GREEN_DIM, 0.25)
+	bar.add_theme_stylebox_override("fill", fill)
+	bar.add_theme_stylebox_override("background", bg)
+	_screen.add_child(bar)
 	var top := []
 	for k in h.skills:
 		if int(h.skills[k]) > 0:

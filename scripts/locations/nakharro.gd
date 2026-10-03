@@ -108,6 +108,9 @@ func _apply_phase() -> void:
 		_set_on(n, not raid)
 	for n in get_tree().get_nodes_in_group("phase_raid"):
 		_set_on(n, raid)
+	# во время налёта все настороже — смотрят по сторонам, обзор круговой
+	for ch in characters():
+		ch.fov_deg = 360.0 if raid else 0.0
 	_apply_light()
 	_apply_fence()
 	# лесные жители, ушедшие домой к вечеру
@@ -174,9 +177,21 @@ func _apply_light() -> void:
 		sun.rotation.x = deg_to_rad(lerpf(-48.0, -22.0, k))
 
 
+## Свет по часам — только обычным днём; вечер перед налётом и пожар — свои
+func uses_clock_light() -> bool:
+	return phase() == "morning" and not Game.flag("dusk")
+
+
+## Жители живут по расписанию, пока в Нахарро мирно
+func schedule_active(_ch: Character) -> bool:
+	return phase() == "morning"
+
+
 func _set_on(n: Node, on: bool) -> void:
 	if n is Character:
 		var ch := n as Character
+		if ch.get_meta("asleep", false):
+			on = false
 		if ws().misc.has("gone_" + ch.uid()):
 			on = false
 		ch.visible = on
@@ -443,6 +458,10 @@ func on_picked(it: Interactable) -> void:
 # ---------------- вечер: лесные жители уходят домой ----------------
 func _dusk() -> void:
 	Game.set_flag("dusk")
+	# вечереет: часы — не раньше семи вечера этого дня
+	var hd := fmod(Clock.hours(), 24.0)
+	if hd >= 5.0 and hd < 19.0:
+		Clock.set_hours(Clock.hours() - hd + 19.0)
 	main.hud.toast("Прошло несколько часов", 3.0)
 	main.say("thoughts", "dusk")
 	for n in get_tree().get_nodes_in_group("forest_folk"):
@@ -1256,6 +1275,7 @@ var _fence_init := false
 ## Герой сам прибивает доски в дыру забора (или это сделал Степан в разговоре)
 func _mend_fence() -> void:
 	if Game.flag("fence_done"):
+		main.think("Забор цел. Доски держат.")
 		return
 	if Game.item_count("planks") <= 0:
 		main.hud.flash_tip("Нужны доски — Степан говорил, лежат у поленницы")

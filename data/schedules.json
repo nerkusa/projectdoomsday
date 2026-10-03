@@ -1,0 +1,29 @@
+{
+  "_help": "Расписание жителей: имя персонажа в сцене → from / to (часы работы; to > 24 — после полуночи, например 26 = до 2 ночи). Днём житель на своём месте (где стоит в сцене, со своим маршрутом), в остальное время уходит домой и до утра его не видно. Дом — home_node (узел в Village), home [x, z] или, по умолчанию, ближайшая изба.",
+  "nakharro": {
+    "Varvara": {"from": 7, "to": 21},
+    "Stepan": {"from": 7, "to": 21},
+    "Kid": {"from": 8, "to": 20},
+    "Smith": {"from": 8, "to": 20},
+    "Shooter": {"from": 9, "to": 19},
+    "Gambler": {"from": 11, "to": 23},
+    "Elder1": {"from": 9, "to": 19},
+    "Nyurguyana": {"from": 8, "to": 20},
+    "Ebee": {"from": 9, "to": 18},
+    "WaterCarrier": {"from": 6, "to": 20},
+    "Villager3": {"from": 9, "to": 20},
+    "Villager4": {"from": 9, "to": 20}
+  },
+  "kresty": {
+    "Trader": {"from": 9, "to": 20},
+    "Brewer": {"from": 10, "to": 23, "home_node": "Brewery"},
+    "KrHead": {"from": 8, "to": 21, "home_node": "HeadHouse"},
+    "Fisher": {"from": 5, "to": 19, "home_node": "FisherHut"},
+    "KrOld": {"from": 7, "to": 20},
+    "Granny": {"from": 9, "to": 19},
+    "Drunk": {"from": 12, "to": 26},
+    "KrVillager1": {"from": 9, "to": 20},
+    "KrVillager2": {"from": 9, "to": 20},
+    "KrKid": {"from": 8, "to": 20}
+  }
+}

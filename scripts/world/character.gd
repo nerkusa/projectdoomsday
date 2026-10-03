@@ -20,6 +20,9 @@ extends Node3D
 @export var hostile := false
 ## С какого расстояния враг замечает героя (0 — не замечает сам)
 @export var aggro_radius := 0.0
+## Поле зрения: сектор перед собой (градусы). 0 — по шаблону: звери чуют кругом (360),
+## люди видят перед собой (120)
+@export var fov_deg := 0.0
 ## Группа врагов: все из одной группы вступают в бой вместе
 @export var squad := ""
 ## Лежит мёртвым с начала (труп, который можно обыскать)
@@ -102,6 +105,10 @@ func _ready() -> void:
 		return
 	add_to_group("characters")
 	tpl = DB.characters.get(char_id, {})
+	# герой — в той одежде, что выбрали при создании
+	if char_id == "hero" and str(Game.hero.get("skin", "")) != "":
+		tpl = tpl.duplicate(true)
+		tpl.look["skin_tex"] = str(Game.hero.skin)
 	if display_name == "":
 		display_name = tpl.get("name", char_id)
 	_build_visual()
@@ -217,6 +224,113 @@ func stop() -> void:
 	_on_arrive = Callable()
 
 
+var _bark: Label3D
+var _bark_t := 0.0
+
+
+## Короткая реплика над головой — без окна разговора (жители, прохожие)
+func bark(text: String, sec := 0.0) -> void:
+	if _bark == null:
+		_bark = Label3D.new()
+		_bark.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+		_bark.no_depth_test = true
+		_bark.pixel_size = 0.0075
+		_bark.font_size = 32
+		_bark.outline_size = 10
+		_bark.modulate = Color("f2e6c8")
+		_bark.outline_modulate = Color(0, 0, 0, 0.9)
+		_bark.width = 520.0
+		_bark.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		_bark.position = Vector3(0, 2.25, 0)
+		add_child(_bark)
+	_bark.text = text
+	_bark.visible = true
+	_bark.modulate.a = 1.0
+	_bark_t = sec if sec > 0.0 else 2.5 + text.length() * 0.05
+
+
+func barking() -> bool:
+	return _bark != null and _bark.visible
+
+
+## Сменить одежду героя (новая игра другим персонажем)
+func apply_hero_skin() -> void:
+	if char_id != "hero" or not (body is AnimBody):
+		return
+	var skin := str(Game.hero.get("skin", "res://assets/models/hero_model.png"))
+	if skin == "":
+		return
+	tpl = tpl.duplicate(true)
+	tpl.look["skin_tex"] = skin
+	for mi in _body_meshes:
+		if mi is MeshInstance3D and (mi as MeshInstance3D).get_surface_override_material(0) is StandardMaterial3D:
+			var m := ((mi as MeshInstance3D).get_surface_override_material(0) as StandardMaterial3D).duplicate() as StandardMaterial3D
+			if m.albedo_texture:
+				m.albedo_texture = load(skin)
+				(mi as MeshInstance3D).set_surface_override_material(0, m)
+
+
+## Сектор обзора в градусах
+func fov() -> float:
+	if fov_deg > 0.0:
+		return fov_deg
+	if tpl.has("fov"):
+		return float(tpl.fov)
+	var w := DB.weapon(str(tpl.get("weapon", "fists")))
+	return 360.0 if w.get("natural", false) else 120.0
+
+
+## Видит ли точку: в пределах radius и в секторе взгляда; ближе hear — слышит со всех сторон
+func in_view(p: Vector3, radius: float, hear := 2.5) -> bool:
+	var d := Vector2(p.x - global_position.x, p.z - global_position.z)
+	var dist := d.length()
+	if dist > radius:
+		return false
+	if dist <= hear or fov() >= 359.0:
+		return true
+	var fwd := Vector2(sin(rotation.y), cos(rotation.y))
+	return fwd.dot(d / maxf(dist, 0.001)) >= cos(deg_to_rad(fov() * 0.5))
+
+
+var _cone: MeshInstance3D
+var _cone_key := ""
+
+
+## Конус зрения на земле — когда герой крадётся, видно, куда смотрит враг
+func show_cone(on: bool, radius: float) -> void:
+	if not on:
+		if _cone:
+			_cone.visible = false
+		return
+	var key := "%.1f/%.0f" % [radius, fov()]
+	if _cone == null:
+		_cone = MeshInstance3D.new()
+		_cone.name = "ViewCone"
+		_cone.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		var m := StandardMaterial3D.new()
+		m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+		m.albedo_color = Color(1.0, 0.35, 0.2, 0.16)
+		m.cull_mode = BaseMaterial3D.CULL_DISABLED
+		m.no_depth_test = false
+		_cone.material_override = m
+		add_child(_cone)
+	if key != _cone_key:
+		_cone_key = key
+		var st := SurfaceTool.new()
+		st.begin(Mesh.PRIMITIVE_TRIANGLES)
+		var half := deg_to_rad(minf(fov(), 359.0) * 0.5)
+		var n := 24
+		for i in n:
+			var a0 := -half + 2.0 * half * i / n
+			var a1 := -half + 2.0 * half * (i + 1) / n
+			st.add_vertex(Vector3(0, 0.06, 0))
+			st.add_vertex(Vector3(sin(a0), 0.0, cos(a0)) * radius + Vector3(0, 0.06, 0))
+			st.add_vertex(Vector3(sin(a1), 0.0, cos(a1)) * radius + Vector3(0, 0.06, 0))
+		_cone.mesh = st.commit()
+	_cone.visible = true
+
+
 func face_towards(p: Vector3) -> void:
 	var d := p - global_position
 	if d.length_squared() > 0.0001:
@@ -227,6 +341,12 @@ func _process(delta: float) -> void:
 	if Engine.is_editor_hint() or body == null:
 		return
 	_t += delta
+	if _bark and _bark.visible:
+		_bark_t -= delta
+		if _bark_t < 0.6:
+			_bark.modulate.a = maxf(0.0, _bark_t / 0.6)
+		if _bark_t <= 0.0:
+			_bark.visible = false
 	if moving and not path.is_empty():
 		var tgt: Vector3 = path[0]
 		var g := global_position

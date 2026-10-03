@@ -1,7 +1,9 @@
 class_name CharSheet
 extends Control
-## «Дело» — лист персонажа. До начала игры очки раскладываются свободно
-## (пулы 40/60, потолок характеристики 8). Потом — только очками уровня.
+## «Дело» — лист персонажа. Новая игра начинается с выбора одного из четырёх готовых
+## героев (data/presets.json): портреты сняты с самой модели. После выбора — слева
+## характеристики и навыки (до начала игры их можно перераскидать), справа модель крутится.
+## Потом очки — только за уровни.
 
 signal closed
 
@@ -12,6 +14,11 @@ var _skills_box: VBoxContainer
 var _derived: Label
 var _done: Button
 var _rand: Button
+var _back: Button
+var _main: Control
+var _pick: Control
+var _view: ModelView
+var _title: Label
 
 
 func setup() -> void:
@@ -23,11 +30,12 @@ func setup() -> void:
 	add_child(dim)
 	var body := UITheme.panel(UITheme.plastic(10))
 	body.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
-	body.offset_left = -500
-	body.offset_right = 500
-	body.offset_top = -380
-	body.offset_bottom = 380
+	body.offset_left = -640
+	body.offset_right = 640
+	body.offset_top = -390
+	body.offset_bottom = 390
 	add_child(body)
+	_main = body
 	var v := VBoxContainer.new()
 	v.add_theme_constant_override("separation", 10)
 	body.add_child(v)
@@ -54,6 +62,9 @@ func setup() -> void:
 	_name.add_theme_font_size_override("font_size", 16)
 	_name.text_changed.connect(func(t): Game.hero.name = t if t.strip_edges() != "" else "Безымянный")
 	nh.add_child(_name)
+	_title = UITheme.label("", 12, UITheme.INK)
+	_title.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	pv.add_child(_title)
 	pv.add_child(UITheme.stripe(7))
 	var pp := UITheme.panel(UITheme.screen(false, 10))
 	pp.custom_minimum_size = Vector2(260, 0)
@@ -89,9 +100,19 @@ func setup() -> void:
 	_skills_box = VBoxContainer.new()
 	_skills_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	sc.add_child(_skills_box)
+	# справа — сам герой, крутится на месте
+	var mp := UITheme.panel(UITheme.screen(false, 6))
+	mp.custom_minimum_size = Vector2(300, 0)
+	cols.add_child(mp)
+	_view = ModelView.new()
+	_view.setup(Vector2i(290, 560), false, true)
+	mp.add_child(_view)
 	var foot := HBoxContainer.new()
 	foot.add_theme_constant_override("separation", 10)
 	v.add_child(foot)
+	_back = UITheme.key("← Другой герой", "normal")
+	_back.pressed.connect(_show_pick)
+	foot.add_child(_back)
 	_rand = UITheme.key("Случайно", "warn")
 	_rand.pressed.connect(_randomize)
 	foot.add_child(_rand)
@@ -102,14 +123,101 @@ func setup() -> void:
 	_done = UITheme.key("Готово", "primary")
 	_done.pressed.connect(close)
 	foot.add_child(_done)
+	_build_pick()
 	visible = false
+
+
+## Экран выбора: четыре готовых героя с портретами
+func _build_pick() -> void:
+	var panel := UITheme.panel(UITheme.plastic(12))
+	panel.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
+	panel.offset_left = -700
+	panel.offset_right = 700
+	panel.offset_top = -330
+	panel.offset_bottom = 330
+	add_child(panel)
+	_pick = panel
+	var v := VBoxContainer.new()
+	v.add_theme_constant_override("separation", 10)
+	panel.add_child(v)
+	var paper := UITheme.panel(UITheme.paper())
+	v.add_child(paper)
+	var hv := VBoxContainer.new()
+	paper.add_child(hv)
+	hv.add_child(UITheme.label("КТО ТЫ?", 22, UITheme.INK_2, true))
+	hv.add_child(UITheme.label("Четверо внуков деда Уйбаана. Выбери, кем начнёшь, — потом очки можно перераскидать.", 13, UITheme.INK))
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 12)
+	row.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	v.add_child(row)
+	for p in presets():
+		var card := UITheme.panel(UITheme.screen(false, 8))
+		card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		row.add_child(card)
+		var cv := VBoxContainer.new()
+		cv.add_theme_constant_override("separation", 6)
+		card.add_child(cv)
+		var mv := ModelView.new()
+		mv.setup(Vector2i(300, 300), true, false)
+		mv.name = "Portrait_" + str(p.id)
+		cv.add_child(mv)
+		mv.show_skin(str(p.skin))
+		cv.add_child(UITheme.label(str(p.name).to_upper(), 20, UITheme.AMBER_HOT, true))
+		cv.add_child(UITheme.label(str(p.title), 13, UITheme.AMBER_DIM, true))
+		var d := UITheme.label(str(p.desc), 12, UITheme.AMBER)
+		d.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		d.size_flags_vertical = Control.SIZE_EXPAND_FILL
+		cv.add_child(d)
+		var b := UITheme.key("Выбрать", "primary")
+		b.pressed.connect(pick.bind(str(p.id)))
+		cv.add_child(b)
+
+
+static func presets() -> Array:
+	return DB._load("res://data/presets.json").get("list", [])
+
+
+## Взять готового героя: имя, характеристики, навыки, одежда
+func pick(id: String) -> void:
+	for p in presets():
+		if str(p.id) != id:
+			continue
+		var h := Game.hero
+		h.name = str(p.name)
+		h.preset = id
+		h.skin = str(p.skin)
+		h.stats = (p.stats as Dictionary).duplicate()
+		var sk := {}
+		for k in Rules.all_skills():
+			sk[k.name] = int(p.skills.get(k.name, 0))
+		h.skills = sk
+		_show_main()
+		return
+
+
+func _show_pick() -> void:
+	if Game.hero.locked:
+		return
+	_pick.visible = true
+	_main.visible = false
+
+
+func _show_main() -> void:
+	_pick.visible = false
+	_main.visible = true
+	_name.text = Game.hero.name
+	_name.editable = not Game.hero.locked
+	_view.show_skin(str(Game.hero.get("skin", "res://assets/models/hero_model.png")))
+	render()
 
 
 func open() -> void:
 	visible = true
-	_name.text = Game.hero.name
-	_name.editable = not Game.hero.locked
-	render()
+	# новая игра — сначала выбор героя; потом лист открывается сразу
+	if not Game.hero.locked and not Game.hero.has("preset"):
+		_show_pick()
+	else:
+		_show_main()
 
 
 func close() -> void:
@@ -204,6 +312,12 @@ func render() -> void:
 	else:
 		_pools.text = "Характеристики: %d/%d\nНавыки: %d/%d\nПотолок характеристики: %d" % [Rules.sum_stats(h.stats), Game.stat_pool(), Rules.sum_skill_points(h.skills), Game.skill_pool(), Game.stat_cap()]
 	_rand.visible = not L
+	_back.visible = not L
+	var pr := ""
+	for p in presets():
+		if str(p.id) == str(h.get("preset", "")):
+			pr = "%s. %s" % [p.title, p.desc]
+	_title.text = pr
 	_done.text = "Закрыть" if L else "Готово — начать"
 	for c in _stats_box.get_children():
 		c.queue_free()
@@ -222,7 +336,7 @@ func render() -> void:
 		row.add_child(_pm("+", can_s(s.key, 1), ch_stat.bind(s.key, 1)))
 		_stats_box.add_child(row)
 	var mx := Game.hero_max()
-	_derived.text = "ХП: %d  (Тело×2 + Реакция×2 + d10)\nОД в бою: %d  (5 + Реакция/2)\nМолва: %+d — %s" % [mx, Rules.ap_for(Game.effective_stats(), mx, mx), Game.rep(), Rules.rep_label(Game.rep())]
+	_derived.text = "Здоровье: %d\nОчки действия в бою: %d\nМолва: %+d — %s" % [mx, Rules.ap_for(Game.effective_stats(), mx, mx), Game.rep(), Rules.rep_label(Game.rep())]
 	for c in _skills_box.get_children():
 		c.queue_free()
 	for s in Rules.STATS:

@@ -18,6 +18,19 @@ func on_world_state_applied() -> void:
 func on_enter() -> void:
 	_apply_dogs()
 	super.on_enter()
+	_kid_home()
+
+
+## Привёл мальчишку из леса — Кресты встречают его сами, без расспросов
+func _kid_home() -> void:
+	if Game.quest_stage("lost_kid") != 1:
+		return
+	Game.set_quest("lost_kid", 2)
+	Game.add_item("dried_fish", 2)
+	Game.add_item("beer")
+	Game.grant_xp(80)
+	Game.change_rep(10, "вернул мальчишку в Кресты")
+	main.think("«Мичээр? Нашёлся?! Анна! Анна, сын твой!..» Через минуту на площади — женщина в слезах, мальчишка у неё на шее. Мне суют в руки вяленую рыбу и кружку пива.")
 
 
 ## Псы на выгоне появляются, когда староста попросит, и пропадают, когда перебиты

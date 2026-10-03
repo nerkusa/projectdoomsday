@@ -96,6 +96,7 @@ func on_interact(it: Interactable) -> bool:
 			return true
 		"Files":
 			if not Game.flag("archive_open"):
+				main.think("Шкаф с делами — за стеклом двери архива. Сначала открыть дверь.")
 				return true
 			if Game.flag("list_b_found"):
 				main.think("Остальное — пустые папки. Самое важное вывезли. Это — забыли.")
@@ -108,6 +109,7 @@ func on_interact(it: Interactable) -> bool:
 			return true
 		"Registry":
 			if not Game.flag("archive_open"):
+				main.think("Ведомость висит на стене архива. Дверь заперта.")
 				return true
 			if not Game.flag("registry_read"):
 				Game.set_flag("registry_read")

@@ -5,7 +5,7 @@ extends Control
 ## по дороге случаются встречи (data/world.json → encounters, тексты — data/dialogs/road.json).
 ## Клик по точке — выбрать; «Идти» или двойной клик — дойти и войти. Клик по пустому
 ## месту — просто идти туда. Правая кнопка — стоп.
-## Где герой на карте — Game.hero.flags["wm_pos"], часы в пути — flags["wm_hours"].
+## Где герой на карте — Game.hero.flags["wm_pos"]; время в пути идёт по общим часам (Clock).
 
 signal closed
 ## Дошёл до точки и вошёл в неё (или началась встреча)
@@ -21,8 +21,6 @@ const ZOOM_START := 2.6
 const NEAR := 12.0
 ## Радиус открытия точек по умолчанию (пиксели картинки)
 const REVEAL_R := 45.0
-## Утро после пролога: часы в пути считаются от 6:00 первого дня
-const START_HOUR := 6.0
 
 var main: Node
 var data: Dictionary = {}
@@ -201,16 +199,13 @@ func can_go(id: String) -> bool:
 	return n.has("loc") and not n.get("burned", false)
 
 
+## Часы игры (общие с локациями)
 func hours() -> float:
-	return float(Game.hero.flags.get("wm_hours", 0.0))
+	return Clock.hours()
 
 
 func time_text() -> String:
-	var h := START_HOUR + hours()
-	var day := int(h / 24.0) + 1
-	var hh := int(fmod(h, 24.0))
-	var mm := int(fmod(h * 60.0, 60.0))
-	return "ДЕНЬ %d · %02d:%02d" % [day, hh, mm]
+	return Clock.text()
 
 
 func hours_to(p: Vector2) -> float:
@@ -299,7 +294,7 @@ func _process(delta: float) -> void:
 		if step >= d:
 			step = d
 		pos = pos.move_toward(target, step)
-		Game.hero.flags["wm_hours"] = hours() + step / 100.0 * float(data.get("hours_per_100px", 2.5))
+		Clock.advance(step / 100.0 * float(data.get("hours_per_100px", 2.5)))
 		if _trail.is_empty() or (_trail[-1] as Vector2).distance_to(pos) > 9.0:
 			_trail.append(pos)
 			if _trail.size() > 300:

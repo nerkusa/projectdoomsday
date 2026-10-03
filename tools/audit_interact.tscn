@@ -1,0 +1,6 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://tools/audit_interact.gd" id="1"]
+
+[node name="AuditInteract" type="Node"]
+script = ExtResource("1")

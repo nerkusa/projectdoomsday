@@ -112,6 +112,9 @@ func fight(max_turns := 80) -> void:
 func _ready() -> void:
 	Engine.time_scale = 4.0
 	print("=== СМОУК-ТЕСТ ПРОЛОГА ===")
+	# сюжетные проверки — днём; ночь и расписание проверяются отдельно
+	Clock.force_day = true
+	Clock.running = false
 	main = load("res://scenes/main.tscn").instantiate()
 	add_child(main)
 	await frames(3)
@@ -119,6 +122,11 @@ func _ready() -> void:
 	main._on_menu("new")
 	await frames(2)
 	ok(main.sheet.visible, "лист персонажа открыт")
+	ok(main.sheet._pick.visible and not main.sheet._main.visible, "сначала — выбор из четырёх героев")
+	main.sheet.pick("aiaal")
+	ok(Game.hero.name == "Айаал" and int(Game.hero.stats.INT) == 8 and main.sheet._main.visible and str(Game.hero.skin).ends_with("hero_skin_c.jpg"), "выбран Айаал-книжник: Разум 8, своя одежда")
+	main.sheet.pick("erkhaan")
+	ok(Game.hero.name == "Эрхаан" and int(Game.hero.skills.get("Огнестрел", 0)) == 5, "передумал — Эрхаан-охотник")
 	Game.hero.name = "Тестер"
 	Game.hero.stats.REF = 7
 	Game.hero.skills["Огнестрел"] = 5
@@ -282,8 +290,14 @@ func _ready() -> void:
 		await close_dialogs()
 	ok(Game.flag("guard_lied") and (Game.flag("flirt_ok") or Game.flag("flirt_fail")) and Game.flag("gambler_caught") and Game.flag("sick_seen"), "проверки навыков в разговорах прошли")
 
-	# --- обучающие задания: подпол, колодец, обед часовому, гребень ---
+	# --- поле зрения: человек видит перед собой, вплотную — слышит ---
 	var nak: Node = main.location
+	var dfov: Character = nak.character("Ded")
+	var fwd := Vector3(sin(dfov.rotation.y), 0, cos(dfov.rotation.y))
+	ok(dfov.fov() < 200.0 and dfov.in_view(dfov.global_position + fwd * 5.0, 8.0) and not dfov.in_view(dfov.global_position - fwd * 5.0, 8.0) and dfov.in_view(dfov.global_position - fwd * 1.5, 8.0),
+		"поле зрения: видит перед собой, не видит за спиной, вплотную слышит")
+	ok(nak.character("Wolf").fov() >= 359.0, "зверь чует кругом")
+	# --- обучающие задания: подпол, колодец, обед часовому, гребень ---
 	# молва: как обращаются
 	var rep_save := Game.rep()
 	Game.change_rep(40 - Game.rep())
@@ -818,10 +832,11 @@ func _ready() -> void:
 		"карта сходится с дизайн-доком: путь на восток — Нахарро, Кресты, Сунгар; лагерь к югу за рекой")
 
 	# ======== АКТ I: Кресты ========
+	var h_before := Clock.hours()
 	await wm.travel("kresty")
 	await frames(3)
 	ok(main.location != null and main.location.location_id == "kresty" and not wm.visible, "пришёл в Кресты")
-	ok(wm.hours() > 20.0, "до Крестов — больше суток пути (%.0f ч)" % wm.hours())
+	ok(Clock.hours() - h_before > 20.0, "до Крестов — больше суток пути (%.0f ч)" % (Clock.hours() - h_before))
 	main.dialog.close()
 	var loc = main.location
 	var head: Character = loc.character("KrHead")
@@ -1477,12 +1492,13 @@ func _ready() -> void:
 	await choose(find_opt("долг Аграфене"))
 	ok(Game.quest_stage("bootur") == 5 and wm.known("sungar") and "гать" in str(Game.hero.notes), "Сэмэн рассказал дорогу через болота")
 	await shut()
-	# мальчишка дома
-	main.talk_to(loc.character("KrVillager1"))
+	# мальчишку Кресты встретили сами, как только пришли
+	ok(Game.quest_stage("lost_kid") == 2, "Кресты встретили мальчишку")
+	# обычный житель: без разговора, реплика над головой
+	var kv: Character = loc.character("KrVillager1")
+	main.talk_to(kv)
 	await frames(2)
-	await choose(find_opt("Мичээр"))
-	ok(Game.quest_stage("lost_kid") == 2, "Кресты встречают мальчишку")
-	await shut()
+	ok(not main.dialog.visible and kv.barking() and main.is_filler(kv), "обычный житель не разговаривает — бросает реплику")
 
 	# ======== пропавший бочонок ========
 	Game.force_check = 1
@@ -1555,6 +1571,23 @@ func _ready() -> void:
 	ok(Game.quest_stage("son_gun") == 3 and "сунгарским" in str(Game.hero.notes), "вернул карабин — Байбал рассказал про проводника")
 	await shut()
 	Game.hero.stats["INT"] = int1
+	# ======== день и ночь: расписание ========
+	Clock.force_day = false
+	var trd: Character = loc.character("Trader")
+	Clock.set_hours(floorf(Clock.hours() / 24.0) * 24.0 + 23.0)
+	Clock.update_schedules(true)
+	Clock.apply_light(loc)
+	var sun: DirectionalLight3D = loc.get_node("Env/Sun")
+	ok(Clock.is_night() and not trd.visible and trd.get_meta("asleep", false), "ночью торговка дома — лавка закрыта")
+	ok(sun.light_energy < 0.5, "ночью темно (солнце %.2f)" % sun.light_energy)
+	var hn := Clock.hours()
+	main.wait_time(true)
+	ok(fmod(Clock.hours(), 24.0) > 7.9 and fmod(Clock.hours(), 24.0) < 8.1 and Clock.hours() > hn, "подождал до утра: %s" % Clock.text())
+	Clock.set_hours(floorf(Clock.hours() / 24.0) * 24.0 + 10.0)
+	Clock.update_schedules(true)
+	Clock.apply_light(loc)
+	ok(trd.visible and not trd.get_meta("asleep", false) and sun.light_energy > 0.8, "утром торговка снова за прилавком, светло")
+	Clock.force_day = true
 	# сохранение и загрузка в новой локации
 	main.autosave()
 	ok(Game.load_game("auto") and str(Game.hero.location) == "kresty", "сохранение в Крестах")
