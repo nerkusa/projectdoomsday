@@ -1,29 +1,217 @@
 {
   "_help": "Расписание жителей: имя персонажа в сцене → from / to (часы работы; to > 24 — после полуночи, например 26 = до 2 ночи). Днём житель на своём месте (где стоит в сцене, со своим маршрутом), в остальное время уходит домой и до утра его не видно. Дом — home_node (узел в Village), home [x, z] или, по умолчанию, ближайшая изба.",
   "nakharro": {
-    "Varvara": {"from": 7, "to": 21},
-    "Stepan": {"from": 7, "to": 21},
-    "Kid": {"from": 8, "to": 20},
-    "Smith": {"from": 8, "to": 20},
-    "Shooter": {"from": 9, "to": 19},
-    "Gambler": {"from": 11, "to": 23},
-    "Elder1": {"from": 9, "to": 19},
-    "Nyurguyana": {"from": 8, "to": 20},
-    "Ebee": {"from": 9, "to": 18},
-    "WaterCarrier": {"from": 6, "to": 20},
-    "Villager3": {"from": 9, "to": 20},
-    "Villager4": {"from": 9, "to": 20}
+    "Varvara": {
+      "from": 7,
+      "to": 21
+    },
+    "Stepan": {
+      "from": 7,
+      "to": 21
+    },
+    "Kid": {
+      "from": 8,
+      "to": 20
+    },
+    "Smith": {
+      "from": 8,
+      "to": 20
+    },
+    "Shooter": {
+      "from": 9,
+      "to": 19
+    },
+    "Gambler": {
+      "from": 11,
+      "to": 23
+    },
+    "Elder1": {
+      "from": 9,
+      "to": 19
+    },
+    "Nyurguyana": {
+      "from": 8,
+      "to": 20
+    },
+    "Ebee": {
+      "from": 9,
+      "to": 18
+    },
+    "WaterCarrier": {
+      "from": 6,
+      "to": 20
+    },
+    "Villager3": {
+      "from": 9,
+      "to": 20
+    },
+    "Villager4": {
+      "from": 9,
+      "to": 20
+    }
   },
   "kresty": {
-    "Trader": {"from": 9, "to": 20},
-    "Brewer": {"from": 10, "to": 23, "home_node": "Brewery"},
-    "KrHead": {"from": 8, "to": 21, "home_node": "HeadHouse"},
-    "Fisher": {"from": 5, "to": 19, "home_node": "FisherHut"},
-    "KrOld": {"from": 7, "to": 20},
-    "Granny": {"from": 9, "to": 19},
-    "Drunk": {"from": 12, "to": 26},
-    "KrVillager1": {"from": 9, "to": 20},
-    "KrVillager2": {"from": 9, "to": 20},
-    "KrKid": {"from": 8, "to": 20}
+    "Trader": {
+      "from": 9,
+      "to": 20
+    },
+    "Brewer": {
+      "from": 10,
+      "to": 23,
+      "home_node": "Brewery"
+    },
+    "KrHead": {
+      "from": 8,
+      "to": 21,
+      "home_node": "HeadHouse"
+    },
+    "Fisher": {
+      "from": 5,
+      "to": 19,
+      "home_node": "FisherHut"
+    },
+    "KrOld": {
+      "from": 7,
+      "to": 20
+    },
+    "Granny": {
+      "from": 9,
+      "to": 19
+    },
+    "Drunk": {
+      "from": 12,
+      "to": 26
+    },
+    "KrVillager1": {
+      "from": 9,
+      "to": 20
+    },
+    "KrVillager2": {
+      "from": 9,
+      "to": 20
+    },
+    "KrKid": {
+      "from": 8,
+      "to": 20
+    }
+  },
+  "sungar": {
+    "Butcher": {
+      "from": 7,
+      "to": 19
+    },
+    "Fishwife": {
+      "from": 5,
+      "to": 18
+    },
+    "MarketBoss": {
+      "from": 7,
+      "to": 20
+    },
+    "Seller1": {
+      "from": 7,
+      "to": 19
+    },
+    "Seller2": {
+      "from": 8,
+      "to": 19
+    },
+    "Seller3": {
+      "from": 8,
+      "to": 19
+    },
+    "Shopper1": {
+      "from": 9,
+      "to": 20
+    },
+    "Shopper2": {
+      "from": 9,
+      "to": 20
+    },
+    "Porter": {
+      "from": 6,
+      "to": 20
+    }
+  },
+  "sungar_center": {
+    "Merchant": {
+      "from": 9,
+      "to": 20
+    },
+    "Rival": {
+      "from": 9,
+      "to": 20
+    },
+    "RowSeller": {
+      "from": 9,
+      "to": 19
+    },
+    "RowSeller2": {
+      "from": 9,
+      "to": 19
+    },
+    "Clerk": {
+      "from": 9,
+      "to": 20
+    },
+    "OfficeGuard": {
+      "from": 9,
+      "to": 20
+    },
+    "Hostess": {
+      "from": 12,
+      "to": 28
+    },
+    "Dealer": {
+      "from": 14,
+      "to": 28
+    },
+    "Gambler1": {
+      "from": 14,
+      "to": 28
+    },
+    "Walker1": {
+      "from": 9,
+      "to": 21
+    },
+    "Walker2": {
+      "from": 9,
+      "to": 22
+    }
+  },
+  "sungar_quarter": {
+    "Barman": {
+      "from": 12,
+      "to": 26,
+      "home_node": "Shalman"
+    },
+    "Brawler": {
+      "from": 16,
+      "to": 26
+    },
+    "Gunsmith": {
+      "from": 9,
+      "to": 19
+    },
+    "Granny": {
+      "from": 9,
+      "to": 19
+    },
+    "Drinker1": {
+      "from": 15,
+      "to": 25
+    },
+    "Drinker2": {
+      "from": 15,
+      "to": 25
+    },
+    "QuarterKid": {
+      "from": 8,
+      "to": 20
+    },
+    "Washer": {
+      "from": 8,
+      "to": 18
+    }
   }
 }

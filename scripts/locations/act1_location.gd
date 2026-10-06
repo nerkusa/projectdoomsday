@@ -96,6 +96,9 @@ func dialog_cond(id: String) -> bool:
 			return Game.item_count("herbs") >= 3
 		"has_salt2":
 			return Game.item_count("salt") >= 2
+	# rub_N — есть ли N рублей
+	if id.begins_with("rub_"):
+		return Game.item_count("rubles") >= int(id.substr(4))
 	return true
 
 

@@ -433,440 +433,440 @@ height = 3.6
 radial_segments = 10
 rings = 1
 
-[node name="RuinBunker" type="Node3D" unique_id=1785590498]
+[node name="RuinBunker" type="Node3D" unique_id=1683266762]
 script = ExtResource("1_754r4")
 location_id = "ruin_bunker"
 title = "Бункер под Сытыганом"
 map_rect = Rect2(0, 0, 34, 22)
 camera_start = Vector3(4, 0, 4)
 
-[node name="Env" type="Node3D" parent="." unique_id=1644482552]
+[node name="Env" type="Node3D" parent="." unique_id=429044566]
 
-[node name="WorldEnvironment" type="WorldEnvironment" parent="Env" unique_id=456202340]
+[node name="WorldEnvironment" type="WorldEnvironment" parent="Env" unique_id=1202459997]
 environment = SubResource("Environment_efvpv")
 
-[node name="Village" type="Node3D" parent="." unique_id=1806392578]
+[node name="Village" type="Node3D" parent="." unique_id=1983299112]
 
-[node name="@MeshInstance3D@427" type="MeshInstance3D" parent="Village" unique_id=1905985565]
+[node name="@MeshInstance3D@427" type="MeshInstance3D" parent="Village" unique_id=830068807]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 17, -0.05, 11)
 material_override = ExtResource("2_qaoeg")
 mesh = SubResource("BoxMesh_e6dkw")
 
-[node name="@MeshInstance3D@428" type="MeshInstance3D" parent="Village" unique_id=29709270]
+[node name="@MeshInstance3D@428" type="MeshInstance3D" parent="Village" unique_id=619648712]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 0.65, 1)
 material_override = ExtResource("3_s3f5r")
 mesh = SubResource("BoxMesh_ngywt")
 
-[node name="Collision" type="StaticBody3D" parent="Village" unique_id=1843985891]
+[node name="Collision" type="StaticBody3D" parent="Village" unique_id=2016887896]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 0.65, 1)
 collision_mask = 0
 
-[node name="@CollisionShape3D@429" type="CollisionShape3D" parent="Village/Collision" unique_id=228918310]
+[node name="@CollisionShape3D@429" type="CollisionShape3D" parent="Village/Collision" unique_id=1363502888]
 shape = SubResource("BoxShape3D_cgcek")
 
-[node name="@MeshInstance3D@430" type="MeshInstance3D" parent="Village" unique_id=1640822116]
+[node name="@MeshInstance3D@430" type="MeshInstance3D" parent="Village" unique_id=1961038307]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 0.65, 7)
 material_override = ExtResource("3_s3f5r")
 mesh = SubResource("BoxMesh_jr07e")
 
-[node name="@StaticBody3D@432" type="StaticBody3D" parent="Village" unique_id=1779548386]
+[node name="@StaticBody3D@432" type="StaticBody3D" parent="Village" unique_id=1097056768]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 0.65, 7)
 collision_mask = 0
 
-[node name="@CollisionShape3D@431" type="CollisionShape3D" parent="Village/@StaticBody3D@432" unique_id=9715726]
+[node name="@CollisionShape3D@431" type="CollisionShape3D" parent="Village/@StaticBody3D@432" unique_id=171873107]
 shape = SubResource("BoxShape3D_2g1cc")
 
-[node name="@MeshInstance3D@433" type="MeshInstance3D" parent="Village" unique_id=1600570755]
+[node name="@MeshInstance3D@433" type="MeshInstance3D" parent="Village" unique_id=175137778]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0.65, 4)
 material_override = ExtResource("3_s3f5r")
 mesh = SubResource("BoxMesh_67h5e")
 
-[node name="@StaticBody3D@435" type="StaticBody3D" parent="Village" unique_id=263082113]
+[node name="@StaticBody3D@435" type="StaticBody3D" parent="Village" unique_id=333906187]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0.65, 4)
 collision_mask = 0
 
-[node name="@CollisionShape3D@434" type="CollisionShape3D" parent="Village/@StaticBody3D@435" unique_id=1465828654]
+[node name="@CollisionShape3D@434" type="CollisionShape3D" parent="Village/@StaticBody3D@435" unique_id=1431009941]
 shape = SubResource("BoxShape3D_nku5b")
 
-[node name="@MeshInstance3D@436" type="MeshInstance3D" parent="Village" unique_id=1028131072]
+[node name="@MeshInstance3D@436" type="MeshInstance3D" parent="Village" unique_id=341519186]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7, 0.65, 2)
 material_override = ExtResource("3_s3f5r")
 mesh = SubResource("BoxMesh_d37bx")
 
-[node name="@StaticBody3D@438" type="StaticBody3D" parent="Village" unique_id=1899014675]
+[node name="@StaticBody3D@438" type="StaticBody3D" parent="Village" unique_id=1829177562]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7, 0.65, 2)
 collision_mask = 0
 
-[node name="@CollisionShape3D@437" type="CollisionShape3D" parent="Village/@StaticBody3D@438" unique_id=1974887271]
+[node name="@CollisionShape3D@437" type="CollisionShape3D" parent="Village/@StaticBody3D@438" unique_id=2043424978]
 shape = SubResource("BoxShape3D_rc2ru")
 
-[node name="@MeshInstance3D@439" type="MeshInstance3D" parent="Village" unique_id=177034374]
+[node name="@MeshInstance3D@439" type="MeshInstance3D" parent="Village" unique_id=1490452912]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7, 0.65, 6)
 material_override = ExtResource("3_s3f5r")
 mesh = SubResource("BoxMesh_hoddu")
 
-[node name="@StaticBody3D@441" type="StaticBody3D" parent="Village" unique_id=1509181340]
+[node name="@StaticBody3D@441" type="StaticBody3D" parent="Village" unique_id=1911544503]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7, 0.65, 6)
 collision_mask = 0
 
-[node name="@CollisionShape3D@440" type="CollisionShape3D" parent="Village/@StaticBody3D@441" unique_id=1210173510]
+[node name="@CollisionShape3D@440" type="CollisionShape3D" parent="Village/@StaticBody3D@441" unique_id=536580260]
 shape = SubResource("BoxShape3D_0t56n")
 
-[node name="@MeshInstance3D@442" type="MeshInstance3D" parent="Village" unique_id=1370495263]
+[node name="@MeshInstance3D@442" type="MeshInstance3D" parent="Village" unique_id=352351918]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 17, 0.65, 2.5)
 material_override = ExtResource("3_s3f5r")
 mesh = SubResource("BoxMesh_8s3fu")
 
-[node name="@StaticBody3D@444" type="StaticBody3D" parent="Village" unique_id=1842853545]
+[node name="@StaticBody3D@444" type="StaticBody3D" parent="Village" unique_id=73437624]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 17, 0.65, 2.5)
 collision_mask = 0
 
-[node name="@CollisionShape3D@443" type="CollisionShape3D" parent="Village/@StaticBody3D@444" unique_id=430570517]
+[node name="@CollisionShape3D@443" type="CollisionShape3D" parent="Village/@StaticBody3D@444" unique_id=1896467462]
 shape = SubResource("BoxShape3D_ov0vl")
 
-[node name="@MeshInstance3D@445" type="MeshInstance3D" parent="Village" unique_id=1078673769]
+[node name="@MeshInstance3D@445" type="MeshInstance3D" parent="Village" unique_id=1393174981]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9.85, 0.65, 5.5)
 material_override = ExtResource("3_s3f5r")
 mesh = SubResource("BoxMesh_rem6p")
 
-[node name="@StaticBody3D@447" type="StaticBody3D" parent="Village" unique_id=1722347277]
+[node name="@StaticBody3D@447" type="StaticBody3D" parent="Village" unique_id=1374423199]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9.85, 0.65, 5.5)
 collision_mask = 0
 
-[node name="@CollisionShape3D@446" type="CollisionShape3D" parent="Village/@StaticBody3D@447" unique_id=864511245]
+[node name="@CollisionShape3D@446" type="CollisionShape3D" parent="Village/@StaticBody3D@447" unique_id=504915058]
 shape = SubResource("BoxShape3D_dxht4")
 
-[node name="@MeshInstance3D@448" type="MeshInstance3D" parent="Village" unique_id=660516883]
+[node name="@MeshInstance3D@448" type="MeshInstance3D" parent="Village" unique_id=981447279]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 18, 0.65, 5.5)
 material_override = ExtResource("3_s3f5r")
 mesh = SubResource("BoxMesh_ksvvf")
 
-[node name="@StaticBody3D@450" type="StaticBody3D" parent="Village" unique_id=1119678836]
+[node name="@StaticBody3D@450" type="StaticBody3D" parent="Village" unique_id=1964009721]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 18, 0.65, 5.5)
 collision_mask = 0
 
-[node name="@CollisionShape3D@449" type="CollisionShape3D" parent="Village/@StaticBody3D@450" unique_id=1030034211]
+[node name="@CollisionShape3D@449" type="CollisionShape3D" parent="Village/@StaticBody3D@450" unique_id=2049174250]
 shape = SubResource("BoxShape3D_8u8it")
 
-[node name="@MeshInstance3D@451" type="MeshInstance3D" parent="Village" unique_id=1380067049]
+[node name="@MeshInstance3D@451" type="MeshInstance3D" parent="Village" unique_id=263301888]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 25.15, 0.65, 5.5)
 material_override = ExtResource("3_s3f5r")
 mesh = SubResource("BoxMesh_8fouh")
 
-[node name="@StaticBody3D@453" type="StaticBody3D" parent="Village" unique_id=799887325]
+[node name="@StaticBody3D@453" type="StaticBody3D" parent="Village" unique_id=1738123817]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 25.15, 0.65, 5.5)
 collision_mask = 0
 
-[node name="@CollisionShape3D@452" type="CollisionShape3D" parent="Village/@StaticBody3D@453" unique_id=137143730]
+[node name="@CollisionShape3D@452" type="CollisionShape3D" parent="Village/@StaticBody3D@453" unique_id=44159992]
 shape = SubResource("BoxShape3D_70xki")
 
-[node name="@MeshInstance3D@454" type="MeshInstance3D" parent="Village" unique_id=2091526449]
+[node name="@MeshInstance3D@454" type="MeshInstance3D" parent="Village" unique_id=631662855]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7, 0.65, 2.75)
 material_override = ExtResource("3_s3f5r")
 mesh = SubResource("BoxMesh_itr6w")
 
-[node name="@StaticBody3D@456" type="StaticBody3D" parent="Village" unique_id=243339864]
+[node name="@StaticBody3D@456" type="StaticBody3D" parent="Village" unique_id=1604059171]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7, 0.65, 2.75)
 collision_mask = 0
 
-[node name="@CollisionShape3D@455" type="CollisionShape3D" parent="Village/@StaticBody3D@456" unique_id=1064393293]
+[node name="@CollisionShape3D@455" type="CollisionShape3D" parent="Village/@StaticBody3D@456" unique_id=1832110522]
 shape = SubResource("BoxShape3D_42xwj")
 
-[node name="@MeshInstance3D@457" type="MeshInstance3D" parent="Village" unique_id=405017999]
+[node name="@MeshInstance3D@457" type="MeshInstance3D" parent="Village" unique_id=875137507]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7, 0.65, 5.25)
 material_override = ExtResource("3_s3f5r")
 mesh = SubResource("BoxMesh_ld4ri")
 
-[node name="@StaticBody3D@459" type="StaticBody3D" parent="Village" unique_id=1587448665]
+[node name="@StaticBody3D@459" type="StaticBody3D" parent="Village" unique_id=1073794854]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7, 0.65, 5.25)
 collision_mask = 0
 
-[node name="@CollisionShape3D@458" type="CollisionShape3D" parent="Village/@StaticBody3D@459" unique_id=139920046]
+[node name="@CollisionShape3D@458" type="CollisionShape3D" parent="Village/@StaticBody3D@459" unique_id=1460354282]
 shape = SubResource("BoxShape3D_4nkw8")
 
-[node name="@MeshInstance3D@460" type="MeshInstance3D" parent="Village" unique_id=1628685559]
+[node name="@MeshInstance3D@460" type="MeshInstance3D" parent="Village" unique_id=824183577]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 27, 0.65, 2.85)
 material_override = ExtResource("3_s3f5r")
 mesh = SubResource("BoxMesh_j6wot")
 
-[node name="@StaticBody3D@462" type="StaticBody3D" parent="Village" unique_id=1219162014]
+[node name="@StaticBody3D@462" type="StaticBody3D" parent="Village" unique_id=1549775180]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 27, 0.65, 2.85)
 collision_mask = 0
 
-[node name="@CollisionShape3D@461" type="CollisionShape3D" parent="Village/@StaticBody3D@462" unique_id=290163839]
+[node name="@CollisionShape3D@461" type="CollisionShape3D" parent="Village/@StaticBody3D@462" unique_id=1288696894]
 shape = SubResource("BoxShape3D_7r2de")
 
-[node name="@MeshInstance3D@463" type="MeshInstance3D" parent="Village" unique_id=192252756]
+[node name="@MeshInstance3D@463" type="MeshInstance3D" parent="Village" unique_id=1289886365]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 27, 0.65, 5.15)
 material_override = ExtResource("3_s3f5r")
 mesh = SubResource("BoxMesh_nulrc")
 
-[node name="@StaticBody3D@465" type="StaticBody3D" parent="Village" unique_id=1753066655]
+[node name="@StaticBody3D@465" type="StaticBody3D" parent="Village" unique_id=384307749]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 27, 0.65, 5.15)
 collision_mask = 0
 
-[node name="@CollisionShape3D@464" type="CollisionShape3D" parent="Village/@StaticBody3D@465" unique_id=1408061490]
+[node name="@CollisionShape3D@464" type="CollisionShape3D" parent="Village/@StaticBody3D@465" unique_id=1846234821]
 shape = SubResource("BoxShape3D_w3w14")
 
-[node name="@MeshInstance3D@466" type="MeshInstance3D" parent="Village" unique_id=926718902]
+[node name="@MeshInstance3D@466" type="MeshInstance3D" parent="Village" unique_id=521696332]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10.85, 0.65, 7)
 material_override = ExtResource("3_s3f5r")
 mesh = SubResource("BoxMesh_j53xf")
 
-[node name="@StaticBody3D@468" type="StaticBody3D" parent="Village" unique_id=2004642979]
+[node name="@StaticBody3D@468" type="StaticBody3D" parent="Village" unique_id=157022062]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10.85, 0.65, 7)
 collision_mask = 0
 
-[node name="@CollisionShape3D@467" type="CollisionShape3D" parent="Village/@StaticBody3D@468" unique_id=693030540]
+[node name="@CollisionShape3D@467" type="CollisionShape3D" parent="Village/@StaticBody3D@468" unique_id=1294244832]
 shape = SubResource("BoxShape3D_dl1pb")
 
-[node name="@MeshInstance3D@469" type="MeshInstance3D" parent="Village" unique_id=985664443]
+[node name="@MeshInstance3D@469" type="MeshInstance3D" parent="Village" unique_id=1006628637]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 16.15, 0.65, 7)
 material_override = ExtResource("3_s3f5r")
 mesh = SubResource("BoxMesh_ffv7u")
 
-[node name="@StaticBody3D@471" type="StaticBody3D" parent="Village" unique_id=892129879]
+[node name="@StaticBody3D@471" type="StaticBody3D" parent="Village" unique_id=1965636957]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 16.15, 0.65, 7)
 collision_mask = 0
 
-[node name="@CollisionShape3D@470" type="CollisionShape3D" parent="Village/@StaticBody3D@471" unique_id=1137746465]
+[node name="@CollisionShape3D@470" type="CollisionShape3D" parent="Village/@StaticBody3D@471" unique_id=1397738815]
 shape = SubResource("BoxShape3D_oh4mx")
 
-[node name="@MeshInstance3D@472" type="MeshInstance3D" parent="Village" unique_id=956792872]
+[node name="@MeshInstance3D@472" type="MeshInstance3D" parent="Village" unique_id=443770909]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 13.5, 0.65, 14)
 material_override = ExtResource("3_s3f5r")
 mesh = SubResource("BoxMesh_jh8lg")
 
-[node name="@StaticBody3D@474" type="StaticBody3D" parent="Village" unique_id=164422517]
+[node name="@StaticBody3D@474" type="StaticBody3D" parent="Village" unique_id=1075532499]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 13.5, 0.65, 14)
 collision_mask = 0
 
-[node name="@CollisionShape3D@473" type="CollisionShape3D" parent="Village/@StaticBody3D@474" unique_id=1334590783]
+[node name="@CollisionShape3D@473" type="CollisionShape3D" parent="Village/@StaticBody3D@474" unique_id=1470970012]
 shape = SubResource("BoxShape3D_m65jg")
 
-[node name="@MeshInstance3D@475" type="MeshInstance3D" parent="Village" unique_id=75658295]
+[node name="@MeshInstance3D@475" type="MeshInstance3D" parent="Village" unique_id=1683363132]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9, 0.65, 10.5)
 material_override = ExtResource("3_s3f5r")
 mesh = SubResource("BoxMesh_03bcd")
 
-[node name="@StaticBody3D@477" type="StaticBody3D" parent="Village" unique_id=458599365]
+[node name="@StaticBody3D@477" type="StaticBody3D" parent="Village" unique_id=1408849873]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9, 0.65, 10.5)
 collision_mask = 0
 
-[node name="@CollisionShape3D@476" type="CollisionShape3D" parent="Village/@StaticBody3D@477" unique_id=1346927811]
+[node name="@CollisionShape3D@476" type="CollisionShape3D" parent="Village/@StaticBody3D@477" unique_id=999258259]
 shape = SubResource("BoxShape3D_xtgj3")
 
-[node name="@MeshInstance3D@478" type="MeshInstance3D" parent="Village" unique_id=2014112428]
+[node name="@MeshInstance3D@478" type="MeshInstance3D" parent="Village" unique_id=1746242718]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 18, 0.65, 10.5)
 material_override = ExtResource("3_s3f5r")
 mesh = SubResource("BoxMesh_fowqt")
 
-[node name="@StaticBody3D@480" type="StaticBody3D" parent="Village" unique_id=1941453835]
+[node name="@StaticBody3D@480" type="StaticBody3D" parent="Village" unique_id=1730406054]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 18, 0.65, 10.5)
 collision_mask = 0
 
-[node name="@CollisionShape3D@479" type="CollisionShape3D" parent="Village/@StaticBody3D@480" unique_id=703393636]
+[node name="@CollisionShape3D@479" type="CollisionShape3D" parent="Village/@StaticBody3D@480" unique_id=5416709]
 shape = SubResource("BoxShape3D_j50iu")
 
-[node name="@MeshInstance3D@481" type="MeshInstance3D" parent="Village" unique_id=725136430]
+[node name="@MeshInstance3D@481" type="MeshInstance3D" parent="Village" unique_id=1110691799]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 20.35, 0.65, 7)
 material_override = ExtResource("3_s3f5r")
 mesh = SubResource("BoxMesh_wvjum")
 
-[node name="@StaticBody3D@483" type="StaticBody3D" parent="Village" unique_id=1972905578]
+[node name="@StaticBody3D@483" type="StaticBody3D" parent="Village" unique_id=824583639]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 20.35, 0.65, 7)
 collision_mask = 0
 
-[node name="@CollisionShape3D@482" type="CollisionShape3D" parent="Village/@StaticBody3D@483" unique_id=588549216]
+[node name="@CollisionShape3D@482" type="CollisionShape3D" parent="Village/@StaticBody3D@483" unique_id=235149957]
 shape = SubResource("BoxShape3D_b0ul7")
 
-[node name="@MeshInstance3D@484" type="MeshInstance3D" parent="Village" unique_id=298014474]
+[node name="@MeshInstance3D@484" type="MeshInstance3D" parent="Village" unique_id=1268232545]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 24.65, 0.65, 7)
 material_override = ExtResource("3_s3f5r")
 mesh = SubResource("BoxMesh_7w30a")
 
-[node name="@StaticBody3D@486" type="StaticBody3D" parent="Village" unique_id=646524109]
+[node name="@StaticBody3D@486" type="StaticBody3D" parent="Village" unique_id=1284039757]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 24.65, 0.65, 7)
 collision_mask = 0
 
-[node name="@CollisionShape3D@485" type="CollisionShape3D" parent="Village/@StaticBody3D@486" unique_id=80345964]
+[node name="@CollisionShape3D@485" type="CollisionShape3D" parent="Village/@StaticBody3D@486" unique_id=1085473922]
 shape = SubResource("BoxShape3D_7edgq")
 
-[node name="@MeshInstance3D@487" type="MeshInstance3D" parent="Village" unique_id=1972358156]
+[node name="@MeshInstance3D@487" type="MeshInstance3D" parent="Village" unique_id=1403734234]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 22.5, 0.65, 13)
 material_override = ExtResource("3_s3f5r")
 mesh = SubResource("BoxMesh_dvpmy")
 
-[node name="@StaticBody3D@489" type="StaticBody3D" parent="Village" unique_id=1971118782]
+[node name="@StaticBody3D@489" type="StaticBody3D" parent="Village" unique_id=260872333]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 22.5, 0.65, 13)
 collision_mask = 0
 
-[node name="@CollisionShape3D@488" type="CollisionShape3D" parent="Village/@StaticBody3D@489" unique_id=1857497858]
+[node name="@CollisionShape3D@488" type="CollisionShape3D" parent="Village/@StaticBody3D@489" unique_id=812987048]
 shape = SubResource("BoxShape3D_vgdd7")
 
-[node name="@MeshInstance3D@490" type="MeshInstance3D" parent="Village" unique_id=1244382494]
+[node name="@MeshInstance3D@490" type="MeshInstance3D" parent="Village" unique_id=1252753273]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 19, 0.65, 10)
 material_override = ExtResource("3_s3f5r")
 mesh = SubResource("BoxMesh_ypawh")
 
-[node name="@StaticBody3D@492" type="StaticBody3D" parent="Village" unique_id=629501368]
+[node name="@StaticBody3D@492" type="StaticBody3D" parent="Village" unique_id=1385490909]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 19, 0.65, 10)
 collision_mask = 0
 
-[node name="@CollisionShape3D@491" type="CollisionShape3D" parent="Village/@StaticBody3D@492" unique_id=1537647870]
+[node name="@CollisionShape3D@491" type="CollisionShape3D" parent="Village/@StaticBody3D@492" unique_id=1333339344]
 shape = SubResource("BoxShape3D_glx60")
 
-[node name="@MeshInstance3D@493" type="MeshInstance3D" parent="Village" unique_id=1902592415]
+[node name="@MeshInstance3D@493" type="MeshInstance3D" parent="Village" unique_id=2032302807]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 26, 0.65, 10)
 material_override = ExtResource("3_s3f5r")
 mesh = SubResource("BoxMesh_ucoh1")
 
-[node name="@StaticBody3D@495" type="StaticBody3D" parent="Village" unique_id=741240391]
+[node name="@StaticBody3D@495" type="StaticBody3D" parent="Village" unique_id=2098161584]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 26, 0.65, 10)
 collision_mask = 0
 
-[node name="@CollisionShape3D@494" type="CollisionShape3D" parent="Village/@StaticBody3D@495" unique_id=1497118687]
+[node name="@CollisionShape3D@494" type="CollisionShape3D" parent="Village/@StaticBody3D@495" unique_id=673483169]
 shape = SubResource("BoxShape3D_4oibl")
 
-[node name="@MeshInstance3D@496" type="MeshInstance3D" parent="Village" unique_id=1782198892]
+[node name="@MeshInstance3D@496" type="MeshInstance3D" parent="Village" unique_id=692632607]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 30, 0.65, 1)
 material_override = ExtResource("3_s3f5r")
 mesh = SubResource("BoxMesh_bm3da")
 
-[node name="@StaticBody3D@498" type="StaticBody3D" parent="Village" unique_id=1373950301]
+[node name="@StaticBody3D@498" type="StaticBody3D" parent="Village" unique_id=1682480475]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 30, 0.65, 1)
 collision_mask = 0
 
-[node name="@CollisionShape3D@497" type="CollisionShape3D" parent="Village/@StaticBody3D@498" unique_id=708450594]
+[node name="@CollisionShape3D@497" type="CollisionShape3D" parent="Village/@StaticBody3D@498" unique_id=1976522137]
 shape = SubResource("BoxShape3D_5tcms")
 
-[node name="@MeshInstance3D@499" type="MeshInstance3D" parent="Village" unique_id=1321881514]
+[node name="@MeshInstance3D@499" type="MeshInstance3D" parent="Village" unique_id=1566151222]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 30, 0.65, 13)
 material_override = ExtResource("3_s3f5r")
 mesh = SubResource("BoxMesh_7cc6c")
 
-[node name="@StaticBody3D@501" type="StaticBody3D" parent="Village" unique_id=43112249]
+[node name="@StaticBody3D@501" type="StaticBody3D" parent="Village" unique_id=843084694]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 30, 0.65, 13)
 collision_mask = 0
 
-[node name="@CollisionShape3D@500" type="CollisionShape3D" parent="Village/@StaticBody3D@501" unique_id=1175770366]
+[node name="@CollisionShape3D@500" type="CollisionShape3D" parent="Village/@StaticBody3D@501" unique_id=2012045739]
 shape = SubResource("BoxShape3D_kuncs")
 
-[node name="@MeshInstance3D@502" type="MeshInstance3D" parent="Village" unique_id=2004132763]
+[node name="@MeshInstance3D@502" type="MeshInstance3D" parent="Village" unique_id=211645688]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 27, 0.65, 2.1)
 material_override = ExtResource("3_s3f5r")
 mesh = SubResource("BoxMesh_i2ffb")
 
-[node name="@StaticBody3D@504" type="StaticBody3D" parent="Village" unique_id=1903540118]
+[node name="@StaticBody3D@504" type="StaticBody3D" parent="Village" unique_id=1451729873]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 27, 0.65, 2.1)
 collision_mask = 0
 
-[node name="@CollisionShape3D@503" type="CollisionShape3D" parent="Village/@StaticBody3D@504" unique_id=1339120838]
+[node name="@CollisionShape3D@503" type="CollisionShape3D" parent="Village/@StaticBody3D@504" unique_id=844774913]
 shape = SubResource("BoxShape3D_r22lw")
 
-[node name="@MeshInstance3D@505" type="MeshInstance3D" parent="Village" unique_id=856989393]
+[node name="@MeshInstance3D@505" type="MeshInstance3D" parent="Village" unique_id=1567602049]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 27, 0.65, 8.9)
 material_override = ExtResource("3_s3f5r")
 mesh = SubResource("BoxMesh_4yrdv")
 
-[node name="@StaticBody3D@507" type="StaticBody3D" parent="Village" unique_id=2129270738]
+[node name="@StaticBody3D@507" type="StaticBody3D" parent="Village" unique_id=2077994433]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 27, 0.65, 8.9)
 collision_mask = 0
 
-[node name="@CollisionShape3D@506" type="CollisionShape3D" parent="Village/@StaticBody3D@507" unique_id=454602642]
+[node name="@CollisionShape3D@506" type="CollisionShape3D" parent="Village/@StaticBody3D@507" unique_id=1803424032]
 shape = SubResource("BoxShape3D_ihaa1")
 
-[node name="@MeshInstance3D@508" type="MeshInstance3D" parent="Village" unique_id=1261889233]
+[node name="@MeshInstance3D@508" type="MeshInstance3D" parent="Village" unique_id=1152267799]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 33, 0.65, 7)
 material_override = ExtResource("3_s3f5r")
 mesh = SubResource("BoxMesh_3hmai")
 
-[node name="@StaticBody3D@510" type="StaticBody3D" parent="Village" unique_id=1167853556]
+[node name="@StaticBody3D@510" type="StaticBody3D" parent="Village" unique_id=1106064988]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 33, 0.65, 7)
 collision_mask = 0
 
-[node name="@CollisionShape3D@509" type="CollisionShape3D" parent="Village/@StaticBody3D@510" unique_id=1442449968]
+[node name="@CollisionShape3D@509" type="CollisionShape3D" parent="Village/@StaticBody3D@510" unique_id=413467977]
 shape = SubResource("BoxShape3D_feejv")
 
-[node name="ArchiveDoor" type="Node3D" parent="Village" unique_id=2061211036]
+[node name="ArchiveDoor" type="Node3D" parent="Village" unique_id=1375267558]
 
-[node name="@MeshInstance3D@511" type="MeshInstance3D" parent="Village/ArchiveDoor" unique_id=471041797]
+[node name="@MeshInstance3D@511" type="MeshInstance3D" parent="Village/ArchiveDoor" unique_id=143063329]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 27, 0.65, 4)
 material_override = ExtResource("4_et8kp")
 mesh = SubResource("BoxMesh_22ql7")
 
-[node name="Collision" type="StaticBody3D" parent="Village/ArchiveDoor" unique_id=2137794540]
+[node name="Collision" type="StaticBody3D" parent="Village/ArchiveDoor" unique_id=209023088]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 27, 1.1, 4)
 collision_mask = 0
 
-[node name="@CollisionShape3D@512" type="CollisionShape3D" parent="Village/ArchiveDoor/Collision" unique_id=1777436719]
+[node name="@CollisionShape3D@512" type="CollisionShape3D" parent="Village/ArchiveDoor/Collision" unique_id=1555319714]
 shape = SubResource("BoxShape3D_xdxt0")
 
 [node name="Rock" parent="Village" unique_id=170131174 instance=ExtResource("5_addbf")]
 transform = Transform3D(-0.74458724, 0, 0.31547228, 0, 0.80866116, 0, -0.31547228, 0, -0.74458724, 3.878997, 0, 4.561405)
 
-[node name="Rock2" parent="Village" unique_id=26838620 instance=ExtResource("5_addbf")]
+[node name="Rock2" parent="Village" unique_id=1816697373 instance=ExtResource("5_addbf")]
 transform = Transform3D(0.9935316, 0, -0.67981964, 0, 1.203852, 0, 0.67981964, 0, 0.9935316, 4.2237735, 0, 3.24242)
 
-[node name="Rock3" parent="Village" unique_id=123290886 instance=ExtResource("5_addbf")]
+[node name="Rock3" parent="Village" unique_id=1386698239 instance=ExtResource("5_addbf")]
 transform = Transform3D(-0.95613843, 0, 0.412112, 0, 1.041171, 0, -0.412112, 0, -0.95613843, 2.2973704, 0, 2.8029306)
 
-[node name="Rock4" parent="Village" unique_id=1556487773 instance=ExtResource("5_addbf")]
+[node name="Rock4" parent="Village" unique_id=1062486826 instance=ExtResource("5_addbf")]
 transform = Transform3D(0.71268153, 0, -0.74680483, 0, 1.0322948, 0, 0.74680483, 0, 0.71268153, 3.3176286, 0, 4.346156)
 
-[node name="Rock5" parent="Village" unique_id=1305678900 instance=ExtResource("5_addbf")]
+[node name="Rock5" parent="Village" unique_id=1675609233 instance=ExtResource("5_addbf")]
 transform = Transform3D(-0.51177883, 0, 0.6633942, 0, 0.83786005, 0, -0.6633942, 0, -0.51177883, 4.954711, 0, 2.6562097)
 
-[node name="Rock6" parent="Village" unique_id=1050988530 instance=ExtResource("5_addbf")]
+[node name="Rock6" parent="Village" unique_id=751085347 instance=ExtResource("5_addbf")]
 transform = Transform3D(0.00618898, 0, -1.1484892, 0, 1.1485059, 0, 1.1484892, 0, 0.00618898, 2.8702495, 0, 4.4818125)
 
-[node name="ShaftLight" type="OmniLight3D" parent="Village" unique_id=165091123]
+[node name="ShaftLight" type="OmniLight3D" parent="Village" unique_id=1655185200]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.5, 3.5, 3.5)
 light_color = Color(0.78431374, 0.7529412, 0.65882355, 1)
 light_energy = 1.2
 shadow_enabled = true
 omni_range = 6.0
 
-[node name="Emergency" type="Node3D" parent="Village" unique_id=1561633592]
+[node name="Emergency" type="Node3D" parent="Village" unique_id=2061140465]
 
-[node name="Red" type="OmniLight3D" parent="Village/Emergency" unique_id=795046132]
+[node name="Red" type="OmniLight3D" parent="Village/Emergency" unique_id=1955064519]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 2.2, 4)
 light_color = Color(1, 0.2, 0.13333334, 1)
 light_energy = 0.9
 shadow_enabled = true
 omni_range = 6.5
 
-[node name="@OmniLight3D@513" type="OmniLight3D" parent="Village/Emergency" unique_id=1411744431]
+[node name="@OmniLight3D@513" type="OmniLight3D" parent="Village/Emergency" unique_id=642638603]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 17, 2.2, 4)
 light_color = Color(1, 0.2, 0.13333334, 1)
 light_energy = 0.9
 shadow_enabled = true
 omni_range = 6.5
 
-[node name="@OmniLight3D@514" type="OmniLight3D" parent="Village/Emergency" unique_id=726861192]
+[node name="@OmniLight3D@514" type="OmniLight3D" parent="Village/Emergency" unique_id=825256484]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 24, 2.2, 4)
 light_color = Color(1, 0.2, 0.13333334, 1)
 light_energy = 0.9
 shadow_enabled = true
 omni_range = 6.5
 
-[node name="@OmniLight3D@515" type="OmniLight3D" parent="Village/Emergency" unique_id=2003953919]
+[node name="@OmniLight3D@515" type="OmniLight3D" parent="Village/Emergency" unique_id=712033246]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 13.5, 2.2, 10.5)
 light_color = Color(1, 0.2, 0.13333334, 1)
 light_energy = 0.9
 shadow_enabled = true
 omni_range = 6.5
 
-[node name="@OmniLight3D@516" type="OmniLight3D" parent="Village/Emergency" unique_id=1480579069]
+[node name="@OmniLight3D@516" type="OmniLight3D" parent="Village/Emergency" unique_id=519962166]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 22.5, 2.2, 10)
 light_color = Color(1, 0.2, 0.13333334, 1)
 light_energy = 0.9
 shadow_enabled = true
 omni_range = 6.5
 
-[node name="MainLights" type="Node3D" parent="Village" unique_id=1143158483]
+[node name="MainLights" type="Node3D" parent="Village" unique_id=2037306144]
 
-[node name="Lamp" type="OmniLight3D" parent="Village/MainLights" unique_id=1269137751]
+[node name="Lamp" type="OmniLight3D" parent="Village/MainLights" unique_id=659313017]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 2.4, 4)
 visible = false
 light_color = Color(0.9098039, 0.9411765, 1, 1)
@@ -874,7 +874,7 @@ light_energy = 1.6
 shadow_enabled = true
 omni_range = 8.0
 
-[node name="@OmniLight3D@517" type="OmniLight3D" parent="Village/MainLights" unique_id=287103017]
+[node name="@OmniLight3D@517" type="OmniLight3D" parent="Village/MainLights" unique_id=1811284133]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12, 2.4, 4)
 visible = false
 light_color = Color(0.9098039, 0.9411765, 1, 1)
@@ -882,7 +882,7 @@ light_energy = 1.6
 shadow_enabled = true
 omni_range = 8.0
 
-[node name="@OmniLight3D@518" type="OmniLight3D" parent="Village/MainLights" unique_id=1430418291]
+[node name="@OmniLight3D@518" type="OmniLight3D" parent="Village/MainLights" unique_id=1219851016]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 20, 2.4, 4)
 visible = false
 light_color = Color(0.9098039, 0.9411765, 1, 1)
@@ -890,7 +890,7 @@ light_energy = 1.6
 shadow_enabled = true
 omni_range = 8.0
 
-[node name="@OmniLight3D@519" type="OmniLight3D" parent="Village/MainLights" unique_id=2030199512]
+[node name="@OmniLight3D@519" type="OmniLight3D" parent="Village/MainLights" unique_id=1995932321]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 13.5, 2.4, 10.5)
 visible = false
 light_color = Color(0.9098039, 0.9411765, 1, 1)
@@ -898,7 +898,7 @@ light_energy = 1.6
 shadow_enabled = true
 omni_range = 8.0
 
-[node name="@OmniLight3D@520" type="OmniLight3D" parent="Village/MainLights" unique_id=1963816277]
+[node name="@OmniLight3D@520" type="OmniLight3D" parent="Village/MainLights" unique_id=1813018612]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 22.5, 2.4, 10)
 visible = false
 light_color = Color(0.9098039, 0.9411765, 1, 1)
@@ -906,7 +906,7 @@ light_energy = 1.6
 shadow_enabled = true
 omni_range = 8.0
 
-[node name="@OmniLight3D@521" type="OmniLight3D" parent="Village/MainLights" unique_id=349763509]
+[node name="@OmniLight3D@521" type="OmniLight3D" parent="Village/MainLights" unique_id=542971763]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 30, 2.4, 7)
 visible = false
 light_color = Color(0.9098039, 0.9411765, 1, 1)
@@ -914,404 +914,404 @@ light_energy = 1.6
 shadow_enabled = true
 omni_range = 8.0
 
-[node name="@MeshInstance3D@522" type="MeshInstance3D" parent="Village" unique_id=1704424305]
+[node name="@MeshInstance3D@522" type="MeshInstance3D" parent="Village" unique_id=610247077]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10.5, 0.45, 12.6)
 material_override = ExtResource("4_et8kp")
 mesh = SubResource("BoxMesh_jrv4v")
 
-[node name="@MeshInstance3D@523" type="MeshInstance3D" parent="Village" unique_id=1042175876]
+[node name="@MeshInstance3D@523" type="MeshInstance3D" parent="Village" unique_id=1158814312]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10.5, 1.35, 12.6)
 material_override = ExtResource("4_et8kp")
 mesh = SubResource("BoxMesh_d2ba8")
 
-[node name="@MeshInstance3D@524" type="MeshInstance3D" parent="Village" unique_id=807604605]
+[node name="@MeshInstance3D@524" type="MeshInstance3D" parent="Village" unique_id=1431943385]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10.5, 0.55, 12.6)
 material_override = ExtResource("6_pfxrp")
 mesh = SubResource("BoxMesh_7vrfp")
 
-[node name="@StaticBody3D@526" type="StaticBody3D" parent="Village" unique_id=972243950]
+[node name="@StaticBody3D@526" type="StaticBody3D" parent="Village" unique_id=441186610]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10.5, 0.75, 12.6)
 collision_mask = 0
 
-[node name="@CollisionShape3D@525" type="CollisionShape3D" parent="Village/@StaticBody3D@526" unique_id=702756948]
+[node name="@CollisionShape3D@525" type="CollisionShape3D" parent="Village/@StaticBody3D@526" unique_id=238004643]
 shape = SubResource("BoxShape3D_uqjya")
 
-[node name="@MeshInstance3D@527" type="MeshInstance3D" parent="Village" unique_id=1390673437]
+[node name="@MeshInstance3D@527" type="MeshInstance3D" parent="Village" unique_id=1289532867]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 13.1, 0.45, 12.6)
 material_override = ExtResource("4_et8kp")
 mesh = SubResource("BoxMesh_7rv7a")
 
-[node name="@MeshInstance3D@528" type="MeshInstance3D" parent="Village" unique_id=164611678]
+[node name="@MeshInstance3D@528" type="MeshInstance3D" parent="Village" unique_id=1004429305]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 13.1, 1.35, 12.6)
 material_override = ExtResource("4_et8kp")
 mesh = SubResource("BoxMesh_wm5kp")
 
-[node name="@MeshInstance3D@529" type="MeshInstance3D" parent="Village" unique_id=1263931366]
+[node name="@MeshInstance3D@529" type="MeshInstance3D" parent="Village" unique_id=1610299141]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 13.1, 0.55, 12.6)
 material_override = ExtResource("6_pfxrp")
 mesh = SubResource("BoxMesh_87sqn")
 
-[node name="@StaticBody3D@531" type="StaticBody3D" parent="Village" unique_id=354719317]
+[node name="@StaticBody3D@531" type="StaticBody3D" parent="Village" unique_id=506976434]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 13.1, 0.75, 12.6)
 collision_mask = 0
 
-[node name="@CollisionShape3D@530" type="CollisionShape3D" parent="Village/@StaticBody3D@531" unique_id=2128889948]
+[node name="@CollisionShape3D@530" type="CollisionShape3D" parent="Village/@StaticBody3D@531" unique_id=1613456519]
 shape = SubResource("BoxShape3D_7bev7")
 
-[node name="@MeshInstance3D@532" type="MeshInstance3D" parent="Village" unique_id=1999206647]
+[node name="@MeshInstance3D@532" type="MeshInstance3D" parent="Village" unique_id=607117623]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15.7, 0.45, 12.6)
 material_override = ExtResource("4_et8kp")
 mesh = SubResource("BoxMesh_i2e2p")
 
-[node name="@MeshInstance3D@533" type="MeshInstance3D" parent="Village" unique_id=1286709424]
+[node name="@MeshInstance3D@533" type="MeshInstance3D" parent="Village" unique_id=743111359]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15.7, 1.35, 12.6)
 material_override = ExtResource("4_et8kp")
 mesh = SubResource("BoxMesh_dngna")
 
-[node name="@MeshInstance3D@534" type="MeshInstance3D" parent="Village" unique_id=1726298924]
+[node name="@MeshInstance3D@534" type="MeshInstance3D" parent="Village" unique_id=989258602]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15.7, 0.55, 12.6)
 material_override = ExtResource("6_pfxrp")
 mesh = SubResource("BoxMesh_ijpeu")
 
-[node name="@StaticBody3D@536" type="StaticBody3D" parent="Village" unique_id=1789001332]
+[node name="@StaticBody3D@536" type="StaticBody3D" parent="Village" unique_id=1372633000]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15.7, 0.75, 12.6)
 collision_mask = 0
 
-[node name="@CollisionShape3D@535" type="CollisionShape3D" parent="Village/@StaticBody3D@536" unique_id=1999755112]
+[node name="@CollisionShape3D@535" type="CollisionShape3D" parent="Village/@StaticBody3D@536" unique_id=1238593426]
 shape = SubResource("BoxShape3D_df4js")
 
-[node name="@MeshInstance3D@537" type="MeshInstance3D" parent="Village" unique_id=906438648]
+[node name="@MeshInstance3D@537" type="MeshInstance3D" parent="Village" unique_id=540031505]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 0.95, 7.45)
 material_override = ExtResource("7_574pk")
 mesh = SubResource("BoxMesh_rr0cw")
 
-[node name="@MeshInstance3D@538" type="MeshInstance3D" parent="Village" unique_id=504786806]
+[node name="@MeshInstance3D@538" type="MeshInstance3D" parent="Village" unique_id=797799177]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10.65, 0.95, 7.45)
 material_override = ExtResource("7_574pk")
 mesh = SubResource("BoxMesh_6t4hd")
 
-[node name="@MeshInstance3D@539" type="MeshInstance3D" parent="Village" unique_id=883681287]
+[node name="@MeshInstance3D@539" type="MeshInstance3D" parent="Village" unique_id=1902499788]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11.3, 0.95, 7.45)
 material_override = ExtResource("7_574pk")
 mesh = SubResource("BoxMesh_nuyy4")
 
-[node name="@MeshInstance3D@540" type="MeshInstance3D" parent="Village" unique_id=1004637175]
+[node name="@MeshInstance3D@540" type="MeshInstance3D" parent="Village" unique_id=1205657436]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11.95, 0.95, 7.45)
 material_override = ExtResource("7_574pk")
 mesh = SubResource("BoxMesh_0emtg")
 
-[node name="@StaticBody3D@542" type="StaticBody3D" parent="Village" unique_id=138924586]
+[node name="@StaticBody3D@542" type="StaticBody3D" parent="Village" unique_id=968585254]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11, 0.95, 7.45)
 collision_mask = 0
 
-[node name="@CollisionShape3D@541" type="CollisionShape3D" parent="Village/@StaticBody3D@542" unique_id=1139559773]
+[node name="@CollisionShape3D@541" type="CollisionShape3D" parent="Village/@StaticBody3D@542" unique_id=266615121]
 shape = SubResource("BoxShape3D_fkup7")
 
-[node name="@MeshInstance3D@543" type="MeshInstance3D" parent="Village" unique_id=179237347]
+[node name="@MeshInstance3D@543" type="MeshInstance3D" parent="Village" unique_id=2058366126]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 22.5, 0.7, 11.6)
 material_override = ExtResource("4_et8kp")
 mesh = SubResource("BoxMesh_perbd")
 
-[node name="@MeshInstance3D@544" type="MeshInstance3D" parent="Village" unique_id=257311481]
+[node name="@MeshInstance3D@544" type="MeshInstance3D" parent="Village" unique_id=1951190254]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 21, 0.8, 11.6)
 material_override = ExtResource("8_oare4")
 mesh = SubResource("CylinderMesh_y7e48")
 
-[node name="@StaticBody3D@546" type="StaticBody3D" parent="Village" unique_id=1062521180]
+[node name="@StaticBody3D@546" type="StaticBody3D" parent="Village" unique_id=1007737923]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 22, 0.75, 11.6)
 collision_mask = 0
 
-[node name="@CollisionShape3D@545" type="CollisionShape3D" parent="Village/@StaticBody3D@546" unique_id=1562661462]
+[node name="@CollisionShape3D@545" type="CollisionShape3D" parent="Village/@StaticBody3D@546" unique_id=256474564]
 shape = SubResource("BoxShape3D_roelo")
 
-[node name="@MeshInstance3D@547" type="MeshInstance3D" parent="Village" unique_id=787666041]
+[node name="@MeshInstance3D@547" type="MeshInstance3D" parent="Village" unique_id=1937933184]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 30.5, 1, 2.2)
 material_override = ExtResource("4_et8kp")
 mesh = SubResource("BoxMesh_hlxag")
 
-[node name="@MeshInstance3D@548" type="MeshInstance3D" parent="Village" unique_id=428002438]
+[node name="@MeshInstance3D@548" type="MeshInstance3D" parent="Village" unique_id=1601964034]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 28.6, 1.25, 2.2)
 material_override = ExtResource("9_0c1pu")
 mesh = SubResource("BoxMesh_hgnrj")
 
-[node name="@MeshInstance3D@549" type="MeshInstance3D" parent="Village" unique_id=1885135927]
+[node name="@MeshInstance3D@549" type="MeshInstance3D" parent="Village" unique_id=1916261444]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 29.05, 1.25, 2.2)
 material_override = ExtResource("9_0c1pu")
 mesh = SubResource("BoxMesh_3towf")
 
-[node name="@MeshInstance3D@550" type="MeshInstance3D" parent="Village" unique_id=539114617]
+[node name="@MeshInstance3D@550" type="MeshInstance3D" parent="Village" unique_id=388833631]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 29.5, 1.25, 2.2)
 material_override = ExtResource("9_0c1pu")
 mesh = SubResource("BoxMesh_exqd0")
 
-[node name="@MeshInstance3D@551" type="MeshInstance3D" parent="Village" unique_id=494892415]
+[node name="@MeshInstance3D@551" type="MeshInstance3D" parent="Village" unique_id=443775616]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 29.95, 1.25, 2.2)
 material_override = ExtResource("9_0c1pu")
 mesh = SubResource("BoxMesh_l6ym4")
 
-[node name="@MeshInstance3D@552" type="MeshInstance3D" parent="Village" unique_id=1547355241]
+[node name="@MeshInstance3D@552" type="MeshInstance3D" parent="Village" unique_id=851090059]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 30.4, 1.25, 2.2)
 material_override = ExtResource("9_0c1pu")
 mesh = SubResource("BoxMesh_2ugyy")
 
-[node name="@MeshInstance3D@553" type="MeshInstance3D" parent="Village" unique_id=1771705272]
+[node name="@MeshInstance3D@553" type="MeshInstance3D" parent="Village" unique_id=1621112433]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 30.85, 1.25, 2.2)
 material_override = ExtResource("9_0c1pu")
 mesh = SubResource("BoxMesh_5jm40")
 
-[node name="@MeshInstance3D@554" type="MeshInstance3D" parent="Village" unique_id=98340608]
+[node name="@MeshInstance3D@554" type="MeshInstance3D" parent="Village" unique_id=240212636]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 31.3, 1.25, 2.2)
 material_override = ExtResource("9_0c1pu")
 mesh = SubResource("BoxMesh_7n4l2")
 
-[node name="@MeshInstance3D@555" type="MeshInstance3D" parent="Village" unique_id=314167159]
+[node name="@MeshInstance3D@555" type="MeshInstance3D" parent="Village" unique_id=335674422]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 31.75, 1.25, 2.2)
 material_override = ExtResource("9_0c1pu")
 mesh = SubResource("BoxMesh_rscf2")
 
-[node name="@MeshInstance3D@556" type="MeshInstance3D" parent="Village" unique_id=1078738780]
+[node name="@MeshInstance3D@556" type="MeshInstance3D" parent="Village" unique_id=657862708]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 32.2, 1.25, 2.2)
 material_override = ExtResource("9_0c1pu")
 mesh = SubResource("BoxMesh_ybips")
 
-[node name="@StaticBody3D@558" type="StaticBody3D" parent="Village" unique_id=105161708]
+[node name="@StaticBody3D@558" type="StaticBody3D" parent="Village" unique_id=1569696449]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 30.5, 1, 2.2)
 collision_mask = 0
 
-[node name="@CollisionShape3D@557" type="CollisionShape3D" parent="Village/@StaticBody3D@558" unique_id=1551247217]
+[node name="@CollisionShape3D@557" type="CollisionShape3D" parent="Village/@StaticBody3D@558" unique_id=374531356]
 shape = SubResource("BoxShape3D_5wivy")
 
-[node name="@MeshInstance3D@559" type="MeshInstance3D" parent="Village" unique_id=246406835]
+[node name="@MeshInstance3D@559" type="MeshInstance3D" parent="Village" unique_id=94396278]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 30.5, 1, 5.6)
 material_override = ExtResource("4_et8kp")
 mesh = SubResource("BoxMesh_ufbv5")
 
-[node name="@MeshInstance3D@560" type="MeshInstance3D" parent="Village" unique_id=217449968]
+[node name="@MeshInstance3D@560" type="MeshInstance3D" parent="Village" unique_id=2147350860]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 28.6, 1.25, 5.6)
 material_override = ExtResource("9_0c1pu")
 mesh = SubResource("BoxMesh_goq0n")
 
-[node name="@MeshInstance3D@561" type="MeshInstance3D" parent="Village" unique_id=1029070092]
+[node name="@MeshInstance3D@561" type="MeshInstance3D" parent="Village" unique_id=2086663773]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 29.05, 1.25, 5.6)
 material_override = ExtResource("9_0c1pu")
 mesh = SubResource("BoxMesh_0misq")
 
-[node name="@MeshInstance3D@562" type="MeshInstance3D" parent="Village" unique_id=658301703]
+[node name="@MeshInstance3D@562" type="MeshInstance3D" parent="Village" unique_id=1090154788]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 29.5, 1.25, 5.6)
 material_override = ExtResource("9_0c1pu")
 mesh = SubResource("BoxMesh_qx4yw")
 
-[node name="@MeshInstance3D@563" type="MeshInstance3D" parent="Village" unique_id=688989030]
+[node name="@MeshInstance3D@563" type="MeshInstance3D" parent="Village" unique_id=1401971251]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 29.95, 1.25, 5.6)
 material_override = ExtResource("9_0c1pu")
 mesh = SubResource("BoxMesh_dkmww")
 
-[node name="@MeshInstance3D@564" type="MeshInstance3D" parent="Village" unique_id=1581992682]
+[node name="@MeshInstance3D@564" type="MeshInstance3D" parent="Village" unique_id=735749316]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 30.4, 1.25, 5.6)
 material_override = ExtResource("9_0c1pu")
 mesh = SubResource("BoxMesh_xp3gi")
 
-[node name="@MeshInstance3D@565" type="MeshInstance3D" parent="Village" unique_id=404621805]
+[node name="@MeshInstance3D@565" type="MeshInstance3D" parent="Village" unique_id=1374763973]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 30.85, 1.25, 5.6)
 material_override = ExtResource("9_0c1pu")
 mesh = SubResource("BoxMesh_rl22g")
 
-[node name="@MeshInstance3D@566" type="MeshInstance3D" parent="Village" unique_id=810783225]
+[node name="@MeshInstance3D@566" type="MeshInstance3D" parent="Village" unique_id=1817730081]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 31.3, 1.25, 5.6)
 material_override = ExtResource("9_0c1pu")
 mesh = SubResource("BoxMesh_i11y0")
 
-[node name="@MeshInstance3D@567" type="MeshInstance3D" parent="Village" unique_id=123309121]
+[node name="@MeshInstance3D@567" type="MeshInstance3D" parent="Village" unique_id=2145433235]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 31.75, 1.25, 5.6)
 material_override = ExtResource("9_0c1pu")
 mesh = SubResource("BoxMesh_fks5d")
 
-[node name="@MeshInstance3D@568" type="MeshInstance3D" parent="Village" unique_id=1198971824]
+[node name="@MeshInstance3D@568" type="MeshInstance3D" parent="Village" unique_id=1487596874]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 32.2, 1.25, 5.6)
 material_override = ExtResource("9_0c1pu")
 mesh = SubResource("BoxMesh_sm74l")
 
-[node name="@StaticBody3D@570" type="StaticBody3D" parent="Village" unique_id=2024722295]
+[node name="@StaticBody3D@570" type="StaticBody3D" parent="Village" unique_id=1759673108]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 30.5, 1, 5.6)
 collision_mask = 0
 
-[node name="@CollisionShape3D@569" type="CollisionShape3D" parent="Village/@StaticBody3D@570" unique_id=1087008975]
+[node name="@CollisionShape3D@569" type="CollisionShape3D" parent="Village/@StaticBody3D@570" unique_id=50851486]
 shape = SubResource("BoxShape3D_o2260")
 
-[node name="@MeshInstance3D@571" type="MeshInstance3D" parent="Village" unique_id=2013896163]
+[node name="@MeshInstance3D@571" type="MeshInstance3D" parent="Village" unique_id=1638696863]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 30.5, 1, 9)
 material_override = ExtResource("4_et8kp")
 mesh = SubResource("BoxMesh_84srk")
 
-[node name="@MeshInstance3D@572" type="MeshInstance3D" parent="Village" unique_id=1094452182]
+[node name="@MeshInstance3D@572" type="MeshInstance3D" parent="Village" unique_id=2058796661]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 28.6, 1.25, 9)
 material_override = ExtResource("9_0c1pu")
 mesh = SubResource("BoxMesh_nvny3")
 
-[node name="@MeshInstance3D@573" type="MeshInstance3D" parent="Village" unique_id=300006427]
+[node name="@MeshInstance3D@573" type="MeshInstance3D" parent="Village" unique_id=1112387044]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 29.05, 1.25, 9)
 material_override = ExtResource("9_0c1pu")
 mesh = SubResource("BoxMesh_3p0jj")
 
-[node name="@MeshInstance3D@574" type="MeshInstance3D" parent="Village" unique_id=1138872953]
+[node name="@MeshInstance3D@574" type="MeshInstance3D" parent="Village" unique_id=387811399]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 29.5, 1.25, 9)
 material_override = ExtResource("9_0c1pu")
 mesh = SubResource("BoxMesh_inxjf")
 
-[node name="@MeshInstance3D@575" type="MeshInstance3D" parent="Village" unique_id=2036277879]
+[node name="@MeshInstance3D@575" type="MeshInstance3D" parent="Village" unique_id=993910890]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 29.95, 1.25, 9)
 material_override = ExtResource("9_0c1pu")
 mesh = SubResource("BoxMesh_sjmc4")
 
-[node name="@MeshInstance3D@576" type="MeshInstance3D" parent="Village" unique_id=1825878345]
+[node name="@MeshInstance3D@576" type="MeshInstance3D" parent="Village" unique_id=150859758]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 30.4, 1.25, 9)
 material_override = ExtResource("9_0c1pu")
 mesh = SubResource("BoxMesh_3f57c")
 
-[node name="@MeshInstance3D@577" type="MeshInstance3D" parent="Village" unique_id=346370912]
+[node name="@MeshInstance3D@577" type="MeshInstance3D" parent="Village" unique_id=1968538819]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 30.85, 1.25, 9)
 material_override = ExtResource("9_0c1pu")
 mesh = SubResource("BoxMesh_3wdmy")
 
-[node name="@MeshInstance3D@578" type="MeshInstance3D" parent="Village" unique_id=918025919]
+[node name="@MeshInstance3D@578" type="MeshInstance3D" parent="Village" unique_id=1891680995]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 31.3, 1.25, 9)
 material_override = ExtResource("9_0c1pu")
 mesh = SubResource("BoxMesh_3x4aa")
 
-[node name="@MeshInstance3D@579" type="MeshInstance3D" parent="Village" unique_id=209764344]
+[node name="@MeshInstance3D@579" type="MeshInstance3D" parent="Village" unique_id=373657542]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 31.75, 1.25, 9)
 material_override = ExtResource("9_0c1pu")
 mesh = SubResource("BoxMesh_nkn65")
 
-[node name="@MeshInstance3D@580" type="MeshInstance3D" parent="Village" unique_id=211667828]
+[node name="@MeshInstance3D@580" type="MeshInstance3D" parent="Village" unique_id=1376463276]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 32.2, 1.25, 9)
 material_override = ExtResource("9_0c1pu")
 mesh = SubResource("BoxMesh_372e3")
 
-[node name="@StaticBody3D@582" type="StaticBody3D" parent="Village" unique_id=2012322204]
+[node name="@StaticBody3D@582" type="StaticBody3D" parent="Village" unique_id=98872139]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 30.5, 1, 9)
 collision_mask = 0
 
-[node name="@CollisionShape3D@581" type="CollisionShape3D" parent="Village/@StaticBody3D@582" unique_id=2025903071]
+[node name="@CollisionShape3D@581" type="CollisionShape3D" parent="Village/@StaticBody3D@582" unique_id=2102245578]
 shape = SubResource("BoxShape3D_w8hss")
 
-[node name="@MeshInstance3D@583" type="MeshInstance3D" parent="Village" unique_id=262958412]
+[node name="@MeshInstance3D@583" type="MeshInstance3D" parent="Village" unique_id=169280894]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 30.5, 1, 11.8)
 material_override = ExtResource("4_et8kp")
 mesh = SubResource("BoxMesh_ou8uu")
 
-[node name="@MeshInstance3D@584" type="MeshInstance3D" parent="Village" unique_id=1149342833]
+[node name="@MeshInstance3D@584" type="MeshInstance3D" parent="Village" unique_id=763400668]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 28.6, 1.25, 11.8)
 material_override = ExtResource("9_0c1pu")
 mesh = SubResource("BoxMesh_jkfa3")
 
-[node name="@MeshInstance3D@585" type="MeshInstance3D" parent="Village" unique_id=1412946022]
+[node name="@MeshInstance3D@585" type="MeshInstance3D" parent="Village" unique_id=1315686630]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 29.05, 1.25, 11.8)
 material_override = ExtResource("9_0c1pu")
 mesh = SubResource("BoxMesh_nvb1v")
 
-[node name="@MeshInstance3D@586" type="MeshInstance3D" parent="Village" unique_id=9815036]
+[node name="@MeshInstance3D@586" type="MeshInstance3D" parent="Village" unique_id=630006384]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 29.5, 1.25, 11.8)
 material_override = ExtResource("9_0c1pu")
 mesh = SubResource("BoxMesh_8edgk")
 
-[node name="@MeshInstance3D@587" type="MeshInstance3D" parent="Village" unique_id=1861286609]
+[node name="@MeshInstance3D@587" type="MeshInstance3D" parent="Village" unique_id=1612548485]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 29.95, 1.25, 11.8)
 material_override = ExtResource("9_0c1pu")
 mesh = SubResource("BoxMesh_5xvpw")
 
-[node name="@MeshInstance3D@588" type="MeshInstance3D" parent="Village" unique_id=1850953077]
+[node name="@MeshInstance3D@588" type="MeshInstance3D" parent="Village" unique_id=50139620]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 30.4, 1.25, 11.8)
 material_override = ExtResource("9_0c1pu")
 mesh = SubResource("BoxMesh_s8so7")
 
-[node name="@MeshInstance3D@589" type="MeshInstance3D" parent="Village" unique_id=946106114]
+[node name="@MeshInstance3D@589" type="MeshInstance3D" parent="Village" unique_id=1621180863]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 30.85, 1.25, 11.8)
 material_override = ExtResource("9_0c1pu")
 mesh = SubResource("BoxMesh_k5p6m")
 
-[node name="@MeshInstance3D@590" type="MeshInstance3D" parent="Village" unique_id=1680535687]
+[node name="@MeshInstance3D@590" type="MeshInstance3D" parent="Village" unique_id=928708291]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 31.3, 1.25, 11.8)
 material_override = ExtResource("9_0c1pu")
 mesh = SubResource("BoxMesh_20eo4")
 
-[node name="@MeshInstance3D@591" type="MeshInstance3D" parent="Village" unique_id=1976094693]
+[node name="@MeshInstance3D@591" type="MeshInstance3D" parent="Village" unique_id=1961278934]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 31.75, 1.25, 11.8)
 material_override = ExtResource("9_0c1pu")
 mesh = SubResource("BoxMesh_hpuu7")
 
-[node name="@MeshInstance3D@592" type="MeshInstance3D" parent="Village" unique_id=222783386]
+[node name="@MeshInstance3D@592" type="MeshInstance3D" parent="Village" unique_id=1339875335]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 32.2, 1.25, 11.8)
 material_override = ExtResource("9_0c1pu")
 mesh = SubResource("BoxMesh_qiov4")
 
-[node name="@StaticBody3D@594" type="StaticBody3D" parent="Village" unique_id=1592098697]
+[node name="@StaticBody3D@594" type="StaticBody3D" parent="Village" unique_id=1461175973]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 30.5, 1, 11.8)
 collision_mask = 0
 
-[node name="@CollisionShape3D@593" type="CollisionShape3D" parent="Village/@StaticBody3D@594" unique_id=771026395]
+[node name="@CollisionShape3D@593" type="CollisionShape3D" parent="Village/@StaticBody3D@594" unique_id=1581281637]
 shape = SubResource("BoxShape3D_ogrk3")
 
-[node name="@MeshInstance3D@595" type="MeshInstance3D" parent="Village" unique_id=990714342]
+[node name="@MeshInstance3D@595" type="MeshInstance3D" parent="Village" unique_id=1353581170]
 transform = Transform3D(0.40870878, 0, 0.91266483, 0, 1, 0, -0.91266483, 0, 0.40870878, 15.136307, 0.02, 4.279117)
 material_override = ExtResource("9_0c1pu")
 mesh = SubResource("BoxMesh_bhy8h")
 
-[node name="@MeshInstance3D@596" type="MeshInstance3D" parent="Village" unique_id=3025480]
+[node name="@MeshInstance3D@596" type="MeshInstance3D" parent="Village" unique_id=1823319755]
 transform = Transform3D(0.15351464, 0, 0.98814636, 0, 1, 0, -0.98814636, 0, 0.15351464, 19.296019, 0.02, 3.5817876)
 material_override = ExtResource("9_0c1pu")
 mesh = SubResource("BoxMesh_76akg")
 
-[node name="@MeshInstance3D@597" type="MeshInstance3D" parent="Village" unique_id=815682828]
+[node name="@MeshInstance3D@597" type="MeshInstance3D" parent="Village" unique_id=1193874720]
 transform = Transform3D(0.915684, 0, 0.40189907, 0, 1, 0, -0.40189907, 0, 0.915684, 20.19652, 0.02, 4.4586425)
 material_override = ExtResource("9_0c1pu")
 mesh = SubResource("BoxMesh_8puj7")
 
-[node name="@MeshInstance3D@598" type="MeshInstance3D" parent="Village" unique_id=1722986757]
+[node name="@MeshInstance3D@598" type="MeshInstance3D" parent="Village" unique_id=1627730121]
 transform = Transform3D(0.38567927, 0, 0.92263293, 0, 1, 0, -0.92263293, 0, 0.38567927, 9.814738, 0.02, 4.4172554)
 material_override = ExtResource("9_0c1pu")
 mesh = SubResource("BoxMesh_x2qcj")
 
-[node name="@MeshInstance3D@599" type="MeshInstance3D" parent="Village" unique_id=361120021]
+[node name="@MeshInstance3D@599" type="MeshInstance3D" parent="Village" unique_id=1742588124]
 transform = Transform3D(0.20439866, 0, 0.97888774, 0, 1, 0, -0.97888774, 0, 0.20439866, 22.571268, 0.02, 3.3741457)
 material_override = ExtResource("9_0c1pu")
 mesh = SubResource("BoxMesh_k0f6d")
 
-[node name="@MeshInstance3D@600" type="MeshInstance3D" parent="Village" unique_id=615033573]
+[node name="@MeshInstance3D@600" type="MeshInstance3D" parent="Village" unique_id=198209966]
 transform = Transform3D(0.8569331, 0, -0.51542765, 0, 1, 0, 0.51542765, 0, 0.8569331, 17.838737, 0.02, 3.8512788)
 material_override = ExtResource("9_0c1pu")
 mesh = SubResource("BoxMesh_nbyy1")
 
-[node name="@MeshInstance3D@601" type="MeshInstance3D" parent="Village" unique_id=220078740]
+[node name="@MeshInstance3D@601" type="MeshInstance3D" parent="Village" unique_id=1551639112]
 transform = Transform3D(0.19577675, 0, 0.9806485, 0, 1, 0, -0.9806485, 0, 0.19577675, 17.880865, 0.02, 4.7721767)
 material_override = ExtResource("9_0c1pu")
 mesh = SubResource("BoxMesh_jx1vd")
 
-[node name="@MeshInstance3D@602" type="MeshInstance3D" parent="Village" unique_id=1579630346]
+[node name="@MeshInstance3D@602" type="MeshInstance3D" parent="Village" unique_id=80624063]
 transform = Transform3D(0.47617683, 0, 0.8793495, 0, 1, 0, -0.8793495, 0, 0.47617683, 10.400734, 0.02, 3.9883084)
 material_override = ExtResource("9_0c1pu")
 mesh = SubResource("BoxMesh_c6qj5")
 
-[node name="@MeshInstance3D@603" type="MeshInstance3D" parent="Village" unique_id=515687598]
+[node name="@MeshInstance3D@603" type="MeshInstance3D" parent="Village" unique_id=1993589826]
 transform = Transform3D(-0.15044712, 0, -0.9886181, 0, 1, 0, 0.9886181, 0, -0.15044712, 10.080704, 0.02, 3.2741075)
 material_override = ExtResource("9_0c1pu")
 mesh = SubResource("BoxMesh_1823m")
 
-[node name="@MeshInstance3D@604" type="MeshInstance3D" parent="Village" unique_id=11123089]
+[node name="@MeshInstance3D@604" type="MeshInstance3D" parent="Village" unique_id=1521230909]
 transform = Transform3D(-0.82485294, 0, 0.5653474, 0, 1, 0, -0.5653474, 0, -0.82485294, 21.42488, 0.02, 3.9880614)
 material_override = ExtResource("9_0c1pu")
 mesh = SubResource("BoxMesh_yuy4o")
 
-[node name="Characters" type="Node3D" parent="." unique_id=236934069]
+[node name="Characters" type="Node3D" parent="." unique_id=1624479218]
 
-[node name="DeadCleaner" type="Node3D" parent="Characters" unique_id=331692395]
+[node name="DeadCleaner" type="Node3D" parent="Characters" unique_id=28613028]
 transform = Transform3D(0.8253356, 0, 0.5646425, 0, 1, 0, -0.5646425, 0, 0.8253356, 15.5, 0, 9.5)
 script = ExtResource("10_l4ja2")
 char_id = "cleaner_dead"
 start_dead = true
 patrol = PackedVector3Array()
 
-[node name="Squatter1" type="Node3D" parent="Characters" unique_id=2130297963]
+[node name="Squatter1" type="Node3D" parent="Characters" unique_id=1962804738]
 transform = Transform3D(0.6967067, 0, -0.7173561, 0, 1, 0, 0.7173561, 0, 0.6967067, 12.5, 0, 10.5)
 script = ExtResource("10_l4ja2")
 char_id = "ruin_looter"
@@ -1320,7 +1320,7 @@ aggro_radius = 7.0
 squad = "squat"
 patrol = PackedVector3Array()
 
-[node name="Squatter2" type="Node3D" parent="Characters" unique_id=1955290637]
+[node name="Squatter2" type="Node3D" parent="Characters" unique_id=1135263649]
 transform = Transform3D(0.16996716, 0, -0.98544973, 0, 1, 0, 0.98544973, 0, 0.16996716, 16, 0, 11.5)
 script = ExtResource("10_l4ja2")
 char_id = "ruin_looter_gun"
@@ -1329,59 +1329,59 @@ aggro_radius = 7.0
 squad = "squat"
 patrol = PackedVector3Array()
 
-[node name="Items" type="Node3D" parent="." unique_id=1967266140]
+[node name="Items" type="Node3D" parent="." unique_id=48843444]
 
-[node name="UpRope" type="Node3D" parent="Items" unique_id=390853053]
+[node name="UpRope" type="Node3D" parent="Items" unique_id=446868815]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.2, 0, 3.2)
 script = ExtResource("11_8sij5")
 kind = "use"
 label = "Верёвка наверх"
 pick_size = Vector3(1, 2.4, 1)
 
-[node name="@MeshInstance3D@605" type="MeshInstance3D" parent="Items/UpRope" unique_id=1517052433]
+[node name="@MeshInstance3D@605" type="MeshInstance3D" parent="Items/UpRope" unique_id=662777014]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.8, 0)
 material_override = ExtResource("12_p8yp8")
 mesh = SubResource("CylinderMesh_dwey4")
 
-[node name="Generator" type="Node3D" parent="Items" unique_id=110234775]
+[node name="Generator" type="Node3D" parent="Items" unique_id=63847956]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 22.5, 0, 10.4)
 script = ExtResource("11_8sij5")
 kind = "use"
 label = "Генератор"
 pick_size = Vector3(2.4, 1.6, 1.2)
 
-[node name="DoorLock" type="Node3D" parent="Items" unique_id=1227000563]
+[node name="DoorLock" type="Node3D" parent="Items" unique_id=2115937468]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 26.4, 0, 4)
 script = ExtResource("11_8sij5")
 kind = "use"
 label = "Электрозамок"
 pick_size = Vector3(0.8, 1.8, 1.6)
 
-[node name="Lockers" type="Node3D" parent="Items" unique_id=725080067]
+[node name="Lockers" type="Node3D" parent="Items" unique_id=1053912676]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11, 0, 8.2)
 script = ExtResource("11_8sij5")
 kind = "use"
 label = "Шкафчики"
 pick_size = Vector3(2.6, 1.8, 0.8)
 
-[node name="Files" type="Node3D" parent="Items" unique_id=1030565998]
+[node name="Files" type="Node3D" parent="Items" unique_id=1776201992]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 30.5, 0, 6.5)
 script = ExtResource("11_8sij5")
 kind = "use"
 label = "Шкаф с делами"
 pick_size = Vector3(3.5, 2, 1)
 
-[node name="Registry" type="Node3D" parent="Items" unique_id=116751864]
+[node name="Registry" type="Node3D" parent="Items" unique_id=1663763262]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 30.5, 0, 10.2)
 script = ExtResource("11_8sij5")
 kind = "use"
 label = "Ведомость"
 pick_size = Vector3(3.5, 2, 1)
 
-[node name="Spawns" type="Node3D" parent="." unique_id=24082161]
+[node name="Spawns" type="Node3D" parent="." unique_id=1291407096]
 
-[node name="Start" type="Marker3D" parent="Spawns" unique_id=425196796]
+[node name="Start" type="Marker3D" parent="Spawns" unique_id=1296489042]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.8, 0, 4.6)
 
-[node name="Down" type="Marker3D" parent="Spawns" unique_id=202604405]
+[node name="Down" type="Marker3D" parent="Spawns" unique_id=672774673]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.8, 0, 4.6)

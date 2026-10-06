@@ -1,0 +1,117 @@
+{
+  "speaker": "Мясник Сэргэ",
+  "title": "Сэргэ · мясной ряд",
+  "nodes": {
+    "start": {
+      "text": "Мясо! Свежее! Почти.",
+      "text_if": [
+        {
+          "if": {
+            "flag": "butcher_banned"
+          },
+          "text": "(Сэргэ собирает лоток.) Доволен? Пять лет торговал…"
+        }
+      ],
+      "options": [
+        {
+          "text": "[Гиря у меня] Твоя гиря — пустая внутри.",
+          "next": "confront",
+          "if": {
+            "quest": "sg_scales",
+            "stage": 2,
+            "item": "rigged_weight"
+          }
+        },
+        {
+          "text": "Почём мясо?",
+          "next": "price"
+        },
+        {
+          "text": "[Уйти]",
+          "next": null
+        }
+      ]
+    },
+    "price": {
+      "text": "Тебе — как всем. Вешаю честно, гляди. (Гиря звякает о чашку.)",
+      "options": [
+        {
+          "text": "…",
+          "next": "start"
+        }
+      ]
+    },
+    "confront": {
+      "text": "(Сэргэ бледнеет и оглядывается.) Тише! Тише… Не надо Бахылаю. Сколько хочешь?",
+      "options": [
+        {
+          "text": "Двадцать рублей — и я молчу.",
+          "next": "paid"
+        },
+        {
+          "text": "[Запугивание] Будешь вешать честно. И вернёшь людям, что недовесил.",
+          "next": null,
+          "check": {
+            "stat": "BODY",
+            "skill": "Запугивание",
+            "dc": 12
+          },
+          "success": "reform",
+          "fail": "laugh"
+        },
+        {
+          "text": "Ничего. Иду к Бахылаю.",
+          "next": null
+        }
+      ]
+    },
+    "paid": {
+      "text": "(Сэргэ суёт тебе мятые купюры.) Держи. И гирю отдай.",
+      "give": {
+        "rubles": 20
+      },
+      "take": {
+        "rigged_weight": 1
+      },
+      "quest": {
+        "id": "sg_scales",
+        "stage": 4
+      },
+      "options": [
+        {
+          "text": "…",
+          "next": null
+        }
+      ]
+    },
+    "reform": {
+      "text": "Ладно! Ладно… Честно буду. Гирю — забирай, выкинь в реку.",
+      "take": {
+        "rigged_weight": 1
+      },
+      "quest": {
+        "id": "sg_scales",
+        "stage": 3
+      },
+      "xp": 50,
+      "set_flags": {
+        "butcher_reformed": true
+      },
+      "options": [
+        {
+          "text": "…",
+          "next": null
+        }
+      ]
+    },
+    "laugh": {
+      "text": "(Сэргэ берёт тесак.) Ты мне грозить будешь? Иди отсюда, деревня.",
+      "options": [
+        {
+          "text": "…",
+          "next": null
+        }
+      ]
+    }
+  }
+}

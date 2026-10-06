@@ -1,0 +1,76 @@
+{
+  "speaker": "Сборщик долгов",
+  "title": "Сборщик долгов · отдел ф. м.",
+  "nodes": {
+    "start": {
+      "text": "Подёнщика не видел? Худой, в серой куртке. Долг на нём. За наводку — тридцать рублей.",
+      "text_if": [
+        {
+          "if": {
+            "flag": "collectors_left"
+          },
+          "text": "(Сборщик зевает.) Чего тебе?"
+        }
+      ],
+      "options": [
+        {
+          "text": "[Обман] Видел — к пристани побежал, к лодкам.",
+          "next": null,
+          "if": {
+            "quest": "sg_runaway",
+            "stage": 1,
+            "not_flag": "collector_lied"
+          },
+          "check": {
+            "stat": "CHA",
+            "skill": "Обман",
+            "dc": 12
+          },
+          "success": "lie_ok",
+          "fail": "lie_bad",
+          "set_flags": {
+            "collector_lied": true
+          }
+        },
+        {
+          "text": "[Сдать] За бараком он, у поленницы.",
+          "next": null,
+          "if": {
+            "quest": "sg_runaway",
+            "stage": 1
+          },
+          "action": "betray_runaway"
+        },
+        {
+          "text": "Не видел.",
+          "next": null
+        }
+      ]
+    },
+    "lie_ok": {
+      "text": "(Сборщики переглядываются.) К пристани? Пошли, пока лодки не ушли.",
+      "action": "collectors_leave",
+      "quest": {
+        "id": "sg_runaway",
+        "stage": 3
+      },
+      "xp": 50,
+      "options": [
+        {
+          "text": "…",
+          "next": null
+        }
+      ]
+    },
+    "lie_bad": {
+      "text": "(Сборщик ухмыляется.) К пристани, говоришь? А чего глаза бегают? Ты с ним заодно, деревня. Ну-ка, поговорим иначе.",
+      "options": [
+        {
+          "text": "…",
+          "next": null,
+          "action": "collectors_fight"
+        }
+      ]
+    }
+  }
+}

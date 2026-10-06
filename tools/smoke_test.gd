@@ -73,11 +73,11 @@ func fight(max_turns := 80) -> void:
 	while main.combat.on and guard < max_turns * 20:
 		guard += 1
 		await frames(1)
-		# сюжетный тест: героя не дают убить и на чужом ходу
-		if not "fair" in OS.get_cmdline_user_args() and Game.hero_hp() < Game.hero_max() / 2:
+		# сюжетный тест: героя не дают убить и на чужом ходу (в кулачном бою — можно и проиграть)
+		if not "fair" in OS.get_cmdline_user_args() and main.combat.kind != "spar" and Game.hero_hp() < Game.hero_max() / 2:
 			Game.set_hero_hp(Game.hero_max())
 		if main.combat.my_turn():
-			if not "fair" in OS.get_cmdline_user_args():
+			if not "fair" in OS.get_cmdline_user_args() and main.combat.kind != "spar":
 				Game.set_hero_hp(Game.hero_max())
 				# автотест проверяет сюжет, а не экономию патронов
 				for am in ["ammo9", "ammo762"]:
@@ -107,6 +107,169 @@ func fight(max_turns := 80) -> void:
 		for e in main.combat.enemies():
 			st.append("%s ХП %d гекс %s" % [e.name, e.hp, e.hex])
 		print("  !! бой не закончился: герой %s, гекс %s, оружие %s, патроны %s; враги: %s" % [Game.hero_hp(), main.combat.hero_f.hex, Game.hero_wkey(), Game.hero.ammo, ", ".join(st)])
+
+
+func wait_loading() -> void:
+	await frames(2)
+	while main._loading:
+		await frames(2)
+	await frames(3)
+	main.dialog.close()
+
+
+## Сунгар: три района, плата за вход, квесты, след Боотура — и дорога в Мар-Кун
+func sungar_tests() -> void:
+	var wm: WorldMap = main.world_map
+	var loc = main.location
+	ok(loc != null and loc.location_id == "sungar" and Game.quest_stage("bootur") == 6, "Сунгар: пришёл к воротам, след Боотура — здесь")
+	main.dialog.close()
+	await frames(2)
+	# мимо стражника без платы не пройти
+	var guard: Character = loc.character("GateGuard")
+	Game.add_item("rubles", 120)
+	await tp(Vector3(13.4, 0, 30))
+	await frames(4)
+	ok(main.dialog.visible and main.dialog.speaker == guard and main.player.global_position.x < 12.6, "стражник остановил: город платный")
+	var rb: int = Game.item_count("rubles")
+	await choose(find_opt("Отдать 10 рублей"))
+	ok(Game.flag("sg_entered") and Game.item_count("rubles") == rb - 10 and Game.quest_stage("sg_toll") == 2,
+		"заплатил десять рублей — пропустили (вход %s, рубли %d→%d, этап %d)" % [Game.flag("sg_entered"), rb, Game.item_count("rubles"), Game.quest_stage("sg_toll")])
+	await shut()
+	# рынок: кривые весы
+	Game.force_check = 1
+	var mb: Character = loc.character("MarketBoss")
+	await tp(mb.global_position + Vector3(1.2, 0, 1.2))
+	main.talk_to(mb)
+	await frames(2)
+	await choose(find_opt("торговля"))
+	await choose(find_opt("Поищу"))
+	ok(Game.quest_stage("sg_scales") == 1, "Бахылай: на рынке обвешивают")
+	loc.on_interact(loc.item("Stall1"))
+	ok(Game.quest_stage("sg_scales") == 1, "у первого прилавка весы честные")
+	loc.on_interact(loc.item("Stall4"))
+	ok(Game.quest_stage("sg_scales") == 2 and Game.item_count("rigged_weight") == 1, "гиря мясника — пустая внутри")
+	main.talk_to(mb)
+	await frames(2)
+	await choose(find_opt("Отдать гирю"))
+	await shut()
+	ok(Game.quest_stage("sg_scales") == 3 and Game.flag("butcher_banned"), "Бахылай выгнал обвесчика")
+	# в центр
+	loc.on_interact(loc.item("ToCenter"))
+	await wait_loading()
+	loc = main.location
+	ok(loc.location_id == "sungar_center", "перешёл в центр города")
+	var hs: Character = loc.character("Hostess")
+	await tp(hs.global_position + Vector3(1.0, 0, -1.2))
+	main.talk_to(hs)
+	await frames(2)
+	await choose(find_opt("Ищу Боотура"))
+	await choose(find_opt("Куда увели"))
+	await shut()
+	ok(Game.quest_stage("bootur") == 7, "«Счастливая лодка»: долг Боотура выкупила контора")
+	var dl: Character = loc.character("Dealer")
+	rb = Game.item_count("rubles")
+	main.talk_to(dl)
+	await frames(2)
+	await choose(find_opt("Бросай"))
+	ok(Game.item_count("rubles") == rb + 10, "кости у «Лодки»: выиграл десятку")
+	await shut()
+	var mr: Character = loc.character("Merchant")
+	main.talk_to(mr)
+	await frames(2)
+	await choose(find_opt("хмурая"))
+	await choose(find_opt("Поищу"))
+	main.talk_to(mr)
+	await frames(2)
+	var tw := find_opt("Вот накладная")
+	await choose(tw if tw >= 0 else find_opt("я видел грузовики"))
+	await shut()
+	ok(Game.quest_stage("sg_caravan") == 2, "купчиха Дария узнала, что стало с караваном")
+	var cl: Character = loc.character("Clerk")
+	await tp(cl.global_position + Vector3(0, 0, 1.4))
+	main.talk_to(cl)
+	await frames(2)
+	await choose(find_opt("должник"))
+	await choose(find_opt("Отдать 40 рублей"))
+	await choose(find_opt("Какие сведения"))
+	await shut()
+	ok(Game.quest_stage("bootur") == 8 and wm.known("markun") and wm.known("mir") and "МИР" in str(Game.hero.notes), "контора: Боотур продал сведения о Нахарро, угнан в МИР; дальше — Мар-Кун")
+	# жилой квартал
+	loc.on_interact(loc.item("ToQuarter"))
+	await wait_loading()
+	loc = main.location
+	ok(loc.location_id == "sungar_quarter", "перешёл в жилой квартал")
+	main.talk_to(loc.character("Gunsmith"))
+	await frames(2)
+	await choose(find_opt("Работа"))
+	await choose(find_opt("Поищу"))
+	loc.on_interact(loc.item("ScrapA"))
+	loc.on_interact(loc.item("ScrapC"))
+	ok(Game.item_count("spring") == 1 and Game.quest_stage("sg_spring") == 2, "пружина в хламе за бараками")
+	main.talk_to(loc.character("Gunsmith"))
+	await frames(2)
+	await choose(find_opt("Отдать пружину"))
+	await shut()
+	ok(Game.quest_stage("sg_spring") == 3, "оружейник получил пружину")
+	# кулачный бой за «Шалманом»
+	main.talk_to(loc.character("Barman"))
+	await frames(2)
+	await choose(find_opt("драки"))
+	await choose(find_opt("Выйду"))
+	await shut()
+	ok(Game.quest_stage("sg_fight") == 1, "записался на кулачный бой")
+	var br: Character = loc.character("Brawler")
+	await tp(br.global_position + Vector3(1.2, 0, 0))
+	main.talk_to(br)
+	await frames(2)
+	await choose(find_opt("Деремся"))
+	await wait(0.8)
+	ok(main.combat.on and main.combat.kind == "spar", "бой на кулаках с Дьөгүөром")
+	# проверяем исход, а не баланс: громилу в тесте подбиваем заранее
+	for e in main.combat.enemies():
+		e.hp = mini(e.hp, 12)
+	await fight(300)
+	await wait(1.5)
+	ok(Game.quest_stage("sg_fight") in [2, 3], "кулачный бой окончен (%s)" % ("победа" if Game.quest_stage("sg_fight") == 2 else "проиграл"))
+	main.dialog.close()
+	# беглый подёнщик и сборщики
+	var ra: Character = loc.character("Runaway")
+	main.talk_to(ra)
+	await frames(2)
+	await choose(find_opt("Кто ты"))
+	await choose(find_opt("Не моё дело"))
+	ok(Game.quest_stage("sg_runaway") == 1 and loc.character("Collector1").visible, "Аркадий прячется, сборщики рыщут")
+	main.talk_to(loc.character("Collector1"))
+	await frames(2)
+	await choose(find_opt("[Обман]"))
+	await shut()
+	await wait(1.2)
+	ok(Game.quest_stage("sg_runaway") == 3 and not loc.character("Collector1").visible, "соврал сборщикам — ушли к пристани")
+	# эбээ Даарыйа и каморка проводника
+	var int3: int = int(Game.hero.stats.get("INT", 5))
+	Game.hero.stats["INT"] = 7
+	main.talk_to(loc.character("Granny"))
+	await frames(2)
+	await choose(find_opt("Понимаю"))
+	await shut()
+	Game.hero.stats["INT"] = int3
+	ok(Game.quest_stage("sg_guide") == 1, "эбээ по-старому: проводник жил в этом бараке")
+	loc.on_interact(loc.item("GuideRoom"))
+	ok(Game.quest_stage("sg_guide") == 2 and Game.item_count("guide_note") == 1, "записка проводника под половицей")
+	Game.force_check = 0
+	# обратно: квартал → центр → ворота → карта → Мар-Кун
+	loc.on_interact(loc.item("ToCenter"))
+	await wait_loading()
+	ok(main.location.location_id == "sungar_center", "из квартала — в центр")
+	main.location.on_interact(main.location.item("ToGate"))
+	await wait_loading()
+	loc = main.location
+	ok(loc.location_id == "sungar" and not main.dialog.visible, "из центра — к воротам, стражник уже не держит")
+	loc.on_interact(loc.item("WestExit"))
+	await frames(2)
+	ok(wm.visible and wm.can_go("markun"), "Мар-Кун открыт на карте")
+	await wm.travel("markun")
+	await frames(3)
+	ok(main.menu.visible and main.menu.mode == "end_act1", "экран «Дорога на Мар-Кун»")
 
 
 func _ready() -> void:
@@ -524,7 +687,7 @@ func _ready() -> void:
 	await choose(find_opt("Давай"))
 	await wait(0.8)
 	ok(main.combat.on and main.combat.kind == "spar", "драка с охотником началась")
-	await fight(60)
+	await fight(400)
 	await wait(1.5)
 	ok(Game.flag("hunter_done"), "охотник: проверка пройдена")
 	await close_dialogs()
@@ -1597,7 +1760,7 @@ func _ready() -> void:
 	ok(wm.can_go("sungar"), "в Сунгар можно, когда известна дорога")
 	await wm.travel("sungar")
 	await frames(3)
-	ok(main.menu.visible and main.menu.mode == "end_act1", "экран «Дорога на Сунгар»")
+	await sungar_tests()
 	print("Уровень героя: ", Game.hero.level, ", опыт: ", Game.hero.xp)
 	print("=== ИТОГ: ошибок ", fails, " ===")
 	get_tree().quit(1 if fails else 0)

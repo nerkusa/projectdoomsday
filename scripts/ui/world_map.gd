@@ -193,9 +193,11 @@ func can_go(id: String) -> bool:
 	var n: Dictionary = nodes().get(id, {})
 	if n.is_empty() or not known(id):
 		return false
+	# need: [задание, этап] — куда не дойти, пока не узнаешь дорогу
+	if n.has("need") and Game.quest_stage(str(n.need[0])) < int(n.need[1]):
+		return false
 	if n.has("end"):
-		# в Сунгар через болота не дойти, пока не узнаешь дорогу
-		return Game.quest_stage("bootur") >= 5
+		return true
 	return n.has("loc") and not n.get("burned", false)
 
 

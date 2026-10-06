@@ -1,0 +1,240 @@
+{
+  "speaker": "Стражник Уйгулаан",
+  "title": "Уйгулаан · ворота Сунгара",
+  "nodes": {
+    "start": {
+      "text": "(Стражник опирается на шлагбаум.) Стой. Сунгар — город платный. Десять рублей или две соли — и проходи. Нет — разворачивайся.",
+      "text_if": [
+        {
+          "if": {
+            "flags": [
+              "sg_sneaked"
+            ],
+            "not_flag": "sg_paid"
+          },
+          "text": "(Стражник щурится.) Что-то я не помню, чтоб ты через ворота проходил. Ладно. Сегодня я добрый. Но в другой раз — плати."
+        },
+        {
+          "if": {
+            "flag": "sg_entered"
+          },
+          "text": "Проходи, не стой в воротах."
+        }
+      ],
+      "options": [
+        {
+          "text": "[Отдать 10 рублей] Держи.",
+          "next": "paid",
+          "if": {
+            "cond": "rub_10",
+            "not_flag": "sg_entered"
+          },
+          "take": {
+            "rubles": 10
+          }
+        },
+        {
+          "text": "[Отдать 2 соли] Держи.",
+          "next": "paid",
+          "if": {
+            "cond": "has_salt2",
+            "not_flag": "sg_entered"
+          },
+          "take": {
+            "salt": 2
+          }
+        },
+        {
+          "text": "[Убеждение] Меня Дьулус из Крестов прислал — по торговым делам.",
+          "next": null,
+          "if": {
+            "not_flags": [
+              "sg_entered",
+              "sg_guard_tried"
+            ]
+          },
+          "check": {
+            "stat": "CHA",
+            "skill": "Убеждение",
+            "dc": 13
+          },
+          "success": "pass_talk",
+          "fail": "no_talk"
+        },
+        {
+          "text": "[Обман] Я из конторы. Новый счетовод.",
+          "next": null,
+          "if": {
+            "not_flags": [
+              "sg_entered",
+              "sg_guard_lied"
+            ]
+          },
+          "check": {
+            "stat": "CHA",
+            "skill": "Обман",
+            "dc": 14
+          },
+          "success": "pass_lie",
+          "fail": "no_lie"
+        },
+        {
+          "text": "[Отдать безделушку] Держи — на счастье.",
+          "next": "pass_trinket",
+          "if": {
+            "trinket": true,
+            "not_flag": "sg_entered"
+          },
+          "give_trinket": true
+        },
+        {
+          "text": "Денег нет.",
+          "next": "broke",
+          "if": {
+            "not_flag": "sg_entered"
+          }
+        },
+        {
+          "text": "Что за город?",
+          "next": "about",
+          "if": {
+            "flag": "sg_entered"
+          }
+        },
+        {
+          "text": "Где тут игорные дома?",
+          "next": "casino",
+          "if": {
+            "flag": "sg_entered"
+          }
+        },
+        {
+          "text": "[Уйти]",
+          "next": null
+        }
+      ]
+    },
+    "paid": {
+      "text": "(Стражник прячет плату за пазуху и поднимает шлагбаум.) Добро пожаловать в Сунгар. Рынок — прямо, центр — дальше по улице. Не воруй — повесим.",
+      "set_flags": {
+        "sg_entered": true,
+        "sg_paid": true
+      },
+      "quest": {
+        "id": "sg_toll",
+        "stage": 2
+      },
+      "options": [
+        {
+          "text": "…",
+          "next": null
+        }
+      ]
+    },
+    "pass_talk": {
+      "text": "Дьулус? Пивовар? (Смеётся.) Его пиво у нас в «Шалмане» в цене. Ладно, проходи. Скажешь ему — Уйгулаан бочонок ждёт.",
+      "xp": 25,
+      "set_flags": {
+        "sg_entered": true
+      },
+      "quest": {
+        "id": "sg_toll",
+        "stage": 2
+      },
+      "options": [
+        {
+          "text": "…",
+          "next": null
+        }
+      ]
+    },
+    "no_talk": {
+      "text": "Дьулус, Мэхээлэ, хоть сам Боотур — десять рублей.",
+      "set_flags": {
+        "sg_guard_tried": true
+      },
+      "options": [
+        {
+          "text": "…",
+          "next": "start"
+        }
+      ]
+    },
+    "pass_lie": {
+      "text": "(Стражник вытягивается.) Простите, не признал. Без пальто-то… Проходите.",
+      "xp": 30,
+      "set_flags": {
+        "sg_entered": true
+      },
+      "quest": {
+        "id": "sg_toll",
+        "stage": 2
+      },
+      "options": [
+        {
+          "text": "…",
+          "next": null
+        }
+      ]
+    },
+    "no_lie": {
+      "text": "Из конторы? А пальто где? Счетоводы без пальто не ходят. Плати или проваливай.",
+      "set_flags": {
+        "sg_guard_lied": true
+      },
+      "options": [
+        {
+          "text": "…",
+          "next": "start"
+        }
+      ]
+    },
+    "pass_trinket": {
+      "text": "(Стражник вертит безделушку, хмыкает.) Ну… на счастье так на счастье. Проходи, пока никто не видит.",
+      "set_flags": {
+        "sg_entered": true
+      },
+      "quest": {
+        "id": "sg_toll",
+        "stage": 2
+      },
+      "options": [
+        {
+          "text": "…",
+          "next": null
+        }
+      ]
+    },
+    "broke": {
+      "text": "Тогда разворачивайся. Или иди вдоль берега, под обрывом, как оборванцы ходят. Только я тебе этого не говорил.",
+      "set_flags": {
+        "sg_bank_hint": true
+      },
+      "options": [
+        {
+          "text": "…",
+          "next": null
+        }
+      ]
+    },
+    "about": {
+      "text": "Сунгар. Пристань, рынок, три игорных дома и одна контора, которой все должны. Живём торговлей. Кто не торгует — тот должен.",
+      "options": [
+        {
+          "text": "…",
+          "next": "start"
+        }
+      ]
+    },
+    "casino": {
+      "text": "В центре, по улице дальше. «Счастливая лодка» — баржа у берега, мимо не пройдёшь. Там и выигрывают, и всё остальное.",
+      "options": [
+        {
+          "text": "…",
+          "next": "start"
+        }
+      ]
+    }
+  },
+  "must_talk": true
+}

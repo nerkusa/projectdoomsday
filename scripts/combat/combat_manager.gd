@@ -79,7 +79,7 @@ func mode_name() -> String:
 
 
 func cycle_mode() -> void:
-	var w := Game.hero_weapon()
+	var w := hero_weapon()
 	var lst := ["single", "burst", "aim"] if w.has("burst") else ["single", "aim"]
 	var n: String = lst[(lst.find(mode_name()) + 1) % lst.size()]
 	aim = n == "aim"
@@ -139,6 +139,8 @@ func start(foe_chars: Array, opts := {}) -> void:
 	match kind:
 		"spar":
 			clog("——— Тренировочный бой ———")
+			# на кулаках: оружие убрано
+			main.player.set_held("")
 		_:
 			clog("——— БОЙ ———")
 	var ini := []
@@ -187,7 +189,7 @@ func begin_turn() -> void:
 	u.db = 0
 	u.think = 0
 	aim = false
-	burst = burst and u.is_hero and Game.hero_weapon().has("burst")
+	burst = burst and u.is_hero and hero_weapon().has("burst")
 	pending = {}
 	main.hud.hide_zones()
 	var mx := u.max_hp if not u.is_hero else Game.hero_max()
@@ -295,8 +297,8 @@ func hover(target_ch: Character, ground_hex: Variant) -> void:
 	if not my_turn() or reach.is_empty():
 		main.hud.hide_tip()
 		return
-	var w := Game.hero_weapon()
-	var k := Game.hero_wkey()
+	var w := hero_weapon()
+	var k := hero_wkey()
 	var t: Fighter = null
 	if target_ch and target_ch.fighter and target_ch.fighter in enemies():
 		t = target_ch.fighter
@@ -343,11 +345,20 @@ func hover(target_ch: Character, ground_hex: Variant) -> void:
 	paint()
 
 
+## Чем бьёт герой: в кулачном (тренировочном) бою — только кулаками, что бы ни было в руке
+func hero_wkey() -> String:
+	return "fists" if kind == "spar" else Game.hero_wkey()
+
+
+func hero_weapon() -> Dictionary:
+	return DB.weapon(hero_wkey())
+
+
 func click(target_ch: Character, ground_hex: Variant) -> void:
 	if not my_turn() or reach.is_empty():
 		return
-	var w := Game.hero_weapon()
-	var k := Game.hero_wkey()
+	var w := hero_weapon()
+	var k := hero_wkey()
 	var t: Fighter = null
 	if target_ch and target_ch.fighter and target_ch.fighter in enemies():
 		t = target_ch.fighter
@@ -427,7 +438,7 @@ func do_attack(cost: int, dist: int, t: Fighter) -> void:
 	if aim:
 		pending = {"cost": cost, "dist": dist, "t": t}
 		var rows := []
-		var w := Game.hero_weapon()
+		var w := hero_weapon()
 		var D := Rules.def_mods(t)
 		for z in Rules.ZONES:
 			var A := Rules.atk_mods(hero_f, w, z.name, dist, 0)
@@ -449,8 +460,8 @@ func zone_picked(zone: String) -> void:
 
 
 func exec_attack(cost: int, dist: int, zone: String, t: Fighter) -> void:
-	var k := Game.hero_wkey()
-	var w := Game.hero_weapon()
+	var k := hero_wkey()
+	var w := hero_weapon()
 	if hero_f.ap < cost:
 		main.hud.flash_tip("Не хватает ОД")
 		return
@@ -493,7 +504,7 @@ func exec_attack(cost: int, dist: int, zone: String, t: Fighter) -> void:
 
 
 func reload() -> void:
-	var k := Game.hero_wkey()
+	var k := hero_wkey()
 	if not DB.is_gun(k):
 		return
 	var w := DB.weapon(k)
@@ -855,6 +866,8 @@ func finish(res: String, gave_up := false) -> void:
 		clog("Бой окончен. Можно обыскать тела." if win else "Ты отступил.", "", "hit" if win else "miss")
 	await get_tree().create_timer(1.4, false).timeout
 	on = false
+	if kind == "spar":
+		main.player.set_held(Game.hero_wkey())
 	main.overlay.visible = false
 	main.player.aim_pose = false
 	for u in units:

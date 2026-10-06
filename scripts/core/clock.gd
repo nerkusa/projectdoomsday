@@ -105,7 +105,9 @@ func daylight() -> float:
 ## Тёплый тон у горизонта: утро и вечер
 func dusk_tint() -> float:
 	var h := hour_of_day()
-	return maxf(1.0 - absf(h - 6.0) / 1.6, 1.0 - absf(h - 19.5) / 1.8) if h > 4.0 and h < 21.5 else 0.0
+	if h <= 4.0 or h >= 21.5:
+		return 0.0
+	return clampf(maxf(1.0 - absf(h - 6.0) / 1.6, 1.0 - absf(h - 19.5) / 1.8), 0.0, 1.0)
 
 
 func apply_light(loc: Node) -> void:
@@ -150,6 +152,9 @@ func apply_light(loc: Node) -> void:
 # ---------------- расписание жителей ----------------
 ## Работает ли житель сейчас (по его расписанию)
 func on_duty(s: Dictionary) -> bool:
+	# автотест: «вечный день» — все на местах, у кого бы какое расписание ни было
+	if force_day:
+		return true
 	var h := hour_of_day()
 	var a := float(s.get("from", 9))
 	var b := float(s.get("to", 20))

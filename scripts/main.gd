@@ -11,6 +11,9 @@ const LOCATIONS := {
 	"encounter": "res://scenes/locations/encounter.tscn",
 	"nakharro_cellar": "res://scenes/locations/nakharro_cellar.tscn",
 	"ruin_bunker": "res://scenes/locations/ruin_bunker.tscn",
+	"sungar": "res://scenes/locations/sungar.tscn",
+	"sungar_center": "res://scenes/locations/sungar_center.tscn",
+	"sungar_quarter": "res://scenes/locations/sungar_quarter.tscn",
 }
 const CAM_DIR := Vector3(1, 1, 1)
 ## Камера ортогональная: расстояние не меняет картинку, но от него зависит
@@ -556,7 +559,8 @@ func filler_bark(ch: Character) -> void:
 		text = str(nl[randi() % nl.size()])
 	else:
 		# слух: сперва важные (once), иначе иногда — случайный, если не сторонятся
-		var rumors: Array = b.get("rumors", {}).get("kresty" if lid == "kresty" else ("camp" if lid == "camp" else lid), [])
+		var rkey := "sungar" if lid.begins_with("sungar") else lid
+		var rumors: Array = b.get("rumors", {}).get(rkey, [])
 		var pick = null
 		for r in rumors:
 			if r.has("once") and not Game.flag(str(r.once)) and dialog._cond_ok(r.get("if", {})):
