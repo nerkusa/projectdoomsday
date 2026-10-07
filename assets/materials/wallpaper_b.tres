@@ -1,0 +1,15 @@
+[gd_resource type="StandardMaterial3D" format=3]
+
+[ext_resource type="Texture2D" path="res://assets/textures/wallpaper.png" id="1_78yrx"]
+[ext_resource type="Texture2D" path="res://assets/textures/wallpaper_n.png" id="2_3kfoo"]
+
+[resource]
+resource_name = "wallpaper_b"
+albedo_color = Color(0.72156864, 0.78431374, 0.6901961, 1)
+albedo_texture = ExtResource("1_78yrx")
+roughness = 0.95
+normal_enabled = true
+normal_texture = ExtResource("2_3kfoo")
+uv1_scale = Vector3(0.7, 0.7, 0.7)
+uv1_triplanar = true
+uv1_triplanar_sharpness = 4.0

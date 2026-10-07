@@ -6,7 +6,7 @@ extends SungarDistrict
 func _ready() -> void:
 	location_id = "sungar_quarter"
 	title = "Сунгар · жилой квартал"
-	links = {"ToCenter": ["sungar_center", "FromQuarter", "В центр города"]}
+	links = {"ToCenter": ["sungar_center", "FromQuarter", "В центр города"], "ObshagaStairs": ["sungar_obshaga", "F2Below", "Общежитие", "up"]}
 	super._ready()
 
 
@@ -95,6 +95,9 @@ func on_interact(it: Interactable) -> bool:
 	if n == "GuideRoom":
 		_guide_room()
 		return true
+	if n == "Chimney":
+		main.think("Кирпичная труба котельной, метров двадцать. Скобы-лестница уходят в дым. Кочегар говорит: угля на месяц, а там — как хотите.")
+		return true
 	return super.on_interact(it)
 
 
@@ -139,6 +142,8 @@ func item_actions(it: Interactable) -> Array:
 		return [["Порыться в хламе", "use"]]
 	if n == "GuideRoom":
 		return [["Обыскать каморку", "use"]]
+	if n == "Chimney":
+		return [["Осмотреть", "use"]]
 	return super.item_actions(it)
 
 
@@ -148,6 +153,8 @@ func describe(it: Interactable) -> String:
 		return "Куча хлама за бараками: ржавчина, тряпьё, битые ящики."
 	if n == "GuideRoom":
 		return "Каморка в конце барака, дверь на щеколде."
+	if n == "Chimney":
+		return "Труба котельной. Дымит — значит, зимой в бараках будет тепло."
 	return super.describe(it)
 
 

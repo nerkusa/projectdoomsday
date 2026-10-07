@@ -1,0 +1,5 @@
+[gd_resource type="StandardMaterial3D" format=3]
+
+[resource]
+resource_name = "felt"
+albedo_color = Color(0.17254902, 0.3372549, 0.21960784, 1)

@@ -1,0 +1,38 @@
+[gd_scene format=3]
+
+[ext_resource type="Material" path="res://assets/materials/tin.tres" id="1_dsbh2"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/heat_pipe_riser_tin.res" id="2_usx74"]
+[ext_resource type="Material" path="res://assets/materials/tar.tres" id="3_105bv"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/heat_pipe_riser_tar.res" id="4_dc0d7"]
+[ext_resource type="Material" path="res://assets/materials/concrete.tres" id="5_n8mue"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/heat_pipe_riser_concrete.res" id="6_oclwb"]
+[ext_resource type="Material" path="res://assets/materials/metal_dark.tres" id="7_hnkfd"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/heat_pipe_riser_metal_dark.res" id="8_vqsnx"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_vmi0l"]
+size = Vector3(1.6, 3.6, 1.2)
+
+[node name="HeatPipe" type="Node3D" unique_id=1512927046]
+
+[node name="Mesh_tin" type="MeshInstance3D" parent="." unique_id=915384461]
+material_override = ExtResource("1_dsbh2")
+mesh = ExtResource("2_usx74")
+
+[node name="Mesh_tar" type="MeshInstance3D" parent="." unique_id=919205913]
+material_override = ExtResource("3_105bv")
+mesh = ExtResource("4_dc0d7")
+
+[node name="Mesh_concrete" type="MeshInstance3D" parent="." unique_id=118304571]
+material_override = ExtResource("5_n8mue")
+mesh = ExtResource("6_oclwb")
+
+[node name="Mesh_metal_dark" type="MeshInstance3D" parent="." unique_id=1223176431]
+material_override = ExtResource("7_hnkfd")
+mesh = ExtResource("8_vqsnx")
+
+[node name="Collision" type="StaticBody3D" parent="." unique_id=1044872942]
+collision_mask = 0
+
+[node name="@CollisionShape3D@104" type="CollisionShape3D" parent="Collision" unique_id=2004246600]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.2, 1.8, 0)
+shape = SubResource("BoxShape3D_vmi0l")

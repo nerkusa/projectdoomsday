@@ -14,6 +14,9 @@ const LOCATIONS := {
 	"sungar": "res://scenes/locations/sungar.tscn",
 	"sungar_center": "res://scenes/locations/sungar_center.tscn",
 	"sungar_quarter": "res://scenes/locations/sungar_quarter.tscn",
+	"sungar_hotel": "res://scenes/locations/sungar_hotel.tscn",
+	"sungar_dom": "res://scenes/locations/sungar_dom.tscn",
+	"sungar_obshaga": "res://scenes/locations/sungar_obshaga.tscn",
 }
 const CAM_DIR := Vector3(1, 1, 1)
 ## Камера ортогональная: расстояние не меняет картинку, но от него зависит

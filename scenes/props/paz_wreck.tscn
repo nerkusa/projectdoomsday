@@ -1,0 +1,50 @@
+[gd_scene format=3]
+
+[ext_resource type="Material" path="res://assets/materials/paint_faded.tres" id="1_2e4q1"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/paz_wreck_paint_faded.res" id="2_cqt7n"]
+[ext_resource type="Material" path="res://assets/materials/paint_white.tres" id="3_j0epq"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/paz_wreck_paint_white.res" id="4_fhbyy"]
+[ext_resource type="Material" path="res://assets/materials/metal_roof.tres" id="5_4s3kw"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/paz_wreck_metal_roof.res" id="6_q3qd2"]
+[ext_resource type="Material" path="res://assets/materials/glass_city.tres" id="7_abldk"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/paz_wreck_glass_city.res" id="8_o5wlo"]
+[ext_resource type="Material" path="res://assets/materials/rust.tres" id="9_mw601"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/paz_wreck_rust.res" id="10_58lr7"]
+[ext_resource type="Material" path="res://assets/materials/tire.tres" id="11_fdrol"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/paz_wreck_tire.res" id="12_mm82d"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_ciuq1"]
+size = Vector3(7.4, 2.6, 2.5)
+
+[node name="PazWreck" type="Node3D" unique_id=1430306323]
+
+[node name="Mesh_paint_faded" type="MeshInstance3D" parent="." unique_id=32921131]
+material_override = ExtResource("1_2e4q1")
+mesh = ExtResource("2_cqt7n")
+
+[node name="Mesh_paint_white" type="MeshInstance3D" parent="." unique_id=334555304]
+material_override = ExtResource("3_j0epq")
+mesh = ExtResource("4_fhbyy")
+
+[node name="Mesh_metal_roof" type="MeshInstance3D" parent="." unique_id=131699308]
+material_override = ExtResource("5_4s3kw")
+mesh = ExtResource("6_q3qd2")
+
+[node name="Mesh_glass_city" type="MeshInstance3D" parent="." unique_id=1106062253]
+material_override = ExtResource("7_abldk")
+mesh = ExtResource("8_o5wlo")
+
+[node name="Mesh_rust" type="MeshInstance3D" parent="." unique_id=715352687]
+material_override = ExtResource("9_mw601")
+mesh = ExtResource("10_58lr7")
+
+[node name="Mesh_tire" type="MeshInstance3D" parent="." unique_id=1789950210]
+material_override = ExtResource("11_fdrol")
+mesh = ExtResource("12_mm82d")
+
+[node name="Collision" type="StaticBody3D" parent="." unique_id=799956584]
+collision_mask = 0
+
+[node name="@CollisionShape3D@116" type="CollisionShape3D" parent="Collision" unique_id=1339076773]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.3, 0)
+shape = SubResource("BoxShape3D_ciuq1")

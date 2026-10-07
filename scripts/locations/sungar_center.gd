@@ -7,7 +7,8 @@ extends SungarDistrict
 func _ready() -> void:
 	location_id = "sungar_center"
 	title = "Сунгар · центр"
-	links = {"ToGate": ["sungar", "FromCenter", "К воротам и рынку"], "ToQuarter": ["sungar_quarter", "FromCenter", "В жилой квартал"]}
+	links = {"ToGate": ["sungar", "FromCenter", "К воротам и рынку"], "ToQuarter": ["sungar_quarter", "FromCenter", "В жилой квартал"],
+		"DomStairs": ["sungar_dom", "F2Below", "Дом на площади", "up"]}
 	super._ready()
 
 
@@ -18,6 +19,12 @@ func on_interact(it: Interactable) -> bool:
 			return true
 		"Monument":
 			main.think("Бронзовый мужик в беретке — тот самый, что на всех купюрах. Кто он — в Сунгаре не знает никто. Табличку давно сдали в лом.")
+			return true
+		"HonorBoard":
+			main.think("«Доска почёта». Под стеклом — выцветшие лица: доярки, бурильщики, учитель года. Одно фото кто-то заменил вырезкой из журнала: человек в пальто. Подпись: «Отдел ф. м. — лучший работник».")
+			return true
+		"Wheel":
+			_wheel()
 			return true
 	return super.on_interact(it)
 
@@ -50,8 +57,10 @@ func item_actions(it: Interactable) -> Array:
 	match String(it.name):
 		"OfficeWindow":
 			return [["Влезть в окно", "use"]]
-		"Monument":
+		"Monument", "HonorBoard":
 			return [["Рассмотреть", "use"]]
+		"Wheel":
+			return [["Поставить 2 рубля", "use"]]
 	return super.item_actions(it)
 
 
@@ -61,8 +70,31 @@ func describe(it: Interactable) -> String:
 			return "Окно конторы, выходит в проулок. Шпингалет хлипкий."
 		"Monument":
 			return "Памятник на площади: толстый мужик в беретке."
+		"HonorBoard":
+			return "Доска почёта у площади. Стекло в трещинах."
+		"Wheel":
+			return "Колесо фортуны с облупленными секторами. Ставка — два рубля, выигрыш — восемь. Если повезёт."
 	return super.describe(it)
 
 
 func objective() -> String:
 	return bootur_objective()
+
+
+## Колесо фортуны в ДК: рубль — ставка, крутит крупье
+func _wheel() -> void:
+	if Game.item_count("rubles") < 2:
+		main.think("Колесо фортуны. Ставка — два рубля. У меня столько нет.")
+		return
+	Game.remove_item("rubles", 2)
+	var r := randi() % 6
+	var c := character("Croupier")
+	if r == 0:
+		Game.add_item("rubles", 8)
+		Game.log_line("Колесо: выигрыш 8 рублей", "", "hit")
+		if c:
+			c.bark("Повезло! Восемь рублей!")
+	else:
+		Game.log_line("Колесо: ставка 2 рубля проиграна", "", "miss")
+		if c:
+			c.bark(["Не судьба.", "Ещё разок?", "Колесо любит смелых.", "Почти! Почти…"][r % 4])

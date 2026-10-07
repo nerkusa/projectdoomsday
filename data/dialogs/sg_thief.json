@@ -1,0 +1,145 @@
+{
+  "speaker": "Сенька-Кепка",
+  "title": "Сенька · общежитие, 4 этаж",
+  "nodes": {
+    "start": {
+      "text": "(Парень в кепке сидит на ящике.) Чё надо? Тут занято.",
+      "text_if": [
+        {
+          "if": {
+            "flag": "sg_thief_gave"
+          },
+          "text": "Ну чего ещё? Забрал — и вали."
+        }
+      ],
+      "options": [
+        {
+          "text": "Чемодан торговца у тебя?",
+          "next": "deny",
+          "if": {
+            "quest": "sg_suitcase",
+            "stage_min": 1,
+            "stage_max": 2,
+            "not_flag": "sg_thief_gave"
+          }
+        },
+        {
+          "text": "Что ты тут делаешь?",
+          "next": "what"
+        },
+        {
+          "text": "[Уйти]",
+          "next": null
+        }
+      ]
+    },
+    "what": {
+      "text": "Живу. Как все. Подработка, то, сё. А ты кто такой, чтоб спрашивать?",
+      "options": [
+        {
+          "text": "…",
+          "next": "start"
+        }
+      ]
+    },
+    "deny": {
+      "text": "Какой чемодан? Не знаю никакого чемодана. Иди отсюда.",
+      "options": [
+        {
+          "text": "[Запугивание] Отдашь по-хорошему — или заберу по-плохому.",
+          "next": null,
+          "check": {
+            "stat": "BODY",
+            "skill": "Запугивание",
+            "dc": 13
+          },
+          "success": "give_up",
+          "fail": "fight_talk"
+        },
+        {
+          "text": "[Убеждение] Ньургун в контору пойдёт. Тебе это надо?",
+          "next": null,
+          "if": {
+            "not_flag": "sg_thief_talk"
+          },
+          "check": {
+            "stat": "CHA",
+            "skill": "Убеждение",
+            "dc": 12
+          },
+          "success": "give_up",
+          "fail": "no_talk",
+          "set_flags": {
+            "sg_thief_talk": true
+          }
+        },
+        {
+          "text": "[10 рублей] Выкуплю. Десятку дам.",
+          "next": "bought",
+          "if": {
+            "cond": "rub_10"
+          },
+          "take": {
+            "rubles": 10
+          }
+        },
+        {
+          "text": "Ладно, бывай.",
+          "next": null
+        }
+      ]
+    },
+    "give_up": {
+      "text": "(Сенька сплёвывает.) Да подавись. Под кроватью. Только ты меня не видел, понял?",
+      "set_flags": {
+        "sg_thief_gave": true
+      },
+      "quest": {
+        "id": "sg_suitcase",
+        "stage": 3
+      },
+      "xp": 30,
+      "options": [
+        {
+          "text": "…",
+          "next": null
+        }
+      ]
+    },
+    "bought": {
+      "text": "(Сенька прячет десятку.) Вот это разговор. Под кроватью, бери. Тяжёлый, зараза — железо там, что ли.",
+      "set_flags": {
+        "sg_thief_gave": true
+      },
+      "quest": {
+        "id": "sg_suitcase",
+        "stage": 3
+      },
+      "options": [
+        {
+          "text": "…",
+          "next": null
+        }
+      ]
+    },
+    "no_talk": {
+      "text": "В контору, ага. Там сами воры почище меня. Иди, иди.",
+      "options": [
+        {
+          "text": "…",
+          "next": "deny"
+        }
+      ]
+    },
+    "fight_talk": {
+      "text": "(Сенька вскакивает, в руке — заточка.) Ты кто такой, чтоб мне грозить?!",
+      "options": [
+        {
+          "text": "…",
+          "next": null,
+          "action": "thief_fight"
+        }
+      ]
+    }
+  }
+}

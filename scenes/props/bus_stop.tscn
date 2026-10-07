@@ -1,0 +1,70 @@
+[gd_scene format=3]
+
+[ext_resource type="Material" path="res://assets/materials/concrete.tres" id="1_gkof7"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/bus_stop_concrete.res" id="2_xynrw"]
+[ext_resource type="Material" path="res://assets/materials/paint_blue.tres" id="3_5hbpr"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/bus_stop_paint_blue.res" id="4_u3qj7"]
+[ext_resource type="Material" path="res://assets/materials/brass.tres" id="5_2lnsv"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/bus_stop_brass.res" id="6_f8tbl"]
+[ext_resource type="Material" path="res://assets/materials/paint_red.tres" id="7_gtr5y"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/bus_stop_paint_red.res" id="8_vnm0e"]
+[ext_resource type="Material" path="res://assets/materials/planks_old.tres" id="9_kl5qx"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/bus_stop_planks_old.res" id="10_mstjq"]
+[ext_resource type="Material" path="res://assets/materials/metal_dark.tres" id="11_ao48t"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/bus_stop_metal_dark.res" id="12_qm2we"]
+[ext_resource type="Material" path="res://assets/materials/paper.tres" id="13_a8j6s"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/bus_stop_paper.res" id="14_vc51y"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_w5urx"]
+size = Vector3(4.2, 2.4, 0.4)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_i5egb"]
+size = Vector3(0.3, 2.4, 1.6)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_md571"]
+size = Vector3(0.3, 2.4, 1.6)
+
+[node name="BusStop" type="Node3D" unique_id=2029016314]
+
+[node name="Mesh_concrete" type="MeshInstance3D" parent="." unique_id=1481972089]
+material_override = ExtResource("1_gkof7")
+mesh = ExtResource("2_xynrw")
+
+[node name="Mesh_paint_blue" type="MeshInstance3D" parent="." unique_id=674433176]
+material_override = ExtResource("3_5hbpr")
+mesh = ExtResource("4_u3qj7")
+
+[node name="Mesh_brass" type="MeshInstance3D" parent="." unique_id=340156294]
+material_override = ExtResource("5_2lnsv")
+mesh = ExtResource("6_f8tbl")
+
+[node name="Mesh_paint_red" type="MeshInstance3D" parent="." unique_id=1320750612]
+material_override = ExtResource("7_gtr5y")
+mesh = ExtResource("8_vnm0e")
+
+[node name="Mesh_planks_old" type="MeshInstance3D" parent="." unique_id=1270961265]
+material_override = ExtResource("9_kl5qx")
+mesh = ExtResource("10_mstjq")
+
+[node name="Mesh_metal_dark" type="MeshInstance3D" parent="." unique_id=996997449]
+material_override = ExtResource("11_ao48t")
+mesh = ExtResource("12_qm2we")
+
+[node name="Mesh_paper" type="MeshInstance3D" parent="." unique_id=1337063052]
+material_override = ExtResource("13_a8j6s")
+mesh = ExtResource("14_vc51y")
+
+[node name="Collision" type="StaticBody3D" parent="." unique_id=971389606]
+collision_mask = 0
+
+[node name="@CollisionShape3D@112" type="CollisionShape3D" parent="Collision" unique_id=227433165]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.2, -0.8)
+shape = SubResource("BoxShape3D_w5urx")
+
+[node name="@CollisionShape3D@113" type="CollisionShape3D" parent="Collision" unique_id=275594867]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.95, 1.2, 0)
+shape = SubResource("BoxShape3D_i5egb")
+
+[node name="@CollisionShape3D@114" type="CollisionShape3D" parent="Collision" unique_id=1977269409]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.95, 1.2, 0)
+shape = SubResource("BoxShape3D_md571")

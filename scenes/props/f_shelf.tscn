@@ -1,0 +1,56 @@
+[gd_scene format=3]
+
+[ext_resource type="Material" path="res://assets/materials/planks_old.tres" id="1_3x5dp"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/f_shelf_planks_old.res" id="2_dtksx"]
+[ext_resource type="Material" path="res://assets/materials/cloth_red.tres" id="3_r7mc3"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/f_shelf_cloth_red.res" id="4_6gtwx"]
+[ext_resource type="Material" path="res://assets/materials/bread.tres" id="5_jfris"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/f_shelf_bread.res" id="6_kvwqt"]
+[ext_resource type="Material" path="res://assets/materials/paper.tres" id="7_fat8c"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/f_shelf_paper.res" id="8_d4qp6"]
+[ext_resource type="Material" path="res://assets/materials/fish.tres" id="9_o0ohi"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/f_shelf_fish.res" id="10_g3qib"]
+[ext_resource type="Material" path="res://assets/materials/tin.tres" id="11_u3uaa"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/f_shelf_tin.res" id="12_gtbr2"]
+[ext_resource type="Material" path="res://assets/materials/cloth_sack.tres" id="13_kphi8"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/f_shelf_cloth_sack.res" id="14_giaws"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_ncvi0"]
+size = Vector3(2, 2, 0.45)
+
+[node name="Shelf" type="Node3D" unique_id=1128833815]
+
+[node name="Mesh_planks_old" type="MeshInstance3D" parent="." unique_id=1327408669]
+material_override = ExtResource("1_3x5dp")
+mesh = ExtResource("2_dtksx")
+
+[node name="Mesh_cloth_red" type="MeshInstance3D" parent="." unique_id=2087201493]
+material_override = ExtResource("3_r7mc3")
+mesh = ExtResource("4_6gtwx")
+
+[node name="Mesh_bread" type="MeshInstance3D" parent="." unique_id=473973714]
+material_override = ExtResource("5_jfris")
+mesh = ExtResource("6_kvwqt")
+
+[node name="Mesh_paper" type="MeshInstance3D" parent="." unique_id=213771066]
+material_override = ExtResource("7_fat8c")
+mesh = ExtResource("8_d4qp6")
+
+[node name="Mesh_fish" type="MeshInstance3D" parent="." unique_id=36200971]
+material_override = ExtResource("9_o0ohi")
+mesh = ExtResource("10_g3qib")
+
+[node name="Mesh_tin" type="MeshInstance3D" parent="." unique_id=93300211]
+material_override = ExtResource("11_u3uaa")
+mesh = ExtResource("12_gtbr2")
+
+[node name="Mesh_cloth_sack" type="MeshInstance3D" parent="." unique_id=1767334319]
+material_override = ExtResource("13_kphi8")
+mesh = ExtResource("14_giaws")
+
+[node name="Collision" type="StaticBody3D" parent="." unique_id=1476392129]
+collision_mask = 0
+
+[node name="@CollisionShape3D@126" type="CollisionShape3D" parent="Collision" unique_id=560318707]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+shape = SubResource("BoxShape3D_ncvi0")

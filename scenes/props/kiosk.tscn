@@ -1,0 +1,68 @@
+[gd_scene format=3]
+
+[ext_resource type="Material" path="res://assets/materials/paint_blue.tres" id="1_q4mm7"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/kiosk_paint_blue.res" id="2_hrlqd"]
+[ext_resource type="Material" path="res://assets/materials/glass_city.tres" id="3_31lbj"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/kiosk_glass_city.res" id="4_uuin6"]
+[ext_resource type="Material" path="res://assets/materials/planks_old.tres" id="5_vd3g5"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/kiosk_planks_old.res" id="6_awnos"]
+[ext_resource type="Material" path="res://assets/materials/metal_roof.tres" id="7_c0jva"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/kiosk_metal_roof.res" id="8_blkoq"]
+[ext_resource type="Material" path="res://assets/materials/bottle.tres" id="9_n05vf"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/kiosk_bottle.res" id="10_t1720"]
+[ext_resource type="Material" path="res://assets/materials/paper.tres" id="11_qq7sc"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/kiosk_paper.res" id="12_naw77"]
+[ext_resource type="Material" path="res://assets/materials/tin.tres" id="13_dq7ac"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/kiosk_tin.res" id="14_ovsrj"]
+[ext_resource type="Material" path="res://assets/materials/cloth_red.tres" id="15_r6rtg"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/kiosk_cloth_red.res" id="16_rtn02"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_38uft"]
+size = Vector3(2.4, 2.2, 1.9)
+
+[node name="Kiosk" type="Node3D" unique_id=1666459934]
+
+[node name="Mesh_paint_blue" type="MeshInstance3D" parent="." unique_id=934033537]
+material_override = ExtResource("1_q4mm7")
+mesh = ExtResource("2_hrlqd")
+
+[node name="Mesh_glass_city" type="MeshInstance3D" parent="." unique_id=1504934328]
+material_override = ExtResource("3_31lbj")
+mesh = ExtResource("4_uuin6")
+
+[node name="Mesh_planks_old" type="MeshInstance3D" parent="." unique_id=282506527]
+material_override = ExtResource("5_vd3g5")
+mesh = ExtResource("6_awnos")
+
+[node name="Mesh_metal_roof" type="MeshInstance3D" parent="." unique_id=375937526]
+material_override = ExtResource("7_c0jva")
+mesh = ExtResource("8_blkoq")
+
+[node name="Mesh_bottle" type="MeshInstance3D" parent="." unique_id=1788847815]
+material_override = ExtResource("9_n05vf")
+mesh = ExtResource("10_t1720")
+
+[node name="Mesh_paper" type="MeshInstance3D" parent="." unique_id=1473981106]
+material_override = ExtResource("11_qq7sc")
+mesh = ExtResource("12_naw77")
+
+[node name="Mesh_tin" type="MeshInstance3D" parent="." unique_id=1827538646]
+material_override = ExtResource("13_dq7ac")
+mesh = ExtResource("14_ovsrj")
+
+[node name="Mesh_cloth_red" type="MeshInstance3D" parent="." unique_id=1747714941]
+material_override = ExtResource("15_r6rtg")
+mesh = ExtResource("16_rtn02")
+
+[node name="Slot_sign" type="Marker3D" parent="." unique_id=1376569884]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.55, 0.95)
+
+[node name="Slot_seller" type="Marker3D" parent="." unique_id=1443550325]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -1.4)
+
+[node name="Collision" type="StaticBody3D" parent="." unique_id=1703929104]
+collision_mask = 0
+
+[node name="@CollisionShape3D@110" type="CollisionShape3D" parent="Collision" unique_id=1527565200]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.1, 0)
+shape = SubResource("BoxShape3D_38uft")

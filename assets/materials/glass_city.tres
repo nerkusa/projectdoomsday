@@ -1,0 +1,6 @@
+[gd_resource type="StandardMaterial3D" format=3]
+
+[resource]
+resource_name = "glass_city"
+albedo_color = Color(0.11372549, 0.14117648, 0.15686275, 1)
+roughness = 0.15

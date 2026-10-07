@@ -1,0 +1,26 @@
+[gd_scene format=3]
+
+[ext_resource type="Material" path="res://assets/materials/concrete.tres" id="1_hbplk"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/f_stairs_concrete.res" id="2_pnmqa"]
+[ext_resource type="Material" path="res://assets/materials/metal_dark.tres" id="3_clcrf"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/f_stairs_metal_dark.res" id="4_04hvj"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_1clpm"]
+size = Vector3(1.4, 1.6, 2.4)
+
+[node name="Stairs" type="Node3D" unique_id=889737872]
+
+[node name="Mesh_concrete" type="MeshInstance3D" parent="." unique_id=317580959]
+material_override = ExtResource("1_hbplk")
+mesh = ExtResource("2_pnmqa")
+
+[node name="Mesh_metal_dark" type="MeshInstance3D" parent="." unique_id=1207337736]
+material_override = ExtResource("3_clcrf")
+mesh = ExtResource("4_04hvj")
+
+[node name="Collision" type="StaticBody3D" parent="." unique_id=601054745]
+collision_mask = 0
+
+[node name="@CollisionShape3D@131" type="CollisionShape3D" parent="Collision" unique_id=576818195]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.8, 0)
+shape = SubResource("BoxShape3D_1clpm")

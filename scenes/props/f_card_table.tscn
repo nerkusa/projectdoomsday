@@ -1,0 +1,32 @@
+[gd_scene format=3]
+
+[ext_resource type="Material" path="res://assets/materials/planks_old.tres" id="1_3stu6"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/f_card_table_planks_old.res" id="2_40wnj"]
+[ext_resource type="Material" path="res://assets/materials/felt.tres" id="3_06lo6"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/f_card_table_felt.res" id="4_fqccx"]
+[ext_resource type="Material" path="res://assets/materials/metal_dark.tres" id="5_vrvps"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/f_card_table_metal_dark.res" id="6_p6mmq"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_03wnr"]
+size = Vector3(1.1, 0.8, 0.75)
+
+[node name="CardTable" type="Node3D" unique_id=841837277]
+
+[node name="Mesh_planks_old" type="MeshInstance3D" parent="." unique_id=307707497]
+material_override = ExtResource("1_3stu6")
+mesh = ExtResource("2_40wnj")
+
+[node name="Mesh_felt" type="MeshInstance3D" parent="." unique_id=2021146955]
+material_override = ExtResource("3_06lo6")
+mesh = ExtResource("4_fqccx")
+
+[node name="Mesh_metal_dark" type="MeshInstance3D" parent="." unique_id=1586551363]
+material_override = ExtResource("5_vrvps")
+mesh = ExtResource("6_p6mmq")
+
+[node name="Collision" type="StaticBody3D" parent="." unique_id=530092868]
+collision_mask = 0
+
+[node name="@CollisionShape3D@122" type="CollisionShape3D" parent="Collision" unique_id=1187294854]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.4, 0)
+shape = SubResource("BoxShape3D_03wnr")

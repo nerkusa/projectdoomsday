@@ -1,0 +1,15 @@
+[gd_resource type="StandardMaterial3D" format=3]
+
+[ext_resource type="Texture2D" path="res://assets/textures/plaster.png" id="1_v88rl"]
+[ext_resource type="Texture2D" path="res://assets/textures/plaster_n.png" id="2_yu5bi"]
+
+[resource]
+resource_name = "plaster_blue"
+albedo_color = Color(0.61960787, 0.6862745, 0.7137255, 1)
+albedo_texture = ExtResource("1_v88rl")
+roughness = 0.95
+normal_enabled = true
+normal_texture = ExtResource("2_yu5bi")
+uv1_scale = Vector3(0.3, 0.3, 0.3)
+uv1_triplanar = true
+uv1_triplanar_sharpness = 4.0

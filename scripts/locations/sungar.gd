@@ -10,7 +10,7 @@ func _ready() -> void:
 	location_id = "sungar"
 	title = "Сунгар · ворота и рынок"
 	arrive_thought = "sungar_arrive"
-	links = {"ToCenter": ["sungar_center", "FromGate", "В центр города"]}
+	links = {"ToCenter": ["sungar_center", "FromGate", "В центр города"], "HotelStairs": ["sungar_hotel", "F2Below", "Гостиница", "up"]}
 	super._ready()
 
 
@@ -42,6 +42,9 @@ func on_interact(it: Interactable) -> bool:
 	var n := String(it.name)
 	if n == "BankPath":
 		_bank_path()
+		return true
+	if n == "Stele":
+		main.think("Бетонная стела: «ПГТ СУНГАР · 1930». Буква «Т» в названии когда-то была другой — видно по швам. Город переименовали, а бетон помнит.")
 		return true
 	if n.begins_with("Stall"):
 		_stall(n)
@@ -93,6 +96,8 @@ func item_actions(it: Interactable) -> Array:
 		return [["Пройти берегом", "use"]] if not Game.flag("sg_entered") else [["Осмотреть", "use"]]
 	if n.begins_with("Stall"):
 		return [["Проверить весы", "use"]]
+	if n == "Stele":
+		return [["Прочитать", "use"]]
 	return super.item_actions(it)
 
 
@@ -102,6 +107,8 @@ func describe(it: Interactable) -> String:
 			return "Узкая полоса мокрых камней под обрывом, вдоль самой воды. Если осторожно — можно обойти стену."
 		"WestExit":
 			return "Дорога из Сунгара — на запад, к Крестам."
+		"Stele":
+			return "Стела у въезда, серый бетон, солнце из ржавого железа наверху."
 	if String(it.name).begins_with("Stall"):
 		return "Прилавок с весами."
 	return super.describe(it)

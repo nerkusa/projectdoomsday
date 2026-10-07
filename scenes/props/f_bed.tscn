@@ -1,0 +1,32 @@
+[gd_scene format=3]
+
+[ext_resource type="Material" path="res://assets/materials/metal_dark.tres" id="1_ive0y"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/f_bed_metal_dark.res" id="2_sxxgk"]
+[ext_resource type="Material" path="res://assets/materials/enamel.tres" id="3_5b0f5"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/f_bed_enamel.res" id="4_qty6q"]
+[ext_resource type="Material" path="res://assets/materials/paint_blue.tres" id="5_u20cw"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/f_bed_paint_blue.res" id="6_4mf8u"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_4vr15"]
+size = Vector3(1, 0.6, 2)
+
+[node name="Bed" type="Node3D" unique_id=1253409628]
+
+[node name="Mesh_metal_dark" type="MeshInstance3D" parent="." unique_id=997194457]
+material_override = ExtResource("1_ive0y")
+mesh = ExtResource("2_sxxgk")
+
+[node name="Mesh_enamel" type="MeshInstance3D" parent="." unique_id=2079652063]
+material_override = ExtResource("3_5b0f5")
+mesh = ExtResource("4_qty6q")
+
+[node name="Mesh_paint_blue" type="MeshInstance3D" parent="." unique_id=460085134]
+material_override = ExtResource("5_u20cw")
+mesh = ExtResource("6_4mf8u")
+
+[node name="Collision" type="StaticBody3D" parent="." unique_id=840649132]
+collision_mask = 0
+
+[node name="@CollisionShape3D@118" type="CollisionShape3D" parent="Collision" unique_id=101278568]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.3, 0)
+shape = SubResource("BoxShape3D_4vr15")

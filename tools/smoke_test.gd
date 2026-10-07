@@ -117,6 +117,194 @@ func wait_loading() -> void:
 	main.dialog.close()
 
 
+## Кого и что нельзя достать пешком от точки start (по сетке ходов). only — фильтр узлов
+func unreachable(loc, start: Vector3, only := Callable()) -> Array:
+	var g: HexGrid = loc.grid
+	var b := g.bfs(g.nearest_free(start), {}, -1, 80000)
+	var out := []
+	var nodes: Array = []
+	for c in loc.characters():
+		if c != main.player and c.visible:
+			nodes.append(c)
+	for it in loc.items():
+		if it.visible:
+			nodes.append(it)
+	for nd in nodes:
+		if only.is_valid() and not only.call(nd):
+			continue
+		var th := g.from_world(nd.global_position)
+		var reach := 1
+		if nd is Interactable:
+			reach = (nd as Interactable).reach
+		var found := false
+		for dq in range(-reach, reach + 1):
+			for dr in range(maxi(-reach, -dq - reach), mini(reach, -dq + reach) + 1):
+				if b.dist.has(Vector2i(th.x + dq, th.y + dr)):
+					found = true
+		if not found:
+			out.append(String(nd.name))
+	return out
+
+
+## Каменный Сунгар: до всех жителей и предметов можно дойти; этажи, лестницы, задания в домах
+func city_tests() -> void:
+	var loc = main.location
+	var u := unreachable(loc, loc.spawn_point("FromCenter"))
+	ok(u.is_empty(), "квартал: до всех жителей и вещей можно дойти (недоступны: %s)" % [u])
+	ok(loc.character("Barman").global_position.distance_to(loc.get_node("Village/Shalman").global_position) < 5.0, "бармен — внутри «Шалмана»")
+	# общежитие: подъезд → 2 этаж → 3 → 4
+	loc.on_interact(loc.item("ObshagaStairs"))
+	await wait_loading()
+	loc = main.location
+	ok(loc.location_id == "sungar_obshaga" and loc.cur_floor == 2, "общежитие: поднялся на второй этаж")
+	for f in [2, 3, 4]:
+		var uf := unreachable(loc, loc.spawn_point("F%dBelow" % f), func(nd): return loc.floor_at(nd.global_position) == f)
+		ok(uf.is_empty(), "общежитие, %d этаж: всё достижимо (недоступны: %s)" % [f, uf])
+	ok(loc.character("Cook1").visible and not loc.character("Thief").visible, "видны только жильцы своего этажа")
+	loc.on_interact(loc.item("Up2"))
+	await frames(3)
+	loc.on_interact(loc.item("Up3"))
+	await frames(3)
+	ok(loc.cur_floor == 4 and loc.character("Thief").visible and not loc.character("Cook1").visible
+		and loc.floor_at(main.player.global_position) == 4, "лестница: 4 этаж, Сенька здесь, кухни второго не видно")
+	loc.on_interact(loc.item("Suitcase"))
+	ok(Game.item_count("suitcase") == 0, "чемодан под кроватью — чужой, пока не знаешь, чей")
+	loc.on_interact(loc.item("Down4"))
+	await frames(3)
+	loc.on_interact(loc.item("Down3"))
+	await frames(3)
+	ok(loc.cur_floor == 2, "спустился на второй этаж")
+	loc.on_interact(loc.item("Down2"))
+	await wait_loading()
+	ok(main.location.location_id == "sungar_quarter" and main.player.global_position.distance_to(main.location.spawn_point("FromObshaga")) < 1.0, "вышел из общежития к лестнице")
+	# центр: дом на площади — учительница, больной мальчик, радиолюбитель
+	main.location.on_interact(main.location.item("ToCenter"))
+	await wait_loading()
+	loc = main.location
+	u = unreachable(loc, loc.spawn_point("FromQuarter"))
+	ok(u.is_empty(), "центр: всё достижимо (недоступны: %s)" % [u])
+	loc.on_interact(loc.item("DomStairs"))
+	await wait_loading()
+	loc = main.location
+	ok(loc.location_id == "sungar_dom", "дом на площади: второй этаж")
+	for f in [2, 3, 4]:
+		var uf := unreachable(loc, loc.spawn_point("F%dBelow" % f), func(nd): return loc.floor_at(nd.global_position) == f)
+		ok(uf.is_empty(), "дом на площади, %d этаж: всё достижимо (недоступны: %s)" % [f, uf])
+	var int0: int = int(Game.hero.stats.get("INT", 5))
+	Game.hero.stats["INT"] = 4
+	var hr0 := Clock.hours()
+	main.talk_to(loc.character("Teacher"))
+	await frames(2)
+	await choose(find_opt("Чему учите"))
+	await choose(find_opt("Чем помочь"))
+	await choose(find_opt("Помогу"))
+	ok(Game.quest_stage("sg_lessons") == 1, "Сахая научит старому языку, если помочь Айтале")
+	await shut()
+	loc.go_floor(3, "F3Below")
+	await frames(3)
+	Game.add_item("medkit")
+	main.talk_to(loc.character("Mother"))
+	await frames(2)
+	await choose(find_opt("Чем помочь"))
+	await choose(find_opt("Поищу"))
+	await choose(find_opt("Отдать аптечку"))
+	await shut()
+	ok(Game.quest_stage("sg_medicine") == 2 and Game.item_count("t_ribbon") >= 1, "Айтала: аптечка помогла, жар спал")
+	loc.go_floor(2, "F2Above")
+	await frames(3)
+	main.talk_to(loc.character("Teacher"))
+	await frames(2)
+	await choose(find_opt("Айтала"))
+	await choose(0)
+	await frames(2)
+	ok(Game.flag("sakha_learned") and Game.knows_sakha() and Game.quest_stage("sg_lessons") == 2 and Clock.hours() > hr0 + 2.5,
+		"урок саха тыла: три часа — и понимаешь старый язык при Разуме 4")
+	main.dialog.close()
+	loc.go_floor(4, "F4Below")
+	await frames(3)
+	main.talk_to(loc.character("Radio"))
+	await frames(2)
+	await choose(find_opt("Что слушаешь"))
+	ok(Game.flag("sg_radio_kirk") and "Кирк" in str(Game.hero.notes), "Кеша слышит в эфире «Кирка»")
+	await shut()
+	loc.go_floor(2, "F2Above")
+	loc.on_interact(loc.item("Down2"))
+	await wait_loading()
+	ok(main.location.location_id == "sungar_center", "из дома — на площадь")
+	# ворота: гостиница
+	main.location.on_interact(main.location.item("ToGate"))
+	await wait_loading()
+	loc = main.location
+	# берег под обрывом — за стеной, туда только снаружи
+	u = unreachable(loc, loc.spawn_point("FromCenter"), func(nd): return nd.name != "BankPath")
+	ok(u.is_empty(), "ворота и рынок: всё достижимо (недоступны: %s)" % [u])
+	var inn: Character = loc.character("Innkeeper")
+	main.talk_to(inn)
+	await frames(2)
+	var rb: int = Game.item_count("rubles")
+	await choose(find_opt("Беру номер"))
+	await choose(0)
+	await choose(find_opt("Боотура"))
+	await shut()
+	ok(Game.flag("sg_room") and Game.item_count("rubles") == rb - 10 and Game.quest_stage("sg_note") == 1, "сняли номер; Боотур жил в девятом")
+	loc.on_interact(loc.item("HotelStairs"))
+	await wait_loading()
+	loc = main.location
+	ok(loc.location_id == "sungar_hotel" and loc.cur_floor == 2, "гостиница: второй этаж")
+	for f in [2, 3]:
+		var uf := unreachable(loc, loc.spawn_point("F%dBelow" % f), func(nd): return loc.floor_at(nd.global_position) == f)
+		ok(uf.is_empty(), "гостиница, %d этаж: всё достижимо (недоступны: %s)" % [f, uf])
+	main.talk_to(loc.character("Guest"))
+	await frames(2)
+	await choose(find_opt("Что было"))
+	await choose(find_opt("Поищу"))
+	ok(Game.quest_stage("sg_suitcase") == 1, "Ньургун: украли чемодан")
+	Game.set_hero_hp(3)
+	loc.on_interact(loc.item("HotelBed"))
+	ok(Game.hero_hp() == Game.hero_max() and absf(fmod(Clock.hours(), 24.0) - 8.0) < 0.1, "выспался в номере 6 до утра")
+	loc.go_floor(3, "F3Below")
+	await frames(3)
+	main.talk_to(loc.character("Archylan"))
+	await frames(2)
+	await choose(find_opt("Боотур"))
+	await shut()
+	ok(Game.quest_stage("sg_note") == 2, "Арчылан по-старому: Боотур спрятал что-то под половицей")
+	loc.on_interact(loc.item("LooseBoard"))
+	ok(Game.quest_stage("sg_note") == 3 and Game.item_count("bootur_note") == 1, "записка Боотура под половицей в девятом")
+	Game.hero.stats["INT"] = int0
+	# чемодан: дежурная → общежитие → Сенька → Ньургун
+	loc.go_floor(2, "F2Above")
+	loc.on_interact(loc.item("Down2"))
+	await wait_loading()
+	main.talk_to(main.location.character("Innkeeper"))
+	await frames(2)
+	await choose(find_opt("чемодан"))
+	await shut()
+	ok(Game.quest_stage("sg_suitcase") == 2, "дежурная: чемодан унёс Сенька из общежития")
+	main.load_location("sungar_obshaga", "F4Below")
+	await wait_loading()
+	loc = main.location
+	ok(loc.cur_floor == 4, "общежитие, четвёртый этаж — к Сеньке")
+	main.talk_to(loc.character("Thief"))
+	await frames(2)
+	await choose(find_opt("Чемодан"))
+	await choose(find_opt("10 рублей"))
+	await shut()
+	loc.on_interact(loc.item("Suitcase"))
+	ok(Game.item_count("suitcase") == 1 and Game.quest_stage("sg_suitcase") == 3, "выкупил у Сеньки — чемодан у меня")
+	main.load_location("sungar_hotel", "F2Below")
+	await wait_loading()
+	loc = main.location
+	rb = Game.item_count("rubles")
+	main.talk_to(loc.character("Guest"))
+	await frames(2)
+	await choose(find_opt("Отдать чемодан"))
+	await shut()
+	ok(Game.quest_stage("sg_suitcase") == 4 and Game.item_count("rubles") == rb + 25, "Ньургун получил чемодан, двадцать пять рублей")
+	main.load_location("sungar_quarter", "FromObshaga")
+	await wait_loading()
+
+
 ## Сунгар: три района, плата за вход, квесты, след Боотура — и дорога в Мар-Кун
 func sungar_tests() -> void:
 	var wm: WorldMap = main.world_map
@@ -255,6 +443,8 @@ func sungar_tests() -> void:
 	ok(Game.quest_stage("sg_guide") == 1, "эбээ по-старому: проводник жил в этом бараке")
 	loc.on_interact(loc.item("GuideRoom"))
 	ok(Game.quest_stage("sg_guide") == 2 and Game.item_count("guide_note") == 1, "записка проводника под половицей")
+	await city_tests()
+	loc = main.location
 	Game.force_check = 0
 	# обратно: квартал → центр → ворота → карта → Мар-Кун
 	loc.on_interact(loc.item("ToCenter"))

@@ -11,11 +11,16 @@ extends Node3D
 
 var inside := false
 var _upper: Node3D
+## Что ещё прячется вместе с верхом (вывески над входом: метка with_upper)
+var _extra: Array = []
 
 
 func _ready() -> void:
 	add_to_group("houses")
 	_upper = get_node_or_null("Upper")
+	for c in get_children():
+		if c.has_meta("with_upper"):
+			_extra.append(c)
 
 
 func _process(_delta: float) -> void:
@@ -29,6 +34,8 @@ func _process(_delta: float) -> void:
 	if now != inside:
 		inside = now
 		_upper.visible = not now
+		for e in _extra:
+			e.visible = not now
 		# пока герой внутри, «рентген» main.gd не делает дом прозрачным
 		set_meta("inside", now)
 

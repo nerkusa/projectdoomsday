@@ -1,0 +1,20 @@
+[gd_scene format=3]
+
+[ext_resource type="Material" path="res://assets/materials/concrete.tres" id="1_416cg"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/conc_fence_concrete.res" id="2_cs60h"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_2b8p5"]
+size = Vector3(4, 2.2, 0.4)
+
+[node name="ConcFence" type="Node3D" unique_id=906499351]
+
+[node name="Mesh_concrete" type="MeshInstance3D" parent="." unique_id=42035759]
+material_override = ExtResource("1_416cg")
+mesh = ExtResource("2_cs60h")
+
+[node name="Collision" type="StaticBody3D" parent="." unique_id=172345578]
+collision_mask = 0
+
+[node name="@CollisionShape3D@115" type="CollisionShape3D" parent="Collision" unique_id=1353134431]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.1, 0)
+shape = SubResource("BoxShape3D_2b8p5")

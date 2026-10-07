@@ -1,0 +1,50 @@
+[gd_scene format=3]
+
+[ext_resource type="Material" path="res://assets/materials/brick.tres" id="1_3ta2e"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/water_tower_brick.res" id="2_otrst"]
+[ext_resource type="Material" path="res://assets/materials/metal_dark.tres" id="3_4dch8"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/water_tower_metal_dark.res" id="4_rxn15"]
+[ext_resource type="Material" path="res://assets/materials/rust.tres" id="5_swfdw"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/water_tower_rust.res" id="6_jfqcr"]
+[ext_resource type="Material" path="res://assets/materials/metal_roof.tres" id="7_aq2u0"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/water_tower_metal_roof.res" id="8_u4ks7"]
+[ext_resource type="Material" path="res://assets/materials/paint_door.tres" id="9_cu03b"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/water_tower_paint_door.res" id="10_i6811"]
+[ext_resource type="Material" path="res://assets/materials/glass_city.tres" id="11_y45wo"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/water_tower_glass_city.res" id="12_dwi2m"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_k00sg"]
+size = Vector3(3.4, 3, 3.4)
+
+[node name="WaterTower" type="Node3D" unique_id=423867982]
+
+[node name="Mesh_brick" type="MeshInstance3D" parent="." unique_id=790694142]
+material_override = ExtResource("1_3ta2e")
+mesh = ExtResource("2_otrst")
+
+[node name="Mesh_metal_dark" type="MeshInstance3D" parent="." unique_id=873170160]
+material_override = ExtResource("3_4dch8")
+mesh = ExtResource("4_rxn15")
+
+[node name="Mesh_rust" type="MeshInstance3D" parent="." unique_id=1147596969]
+material_override = ExtResource("5_swfdw")
+mesh = ExtResource("6_jfqcr")
+
+[node name="Mesh_metal_roof" type="MeshInstance3D" parent="." unique_id=474625605]
+material_override = ExtResource("7_aq2u0")
+mesh = ExtResource("8_u4ks7")
+
+[node name="Mesh_paint_door" type="MeshInstance3D" parent="." unique_id=1430544318]
+material_override = ExtResource("9_cu03b")
+mesh = ExtResource("10_i6811")
+
+[node name="Mesh_glass_city" type="MeshInstance3D" parent="." unique_id=1881204317]
+material_override = ExtResource("11_y45wo")
+mesh = ExtResource("12_dwi2m")
+
+[node name="Collision" type="StaticBody3D" parent="." unique_id=1144597740]
+collision_mask = 0
+
+[node name="@CollisionShape3D@108" type="CollisionShape3D" parent="Collision" unique_id=720158693]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 0)
+shape = SubResource("BoxShape3D_k00sg")

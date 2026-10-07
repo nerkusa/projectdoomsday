@@ -1,0 +1,32 @@
+[gd_scene format=3]
+
+[ext_resource type="Material" path="res://assets/materials/paint_door.tres" id="1_d4hce"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/f_tv_paint_door.res" id="2_e742v"]
+[ext_resource type="Material" path="res://assets/materials/glass_city.tres" id="3_y2gj2"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/f_tv_glass_city.res" id="4_16rka"]
+[ext_resource type="Material" path="res://assets/materials/planks_old.tres" id="5_oy0my"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/f_tv_planks_old.res" id="6_e26nl"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_aibst"]
+size = Vector3(0.6, 1.2, 0.6)
+
+[node name="Tv" type="Node3D" unique_id=1321636432]
+
+[node name="Mesh_paint_door" type="MeshInstance3D" parent="." unique_id=281000519]
+material_override = ExtResource("1_d4hce")
+mesh = ExtResource("2_e742v")
+
+[node name="Mesh_glass_city" type="MeshInstance3D" parent="." unique_id=1823946298]
+material_override = ExtResource("3_y2gj2")
+mesh = ExtResource("4_16rka")
+
+[node name="Mesh_planks_old" type="MeshInstance3D" parent="." unique_id=728098763]
+material_override = ExtResource("5_oy0my")
+mesh = ExtResource("6_e26nl")
+
+[node name="Collision" type="StaticBody3D" parent="." unique_id=78902833]
+collision_mask = 0
+
+[node name="@CollisionShape3D@128" type="CollisionShape3D" parent="Collision" unique_id=555625863]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.6, 0)
+shape = SubResource("BoxShape3D_aibst")

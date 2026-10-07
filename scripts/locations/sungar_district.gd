@@ -4,7 +4,8 @@ extends Act1Location
 ## деньги в разговорах (условие rub_N), след Боотура. С карты мира попадаешь только
 ## к воротам (sungar); центр и жилой квартал — по улицам.
 
-## имя выхода → [локация, точка появления, подпись]
+## имя выхода → [локация, точка появления, подпись]; четвёртое поле "up" — это лестница
+## на верхние этажи дома (сцена SungarHouse)
 var links := {}
 
 
@@ -28,14 +29,24 @@ func on_interact(it: Interactable) -> bool:
 
 
 func item_actions(it: Interactable) -> Array:
-	if links.has(String(it.name)):
-		return [["Перейти: " + str(links[String(it.name)][2]), "use"]]
+	var n := String(it.name)
+	if links.has(n):
+		if _is_stairs(n):
+			return [["Подняться на второй этаж", "use"]]
+		return [["Перейти: " + str(links[n][2]), "use"]]
 	return super.item_actions(it)
 
 
+func _is_stairs(n: String) -> bool:
+	return links.has(n) and (links[n] as Array).size() > 3 and str(links[n][3]) == "up"
+
+
 func describe(it: Interactable) -> String:
-	if links.has(String(it.name)):
-		return "Улица ведёт дальше — %s." % str(links[String(it.name)][2]).to_lower()
+	var n := String(it.name)
+	if _is_stairs(n):
+		return "%s: лестница на второй этаж. Ступени бетонные, перила в краске." % str(links[n][2])
+	if links.has(n):
+		return "Улица ведёт дальше — %s." % str(links[n][2]).to_lower()
 	return ""
 
 

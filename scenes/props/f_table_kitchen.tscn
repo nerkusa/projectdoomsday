@@ -1,0 +1,38 @@
+[gd_scene format=3]
+
+[ext_resource type="Material" path="res://assets/materials/enamel.tres" id="1_muywx"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/f_table_kitchen_enamel.res" id="2_1td0n"]
+[ext_resource type="Material" path="res://assets/materials/paper.tres" id="3_avo0e"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/f_table_kitchen_paper.res" id="4_4jpso"]
+[ext_resource type="Material" path="res://assets/materials/planks_old.tres" id="5_0w8ld"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/f_table_kitchen_planks_old.res" id="6_cua2y"]
+[ext_resource type="Material" path="res://assets/materials/metal_dark.tres" id="7_7pdp6"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/f_table_kitchen_metal_dark.res" id="8_fk5ry"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_hdwm2"]
+size = Vector3(1.1, 0.8, 0.75)
+
+[node name="KitchenTable" type="Node3D" unique_id=965421915]
+
+[node name="Mesh_enamel" type="MeshInstance3D" parent="." unique_id=588030033]
+material_override = ExtResource("1_muywx")
+mesh = ExtResource("2_1td0n")
+
+[node name="Mesh_paper" type="MeshInstance3D" parent="." unique_id=502561139]
+material_override = ExtResource("3_avo0e")
+mesh = ExtResource("4_4jpso")
+
+[node name="Mesh_planks_old" type="MeshInstance3D" parent="." unique_id=298404004]
+material_override = ExtResource("5_0w8ld")
+mesh = ExtResource("6_cua2y")
+
+[node name="Mesh_metal_dark" type="MeshInstance3D" parent="." unique_id=1530520829]
+material_override = ExtResource("7_7pdp6")
+mesh = ExtResource("8_fk5ry")
+
+[node name="Collision" type="StaticBody3D" parent="." unique_id=803449657]
+collision_mask = 0
+
+[node name="@CollisionShape3D@121" type="CollisionShape3D" parent="Collision" unique_id=54527538]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.4, 0)
+shape = SubResource("BoxShape3D_hdwm2")

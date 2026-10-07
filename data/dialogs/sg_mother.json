@@ -1,0 +1,150 @@
+{
+  "speaker": "Айтала",
+  "title": "Айтала · 3 этаж",
+  "nodes": {
+    "start": {
+      "text": "(Женщина у кровати, на ней — мальчик под ватным одеялом.) Тише… Он спит. Жар третий день не спадает.",
+      "text_if": [
+        {
+          "if": {
+            "quest": "sg_medicine",
+            "stage": 2
+          },
+          "text": "(Айтала улыбается — кажется, впервые за неделю.) Жар спал. Он попросил есть! Спасибо тебе."
+        }
+      ],
+      "options": [
+        {
+          "text": "Чем помочь?",
+          "next": "need",
+          "if": {
+            "quest": "sg_medicine",
+            "stage_max": 0
+          }
+        },
+        {
+          "text": "[Медицина] Дай посмотрю.",
+          "next": null,
+          "if": {
+            "quest": "sg_medicine",
+            "stage_max": 1,
+            "not_flag": "sg_mother_exam"
+          },
+          "check": {
+            "stat": "INT",
+            "skill": "Медицина",
+            "dc": 12
+          },
+          "success": "exam_ok",
+          "fail": "exam_fail",
+          "set_flags": {
+            "sg_mother_exam": true
+          }
+        },
+        {
+          "text": "[Отдать аптечку] Вот, возьми.",
+          "next": "healed",
+          "if": {
+            "quest": "sg_medicine",
+            "stage_max": 1,
+            "item": "medkit"
+          },
+          "take": {
+            "medkit": 1
+          }
+        },
+        {
+          "text": "[Отдать травы] Заварю ему от жара.",
+          "next": null,
+          "if": {
+            "quest": "sg_medicine",
+            "stage_max": 1,
+            "item": "herbs"
+          },
+          "take": {
+            "herbs": 1
+          },
+          "check": {
+            "stat": "INT",
+            "skill": "Медицина",
+            "dc": 10
+          },
+          "success": "healed",
+          "fail": "herbs_fail"
+        },
+        {
+          "text": "[Уйти]",
+          "next": null
+        }
+      ]
+    },
+    "need": {
+      "text": "Лекарство бы… Аптечку или хоть травы. У меня ничего нет — всё сменяла на хлеб.",
+      "options": [
+        {
+          "text": "Поищу.",
+          "next": "start",
+          "quest": {
+            "id": "sg_medicine",
+            "stage": 1
+          }
+        }
+      ]
+    },
+    "exam_ok": {
+      "text": "(Горло красное, хрипов нет.) Не воспаление — простуда с жаром. Поить, обтирать, и что-то от жара: травы или аптечка.",
+      "xp": 20,
+      "quest": {
+        "id": "sg_medicine",
+        "stage": 1
+      },
+      "options": [
+        {
+          "text": "…",
+          "next": "start"
+        }
+      ]
+    },
+    "exam_fail": {
+      "text": "(Лоб горячий, дыхание частое. Что с ним — не понять.)",
+      "quest": {
+        "id": "sg_medicine",
+        "stage": 1
+      },
+      "options": [
+        {
+          "text": "…",
+          "next": "start"
+        }
+      ]
+    },
+    "healed": {
+      "text": "(К вечеру мальчик открывает глаза и просит пить.) Ой… Спасибо. Спасибо тебе. Ничего нет отдать — возьми хоть ленту, мамина.",
+      "quest": {
+        "id": "sg_medicine",
+        "stage": 2
+      },
+      "give": {
+        "t_ribbon": 1
+      },
+      "xp": 60,
+      "rep": 5,
+      "rep_why": "выходил больного мальчишку",
+      "options": [
+        {
+          "text": "…",
+          "next": null
+        }
+      ]
+    },
+    "herbs_fail": {
+      "text": "(Ты завариваешь сбор — но то ли крепко, то ли не то. Мальчик пьёт, морщится. Легче ему не стало.)",
+      "options": [
+        {
+          "text": "…",
+          "next": "start"
+        }
+      ]
+    }
+  }
+}
