@@ -1,0 +1,39 @@
+[gd_scene format=3]
+
+[ext_resource type="Material" path="res://assets/materials/soot.tres" id="1_u0j2x"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/burnt_shed_soot.res" id="2_0w8rh"]
+[ext_resource type="Material" path="res://assets/materials/coal.tres" id="3_xwrko"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/burnt_shed_coal.res" id="4_pgn3q"]
+[ext_resource type="Material" path="res://assets/materials/metal_roof.tres" id="5_iai5e"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/burnt_shed_metal_roof.res" id="6_v5221"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_bqndr"]
+size = Vector3(4, 1, 0.4)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_trr4w"]
+size = Vector3(0.4, 1, 2.8)
+
+[node name="BurntShed" type="Node3D" unique_id=1267968725]
+
+[node name="Mesh_soot" type="MeshInstance3D" parent="." unique_id=1195004114]
+material_override = ExtResource("1_u0j2x")
+mesh = ExtResource("2_0w8rh")
+
+[node name="Mesh_coal" type="MeshInstance3D" parent="." unique_id=1811999432]
+material_override = ExtResource("3_xwrko")
+mesh = ExtResource("4_pgn3q")
+
+[node name="Mesh_metal_roof" type="MeshInstance3D" parent="." unique_id=1903239385]
+material_override = ExtResource("5_iai5e")
+mesh = ExtResource("6_v5221")
+
+[node name="Collision" type="StaticBody3D" parent="." unique_id=1367011909]
+collision_mask = 0
+
+[node name="@CollisionShape3D@167" type="CollisionShape3D" parent="Collision" unique_id=485341413]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, -1.45)
+shape = SubResource("BoxShape3D_bqndr")
+
+[node name="@CollisionShape3D@168" type="CollisionShape3D" parent="Collision" unique_id=677783065]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.95, 0.5, 0)
+shape = SubResource("BoxShape3D_trr4w")

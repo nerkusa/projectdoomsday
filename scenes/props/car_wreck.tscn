@@ -1,0 +1,44 @@
+[gd_scene format=3]
+
+[ext_resource type="Material" path="res://assets/materials/rust.tres" id="1_ekkfx"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/car_wreck_rust.res" id="2_cblym"]
+[ext_resource type="Material" path="res://assets/materials/paint_faded.tres" id="3_nlolx"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/car_wreck_paint_faded.res" id="4_eixji"]
+[ext_resource type="Material" path="res://assets/materials/glass_city.tres" id="5_y5nji"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/car_wreck_glass_city.res" id="6_cduu1"]
+[ext_resource type="Material" path="res://assets/materials/metal_roof.tres" id="7_can1l"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/car_wreck_metal_roof.res" id="8_8q3et"]
+[ext_resource type="Material" path="res://assets/materials/tire.tres" id="9_8fuwg"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/car_wreck_tire.res" id="10_eddqy"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_vf6yb"]
+size = Vector3(4.1, 1.5, 1.7)
+
+[node name="CarWreck" type="Node3D" unique_id=1248350060]
+
+[node name="Mesh_rust" type="MeshInstance3D" parent="." unique_id=1862499212]
+material_override = ExtResource("1_ekkfx")
+mesh = ExtResource("2_cblym")
+
+[node name="Mesh_paint_faded" type="MeshInstance3D" parent="." unique_id=1926158696]
+material_override = ExtResource("3_nlolx")
+mesh = ExtResource("4_eixji")
+
+[node name="Mesh_glass_city" type="MeshInstance3D" parent="." unique_id=528531133]
+material_override = ExtResource("5_y5nji")
+mesh = ExtResource("6_cduu1")
+
+[node name="Mesh_metal_roof" type="MeshInstance3D" parent="." unique_id=237594995]
+material_override = ExtResource("7_can1l")
+mesh = ExtResource("8_8q3et")
+
+[node name="Mesh_tire" type="MeshInstance3D" parent="." unique_id=1985653474]
+material_override = ExtResource("9_8fuwg")
+mesh = ExtResource("10_eddqy")
+
+[node name="Collision" type="StaticBody3D" parent="." unique_id=699758239]
+collision_mask = 0
+
+[node name="@CollisionShape3D@166" type="CollisionShape3D" parent="Collision" unique_id=716130152]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.75, 0)
+shape = SubResource("BoxShape3D_vf6yb")

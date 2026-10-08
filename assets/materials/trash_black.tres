@@ -1,0 +1,6 @@
+[gd_resource type="StandardMaterial3D" format=3]
+
+[resource]
+resource_name = "trash_black"
+albedo_color = Color(0.11764706, 0.1254902, 0.1254902, 1)
+roughness = 0.4

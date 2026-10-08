@@ -1,0 +1,26 @@
+[gd_scene format=3]
+
+[ext_resource type="Material" path="res://assets/materials/rust.tres" id="1_qops4"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/burn_barrel_rust.res" id="2_mcl3l"]
+[ext_resource type="Material" path="res://assets/materials/soot.tres" id="3_hoys4"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/burn_barrel_soot.res" id="4_l5636"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_hjglo"]
+size = Vector3(0.65, 0.9, 0.65)
+
+[node name="BurnBarrel" type="Node3D" unique_id=1463289796]
+
+[node name="Mesh_rust" type="MeshInstance3D" parent="." unique_id=2069948439]
+material_override = ExtResource("1_qops4")
+mesh = ExtResource("2_mcl3l")
+
+[node name="Mesh_soot" type="MeshInstance3D" parent="." unique_id=999671203]
+material_override = ExtResource("3_hoys4")
+mesh = ExtResource("4_l5636")
+
+[node name="Collision" type="StaticBody3D" parent="." unique_id=1557949635]
+collision_mask = 0
+
+[node name="@CollisionShape3D@169" type="CollisionShape3D" parent="Collision" unique_id=986067875]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.45, 0)
+shape = SubResource("BoxShape3D_hjglo")

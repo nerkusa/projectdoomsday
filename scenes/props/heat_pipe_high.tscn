@@ -4,10 +4,10 @@
 [ext_resource type="ArrayMesh" path="res://assets/models/props/heat_pipe_high_tin.res" id="2_gopp0"]
 [ext_resource type="Material" path="res://assets/materials/rope_mat.tres" id="3_ikghd"]
 [ext_resource type="ArrayMesh" path="res://assets/models/props/heat_pipe_high_rope_mat.res" id="4_xwtki"]
-[ext_resource type="Material" path="res://assets/materials/paper.tres" id="5_ii5re"]
-[ext_resource type="ArrayMesh" path="res://assets/models/props/heat_pipe_high_paper.res" id="6_idbdl"]
-[ext_resource type="Material" path="res://assets/materials/tar.tres" id="7_1civg"]
-[ext_resource type="ArrayMesh" path="res://assets/models/props/heat_pipe_high_tar.res" id="8_1gqtv"]
+[ext_resource type="Material" path="res://assets/materials/tar.tres" id="5_ii5re"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/heat_pipe_high_tar.res" id="6_idbdl"]
+[ext_resource type="Material" path="res://assets/materials/paper.tres" id="7_1civg"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/heat_pipe_high_paper.res" id="8_1gqtv"]
 [ext_resource type="Material" path="res://assets/materials/metal_dark.tres" id="9_rcjqc"]
 [ext_resource type="ArrayMesh" path="res://assets/models/props/heat_pipe_high_metal_dark.res" id="10_o7ymr"]
 
@@ -23,43 +23,43 @@ size = Vector3(0.3, 2, 0.3)
 [sub_resource type="BoxShape3D" id="BoxShape3D_r7hy7"]
 size = Vector3(0.3, 2, 0.3)
 
-[node name="HeatPipe" type="Node3D" unique_id=467021038]
+[node name="HeatPipe" type="Node3D" unique_id=1211510414]
 
-[node name="Mesh_tin" type="MeshInstance3D" parent="." unique_id=526076176]
+[node name="Mesh_tin" type="MeshInstance3D" parent="." unique_id=803121724]
 material_override = ExtResource("1_mveb2")
 mesh = ExtResource("2_gopp0")
 
-[node name="Mesh_rope_mat" type="MeshInstance3D" parent="." unique_id=673198451]
+[node name="Mesh_rope_mat" type="MeshInstance3D" parent="." unique_id=1883987130]
 material_override = ExtResource("3_ikghd")
 mesh = ExtResource("4_xwtki")
 
-[node name="Mesh_paper" type="MeshInstance3D" parent="." unique_id=1098827309]
+[node name="Mesh_tar" type="MeshInstance3D" parent="." unique_id=1193127995]
 material_override = ExtResource("5_ii5re")
 mesh = ExtResource("6_idbdl")
 
-[node name="Mesh_tar" type="MeshInstance3D" parent="." unique_id=1691663769]
+[node name="Mesh_paper" type="MeshInstance3D" parent="." unique_id=280604009]
 material_override = ExtResource("7_1civg")
 mesh = ExtResource("8_1gqtv")
 
-[node name="Mesh_metal_dark" type="MeshInstance3D" parent="." unique_id=1453146972]
+[node name="Mesh_metal_dark" type="MeshInstance3D" parent="." unique_id=205420668]
 material_override = ExtResource("9_rcjqc")
 mesh = ExtResource("10_o7ymr")
 
-[node name="Collision" type="StaticBody3D" parent="." unique_id=31294741]
+[node name="Collision" type="StaticBody3D" parent="." unique_id=359407087]
 collision_mask = 0
 
-[node name="@CollisionShape3D@100" type="CollisionShape3D" parent="Collision" unique_id=879160124]
+[node name="@CollisionShape3D@123" type="CollisionShape3D" parent="Collision" unique_id=768430451]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.6, 1, -0.6)
 shape = SubResource("BoxShape3D_pnlui")
 
-[node name="@CollisionShape3D@101" type="CollisionShape3D" parent="Collision" unique_id=298240466]
+[node name="@CollisionShape3D@124" type="CollisionShape3D" parent="Collision" unique_id=1316050080]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.6, 1, 0.6)
 shape = SubResource("BoxShape3D_lgtp4")
 
-[node name="@CollisionShape3D@102" type="CollisionShape3D" parent="Collision" unique_id=822930842]
+[node name="@CollisionShape3D@125" type="CollisionShape3D" parent="Collision" unique_id=355511619]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.6, 1, -0.6)
 shape = SubResource("BoxShape3D_xqcxg")
 
-[node name="@CollisionShape3D@103" type="CollisionShape3D" parent="Collision" unique_id=2123858825]
+[node name="@CollisionShape3D@126" type="CollisionShape3D" parent="Collision" unique_id=1799091903]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.6, 1, 0.6)
 shape = SubResource("BoxShape3D_r7hy7")

@@ -52,6 +52,10 @@ func _ready() -> void:
 		"st_block2": {"w": 10.0, "d": 7.0, "floors": 2, "mat": "brick", "roof": "pitch", "entries": [2.0], "shopfront": true},
 		"st_block2b": {"w": 9.0, "d": 7.0, "floors": 2, "mat": "plaster_green", "roof": "pitch", "entries": [0.0], "piles": true},
 		"st_barrack2": {"w": 14.0, "d": 7.0, "floors": 2, "mat": "brick", "roof": "pitch", "entries": [-3.0, 3.0]},
+		# полиция: дежурная часть, камеры, оружейка
+		"st_police": {"w": 12.0, "d": 8.0, "floors": 2, "mat": "plaster_blue", "enter": "police", "roof": "flat", "bars": true, "flag": true},
+		# администрация посёлка: приёмная, паспортный стол, лестница наверх (кабинеты, ЭВМ)
+		"st_admin": {"w": 16.0, "d": 10.0, "floors": 3, "mat": "plaster_white", "enter": "admin", "roof": "flat", "flag": true, "fh": 3.2},
 	}
 	for n in houses:
 		if only == "" or n == only:
@@ -67,6 +71,8 @@ func _ready() -> void:
 		paz_wreck()
 		bins()
 		furniture()
+		cassette_props()
+		ruin_props()
 	print("Город собран.")
 	get_tree().quit()
 
@@ -101,6 +107,14 @@ func _city_materials() -> void:
 	_plain_mat("enamel", Color("d8d4c8"), 0.35)
 	_plain_mat("plant", Color("3e5a2c"), 1.0)
 	_plain_mat("flag_red", Color("8a2a24"), 0.9)
+	_plain_mat("plastic_beige", Color("b8ae94"), 0.6)
+	_plain_mat("plastic_dark", Color("2c2a28"), 0.5)
+	_plain_mat("soot", Color("1a1816"), 1.0)
+	_plain_mat("trash_black", Color("1e2020"), 0.4)
+	_glow_mat("screen_green", Color("0c1a10"), Color("5cff8a"), 1.6)
+	_glow_mat("screen_amber", Color("1a1206"), Color("ffb23a"), 1.6)
+	_glow_mat("led_red", Color("3a0606"), Color("ff3a2a"), 3.0)
+	_glow_mat("led_green", Color("063a10"), Color("3aff6a"), 3.0)
 	# окно с тёплым светом изнутри — ночью видно, что в доме живут
 	var lit := StandardMaterial3D.new()
 	lit.resource_name = "window_lit"
@@ -121,6 +135,19 @@ func _city_materials() -> void:
 	sky.emission_energy_multiplier = 0.35
 	ResourceSaver.save(sky, MAT_DIR + "window_sky.tres")
 	M["window_sky"] = load(MAT_DIR + "window_sky.tres")
+
+
+## Светящийся материал: экраны ЭЛТ, лампочки на панелях
+func _glow_mat(n: String, base: Color, emit: Color, e: float) -> void:
+	var m := StandardMaterial3D.new()
+	m.resource_name = n
+	m.albedo_color = base
+	m.roughness = 0.15
+	m.emission_enabled = true
+	m.emission = emit
+	m.emission_energy_multiplier = e
+	ResourceSaver.save(m, MAT_DIR + n + ".tres")
+	M[n] = load(MAT_DIR + n + ".tres")
 
 
 # ---------------- детали фасада ----------------
@@ -604,6 +631,57 @@ func _interior(kind: String, w: float, d: float, door_x: float) -> void:
 			solid(Vector3(0.5, 1.4, 1.3), Vector3(hx - 0.7, 0.7, -0.5))
 			slots["croupier"] = Vector3(hx - 1.4, 0, -0.5)
 			_rug(0, hz - 1.2, 2.0, 1.2)
+		"police":
+			_lining(w, d, "paint_blue", "linoleum_b", door_x)
+			# барьер дежурной части и пульт с ЭЛТ
+			_counter(-hx + 2.6, 0.2, 0.6)
+			box("planks_old", Vector3(0.6, 1.0, 3.0), Vector3(-hx + 2.6, 0.5, 0.2))
+			solid(Vector3(0.65, 1.0, 3.0), Vector3(-hx + 2.6, 0.5, 0.2))
+			_crt(Vector3(-hx + 2.5, 1.02, -0.6), PI / 2.0, "screen_green")
+			_crt(Vector3(-hx + 2.5, 1.02, 0.6), PI / 2.0, "screen_amber")
+			slots["chief"] = Vector3(-hx + 1.4, 0, 0.2)
+			# камеры за решёткой у задней стены справа
+			for k in 2:
+				var cx0 := hx - 1.3 - k * 2.4
+				for i in 9:
+					box("metal_dark", Vector3(0.05, 2.2, 0.05), Vector3(cx0 - 1.0 + i * 0.25, 1.1, -hz + 2.0))
+				box("metal_dark", Vector3(2.3, 0.08, 0.08), Vector3(cx0, 2.15, -hz + 2.0))
+				box("planks_old", Vector3(1.8, 0.4, 0.7), Vector3(cx0, 0.2, -hz + 0.45))
+				solid(Vector3(2.3, 2.2, 0.3), Vector3(cx0, 1.1, -hz + 2.0))
+				slots["cell%d" % (k + 1)] = Vector3(cx0, 0, -hz + 1.1)
+			box("paint_blue", Vector3(0.14, 2.4, 2.0), Vector3(hx - 4.75, 1.2, -hz + 1.0))
+			solid(Vector3(0.3, 2.4, 2.0), Vector3(hx - 4.75, 1.2, -hz + 1.0))
+			# оружейная пирамида и доска «Их разыскивает»
+			box("metal_dark", Vector3(1.4, 1.6, 0.4), Vector3(-hx + 1.0, 0.8, -hz + 0.25))
+			for i in 4:
+				box("metal_dark", Vector3(0.06, 1.1, 0.06), Vector3(-hx + 0.55 + i * 0.3, 1.0, -hz + 0.5), Vector3(0.15, 0, 0))
+			solid(Vector3(1.4, 1.6, 0.5), Vector3(-hx + 1.0, 0.8, -hz + 0.25))
+			box("planks_old", Vector3(1.6, 0.9, 0.04), Vector3(0.6, 0.8, -hz + 0.03))
+			for i in 4:
+				box("paper", Vector3(0.3, 0.4, 0.02), Vector3(0.0 + i * 0.4, 0.82, -hz + 0.06))
+			slots["board"] = Vector3(0.6, 0, -hz + 0.9)
+			slots["cop"] = Vector3(1.2, 0, 1.5)
+			_table(2.0, 1.6, "planks_old", 2)
+		"admin":
+			_lining(w, d, "wallpaper_b", "linoleum", door_x)
+			# приёмная: стойка паспортного стола с окошком, очередь у стены
+			_counter(-hx + 2.4, -0.5, 0.6)
+			box("planks_old", Vector3(0.6, 1.0, 3.4), Vector3(-hx + 2.4, 0.5, -0.5))
+			solid(Vector3(0.65, 1.0, 3.4), Vector3(-hx + 2.4, 0.5, -0.5))
+			box("glass", Vector3(0.04, 0.8, 3.0), Vector3(-hx + 2.4, 1.5, -0.5))
+			_crt(Vector3(-hx + 2.3, 1.02, -1.4), PI / 2.0, "screen_green")
+			slots["clerk"] = Vector3(-hx + 1.4, 0, -0.5)
+			for i in 4:
+				box("planks_old", Vector3(0.45, 0.45, 0.45), Vector3(-1.5 + i * 0.6, 0.23, hz - 0.5))
+			solid(Vector3(2.6, 0.5, 0.5), Vector3(-0.6, 0.25, hz - 0.5))
+			slots["queue"] = Vector3(-0.6, 0, hz - 1.2)
+			# стенд «Сунгар — город будущего», флаг, фикусы
+			box("frame_white", Vector3(2.4, 1.0, 0.05), Vector3(1.4, 0.8, -hz + 0.04))
+			box("screen_amber", Vector3(1.0, 0.6, 0.03), Vector3(1.4, 0.85, -hz + 0.08))
+			_plant(hx - 0.5, hz - 0.5)
+			_plant(-hx + 0.5, hz - 0.5)
+			stair_flight(hx - 1.2, -hz)
+			slots["guard"] = Vector3(door_x + 1.6, 0, hz - 1.0)
 		"stairwell", "obshaga":
 			_lining(w, d, "paint_green" if kind == "stairwell" else "paint_blue", "linoleum" if kind == "stairwell" else "linoleum_b", door_x)
 			# середина — подъезд с лестницей; слева и справа — квартиры (или вахта и красный уголок)
@@ -891,3 +969,166 @@ func _stair_piece() -> void:
 		for k in 3:
 			box("metal_dark", Vector3(0.03, 0.8, 0.03), Vector3(sx * 0.66, 0.6 + k * 0.38, 0.8 - k * 0.8))
 	solid(Vector3(1.4, 1.6, 2.4), Vector3(0, 0.8, 0))
+
+
+# ---------------- кассетный футуризм ----------------
+## ЭЛТ-монитор с клавиатурой: бежевый пластик, светящийся экран
+func _crt(pos: Vector3, yaw: float, screen := "screen_green") -> void:
+	var b := Basis.from_euler(Vector3(0, yaw, 0))
+	var r := Vector3(0, yaw, 0)
+	box("plastic_beige", Vector3(0.5, 0.42, 0.45), pos + b * Vector3(0, 0.21, 0), r)
+	box(screen, Vector3(0.38, 0.3, 0.02), pos + b * Vector3(0, 0.23, 0.23), r)
+	box("plastic_beige", Vector3(0.48, 0.04, 0.2), pos + b * Vector3(0, 0.02, 0.4), r)
+	box("plastic_dark", Vector3(0.42, 0.02, 0.14), pos + b * Vector3(0, 0.05, 0.4), r)
+
+
+func cassette_props() -> void:
+	# стол с терминалом
+	begin()
+	box("planks_old", Vector3(1.2, 0.06, 0.7), Vector3(0, 0.76, 0))
+	for lx in [-0.55, 0.55]:
+		box("metal_dark", Vector3(0.05, 0.74, 0.65), Vector3(lx, 0.37, 0))
+	_crt(Vector3(0, 0.79, -0.12), 0.0)
+	box("plastic_dark", Vector3(0.3, 0.12, 0.2), Vector3(0.42, 0.85, 0.05))
+	solid(Vector3(1.2, 0.8, 0.7), Vector3(0, 0.4, 0))
+	finish("cf_terminal", "Terminal")
+	# шкаф ЭВМ: бобины магнитной ленты, ряды лампочек
+	begin()
+	box("plastic_beige", Vector3(1.0, 1.9, 0.6), Vector3(0, 0.95, 0))
+	box("plastic_dark", Vector3(0.86, 0.9, 0.04), Vector3(0, 1.35, 0.31))
+	for x in [-0.22, 0.22]:
+		cyl("metal_dark", 0.19, 0.19, 0.04, Vector3(x, 1.45, 0.34), Vector3(PI / 2.0, 0, 0), 16)
+		cyl("tire", 0.12, 0.12, 0.05, Vector3(x, 1.45, 0.35), Vector3(PI / 2.0, 0, 0), 14)
+		cyl("tin", 0.03, 0.03, 0.06, Vector3(x, 1.45, 0.37), Vector3(PI / 2.0, 0, 0), 6)
+	for i in 12:
+		box("led_red" if i % 3 == 0 else "led_green", Vector3(0.04, 0.04, 0.02), Vector3(-0.33 + (i % 6) * 0.13, 0.7 + int(i / 6) * 0.1, 0.31))
+	box("plastic_dark", Vector3(0.8, 0.3, 0.03), Vector3(0, 0.35, 0.31))
+	solid(Vector3(1.0, 1.9, 0.6), Vector3(0, 0.95, 0))
+	finish("cf_mainframe", "Mainframe")
+	# уличный информационный экран «СУНГАР-ИНФОРМ» на столбе
+	begin()
+	cyl("metal_dark", 0.08, 0.1, 3.0, Vector3(0, 1.5, 0), Vector3.ZERO, 8)
+	box("plastic_dark", Vector3(1.6, 1.1, 0.4), Vector3(0, 3.4, 0))
+	box("screen_amber", Vector3(1.4, 0.9, 0.02), Vector3(0, 3.4, 0.21))
+	box("metal_roof", Vector3(1.8, 0.06, 0.6), Vector3(0, 4.0, 0.05))
+	solid(Vector3(0.4, 2.0, 0.4), Vector3(0, 1.0, 0))
+	slots["text"] = Vector3(0, 3.45, 0.23)
+	finish("cf_info_screen", "InfoScreen")
+	# столб с громкоговорителями-колокольчиками и камерой
+	begin()
+	cyl("metal_dark", 0.07, 0.1, 6.0, Vector3(0, 3.0, 0), Vector3.ZERO, 8)
+	for k in 3:
+		var a := k * TAU / 3.0
+		var p := Vector3(sin(a) * 0.3, 5.4, cos(a) * 0.3)
+		cyl("tin", 0.22, 0.05, 0.5, p + Vector3(sin(a) * 0.15, 0, cos(a) * 0.15), Vector3(PI / 2.0 - 0.3, a, 0), 10)
+	box("plastic_dark", Vector3(0.18, 0.18, 0.4), Vector3(0, 4.6, 0.25), Vector3(0.3, 0, 0))
+	box("led_red", Vector3(0.04, 0.04, 0.02), Vector3(0.05, 4.65, 0.46))
+	solid(Vector3(0.3, 2.0, 0.3), Vector3(0, 1.0, 0))
+	finish("loudspeaker", "Loudspeaker")
+	# деревянный столб ЛЭП с перекладиной и изоляторами
+	begin()
+	cyl("log_weathered", 0.12, 0.15, 7.0, Vector3(0, 3.5, 0), Vector3.ZERO, 8)
+	box("log_weathered", Vector3(1.8, 0.12, 0.12), Vector3(0, 6.6, 0))
+	for x in [-0.8, -0.3, 0.3, 0.8]:
+		cyl("glass", 0.05, 0.06, 0.15, Vector3(x, 6.74, 0), Vector3.ZERO, 6)
+	box("metal_dark", Vector3(0.3, 0.4, 0.2), Vector3(0, 4.2, 0.15))
+	solid(Vector3(0.3, 2.0, 0.3), Vector3(0, 1.0, 0))
+	finish("power_pole", "PowerPole")
+	# мешки с песком — дуга укрытия 3 м
+	begin()
+	for row in 3:
+		for i in 6 - row:
+			var x := -1.25 + i * 0.5 + row * 0.25
+			box("cloth_sack", Vector3(0.52, 0.24, 0.36), Vector3(x, 0.12 + row * 0.23, 0.0), Vector3(0, (i % 2) * 0.1, 0.03 * (i % 3)))
+	solid(Vector3(3.0, 0.9, 0.5), Vector3(0, 0.45, 0))
+	finish("sandbags", "Sandbags")
+	# блокпост: будка с окошком, шлагбаум, прожектор
+	begin()
+	box("metal_green", Vector3(1.6, 2.3, 1.6), Vector3(0, 1.15, 0))
+	box("glass_city", Vector3(1.0, 0.6, 0.04), Vector3(0, 1.5, 0.81))
+	box("metal_roof", Vector3(2.0, 0.08, 2.0), Vector3(0, 2.36, 0))
+	box("plastic_dark", Vector3(0.3, 0.25, 0.35), Vector3(0.5, 2.55, 0.5), Vector3(0.4, 0.6, 0))
+	box("screen_amber", Vector3(0.2, 0.16, 0.02), Vector3(0.58, 2.52, 0.66), Vector3(0.4, 0.6, 0))
+	box("paint_white", Vector3(0.12, 0.12, 4.4), Vector3(1.0, 1.0, 3.0))
+	for i in 4:
+		box("paint_red", Vector3(0.13, 0.13, 0.45), Vector3(1.0, 1.0, 1.4 + i * 1.0))
+	cyl("metal_dark", 0.1, 0.1, 1.1, Vector3(1.0, 0.55, 0.9), Vector3.ZERO, 8)
+	solid(Vector3(1.7, 2.3, 1.7), Vector3(0, 1.15, 0))
+	finish("checkpoint", "Checkpoint")
+	# доска объявлений с листками
+	begin()
+	for x in [-1.0, 1.0]:
+		cyl("log_weathered", 0.06, 0.06, 2.0, Vector3(x, 1.0, 0), Vector3.ZERO, 6)
+	box("planks_old", Vector3(2.2, 1.1, 0.06), Vector3(0, 1.35, 0))
+	for i in 7:
+		box("paper", Vector3(0.28, 0.36, 0.02), Vector3(-0.85 + i * 0.28, 1.35 + (0.2 if i % 2 else -0.15), 0.04), Vector3(0, 0, (i % 3 - 1) * 0.08))
+	box("metal_roof", Vector3(2.4, 0.04, 0.4), Vector3(0, 1.98, 0.05), Vector3(-0.2, 0, 0))
+	solid(Vector3(2.2, 2.0, 0.3), Vector3(0, 1.0, 0))
+	finish("notice_board", "NoticeBoard")
+
+
+# ---------------- грязь и разруха ----------------
+func ruin_props() -> void:
+	# куча мусора: мешки, ящики, ржавчина
+	for v in 2:
+		begin()
+		_rng.seed = 900 + v
+		for i in 9:
+			var p := Vector3(_rng.randf_range(-1.2, 1.2), 0, _rng.randf_range(-0.9, 0.9))
+			var m: String = ["trash_black", "cloth_sack", "trash_black", "paper", "rust"][i % 5]
+			add(m, rough(rsphere(_rng.randf_range(0.25, 0.45), 7, 5), 0.08, i + v * 10), p + Vector3(0, 0.18, 0), Vector3.ZERO, Vector3(1.0, 0.7, 1.0))
+		for i in 3:
+			box("planks_old", Vector3(0.5, 0.3, 0.4), Vector3(_rng.randf_range(-1, 1), 0.15, _rng.randf_range(-0.6, 0.6)), Vector3(0, _rng.randf() * 3.0, 0.2))
+		box("tire", Vector3(0.6, 0.2, 0.6), Vector3(0.9, 0.1, 0.7))
+		solid(Vector3(2.4, 0.8, 1.8), Vector3(0, 0.4, 0))
+		finish("trash_pile" if v == 0 else "trash_pile_b", "TrashPile")
+	# битый кирпич
+	begin()
+	for i in 14:
+		var p := Vector3(_rng.randf_range(-1.4, 1.4), 0, _rng.randf_range(-1.0, 1.0))
+		add("brick" if i % 3 else "concrete", rough(BoxMesh.new(), 0.04, i), p + Vector3(0, 0.12, 0), Vector3(0, _rng.randf() * 3.0, 0.3), Vector3(0.5, 0.25, 0.3))
+	add("concrete", rough(rsphere(0.7, 8, 5), 0.2, 3), Vector3(0, 0.0, 0), Vector3.ZERO, Vector3(1.6, 0.6, 1.2))
+	box("metal_dark", Vector3(0.04, 0.04, 1.6), Vector3(0.4, 0.4, 0.2), Vector3(0.4, 0.5, 0))
+	solid(Vector3(2.4, 0.7, 1.8), Vector3(0, 0.35, 0))
+	finish("rubble", "Rubble")
+	# брошенная легковушка: ржавая, без колёс, стёкла выбиты
+	begin()
+	box("rust", Vector3(4.0, 0.65, 1.6), Vector3(0, 0.55, 0))
+	box("paint_faded", Vector3(2.1, 0.55, 1.45), Vector3(-0.2, 1.15, 0))
+	box("glass_city", Vector3(0.05, 0.4, 1.3), Vector3(0.88, 1.15, 0), Vector3(0, 0, 0.5))
+	box("metal_roof", Vector3(1.9, 0.06, 1.4), Vector3(-0.25, 1.44, 0))
+	for x in [-1.3, 1.3]:
+		for z in [-0.75, 0.75]:
+			box("tire", Vector3(0.5, 0.3, 0.2), Vector3(x, 0.15, z))
+	box("rust", Vector3(0.9, 0.08, 1.5), Vector3(1.6, 0.95, 0), Vector3(0, 0, -0.4))
+	solid(Vector3(4.1, 1.5, 1.7), Vector3(0, 0.75, 0))
+	finish("car_wreck", "CarWreck")
+	# пожарище: обугленный остов сарая
+	begin()
+	for sx in [-1, 1]:
+		for sz in [-1, 1]:
+			box("soot", Vector3(0.22, 1.6 + _rng.randf() * 0.8, 0.22), Vector3(sx * 1.9, 0.9, sz * 1.4), Vector3(0, 0, sx * 0.08))
+	box("soot", Vector3(4.0, 0.9, 0.12), Vector3(0, 0.45, -1.45))
+	box("soot", Vector3(0.12, 0.6, 2.8), Vector3(-1.95, 0.3, 0))
+	for i in 6:
+		box("soot", Vector3(2.0, 0.12, 0.2), Vector3(_rng.randf_range(-1, 1), 0.1, _rng.randf_range(-1, 1)), Vector3(0, _rng.randf() * 3.0, 0.15))
+	box("coal", Vector3(3.6, 0.04, 2.6), Vector3(0, 0.02, 0))
+	box("metal_roof", Vector3(2.2, 0.05, 1.6), Vector3(0.6, 0.35, 0.3), Vector3(0.3, 0.2, 0.5))
+	solid(Vector3(4.0, 1.0, 0.4), Vector3(0, 0.5, -1.45))
+	solid(Vector3(0.4, 1.0, 2.8), Vector3(-1.95, 0.5, 0))
+	finish("burnt_shed", "BurntShed")
+	# бочка-жаровня (огонь ставит сборщик сцены)
+	begin()
+	cyl("rust", 0.32, 0.3, 0.9, Vector3(0, 0.45, 0), Vector3.ZERO, 12)
+	cyl("soot", 0.3, 0.3, 0.02, Vector3(0, 0.89, 0), Vector3.ZERO, 12)
+	for i in 4:
+		box("soot", Vector3(0.08, 0.06, 0.06), Vector3(0.2 * cos(i * 1.5), 0.6, 0.31 * sin(i * 1.5)))
+	solid(Vector3(0.65, 0.9, 0.65), Vector3(0, 0.45, 0))
+	finish("burn_barrel", "BurnBarrel")
+	# дощатые мостки через грязь (без коллизии)
+	begin()
+	for i in 8:
+		box("planks_old", Vector3(1.4, 0.06, 0.28), Vector3(_rng.randf_range(-0.05, 0.05), 0.05, -1.4 + i * 0.4), Vector3(0, _rng.randf_range(-0.06, 0.06), 0))
+	for x in [-0.5, 0.5]:
+		box("log_weathered", Vector3(0.12, 0.08, 3.2), Vector3(x, 0.02, 0))
+	finish("boardwalk", "Boardwalk")

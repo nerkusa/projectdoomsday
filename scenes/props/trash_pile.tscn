@@ -1,0 +1,50 @@
+[gd_scene format=3]
+
+[ext_resource type="Material" path="res://assets/materials/trash_black.tres" id="1_up58g"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/trash_pile_trash_black.res" id="2_rxj3j"]
+[ext_resource type="Material" path="res://assets/materials/cloth_sack.tres" id="3_spbhb"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/trash_pile_cloth_sack.res" id="4_72515"]
+[ext_resource type="Material" path="res://assets/materials/paper.tres" id="5_rnnhb"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/trash_pile_paper.res" id="6_o1dri"]
+[ext_resource type="Material" path="res://assets/materials/rust.tres" id="7_1yw1x"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/trash_pile_rust.res" id="8_jpqjq"]
+[ext_resource type="Material" path="res://assets/materials/planks_old.tres" id="9_bedbx"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/trash_pile_planks_old.res" id="10_2fmb1"]
+[ext_resource type="Material" path="res://assets/materials/tire.tres" id="11_djel4"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/trash_pile_tire.res" id="12_0y8t0"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_v0r05"]
+size = Vector3(2.4, 0.8, 1.8)
+
+[node name="TrashPile" type="Node3D" unique_id=1931756338]
+
+[node name="Mesh_trash_black" type="MeshInstance3D" parent="." unique_id=369321206]
+material_override = ExtResource("1_up58g")
+mesh = ExtResource("2_rxj3j")
+
+[node name="Mesh_cloth_sack" type="MeshInstance3D" parent="." unique_id=359734173]
+material_override = ExtResource("3_spbhb")
+mesh = ExtResource("4_72515")
+
+[node name="Mesh_paper" type="MeshInstance3D" parent="." unique_id=1346716849]
+material_override = ExtResource("5_rnnhb")
+mesh = ExtResource("6_o1dri")
+
+[node name="Mesh_rust" type="MeshInstance3D" parent="." unique_id=1746201145]
+material_override = ExtResource("7_1yw1x")
+mesh = ExtResource("8_jpqjq")
+
+[node name="Mesh_planks_old" type="MeshInstance3D" parent="." unique_id=689212625]
+material_override = ExtResource("9_bedbx")
+mesh = ExtResource("10_2fmb1")
+
+[node name="Mesh_tire" type="MeshInstance3D" parent="." unique_id=640133026]
+material_override = ExtResource("11_djel4")
+mesh = ExtResource("12_0y8t0")
+
+[node name="Collision" type="StaticBody3D" parent="." unique_id=332093489]
+collision_mask = 0
+
+[node name="@CollisionShape3D@163" type="CollisionShape3D" parent="Collision" unique_id=1507503243]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.4, 0)
+shape = SubResource("BoxShape3D_v0r05")

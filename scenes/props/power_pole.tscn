@@ -1,0 +1,32 @@
+[gd_scene format=3]
+
+[ext_resource type="Material" path="res://assets/materials/log_weathered.tres" id="1_tyij5"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/power_pole_log_weathered.res" id="2_7mx80"]
+[ext_resource type="Material" path="res://assets/materials/glass.tres" id="3_3yyr4"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/power_pole_glass.res" id="4_e2ndc"]
+[ext_resource type="Material" path="res://assets/materials/metal_dark.tres" id="5_wd2v6"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/power_pole_metal_dark.res" id="6_ndjxw"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_qj4ri"]
+size = Vector3(0.3, 2, 0.3)
+
+[node name="PowerPole" type="Node3D" unique_id=493840195]
+
+[node name="Mesh_log_weathered" type="MeshInstance3D" parent="." unique_id=1218724483]
+material_override = ExtResource("1_tyij5")
+mesh = ExtResource("2_7mx80")
+
+[node name="Mesh_glass" type="MeshInstance3D" parent="." unique_id=1083253248]
+material_override = ExtResource("3_3yyr4")
+mesh = ExtResource("4_e2ndc")
+
+[node name="Mesh_metal_dark" type="MeshInstance3D" parent="." unique_id=190679273]
+material_override = ExtResource("5_wd2v6")
+mesh = ExtResource("6_ndjxw")
+
+[node name="Collision" type="StaticBody3D" parent="." unique_id=260636894]
+collision_mask = 0
+
+[node name="@CollisionShape3D@159" type="CollisionShape3D" parent="Collision" unique_id=1056231975]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+shape = SubResource("BoxShape3D_qj4ri")

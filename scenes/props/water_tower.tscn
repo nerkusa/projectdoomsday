@@ -16,35 +16,35 @@
 [sub_resource type="BoxShape3D" id="BoxShape3D_k00sg"]
 size = Vector3(3.4, 3, 3.4)
 
-[node name="WaterTower" type="Node3D" unique_id=423867982]
+[node name="WaterTower" type="Node3D" unique_id=1634496]
 
-[node name="Mesh_brick" type="MeshInstance3D" parent="." unique_id=790694142]
+[node name="Mesh_brick" type="MeshInstance3D" parent="." unique_id=1606748723]
 material_override = ExtResource("1_3ta2e")
 mesh = ExtResource("2_otrst")
 
-[node name="Mesh_metal_dark" type="MeshInstance3D" parent="." unique_id=873170160]
+[node name="Mesh_metal_dark" type="MeshInstance3D" parent="." unique_id=265383619]
 material_override = ExtResource("3_4dch8")
 mesh = ExtResource("4_rxn15")
 
-[node name="Mesh_rust" type="MeshInstance3D" parent="." unique_id=1147596969]
+[node name="Mesh_rust" type="MeshInstance3D" parent="." unique_id=411694176]
 material_override = ExtResource("5_swfdw")
 mesh = ExtResource("6_jfqcr")
 
-[node name="Mesh_metal_roof" type="MeshInstance3D" parent="." unique_id=474625605]
+[node name="Mesh_metal_roof" type="MeshInstance3D" parent="." unique_id=1194074163]
 material_override = ExtResource("7_aq2u0")
 mesh = ExtResource("8_u4ks7")
 
-[node name="Mesh_paint_door" type="MeshInstance3D" parent="." unique_id=1430544318]
+[node name="Mesh_paint_door" type="MeshInstance3D" parent="." unique_id=1604896987]
 material_override = ExtResource("9_cu03b")
 mesh = ExtResource("10_i6811")
 
-[node name="Mesh_glass_city" type="MeshInstance3D" parent="." unique_id=1881204317]
+[node name="Mesh_glass_city" type="MeshInstance3D" parent="." unique_id=1946570496]
 material_override = ExtResource("11_y45wo")
 mesh = ExtResource("12_dwi2m")
 
-[node name="Collision" type="StaticBody3D" parent="." unique_id=1144597740]
+[node name="Collision" type="StaticBody3D" parent="." unique_id=1367220382]
 collision_mask = 0
 
-[node name="@CollisionShape3D@108" type="CollisionShape3D" parent="Collision" unique_id=720158693]
+[node name="@CollisionShape3D@131" type="CollisionShape3D" parent="Collision" unique_id=1335473730]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 0)
 shape = SubResource("BoxShape3D_k00sg")

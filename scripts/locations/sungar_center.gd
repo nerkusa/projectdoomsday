@@ -8,7 +8,7 @@ func _ready() -> void:
 	location_id = "sungar_center"
 	title = "Сунгар · центр"
 	links = {"ToGate": ["sungar", "FromCenter", "К воротам и рынку"], "ToQuarter": ["sungar_quarter", "FromCenter", "В жилой квартал"],
-		"DomStairs": ["sungar_dom", "F2Below", "Дом на площади", "up"]}
+		"DomStairs": ["sungar_dom", "F2Below", "Дом на площади", "up"], "AdminStairs": ["sungar_admin", "F2Below", "Администрация", "up"]}
 	super._ready()
 
 
@@ -98,3 +98,14 @@ func _wheel() -> void:
 		Game.log_line("Колесо: ставка 2 рубля проиграна", "", "miss")
 		if c:
 			c.bark(["Не судьба.", "Ещё разок?", "Колесо любит смелых.", "Почти! Почти…"][r % 4])
+
+
+## Наверх в администрацию — только с пропиской (или если охранник «не видел»)
+func stairs_allowed(n: String) -> bool:
+	if n != "AdminStairs" or Game.flag("sg_permit") or Game.flag("sg_admin_pass"):
+		return true
+	var g := character("AdminGuard")
+	if g == null or not g.visible or g.pose == "dead":
+		return true
+	main.talk_to(g, "stairs")
+	return false

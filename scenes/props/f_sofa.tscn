@@ -6,15 +6,15 @@
 [sub_resource type="BoxShape3D" id="BoxShape3D_8u4n3"]
 size = Vector3(2, 0.8, 0.8)
 
-[node name="Sofa" type="Node3D" unique_id=616610531]
+[node name="Sofa" type="Node3D" unique_id=1956320408]
 
-[node name="Mesh_sofa" type="MeshInstance3D" parent="." unique_id=401703280]
+[node name="Mesh_sofa" type="MeshInstance3D" parent="." unique_id=1931154637]
 material_override = ExtResource("1_737ls")
 mesh = ExtResource("2_h5ce7")
 
-[node name="Collision" type="StaticBody3D" parent="." unique_id=389937881]
+[node name="Collision" type="StaticBody3D" parent="." unique_id=462036708]
 collision_mask = 0
 
-[node name="@CollisionShape3D@125" type="CollisionShape3D" parent="Collision" unique_id=163565896]
+[node name="@CollisionShape3D@148" type="CollisionShape3D" parent="Collision" unique_id=378750126]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.4, 0)
 shape = SubResource("BoxShape3D_8u4n3")

@@ -12,6 +12,11 @@ func _ready() -> void:
 
 func on_world_state_applied() -> void:
 	_apply_people()
+	# кочегара забрала полиция
+	var st := character("Stoker")
+	if st and Game.flag("stoker_arrested"):
+		st.visible = false
+		st.process_mode = Node.PROCESS_MODE_DISABLED
 
 
 func on_enter() -> void:

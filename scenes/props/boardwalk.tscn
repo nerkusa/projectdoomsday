@@ -1,0 +1,16 @@
+[gd_scene format=3]
+
+[ext_resource type="Material" path="res://assets/materials/planks_old.tres" id="1_ipv3m"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/boardwalk_planks_old.res" id="2_vxb68"]
+[ext_resource type="Material" path="res://assets/materials/log_weathered.tres" id="3_emdxm"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/boardwalk_log_weathered.res" id="4_8wdrk"]
+
+[node name="Boardwalk" type="Node3D" unique_id=1112904892]
+
+[node name="Mesh_planks_old" type="MeshInstance3D" parent="." unique_id=2075017940]
+material_override = ExtResource("1_ipv3m")
+mesh = ExtResource("2_vxb68")
+
+[node name="Mesh_log_weathered" type="MeshInstance3D" parent="." unique_id=813894983]
+material_override = ExtResource("3_emdxm")
+mesh = ExtResource("4_8wdrk")

@@ -1,0 +1,20 @@
+[gd_scene format=3]
+
+[ext_resource type="Material" path="res://assets/materials/cloth_sack.tres" id="1_e1xtc"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/sandbags_cloth_sack.res" id="2_bhbss"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_2yvfj"]
+size = Vector3(3, 0.9, 0.5)
+
+[node name="Sandbags" type="Node3D" unique_id=24706784]
+
+[node name="Mesh_cloth_sack" type="MeshInstance3D" parent="." unique_id=782008194]
+material_override = ExtResource("1_e1xtc")
+mesh = ExtResource("2_bhbss")
+
+[node name="Collision" type="StaticBody3D" parent="." unique_id=1449204395]
+collision_mask = 0
+
+[node name="@CollisionShape3D@160" type="CollisionShape3D" parent="Collision" unique_id=220852815]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.45, 0)
+shape = SubResource("BoxShape3D_2yvfj")

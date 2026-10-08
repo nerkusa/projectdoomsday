@@ -1,0 +1,38 @@
+[gd_scene format=3]
+
+[ext_resource type="Material" path="res://assets/materials/metal_dark.tres" id="1_e4hxd"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/loudspeaker_metal_dark.res" id="2_j8cjl"]
+[ext_resource type="Material" path="res://assets/materials/tin.tres" id="3_euic5"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/loudspeaker_tin.res" id="4_sd2tx"]
+[ext_resource type="Material" path="res://assets/materials/plastic_dark.tres" id="5_ea4ap"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/loudspeaker_plastic_dark.res" id="6_lxmxw"]
+[ext_resource type="Material" path="res://assets/materials/led_red.tres" id="7_wj5b0"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/loudspeaker_led_red.res" id="8_b2t17"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_mdty0"]
+size = Vector3(0.3, 2, 0.3)
+
+[node name="Loudspeaker" type="Node3D" unique_id=1059424820]
+
+[node name="Mesh_metal_dark" type="MeshInstance3D" parent="." unique_id=1903893664]
+material_override = ExtResource("1_e4hxd")
+mesh = ExtResource("2_j8cjl")
+
+[node name="Mesh_tin" type="MeshInstance3D" parent="." unique_id=266270808]
+material_override = ExtResource("3_euic5")
+mesh = ExtResource("4_sd2tx")
+
+[node name="Mesh_plastic_dark" type="MeshInstance3D" parent="." unique_id=41554776]
+material_override = ExtResource("5_ea4ap")
+mesh = ExtResource("6_lxmxw")
+
+[node name="Mesh_led_red" type="MeshInstance3D" parent="." unique_id=1548017517]
+material_override = ExtResource("7_wj5b0")
+mesh = ExtResource("8_b2t17")
+
+[node name="Collision" type="StaticBody3D" parent="." unique_id=1011485599]
+collision_mask = 0
+
+[node name="@CollisionShape3D@158" type="CollisionShape3D" parent="Collision" unique_id=737545739]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+shape = SubResource("BoxShape3D_mdty0")

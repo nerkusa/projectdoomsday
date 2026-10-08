@@ -22,7 +22,10 @@ func on_world_state_applied() -> void:
 
 
 func on_hero_moved(pos: Vector3) -> void:
-	if Game.flag("sg_entered") or main.combat.on or main.ui_blocked():
+	if Game.flag("sg_entered"):
+		cop_check(pos)
+		return
+	if main.combat.on or main.ui_blocked():
 		return
 	var g := character("GateGuard")
 	if g == null or not g.visible or g.pose == "dead":
@@ -43,6 +46,17 @@ func on_interact(it: Interactable) -> bool:
 	if n == "BankPath":
 		_bank_path()
 		return true
+	match n:
+		"Ashes":
+			_ashes()
+			return true
+		"WantedBoard":
+			main.think("«ИХ РАЗЫСКИВАЕТ ПОЛИЦИЯ СУНГАРА»: Сенька-Кепка — кражи. Хабыс с пристани — контрабанда соли. «Неизвестный поджигатель» — вместо фото знак вопроса. Внизу приписка карандашом: «Конторских не вешать — приказ».")
+			return true
+		"NoticeBoard":
+			main.think(["Доска объявлений: «Меняю валенки на патроны 7,62». «Пропала собака, отзывается на Тузик». «Набор на баржи — 3 р. в день, кормёжка». «Куплю кассеты, любые»."
+				, "Объявления: «Ремонт телевизоров и ЭВМ — Кеша, ул. Ленина 3, кв. 16». «Талоны на уголь — только по прописке». «Кто видел мою дочь — ушла в Мирный в мае»."][randi() % 2])
+			return true
 	if n == "Stele":
 		main.think("Бетонная стела: «ПГТ СУНГАР · 1930». Буква «Т» в названии когда-то была другой — видно по швам. Город переименовали, а бетон помнит.")
 		return true
@@ -98,6 +112,10 @@ func item_actions(it: Interactable) -> Array:
 		return [["Проверить весы", "use"]]
 	if n == "Stele":
 		return [["Прочитать", "use"]]
+	if n == "Ashes":
+		return [["Обыскать пожарище", "use"]]
+	if n in ["WantedBoard", "NoticeBoard"]:
+		return [["Прочитать", "use"]]
 	return super.item_actions(it)
 
 
@@ -109,6 +127,12 @@ func describe(it: Interactable) -> String:
 			return "Дорога из Сунгара — на запад, к Крестам."
 		"Stele":
 			return "Стела у въезда, серый бетон, солнце из ржавого железа наверху."
+		"Ashes":
+			return "Сгоревший склад у пристани. Обугленные столбы, жесть, запах солярки."
+		"WantedBoard":
+			return "Доска в дежурной части: «Их разыскивает полиция»."
+		"NoticeBoard":
+			return "Доска объявлений: листки в три слоя, кнопки ржавые."
 	if String(it.name).begins_with("Stall"):
 		return "Прилавок с весами."
 	return super.describe(it)
@@ -122,3 +146,23 @@ func objective() -> String:
 	if Game.quest_stage("sg_scales") == 2:
 		return "Гиря мясника пустая: сказать Бахылаю — или поговорить с Сэргэ самому."
 	return bootur_objective()
+
+
+## Пожарище у пристани: улика для капитана — канистра с клеймом котельной
+func _ashes() -> void:
+	var st := Game.quest_stage("sg_arson")
+	if Game.item_count("canister") > 0 or st >= 2:
+		main.think("Угли, жесть, обгорелые доски. Всё, что тут было, я уже нашёл.")
+		return
+	if st == 0:
+		main.think("Пожарище. Склад сгорел дотла. Пахнет соляркой — сам бы так не занялся.")
+		return
+	if Game.skill_check("Внимательность", "PRC", "Внимательность", 11) or Game.flag("ashes_try"):
+		Game.add_item("canister")
+		Game.set_quest("sg_arson", 2)
+		Game.grant_xp(30)
+		main.think("Под обгорелой жестью — мятая канистра из-под солярки. На боку выбито: «КОТЕЛЬНАЯ № 1». Вот откуда огонь.")
+		main.hud.refresh_objective()
+	else:
+		Game.set_flag("ashes_try")
+		main.think("Угли, жесть… что-то блеснуло под досками у стены. Посмотреть внимательнее.")

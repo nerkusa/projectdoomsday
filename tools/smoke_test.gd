@@ -231,13 +231,24 @@ func city_tests() -> void:
 	loc.on_interact(loc.item("Down2"))
 	await wait_loading()
 	ok(main.location.location_id == "sungar_center", "из дома — на площадь")
+	await admin_tests()
 	# ворота: гостиница
 	main.location.on_interact(main.location.item("ToGate"))
 	await wait_loading()
 	loc = main.location
-	# берег под обрывом — за стеной, туда только снаружи
-	u = unreachable(loc, loc.spawn_point("FromCenter"), func(nd): return nd.name != "BankPath")
+	# берег под обрывом — за стеной, туда только снаружи; задержанный — за решёткой
+	u = unreachable(loc, loc.spawn_point("FromCenter"), func(nd): return not (nd.name in ["BankPath", "Prisoner"]))
 	ok(u.is_empty(), "ворота и рынок: всё достижимо (недоступны: %s)" % [u])
+	# полиция: поджигатель складов
+	main.talk_to(loc.character("Chief"))
+	await frames(2)
+	await choose(find_opt("Есть работа"))
+	await choose(find_opt("Возьмусь"))
+	await shut()
+	ok(Game.quest_stage("sg_arson") == 1, "капитан Охлопков: найти поджигателя складов")
+	loc.on_interact(loc.item("Ashes"))
+	ok(Game.quest_stage("sg_arson") == 2 and Game.item_count("canister") == 1, "на пожарище — канистра котельной")
+	loc.on_interact(loc.item("WantedBoard"))
 	var inn: Character = loc.character("Innkeeper")
 	main.talk_to(inn)
 	await frames(2)
@@ -303,6 +314,103 @@ func city_tests() -> void:
 	ok(Game.quest_stage("sg_suitcase") == 4 and Game.item_count("rubles") == rb + 25, "Ньургун получил чемодан, двадцать пять рублей")
 	main.load_location("sungar_quarter", "FromObshaga")
 	await wait_loading()
+	# кочегар признаётся — капитан его забирает
+	loc = main.location
+	main.talk_to(loc.character("Stoker"))
+	await frames(2)
+	await choose(find_opt("Канистра"))
+	await choose(find_opt("Проницательность"))
+	ok(Game.quest_stage("sg_arson") == 3 and Game.flag("sg_stoker_confessed"), "кочегар признался: жёг склады за деньги конторы")
+	await choose(find_opt("капитану"))
+	await shut()
+	main.load_location("sungar", "FromCenter")
+	await wait_loading()
+	var rb2: int = Game.item_count("rubles")
+	main.talk_to(main.location.character("Chief"))
+	await frames(2)
+	await choose(find_opt("Кочегар признался"))
+	await shut()
+	ok(Game.quest_stage("sg_arson") == 4 and Game.item_count("rubles") == rb2 + 40 and Game.flag("sg_police_ok"), "капитан арестовал кочегара: сорок рублей и справка")
+	main.load_location("sungar_quarter", "FromObshaga")
+	await wait_loading()
+	ok(not main.location.character("Stoker").visible, "кочегара в квартале больше нет")
+
+
+## Администрация: патруль проверяет документы, паспортный стол, глава посёлка, ЭВМ
+func admin_tests() -> void:
+	var loc = main.location
+	# патруль без прописки
+	Game.hero.flags.erase("sg_docs_day")
+	var cop: Character = loc.character("Patrol2")
+	var rb: int = Game.item_count("rubles")
+	await tp(cop.global_position + Vector3(1.5, 0, 0))
+	loc.on_hero_moved(main.player.global_position)
+	await frames(3)
+	ok(main.dialog.visible and main.dialog.speaker != null and main.dialog.speaker.is_in_group("cops"), "патрульный: «Документы! Прописка есть?»")
+	await choose(find_opt("5 рублей"))
+	await shut()
+	ok(Game.item_count("rubles") == rb - 5 and Game.quest_stage("sg_permit") == 1, "без прописки — штраф пять рублей")
+	await tp(cop.global_position + Vector3(1.5, 0, 0))
+	loc.on_hero_moved(main.player.global_position)
+	await frames(3)
+	ok(not main.dialog.visible, "второй раз за день не останавливают")
+	# наверх без прописки не пускают
+	loc.on_interact(loc.item("AdminStairs"))
+	await frames(2)
+	ok(main.dialog.visible and main.location.location_id == "sungar_center", "охранник: наверх только с пропиской")
+	await shut()
+	main.talk_to(loc.character("Passport"))
+	await frames(2)
+	await choose(find_opt("25 рублей"))
+	await shut()
+	ok(Game.flag("sg_permit") and Game.item_count("propiska") == 1 and Game.quest_stage("sg_permit") == 2, "прописка оформлена: житель ПГТ Сунгар")
+	loc.on_interact(loc.item("AdminStairs"))
+	await wait_loading()
+	loc = main.location
+	ok(loc.location_id == "sungar_admin" and loc.cur_floor == 2, "администрация: второй этаж")
+	for f in [2, 3]:
+		var uf := unreachable(loc, loc.spawn_point("F%dBelow" % f), func(nd): return loc.floor_at(nd.global_position) == f)
+		ok(uf.is_empty(), "администрация, %d этаж: всё достижимо (недоступны: %s)" % [f, uf])
+	main.talk_to(loc.character("Head"))
+	await frames(2)
+	await choose(find_opt("Кто правит"))
+	await choose(find_opt("Попробую"))
+	ok(Game.quest_stage("sg_power") == 1, "глава посёлка: нужен лист из долговой книги конторы")
+	# лист из книги в игре крадут ночью из окна конторы; здесь — сразу в сумку
+	await shut()
+	Game.add_item("ledger_page")
+	rb = Game.item_count("rubles")
+	main.talk_to(loc.character("Head"))
+	await frames(2)
+	await choose(find_opt("лист из долговой"))
+	await shut()
+	ok(Game.quest_stage("sg_power") == 2 and Game.item_count("rubles") == rb + 50 and Game.flag("sg_head_order"), "глава получила лист: пятьдесят рублей и распоряжение")
+	loc.go_floor(3, "F3Below")
+	await frames(3)
+	main.talk_to(loc.character("Operator"))
+	await frames(2)
+	await choose(find_opt("Что сломалось"))
+	await choose(find_opt("Посмотрю"))
+	loc.on_interact(loc.item("ArchiveTerminal"))
+	ok(Game.item_count("archive_printout") == 0, "терминал без ЭВМ: «нет связи»")
+	loc.on_interact(loc.item("Mainframe"))
+	ok(Game.flag("sg_mainframe_fixed"), "лентопротяжка ЭВМ починена")
+	main.talk_to(loc.character("Operator"))
+	await frames(2)
+	await choose(find_opt("починил"))
+	await shut()
+	loc.on_interact(loc.item("ArchiveTerminal"))
+	ok(Game.quest_stage("sg_archive") == 3 and Game.item_count("archive_printout") == 1 and "Список Б" in str(Game.hero.notes), "архив ЭВМ: распечатка, копия «списка Б»")
+	loc.go_floor(2, "F2Above")
+	await frames(3)
+	main.talk_to(loc.character("Head"))
+	await frames(2)
+	await choose(find_opt("распечатку"))
+	await shut()
+	ok(Game.flag("sg_head_printout"), "распечатка — главе посёлка")
+	loc.on_interact(loc.item("Down2"))
+	await wait_loading()
+	ok(main.location.location_id == "sungar_center", "из администрации — на площадь")
 
 
 ## Сунгар: три района, плата за вход, квесты, след Боотура — и дорога в Мар-Кун
@@ -320,6 +428,7 @@ func sungar_tests() -> void:
 	ok(main.dialog.visible and main.dialog.speaker == guard and main.player.global_position.x < 12.6, "стражник остановил: город платный")
 	var rb: int = Game.item_count("rubles")
 	await choose(find_opt("Отдать 10 рублей"))
+	Game.set_flag("sg_docs_day", Clock.day())
 	ok(Game.flag("sg_entered") and Game.item_count("rubles") == rb - 10 and Game.quest_stage("sg_toll") == 2,
 		"заплатил десять рублей — пропустили (вход %s, рубли %d→%d, этап %d)" % [Game.flag("sg_entered"), rb, Game.item_count("rubles"), Game.quest_stage("sg_toll")])
 	await shut()
@@ -1383,11 +1492,15 @@ func _ready() -> void:
 	await shut()
 	ok(Game.quest_stage("kr_nets") == 6 and Game.item_count("camp_letter") == 0, "записка отдана рыбаку")
 	# --- описания: живое к телу не подставляется ---
-	var dead_dog: Character = loc.character("Dog1")
+	var dead_dog: Character = null
 	for dn in ["Dog1", "Dog2", "Dog3"]:
 		if loc.character(dn).pose == "dead":
 			dead_dog = loc.character(dn)
-	ok("Мёртв" in main._look_text(dead_dog), "мёртвый пёс описан мёртвым: " + main._look_text(dead_dog))
+	# бывает, что все псы сбежали — тогда тела нет и описывать нечего
+	if dead_dog:
+		ok("Мёртв" in main._look_text(dead_dog), "мёртвый пёс описан мёртвым: " + main._look_text(dead_dog))
+	else:
+		ok(true, "псы сбежали — тел нет")
 
 	# ======== случайная встреча в пути ========
 	loc.on_interact(loc.item("EastExit"))

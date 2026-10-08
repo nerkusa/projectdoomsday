@@ -26,14 +26,16 @@ func _build() -> void:
 				"stone_wall", "tire", "paper", "metal_roof", "glass", "paint_faded", "paint_white", "cloth", "water", "log_dark",
 				"log_weathered", "ground_dirt"]:
 			M[n] = load(MAT_DIR + n + ".tres")
-	for n in ["concrete", "coal", "window_sky", "plaster_yellow", "plaster_pink", "plaster_white", "brick", "brick_white",
+	for n in ["screen_green", "screen_amber", "plastic_beige", "flag_red", "concrete", "coal", "window_sky", "plaster_yellow", "plaster_pink", "plaster_white", "brick", "brick_white",
 			"wallpaper", "wallpaper_b", "paint_green", "paint_blue", "linoleum", "linoleum_b", "tiles", "frame_white", "tar", "felt"]:
 		M[n] = load(MAT_DIR + n + ".tres")
 	for n in ["st_hotel", "st_store", "st_res4", "st_obshaga", "st_bar", "st_canteen", "st_dk", "st_office", "st_block3a",
 			"st_block3b", "st_block4", "st_block4b", "st_block2", "st_block2b", "st_barrack2", "heat_pipe_low", "heat_pipe_high",
 			"heat_pipe_riser", "boiler_house", "water_tower", "garages", "kiosk", "kiosk_b", "bus_stop", "conc_fence", "paz_wreck",
 			"bins", "f_bed", "f_wardrobe", "f_table", "f_table_kitchen", "f_card_table", "f_stove", "f_kitchen_stove", "f_sofa",
-			"f_shelf", "f_sink", "f_tv", "f_plant", "f_radio", "f_stairs"]:
+			"f_shelf", "f_sink", "f_tv", "f_plant", "f_radio", "f_stairs", "st_police", "st_admin", "cf_terminal", "cf_mainframe",
+			"cf_info_screen", "loudspeaker", "power_pole", "sandbags", "checkpoint", "notice_board", "trash_pile", "trash_pile_b",
+			"rubble", "car_wreck", "burnt_shed", "burn_barrel", "boardwalk"]:
 		P[n] = load(PROP_DIR + n + ".tscn")
 	_sungar()
 	_sungar_center()
@@ -41,6 +43,7 @@ func _build() -> void:
 	_hotel_floors()
 	_dom_floors()
 	_obshaga_floors()
+	_admin_floors()
 
 
 # ---------------- помощники ----------------
@@ -141,6 +144,119 @@ func _sign_on(vil: Node, b: Node3D, text: String, w: float, col := Color("e8d8a8
 		_signboard(vil, text, _slot(b, "sign") + Basis.from_euler(Vector3(0, b.rotation.y, 0)) * off, b.rotation.y, w, col)
 
 
+## Город, а не тайга: деревья внутри черты города вырубить
+func _clear_town(r: Rect2) -> void:
+	for grp in ["Forest", "Yard"]:
+		var g := root.get_node_or_null(grp)
+		if g == null:
+			continue
+		for t in g.get_children():
+			var sp := String(t.scene_file_path)
+			var tree := false
+			for k in ["spruce", "pine", "birch", "dead_tree", "larch"]:
+				if sp.contains("/" + k):
+					tree = true
+			if tree and r.has_point(Vector2(t.position.x, t.position.z)):
+				g.remove_child(t)
+				t.free()
+
+
+## Городские мелочи: [проп, x, z, поворот]; у бочки-жаровни — огонь
+func _clutter(parent: Node, list: Array) -> void:
+	for c in list:
+		var rot: float = c[3] if c.size() > 3 else randf() * TAU
+		_bld(parent, c[0], String(c[0]).to_pascal_case(), Vector3(c[1], 0, c[2]), rot)
+		if c[0] == "burn_barrel":
+			var f := put(P.fire, parent, Vector3(c[1], 0.85, c[2]), 0.0, "BarrelFire")
+			f.set("strength", 0.45)
+
+
+## Линия электропередачи: столбы по точкам, провода между верхушками с провисом
+func _power_line(parent: Node, pts: Array) -> void:
+	for i in pts.size():
+		var a: Vector3 = pts[i]
+		var nb: Vector3 = pts[i + 1] if i + 1 < pts.size() else pts[i - 1]
+		var dir := (nb - a).normalized()
+		_bld(parent, "power_pole", "PowerPole", a, atan2(dir.x, dir.z) + PI / 2.0)
+		if i + 1 >= pts.size():
+			continue
+		var b: Vector3 = pts[i + 1]
+		var side := Vector3(dir.z, 0, -dir.x)
+		for off in [-0.8, -0.3, 0.3, 0.8]:
+			var p0: Vector3 = a + side * off + Vector3(0, 6.8, 0)
+			var p1: Vector3 = b + side * off + Vector3(0, 6.8, 0)
+			var mid: Vector3 = (p0 + p1) / 2.0 - Vector3(0, 0.45, 0)
+			for seg in [[p0, mid], [mid, p1]]:
+				var s0: Vector3 = seg[0]
+				var s1: Vector3 = seg[1]
+				var d := s1 - s0
+				var w := MeshInstance3D.new()
+				var bm := BoxMesh.new()
+				bm.size = Vector3(0.025, 0.025, d.length())
+				w.mesh = bm
+				w.material_override = M["metal_dark"]
+				w.position = (s0 + s1) / 2.0
+				w.basis = Basis.looking_at(d.normalized(), Vector3.UP)
+				w.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+				parent.add_child(w)
+				w.owner = root
+
+
+## Неоновая надпись (светится ночью); with_upper — на доме, куда входят
+func _neon(parent: Node, text: String, pos: Vector3, rot: float, col: Color, size := 72, with_upper := false) -> void:
+	var l := Label3D.new()
+	l.text = text
+	l.font_size = size
+	l.pixel_size = 0.007
+	l.modulate = Color(col.r * 2.6, col.g * 2.6, col.b * 2.6)
+	l.outline_size = 0
+	l.position = pos
+	l.rotation.y = rot
+	if with_upper:
+		l.set_meta("with_upper", true)
+	parent.add_child(l)
+	l.owner = root
+
+
+## Надпись краской на стене
+func _graffiti(parent: Node, text: String, pos: Vector3, rot: float, col := Color("7a1c16")) -> void:
+	var l := Label3D.new()
+	l.text = text
+	l.font_size = 64
+	l.pixel_size = 0.007
+	l.modulate = col
+	l.outline_size = 0
+	l.position = pos
+	l.rotation = Vector3(0, rot, randf_range(-0.08, 0.08))
+	parent.add_child(l)
+	l.owner = root
+
+
+## Уличный экран «Сунгар-информ» с бегущими сводками
+func _info_screen(parent: Node, pos: Vector3, rot: float, text: String) -> void:
+	var b := _bld(parent, "cf_info_screen", "InfoScreen", pos, rot)
+	var l := Label3D.new()
+	l.text = text
+	l.font_size = 40
+	l.pixel_size = 0.0055
+	l.modulate = Color(2.2, 1.3, 0.35)
+	l.outline_size = 0
+	l.width = 1.35 / 0.0055
+	l.autowrap_mode = TextServer.AUTOWRAP_WORD
+	l.position = _slot(b, "text")
+	l.rotation.y = rot
+	parent.add_child(l)
+	l.owner = root
+
+
+func _cop(chars: Node, nm: String, pos: Vector3, rot: float, patrol := PackedVector3Array(), title := "Патрульный") -> void:
+	var o := {"display_name": title, "dialog": "sg_cop", "armed": true, "groups": ["cops"]}
+	if not patrol.is_empty():
+		o["patrol"] = patrol
+		o["patrol_wait"] = 5.0
+	character(chars, nm, "sg_cop", pos, rot, o)
+
+
 ## Лестница в доме района: предмет у подножия марша и точка появления рядом
 func _stairs_item(items: Node, b: Node3D, nm: String, label: String, spawn: String) -> void:
 	var p := _slot(b, "stairs")
@@ -190,7 +306,9 @@ func _sungar() -> void:
 	_sign_on(vil, hotel, "ГОСТИНИЦА «ВИЛЮЙ»", 4.8, Color("f0d890"))
 	var store := _bld(vil, "st_store", "Store", Vector3(44.5, 0, 13.0))
 	_sign_on(vil, store, "УНИВЕРМАГ", 3.6, Color("e8e0c8"))
-	_bld(vil, "st_block3a", "House1", Vector3(63, 0, 12))
+	var police := _bld(vil, "st_police", "Police", Vector3(62, 0, 12.5))
+	_sign_on(vil, police, "ПОЛИЦИЯ СУНГАРА", 4.0, Color("d8e0f0"))
+	_neon(police, "02", Vector3(4.6, 3.6, 4.1), 0.0, Color("3a7aff"), 96, true)
 	_bld(vil, "st_block2b", "House2", Vector3(77.5, 0, 12.5))
 	# южный ряд, лицом к улице
 	var bakery := _bld(vil, "st_block2", "House3", Vector3(21, 0, 46), PI)
@@ -201,7 +319,23 @@ func _sungar() -> void:
 	_bld(vil, "kiosk_b", "Kiosk2", Vector3(61.6, 0, 41.0), PI)
 	_bld(vil, "water_tower", "WaterTower", Vector3(64, 0, 52))
 	_bld(vil, "bus_stop", "BusStop", Vector3(20, 0, 26.2))
-	_bld(vil, "paz_wreck", "Paz", Vector3(75, 0, 35.6), 0.12)
+	_bld(vil, "paz_wreck", "Paz", Vector3(31, 0, 46.5), 0.1)
+	# блокпост на выезде в центр
+	_bld(vil, "checkpoint", "Checkpoint", Vector3(77.5, 0, 25.0))
+	_bld(vil, "sandbags", "Sandbags", Vector3(79.5, 0, 35.2))
+	_bld(vil, "sandbags", "Sandbags", Vector3(75.5, 0, 22.4))
+	# столбы ЛЭП, громкоговоритель, экран, мусор, жаровни, пожарище
+	_power_line(vil, [Vector3(16, 0, 26.8), Vector3(31, 0, 26.8), Vector3(45, 0, 26.6), Vector3(59, 0, 26.8), Vector3(72.5, 0, 26.8)])
+	_bld(vil, "loudspeaker", "Loudspeaker", Vector3(38.5, 0, 26.8))
+	_info_screen(vil, Vector3(18, 0, 34.4), 0.0, "СУНГАР-ИНФОРМ\nКурс: 1 соль = 5 р.\nКомендантский час с 23:00\nПрописка — в администрации")
+	_bld(vil, "notice_board", "NoticeBoard", Vector3(54.5, 0, 18.6))
+	_clutter(vil, [["trash_pile", 14.8, 40.5], ["trash_pile_b", 53.5, 41.2], ["burn_barrel", 24, 33.2], ["burn_barrel", 70, 33.8],
+		["rubble", 80, 38.5], ["car_wreck", 8, 40.5, 0.3], ["burnt_shed", 50, 47, 0.2], ["boardwalk", 40, 44.6, 0.0], ["boardwalk", 40, 47.8, 0.0],
+		["trash_pile", 36.5, 7.6], ["rubble", 70.5, 7.4]])
+	_graffiti(vil, "КОНТОРА — ВОРЫ", Vector3(26.03, 1.7, 46), PI / 2.0)
+	_graffiti(vil, "ВЕРНИТЕ СВЕТ", Vector3(50.53, 1.8, 13.5), PI / 2.0, Color("1c1c1c"))
+	_graffiti(vil, "ЗДЕСЬ БЫЛ БООТУР", Vector3(79.5, 1.9, 16.03), 0.0)
+	_graffiti(vil, "ВСЁ ПО ТАЛОНАМ", Vector3(82.03, 1.6, 47.5), PI / 2.0, Color("1c1c1c"))
 	_bld(vil, "bins", "Bins1", Vector3(35.2, 0, 18.4))
 	# теплотрасса: над улицей на П-опорах, за домами — низом
 	_pipes(vil, "high", Vector3(66.5, 0, 16.5), Vector3(66.5, 0, 40.5))
@@ -273,6 +407,16 @@ func _sungar() -> void:
 	character(chars, "Kid1", "kid", Vector3(60, 0, 48), 0.5, {"display_name": "Мальчишка",
 		"patrol": PackedVector3Array([Vector3(60, 0, 48), Vector3(66.4, 0, 49), Vector3(56, 0, 52)]), "patrol_wait": 2.0})
 	character(chars, "KioskMan", "town_m4", _slot(k1, "seller"), PI, {"display_name": "Киоскёр"})
+	# полиция: капитан, дежурный, задержанный; патрули и блокпост
+	character(chars, "Chief", "sg_chief", _slot(police, "chief"), PI / 2.0, {"dialog": "sg_chief"})
+	_cop(chars, "DeskCop", _slot(police, "cop"), PI, PackedVector3Array(), "Дежурный")
+	character(chars, "Prisoner", "villager", _slot(police, "cell1"), 0.0, {"display_name": "Задержанный", "start_pose": "sit"})
+	_cop(chars, "Patrol1", Vector3(30, 0, 28.6), PI / 2.0, PackedVector3Array([Vector3(30, 0, 28.6), Vector3(64, 0, 28.8), Vector3(52, 0, 33.6), Vector3(22, 0, 31.6)]))
+	_cop(chars, "Patrol2", Vector3(56, 0, 19.6), -PI / 2.0, PackedVector3Array([Vector3(56, 0, 19.6), Vector3(20, 0, 20.2), Vector3(40, 0, 43.0)]))
+	_cop(chars, "PostCop1", Vector3(76.0, 0, 28.0), -PI / 2.0, PackedVector3Array(), "Постовой")
+	_cop(chars, "PostCop2", Vector3(76.2, 0, 33.4), -PI / 2.0 + 0.4, PackedVector3Array(), "Постовой")
+	character(chars, "Bum1", "town_old_m", Vector3(24.9, 0, 33.9), -0.8, {"display_name": "Бродяга у бочки"})
+	character(chars, "Bum2", "villager", Vector3(70.8, 0, 34.6), -1.2, {"display_name": "Греется у бочки"})
 	var items := group(root, "Items")
 	_exit(items, "WestExit", "Дорога из города", Vector3(1.0, 0, 30), Vector3(1.6, 2.2, 5.0))
 	_exit(items, "ToCenter", "В центр города", Vector3(83.0, 0, 30), Vector3(1.6, 2.2, 5.0))
@@ -283,6 +427,10 @@ func _sungar() -> void:
 		_use(items, "Stall%d" % k, "Весы на прилавке", sp, Vector3(2.2, 1.2, 1.2))
 		k += 1
 	_stairs_item(items, hotel, "HotelStairs", "Гостиница", "FromHotel")
+	_use(items, "Ashes", "Пожарище", Vector3(50.3, 0, 49.2), Vector3(3.0, 1.0, 1.4))
+	_use(items, "WantedBoard", "Доска «Их разыскивает»", _slot(police, "board"), Vector3(1.6, 1.4, 0.8)).set("reach", 2)
+	_use(items, "NoticeBoard", "Доска объявлений", Vector3(54.5, 0, 19.3), Vector3(2.2, 1.8, 0.6))
+	_use(items, "InfoScreen", "Экран «Сунгар-информ»", Vector3(18, 0, 35.0), Vector3(1.4, 3.6, 0.6))
 	_spawn("Start", Vector3(4.5, 0, 30))
 	_spawn("Road", Vector3(4.5, 0, 30))
 	_spawn("FromCenter", Vector3(79, 0, 30))
@@ -292,7 +440,10 @@ func _sungar() -> void:
 	marker(root, "MarkPier", Vector3(40, 0, 56), "Пристань")
 	marker(root, "MarkHotel", Vector3(24, 0, 13.5), "Гостиница «Вилюй»")
 	marker(root, "MarkStore", Vector3(44.5, 0, 13), "Универмаг")
+	marker(root, "MarkPolice", Vector3(62, 0, 12.5), "Полиция")
+	marker(root, "MarkAshes", Vector3(50, 0, 47), "Пожарище")
 	_dress(Rect2(12, 4, 70, 50), 350)
+	_clear_town(Rect2(12.5, 1, 72, 57))
 	_finish("sungar")
 
 
@@ -374,7 +525,20 @@ func _sungar_center() -> void:
 	_bld(vil, "st_block4b", "House1", Vector3(14, 0, 45.5), PI)
 	var cant := _bld(vil, "st_canteen", "Canteen", Vector3(58, 0, 44.5), PI)
 	_sign_on(vil, cant, "СТОЛОВАЯ", 3.4, Color("f0e0c0"))
-	_bld(vil, "st_block3a", "House2", Vector3(75.5, 0, 44.5), PI)
+	var admin := _bld(vil, "st_admin", "Admin", Vector3(74, 0, 46.2), PI)
+	_sign_on(vil, admin, "АДМИНИСТРАЦИЯ ПГТ СУНГАР", 5.6, Color("e8e0c8"))
+	_neon(admin, "СУНГАР — ГОРОД БУДУЩЕГО", Vector3(-8.04, 7.6, 0), -PI / 2.0, Color("ff5a3a"), 64, true)
+	# блокпост к кварталу, патрули, мелочи
+	_bld(vil, "checkpoint", "Checkpoint", Vector3(75.5, 0, 11.2))
+	_bld(vil, "sandbags", "Sandbags", Vector3(80.0, 0, 10.6))
+	_power_line(vil, [Vector3(8, 0, 26.8), Vector3(22, 0, 26.6), Vector3(38, 0, 26.8), Vector3(53.5, 0, 26.8), Vector3(66, 0, 26.6)])
+	_bld(vil, "loudspeaker", "Loudspeaker", Vector3(44.6, 0, 35.4))
+	_info_screen(vil, Vector3(48.2, 0, 34.4), 0.0, "СУНГАР-ИНФОРМ\nДолги — в контору отдела ф. м.\nТалоны — по прописке\nПожарная безопасность — долг каждого")
+	_clutter(vil, [["trash_pile", 61.5, 37.2], ["burn_barrel", 8.5, 36.5], ["rubble", 26, 49.2], ["car_wreck", 52, 53, 0.4],
+		["trash_pile_b", 79.5, 54.0], ["boardwalk", 38, 47.5, 0.0], ["trash_pile", 4.5, 13.5]])
+	_graffiti(vil, "ТАЛОНЫ — НЕ ЕДА", Vector3(28.03, 1.8, 12), PI / 2.0)
+	_graffiti(vil, "ОТДЕЛ Ф. М. = СМЕРТЬ", Vector3(69.53, 1.6, 17.5), PI / 2.0, Color("1c1c1c"))
+	_graffiti(vil, "Б. + С.", Vector3(21.03, 1.4, 45.5), PI / 2.0)
 	_bld(vil, "garages", "Garages", Vector3(6.5, 0, 21.2))
 	_bld(vil, "bins", "Bins1", Vector3(66.5, 0, 39.6), PI)
 	_bld(vil, "kiosk_b", "Kiosk1", Vector3(30.5, 0, 17.5))
@@ -406,7 +570,7 @@ func _sungar_center() -> void:
 	put(P.barrel, vil, Vector3(30.8, 0, 52.6), 0.0)
 	var det := group(root, "Yard")
 	for dd in [["crates", Vector3(52, 0, 26)], ["crates", Vector3(58, 0, 34)], ["barrel", Vector3(70, 0, 24)],
-			["crates", Vector3(12, 0, 35)], ["junk", Vector3(74, 0, 52)], ["barrel", Vector3(50, 0, 50)]]:
+			["crates", Vector3(12, 0, 35)], ["barrel", Vector3(50, 0, 50)]]:
 		put(P[dd[0]], det, dd[1], randf() * TAU)
 	for p in [Vector3(30, 0, 33), Vector3(50, 0, 33), Vector3(36, 0, 50), Vector3(60, 0, 27.5), Vector3(70, 0, 27.5), Vector3(20, 0, 33)]:
 		_lamp_post(vil, p)
@@ -442,6 +606,16 @@ func _sungar_center() -> void:
 	character(chars, "Cook", "town_f3", _slot(cant, "cook"), PI, {"display_name": "Повариха"})
 	character(chars, "Eater1", "town_worker", _slot(cant, "t1"), PI, {"display_name": "Обедающий"})
 	character(chars, "Eater2", "town_m1", _slot(cant, "t3"), PI, {"display_name": "Обедающий"})
+	# администрация: паспортистка, очередь, охрана
+	character(chars, "Passport", "sg_passport", _slot(admin, "clerk"), -PI / 2.0, {"dialog": "sg_passport"})
+	_cop(chars, "AdminGuard", _slot(admin, "guard"), PI, PackedVector3Array(), "Охранник администрации")
+	var q := _slot(admin, "queue")
+	character(chars, "Queue1", "town_old_f", q + Vector3(-0.9, 0, 0), 0.0, {"display_name": "Очередь за талонами", "start_pose": "sit"})
+	character(chars, "Queue2", "town_m3", q + Vector3(0.4, 0, 0), 0.0, {"display_name": "Очередь за справкой", "start_pose": "sit"})
+	_cop(chars, "Patrol1", Vector3(30, 0, 31.4), PI / 2.0, PackedVector3Array([Vector3(30, 0, 31.4), Vector3(66, 0, 31.6), Vector3(46, 0, 38.0), Vector3(14, 0, 30.5)]))
+	_cop(chars, "Patrol2", Vector3(60, 0, 39.0), -PI / 2.0, PackedVector3Array([Vector3(60, 0, 39.0), Vector3(20, 0, 38.0), Vector3(36, 0, 46.0)]))
+	_cop(chars, "PostCop1", Vector3(77.4, 0, 14.2), PI / 2.0, PackedVector3Array(), "Постовой")
+	character(chars, "Bum1", "villager", Vector3(9.3, 0, 37.3), -0.8, {"display_name": "Бродяга у бочки"})
 	var items := group(root, "Items")
 	_exit(items, "ToGate", "К воротам и рынку", Vector3(1.0, 0, 30), Vector3(1.6, 2.2, 5.0))
 	_exit(items, "ToQuarter", "В жилой квартал", Vector3(83.0, 0, 14.5), Vector3(1.6, 2.2, 5.0))
@@ -450,6 +624,8 @@ func _sungar_center() -> void:
 	_use(items, "HonorBoard", "Доска почёта", Vector3(32.3, 0, 38.5), Vector3(0.8, 2.6, 4.4))
 	_use(items, "Wheel", "Колесо фортуны", _slot(dk, "croupier") + Vector3(0.8, 0, 0), Vector3(0.8, 1.6, 1.4))
 	_stairs_item(items, dom, "DomStairs", "Дом на площади", "FromDom")
+	_stairs_item(items, admin, "AdminStairs", "Администрация", "FromAdmin")
+	_use(items, "InfoScreen", "Экран «Сунгар-информ»", Vector3(48.2, 0, 35.0), Vector3(1.4, 3.6, 0.6))
 	_spawn("Start", Vector3(4.5, 0, 30))
 	_spawn("FromGate", Vector3(4.5, 0, 30))
 	_spawn("FromQuarter", Vector3(79, 0, 16.5))
@@ -459,7 +635,9 @@ func _sungar_center() -> void:
 	marker(root, "MarkDK", Vector3(40, 0, 9), "Дом культуры")
 	marker(root, "MarkDom", Vector3(20, 0, 12), "Дом на площади")
 	marker(root, "MarkCanteen", Vector3(58, 0, 44.5), "Столовая")
+	marker(root, "MarkAdmin", Vector3(74, 0, 46.2), "Администрация")
 	_dress(Rect2(4, 4, 78, 50), 300)
+	_clear_town(Rect2(1, 1, 82, 56))
 	_finish("sungar_center")
 
 
@@ -498,6 +676,14 @@ func _sungar_quarter() -> void:
 	_bld(vil, "heat_pipe_riser", "PipeRiser", Vector3(64.5, 0, 25.0), PI)
 	_bld(vil, "heat_pipe_low", "Pipe", Vector3(66.0, 0, 20.4), PI / 2.0)
 	_bld(vil, "bins", "Bins1", Vector3(48.5, 0, 36.6))
+	_neon(bar, "ПИВО · ВОДКА", Vector3(5.03, 3.4, 1.0), PI / 2.0, Color("ff3a5a"), 72, true)
+	_power_line(vil, [Vector3(6, 0, 43.4), Vector3(22, 0, 43.4), Vector3(36, 0, 43.2), Vector3(52, 0, 43.4), Vector3(70, 0, 43.4)])
+	_bld(vil, "loudspeaker", "Loudspeaker", Vector3(50.5, 0, 38.6))
+	_info_screen(vil, Vector3(25.5, 0, 37.0), 0.0, "СУНГАР-ИНФОРМ\nНабор на баржи: 3 р./день\nДолжникам — явка в контору\nУголь — по талонам")
+	_clutter(vil, [["trash_pile", 16, 14.2], ["trash_pile_b", 28, 13.0], ["burn_barrel", 12, 18.2], ["rubble", 70, 49],
+		["car_wreck", 6, 47.5, 1.2], ["boardwalk", 33, 20.0, PI / 2.0], ["boardwalk", 40, 20.2, PI / 2.0], ["trash_pile", 66.5, 36.0]])
+	_graffiti(vil, "ДЕНЕГ НЕТ", Vector3(35.53, 1.6, 31), PI / 2.0)
+	_graffiti(vil, "СЕНЬКА — КРЫСА", Vector3(20.03, 1.5, 30.5), PI / 2.0, Color("1c1c1c"))
 	for t in [Vector3(54, 0, 37.4), Vector3(61.5, 0, 37.2)]:
 		put(P.table, vil, t, 0.1)
 		put(P.bench, vil, t + Vector3(0, 0, 0.9), 0.1)
@@ -546,7 +732,11 @@ func _sungar_quarter() -> void:
 	character(chars, "Watchwoman", "sg_watchwoman", _slot(ob, "watch"), 0.0, {"dialog": "sg_watchwoman"})
 	character(chars, "ObKid", "kid", _slot(ob, "flatR"), PI, {"display_name": "Мальчишка у телевизора"})
 	# котельная и двор
-	character(chars, "Stoker", "town_worker", Vector3(70, 0, 17.6), PI, {"display_name": "Кочегар"})
+	character(chars, "Stoker", "sg_stoker", Vector3(70, 0, 17.6), PI, {"dialog": "sg_stoker"})
+	_cop(chars, "Patrol1", Vector3(12, 0, 39.2), PI / 2.0, PackedVector3Array([Vector3(12, 0, 39.2), Vector3(66, 0, 40.4), Vector3(46, 0, 22.0), Vector3(20, 0, 41.5)]), "Дружинник")
+	_cop(chars, "Patrol2", Vector3(64, 0, 42.6), -PI / 2.0, PackedVector3Array([Vector3(64, 0, 42.6), Vector3(8, 0, 42.4)]))
+	character(chars, "Bum1", "villager", Vector3(12.6, 0, 18.7), -0.7, {"display_name": "Бродяга у бочки"})
+	character(chars, "Bum2", "town_old_m", Vector3(11.5, 0, 17.6), 0.9, {"display_name": "Старик у бочки", "start_pose": "sit"})
 	character(chars, "Walker1", "town_f1", Vector3(10, 0, 42), PI / 2.0, {"display_name": "Жиличка",
 		"patrol": PackedVector3Array([Vector3(10, 0, 42), Vector3(66, 0, 41), Vector3(40, 0, 38.5)]), "patrol_wait": 4.0})
 	character(chars, "Walker2", "town_m4", Vector3(64, 0, 22), PI, {"display_name": "Слесарь",
@@ -558,6 +748,7 @@ func _sungar_quarter() -> void:
 	_use(items, "ScrapC", "Куча хлама", Vector3(46, 0, 18.5), Vector3(1.8, 1.0, 1.8))
 	_use(items, "GuideRoom", "Каморка в бараке", Vector3(45.2, 0, 31.2), Vector3(1.4, 2.0, 1.4))
 	_use(items, "Chimney", "Труба котельной", Vector3(61.4, 0, 12.6), Vector3(1.6, 3.0, 1.6))
+	_use(items, "InfoScreen", "Экран «Сунгар-информ»", Vector3(25.5, 0, 37.6), Vector3(1.4, 3.6, 0.6))
 	_stairs_item(items, ob, "ObshagaStairs", "Общежитие", "FromObshaga")
 	_spawn("Start", Vector3(4.5, 0, 40))
 	_spawn("FromCenter", Vector3(4.5, 0, 40))
@@ -567,6 +758,7 @@ func _sungar_quarter() -> void:
 	marker(root, "MarkObshaga", Vector3(14, 0, 30.5), "Общежитие")
 	marker(root, "MarkBoiler", Vector3(68, 0, 12), "Котельная")
 	_dress(Rect2(4, 6, 68, 48), 300)
+	_clear_town(Rect2(2, 5, 72, 52))
 	_finish("sungar_quarter")
 
 
@@ -821,6 +1013,23 @@ func _furnish(fl: Node3D, r: Rect2, side: int, kind: String) -> void:
 		"tv":
 			put(P.f_sofa, fl, Vector3(cx, 0, back + sgn * 0.45), rot)
 			put(P.f_plant, fl, Vector3(x1, 0, back + sgn * 0.3), rot)
+		"head":
+			put(P.cf_terminal, fl, Vector3(cx, 0, back + sgn * 1.0), rot + PI)
+			put(P.f_shelf, fl, Vector3(x1 - 0.3, 0, back + sgn * 0.25), rot)
+			cyl(fl, 0.03, 0.03, 2.0, Vector3(x0 - 0.2, 1.0, back + sgn * 0.3), "metal_dark").owner = root
+			box(fl, Vector3(0.7, 0.45, 0.02), Vector3(x0 + 0.15, 1.7, back + sgn * 0.3), "flag_red").owner = root
+			box(fl, Vector3(1.8, 0.012, 1.1), Vector3(cx, 0.05, back + sgn * 2.2), "cloth_red").owner = root
+		"meeting":
+			put(P.f_table, fl, Vector3(cx - 0.6, 0, back + sgn * 1.0), rot)
+			put(P.f_table, fl, Vector3(cx + 0.6, 0, back + sgn * 1.0), rot)
+		"computer":
+			for k in 3:
+				put(P.cf_mainframe, fl, Vector3(r.position.x + 0.75 + k * (r.size.x - 1.5) / 2.0, 0, back + sgn * 0.3), rot)
+			put(P.cf_terminal, fl, Vector3(cx, 0, back + sgn * 1.5), rot + PI)
+		"archive":
+			put(P.f_shelf, fl, Vector3(cx - 1.05, 0, back + sgn * 0.25), rot)
+			put(P.f_shelf, fl, Vector3(cx + 1.05, 0, back + sgn * 0.25), rot)
+			put(P.crates, fl, Vector3(x1 - 0.2, 0, back + sgn * 1.0), rot)
 
 
 ## Точка в комнате: перед мебелью, ближе к двери
@@ -945,3 +1154,32 @@ func _obshaga_floors() -> void:
 	_use(items, "Suitcase", "Чемодан под кроватью", _rp(rt, 0.75, 0.3), Vector3(1.0, 0.7, 0.8))
 	character(chars, "Old4", "town_old_m", _rp(r4[0], 0.5, 0.62), _to_door(r4[0]), {"display_name": "Старый вахтёр на пенсии"})
 	_house_finish("sungar_obshaga")
+
+
+# ======================================================================
+# АДМИНИСТРАЦИЯ ПГТ СУНГАР: 2–3 этажи (глава посёлка, ЭВМ «Искра-1030»)
+# ======================================================================
+func _admin_floors() -> void:
+	var w := 16.0
+	var d := 10.0
+	_house_begin("sungar_admin", "Администрация ПГТ Сунгар", 2, w, d, "sungar_center", "FromAdmin", "администрация")
+	var r2 := _corridor_floor(2, 2, w, d, 3, ["head", "office", "meeting", "office", "archive", "wash"], false,
+		"plaster_white", "wallpaper_b", "linoleum", "planks_old", 201)
+	var r3 := _corridor_floor(3, 2, w, d, 3, ["computer", "computer", "office", "archive", "bed", "empty"], true,
+		"plaster_white", "wallpaper", "linoleum_b", "linoleum", 301)
+	var chars := root.get_node("Characters")
+	var items := root.get_node("Items")
+	# 2 этаж: глава посёлка, секретарша, бухгалтер, охрана в коридоре
+	var rh: Dictionary = r2[0]
+	character(chars, "Head", "sg_head", _rp(rh, 0.5, 0.15), _to_door(rh), {"dialog": "sg_head"})
+	character(chars, "Secretary", "town_f2", _rp(r2[1], 0.5, 0.6), _to_door(r2[1]), {"display_name": "Секретарша"})
+	character(chars, "Accountant", "town_m2", _rp(r2[3], 0.5, 0.6), _to_door(r2[3]), {"display_name": "Бухгалтер с калькулятором"})
+	_cop(chars, "FloorCop", Vector3(9.0, 0, d / 2.0), PI / 2.0, PackedVector3Array([Vector3(9.0, 0, d / 2.0), Vector3(15.0, 0, d / 2.0)]), "Охранник администрации")
+	# 3 этаж: машинный зал ЭВМ, оператор Люда
+	var rc: Dictionary = r3[0]
+	character(chars, "Operator", "sg_operator", _rp(rc, 0.3, 0.65), _to_door(rc) + PI, {"dialog": "sg_operator"})
+	_use(items, "Mainframe", "ЭВМ «Искра-1030»", _rp(rc, 0.18, 0.2), Vector3(1.2, 1.9, 0.8)).set("reach", 2)
+	var rt: Dictionary = r3[1]
+	_use(items, "ArchiveTerminal", "Терминал архива", _rp(rt, 0.5, 0.38), Vector3(1.2, 1.2, 0.9)).set("reach", 2)
+	character(chars, "Tech", "town_m4", _rp(r3[2], 0.5, 0.6), _to_door(r3[2]), {"display_name": "Техник с паяльником"})
+	_house_finish("sungar_admin")

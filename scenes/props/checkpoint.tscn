@@ -1,0 +1,62 @@
+[gd_scene format=3]
+
+[ext_resource type="Material" path="res://assets/materials/metal_green.tres" id="1_qsxc0"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/checkpoint_metal_green.res" id="2_yppva"]
+[ext_resource type="Material" path="res://assets/materials/glass_city.tres" id="3_eu6ns"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/checkpoint_glass_city.res" id="4_6vd4x"]
+[ext_resource type="Material" path="res://assets/materials/metal_roof.tres" id="5_42nwg"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/checkpoint_metal_roof.res" id="6_k5oes"]
+[ext_resource type="Material" path="res://assets/materials/plastic_dark.tres" id="7_jo3n7"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/checkpoint_plastic_dark.res" id="8_8w3ns"]
+[ext_resource type="Material" path="res://assets/materials/screen_amber.tres" id="9_gde2e"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/checkpoint_screen_amber.res" id="10_sr73e"]
+[ext_resource type="Material" path="res://assets/materials/paint_white.tres" id="11_xvsek"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/checkpoint_paint_white.res" id="12_f4wmt"]
+[ext_resource type="Material" path="res://assets/materials/paint_red.tres" id="13_h7juk"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/checkpoint_paint_red.res" id="14_djwmn"]
+[ext_resource type="Material" path="res://assets/materials/metal_dark.tres" id="15_10glr"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/checkpoint_metal_dark.res" id="16_012gn"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_j4ii1"]
+size = Vector3(1.7, 2.3, 1.7)
+
+[node name="Checkpoint" type="Node3D" unique_id=693785877]
+
+[node name="Mesh_metal_green" type="MeshInstance3D" parent="." unique_id=1837260443]
+material_override = ExtResource("1_qsxc0")
+mesh = ExtResource("2_yppva")
+
+[node name="Mesh_glass_city" type="MeshInstance3D" parent="." unique_id=2130030455]
+material_override = ExtResource("3_eu6ns")
+mesh = ExtResource("4_6vd4x")
+
+[node name="Mesh_metal_roof" type="MeshInstance3D" parent="." unique_id=712150842]
+material_override = ExtResource("5_42nwg")
+mesh = ExtResource("6_k5oes")
+
+[node name="Mesh_plastic_dark" type="MeshInstance3D" parent="." unique_id=1395701640]
+material_override = ExtResource("7_jo3n7")
+mesh = ExtResource("8_8w3ns")
+
+[node name="Mesh_screen_amber" type="MeshInstance3D" parent="." unique_id=311602358]
+material_override = ExtResource("9_gde2e")
+mesh = ExtResource("10_sr73e")
+
+[node name="Mesh_paint_white" type="MeshInstance3D" parent="." unique_id=218952679]
+material_override = ExtResource("11_xvsek")
+mesh = ExtResource("12_f4wmt")
+
+[node name="Mesh_paint_red" type="MeshInstance3D" parent="." unique_id=414460367]
+material_override = ExtResource("13_h7juk")
+mesh = ExtResource("14_djwmn")
+
+[node name="Mesh_metal_dark" type="MeshInstance3D" parent="." unique_id=241381961]
+material_override = ExtResource("15_10glr")
+mesh = ExtResource("16_012gn")
+
+[node name="Collision" type="StaticBody3D" parent="." unique_id=1735044498]
+collision_mask = 0
+
+[node name="@CollisionShape3D@161" type="CollisionShape3D" parent="Collision" unique_id=1823381040]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.15, 0)
+shape = SubResource("BoxShape3D_j4ii1")

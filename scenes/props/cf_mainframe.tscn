@@ -1,0 +1,56 @@
+[gd_scene format=3]
+
+[ext_resource type="Material" path="res://assets/materials/plastic_beige.tres" id="1_iknff"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/cf_mainframe_plastic_beige.res" id="2_6ve6u"]
+[ext_resource type="Material" path="res://assets/materials/plastic_dark.tres" id="3_dy533"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/cf_mainframe_plastic_dark.res" id="4_bbdab"]
+[ext_resource type="Material" path="res://assets/materials/metal_dark.tres" id="5_ft6jv"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/cf_mainframe_metal_dark.res" id="6_m5fn8"]
+[ext_resource type="Material" path="res://assets/materials/tire.tres" id="7_1sttl"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/cf_mainframe_tire.res" id="8_f2myt"]
+[ext_resource type="Material" path="res://assets/materials/tin.tres" id="9_f5828"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/cf_mainframe_tin.res" id="10_rplwh"]
+[ext_resource type="Material" path="res://assets/materials/led_red.tres" id="11_qf63p"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/cf_mainframe_led_red.res" id="12_yffft"]
+[ext_resource type="Material" path="res://assets/materials/led_green.tres" id="13_k0mrw"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/cf_mainframe_led_green.res" id="14_jpnlk"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_m1sjx"]
+size = Vector3(1, 1.9, 0.6)
+
+[node name="Mainframe" type="Node3D" unique_id=1164871879]
+
+[node name="Mesh_plastic_beige" type="MeshInstance3D" parent="." unique_id=1410450581]
+material_override = ExtResource("1_iknff")
+mesh = ExtResource("2_6ve6u")
+
+[node name="Mesh_plastic_dark" type="MeshInstance3D" parent="." unique_id=1059707527]
+material_override = ExtResource("3_dy533")
+mesh = ExtResource("4_bbdab")
+
+[node name="Mesh_metal_dark" type="MeshInstance3D" parent="." unique_id=505169526]
+material_override = ExtResource("5_ft6jv")
+mesh = ExtResource("6_m5fn8")
+
+[node name="Mesh_tire" type="MeshInstance3D" parent="." unique_id=1255178509]
+material_override = ExtResource("7_1sttl")
+mesh = ExtResource("8_f2myt")
+
+[node name="Mesh_tin" type="MeshInstance3D" parent="." unique_id=1324085030]
+material_override = ExtResource("9_f5828")
+mesh = ExtResource("10_rplwh")
+
+[node name="Mesh_led_red" type="MeshInstance3D" parent="." unique_id=1484543219]
+material_override = ExtResource("11_qf63p")
+mesh = ExtResource("12_yffft")
+
+[node name="Mesh_led_green" type="MeshInstance3D" parent="." unique_id=1537721084]
+material_override = ExtResource("13_k0mrw")
+mesh = ExtResource("14_jpnlk")
+
+[node name="Collision" type="StaticBody3D" parent="." unique_id=156759580]
+collision_mask = 0
+
+[node name="@CollisionShape3D@156" type="CollisionShape3D" parent="Collision" unique_id=1903258489]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.95, 0)
+shape = SubResource("BoxShape3D_m1sjx")

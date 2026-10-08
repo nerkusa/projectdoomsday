@@ -1,0 +1,38 @@
+[gd_scene format=3]
+
+[ext_resource type="Material" path="res://assets/materials/log_weathered.tres" id="1_i3u8g"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/notice_board_log_weathered.res" id="2_ik1qx"]
+[ext_resource type="Material" path="res://assets/materials/planks_old.tres" id="3_2hosv"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/notice_board_planks_old.res" id="4_rpmjg"]
+[ext_resource type="Material" path="res://assets/materials/paper.tres" id="5_q7bos"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/notice_board_paper.res" id="6_whr7r"]
+[ext_resource type="Material" path="res://assets/materials/metal_roof.tres" id="7_ld2d4"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/notice_board_metal_roof.res" id="8_sx50h"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_irtye"]
+size = Vector3(2.2, 2, 0.3)
+
+[node name="NoticeBoard" type="Node3D" unique_id=1076277366]
+
+[node name="Mesh_log_weathered" type="MeshInstance3D" parent="." unique_id=1284876040]
+material_override = ExtResource("1_i3u8g")
+mesh = ExtResource("2_ik1qx")
+
+[node name="Mesh_planks_old" type="MeshInstance3D" parent="." unique_id=422966746]
+material_override = ExtResource("3_2hosv")
+mesh = ExtResource("4_rpmjg")
+
+[node name="Mesh_paper" type="MeshInstance3D" parent="." unique_id=1466941562]
+material_override = ExtResource("5_q7bos")
+mesh = ExtResource("6_whr7r")
+
+[node name="Mesh_metal_roof" type="MeshInstance3D" parent="." unique_id=670678402]
+material_override = ExtResource("7_ld2d4")
+mesh = ExtResource("8_sx50h")
+
+[node name="Collision" type="StaticBody3D" parent="." unique_id=381467272]
+collision_mask = 0
+
+[node name="@CollisionShape3D@162" type="CollisionShape3D" parent="Collision" unique_id=987066620]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+shape = SubResource("BoxShape3D_irtye")

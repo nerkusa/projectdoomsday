@@ -1,0 +1,255 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/house.gd" id="1_201v5"]
+[ext_resource type="Material" path="res://assets/materials/plaster_white.tres" id="2_1hwq5"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/st_admin_plaster_white.res" id="3_dbfdu"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/st_admin_plaster_white_up.res" id="4_hwixg"]
+[ext_resource type="Material" path="res://assets/materials/glass.tres" id="5_cisn1"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/st_admin_glass_up.res" id="6_od5iw"]
+[ext_resource type="Material" path="res://assets/materials/plastic_beige.tres" id="7_u1w1a"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/st_admin_plastic_beige_up.res" id="8_uus2h"]
+[ext_resource type="Material" path="res://assets/materials/screen_green.tres" id="9_nnhxk"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/st_admin_screen_green_up.res" id="10_6otjl"]
+[ext_resource type="Material" path="res://assets/materials/concrete.tres" id="11_11s8p"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/st_admin_concrete_up.res" id="12_iow73"]
+[ext_resource type="Material" path="res://assets/materials/metal_dark.tres" id="13_bx1wt"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/st_admin_metal_dark_up.res" id="14_xxrhh"]
+[ext_resource type="Material" path="res://assets/materials/frame_white.tres" id="15_gv7mo"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/st_admin_frame_white_up.res" id="16_13n75"]
+[ext_resource type="Material" path="res://assets/materials/glass_city.tres" id="17_opf4r"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/st_admin_glass_city_up.res" id="18_05ipi"]
+[ext_resource type="Material" path="res://assets/materials/planks_old.tres" id="19_35tax"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/st_admin_planks_old_up.res" id="20_ltaq3"]
+[ext_resource type="Material" path="res://assets/materials/window_lit.tres" id="21_8sjdg"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/st_admin_window_lit_up.res" id="22_7t5qn"]
+[ext_resource type="Material" path="res://assets/materials/tar.tres" id="23_kmo38"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/st_admin_tar_up.res" id="24_2p5en"]
+[ext_resource type="Material" path="res://assets/materials/brick.tres" id="25_3f6cs"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/st_admin_brick_up.res" id="26_mcia7"]
+[ext_resource type="Material" path="res://assets/materials/flag_red.tres" id="27_67p4u"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/st_admin_flag_red_up.res" id="28_b1ghk"]
+[ext_resource type="Material" path="res://assets/materials/tin.tres" id="29_qbmui"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/st_admin_tin_up.res" id="30_4xpie"]
+[ext_resource type="Material" path="res://assets/materials/linoleum.tres" id="31_rhvfe"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/st_admin_linoleum.res" id="32_uobdl"]
+[ext_resource type="Material" path="res://assets/materials/wallpaper_b.tres" id="33_sm76i"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/st_admin_wallpaper_b.res" id="34_rx71e"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/st_admin_planks_old.res" id="35_ri1rv"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/st_admin_frame_white.res" id="36_b3kwb"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/st_admin_plastic_beige.res" id="37_e23lw"]
+[ext_resource type="Material" path="res://assets/materials/plastic_dark.tres" id="38_t4bag"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/st_admin_plastic_dark.res" id="39_bskwi"]
+[ext_resource type="Material" path="res://assets/materials/screen_amber.tres" id="40_voty8"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/st_admin_screen_amber.res" id="41_wbaxc"]
+[ext_resource type="Material" path="res://assets/materials/paint_door.tres" id="42_ohuvy"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/st_admin_paint_door.res" id="43_nggf8"]
+[ext_resource type="Material" path="res://assets/materials/plant.tres" id="44_a8fdv"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/st_admin_plant.res" id="45_ok8wj"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/st_admin_concrete.res" id="46_yu1pq"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/st_admin_metal_dark.res" id="47_ol5df"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_0ws7y"]
+size = Vector3(0.6, 1, 0.65)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_h3vev"]
+size = Vector3(0.65, 1, 3.4)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_k16ow"]
+size = Vector3(2.6, 0.5, 0.5)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_47mhg"]
+size = Vector3(0.45, 0.8, 0.45)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_8uqlg"]
+size = Vector3(0.45, 0.8, 0.45)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_d5d4i"]
+size = Vector3(1.4, 2, 3)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_kd6fr"]
+size = Vector3(16.4, 3, 0.4)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_eumud"]
+size = Vector3(0.4, 3, 10.4)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_n714b"]
+size = Vector3(0.4, 3, 10.4)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_vu6aw"]
+size = Vector3(7.25, 3, 0.4)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_4hknk"]
+size = Vector3(7.25, 3, 0.4)
+
+[node name="StAdmin" type="Node3D" unique_id=1434740390]
+script = ExtResource("1_201v5")
+inner = Vector2(15.3, 9.3)
+door = Vector3(0, 0, 5)
+
+[node name="Mesh_plaster_white" type="MeshInstance3D" parent="." unique_id=856676605]
+material_override = ExtResource("2_1hwq5")
+mesh = ExtResource("3_dbfdu")
+
+[node name="Upper" type="Node3D" parent="." unique_id=1304678700]
+
+[node name="Mesh_plaster_white" type="MeshInstance3D" parent="Upper" unique_id=2025220185]
+material_override = ExtResource("2_1hwq5")
+mesh = ExtResource("4_hwixg")
+
+[node name="Mesh_glass" type="MeshInstance3D" parent="Upper" unique_id=2021646247]
+material_override = ExtResource("5_cisn1")
+mesh = ExtResource("6_od5iw")
+
+[node name="Mesh_plastic_beige" type="MeshInstance3D" parent="Upper" unique_id=1542065935]
+material_override = ExtResource("7_u1w1a")
+mesh = ExtResource("8_uus2h")
+
+[node name="Mesh_screen_green" type="MeshInstance3D" parent="Upper" unique_id=1623290088]
+material_override = ExtResource("9_nnhxk")
+mesh = ExtResource("10_6otjl")
+
+[node name="Mesh_concrete" type="MeshInstance3D" parent="Upper" unique_id=172898744]
+material_override = ExtResource("11_11s8p")
+mesh = ExtResource("12_iow73")
+
+[node name="Mesh_metal_dark" type="MeshInstance3D" parent="Upper" unique_id=231704879]
+material_override = ExtResource("13_bx1wt")
+mesh = ExtResource("14_xxrhh")
+
+[node name="Mesh_frame_white" type="MeshInstance3D" parent="Upper" unique_id=185330625]
+material_override = ExtResource("15_gv7mo")
+mesh = ExtResource("16_13n75")
+
+[node name="Mesh_glass_city" type="MeshInstance3D" parent="Upper" unique_id=2095455516]
+material_override = ExtResource("17_opf4r")
+mesh = ExtResource("18_05ipi")
+
+[node name="Mesh_planks_old" type="MeshInstance3D" parent="Upper" unique_id=342943231]
+material_override = ExtResource("19_35tax")
+mesh = ExtResource("20_ltaq3")
+
+[node name="Mesh_window_lit" type="MeshInstance3D" parent="Upper" unique_id=1338078017]
+material_override = ExtResource("21_8sjdg")
+mesh = ExtResource("22_7t5qn")
+
+[node name="Mesh_tar" type="MeshInstance3D" parent="Upper" unique_id=1605649674]
+material_override = ExtResource("23_kmo38")
+mesh = ExtResource("24_2p5en")
+
+[node name="Mesh_brick" type="MeshInstance3D" parent="Upper" unique_id=500600823]
+material_override = ExtResource("25_3f6cs")
+mesh = ExtResource("26_mcia7")
+
+[node name="Mesh_flag_red" type="MeshInstance3D" parent="Upper" unique_id=1799472065]
+material_override = ExtResource("27_67p4u")
+mesh = ExtResource("28_b1ghk")
+
+[node name="Mesh_tin" type="MeshInstance3D" parent="Upper" unique_id=946436317]
+material_override = ExtResource("29_qbmui")
+mesh = ExtResource("30_4xpie")
+
+[node name="Mesh_linoleum" type="MeshInstance3D" parent="." unique_id=1741922231]
+material_override = ExtResource("31_rhvfe")
+mesh = ExtResource("32_uobdl")
+
+[node name="Mesh_wallpaper_b" type="MeshInstance3D" parent="." unique_id=615095810]
+material_override = ExtResource("33_sm76i")
+mesh = ExtResource("34_rx71e")
+
+[node name="Mesh_planks_old" type="MeshInstance3D" parent="." unique_id=2116188883]
+material_override = ExtResource("19_35tax")
+mesh = ExtResource("35_ri1rv")
+
+[node name="Mesh_frame_white" type="MeshInstance3D" parent="." unique_id=1254315395]
+material_override = ExtResource("15_gv7mo")
+mesh = ExtResource("36_b3kwb")
+
+[node name="Mesh_plastic_beige" type="MeshInstance3D" parent="." unique_id=1944212007]
+material_override = ExtResource("7_u1w1a")
+mesh = ExtResource("37_e23lw")
+
+[node name="Mesh_plastic_dark" type="MeshInstance3D" parent="." unique_id=1610097410]
+material_override = ExtResource("38_t4bag")
+mesh = ExtResource("39_bskwi")
+
+[node name="Mesh_screen_amber" type="MeshInstance3D" parent="." unique_id=2044632561]
+material_override = ExtResource("40_voty8")
+mesh = ExtResource("41_wbaxc")
+
+[node name="Mesh_paint_door" type="MeshInstance3D" parent="." unique_id=148738298]
+material_override = ExtResource("42_ohuvy")
+mesh = ExtResource("43_nggf8")
+
+[node name="Mesh_plant" type="MeshInstance3D" parent="." unique_id=53595481]
+material_override = ExtResource("44_a8fdv")
+mesh = ExtResource("45_ok8wj")
+
+[node name="Mesh_concrete" type="MeshInstance3D" parent="." unique_id=25595006]
+material_override = ExtResource("11_11s8p")
+mesh = ExtResource("46_yu1pq")
+
+[node name="Mesh_metal_dark" type="MeshInstance3D" parent="." unique_id=1495548063]
+material_override = ExtResource("13_bx1wt")
+mesh = ExtResource("47_ol5df")
+
+[node name="Slot_clerk" type="Marker3D" parent="." unique_id=1136325926]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6.3, 0, -0.5)
+
+[node name="Slot_queue" type="Marker3D" parent="." unique_id=1053185618]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.6, 0, 3.5)
+
+[node name="Slot_stairs" type="Marker3D" parent="." unique_id=689281907]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.5, 0, -1.1)
+
+[node name="Slot_guard" type="Marker3D" parent="." unique_id=182987400]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.6, 0, 3.7)
+
+[node name="Slot_sign" type="Marker3D" parent="." unique_id=1182622533]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.35, 5.12)
+
+[node name="Collision" type="StaticBody3D" parent="." unique_id=1485136589]
+collision_mask = 0
+
+[node name="@CollisionShape3D@111" type="CollisionShape3D" parent="Collision" unique_id=1015558585]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.3, 0.5, -0.5)
+shape = SubResource("BoxShape3D_0ws7y")
+
+[node name="@CollisionShape3D@112" type="CollisionShape3D" parent="Collision" unique_id=944161172]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.3, 0.5, -0.5)
+shape = SubResource("BoxShape3D_h3vev")
+
+[node name="@CollisionShape3D@113" type="CollisionShape3D" parent="Collision" unique_id=973516982]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.6, 0.25, 4.2)
+shape = SubResource("BoxShape3D_k16ow")
+
+[node name="@CollisionShape3D@114" type="CollisionShape3D" parent="Collision" unique_id=2004149633]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.2, 0.4, 4.2)
+shape = SubResource("BoxShape3D_47mhg")
+
+[node name="@CollisionShape3D@115" type="CollisionShape3D" parent="Collision" unique_id=1635836629]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7.2, 0.4, 4.2)
+shape = SubResource("BoxShape3D_8uqlg")
+
+[node name="@CollisionShape3D@116" type="CollisionShape3D" parent="Collision" unique_id=560169864]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.5, 1, -3.15)
+shape = SubResource("BoxShape3D_d5d4i")
+
+[node name="@CollisionShape3D@117" type="CollisionShape3D" parent="Collision" unique_id=1899051550]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, -4.9)
+shape = SubResource("BoxShape3D_kd6fr")
+
+[node name="@CollisionShape3D@118" type="CollisionShape3D" parent="Collision" unique_id=2081410084]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7.9, 1.5, 0)
+shape = SubResource("BoxShape3D_eumud")
+
+[node name="@CollisionShape3D@119" type="CollisionShape3D" parent="Collision" unique_id=325164759]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.9, 1.5, 0)
+shape = SubResource("BoxShape3D_n714b")
+
+[node name="@CollisionShape3D@120" type="CollisionShape3D" parent="Collision" unique_id=2003895125]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.575, 1.5, 4.9)
+shape = SubResource("BoxShape3D_vu6aw")
+
+[node name="@CollisionShape3D@121" type="CollisionShape3D" parent="Collision" unique_id=1723354481]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.575, 1.5, 4.9)
+shape = SubResource("BoxShape3D_4hknk")

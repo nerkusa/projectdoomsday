@@ -1,0 +1,32 @@
+[gd_scene format=3]
+
+[ext_resource type="Material" path="res://assets/materials/concrete.tres" id="1_j4af1"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/rubble_concrete.res" id="2_5tixs"]
+[ext_resource type="Material" path="res://assets/materials/brick.tres" id="3_6s2g4"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/rubble_brick.res" id="4_74b8d"]
+[ext_resource type="Material" path="res://assets/materials/metal_dark.tres" id="5_xa2jo"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/rubble_metal_dark.res" id="6_h14fm"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_iq18x"]
+size = Vector3(2.4, 0.7, 1.8)
+
+[node name="Rubble" type="Node3D" unique_id=833435991]
+
+[node name="Mesh_concrete" type="MeshInstance3D" parent="." unique_id=507230440]
+material_override = ExtResource("1_j4af1")
+mesh = ExtResource("2_5tixs")
+
+[node name="Mesh_brick" type="MeshInstance3D" parent="." unique_id=1604215185]
+material_override = ExtResource("3_6s2g4")
+mesh = ExtResource("4_74b8d")
+
+[node name="Mesh_metal_dark" type="MeshInstance3D" parent="." unique_id=333583995]
+material_override = ExtResource("5_xa2jo")
+mesh = ExtResource("6_h14fm")
+
+[node name="Collision" type="StaticBody3D" parent="." unique_id=247035667]
+collision_mask = 0
+
+[node name="@CollisionShape3D@165" type="CollisionShape3D" parent="Collision" unique_id=1816096967]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.35, 0)
+shape = SubResource("BoxShape3D_iq18x")

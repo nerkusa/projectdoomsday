@@ -1,0 +1,44 @@
+[gd_scene format=3]
+
+[ext_resource type="Material" path="res://assets/materials/planks_old.tres" id="1_8hm4s"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/cf_terminal_planks_old.res" id="2_24w78"]
+[ext_resource type="Material" path="res://assets/materials/metal_dark.tres" id="3_0g1se"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/cf_terminal_metal_dark.res" id="4_g2m5i"]
+[ext_resource type="Material" path="res://assets/materials/plastic_beige.tres" id="5_58pqn"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/cf_terminal_plastic_beige.res" id="6_potc6"]
+[ext_resource type="Material" path="res://assets/materials/screen_green.tres" id="7_m7nnh"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/cf_terminal_screen_green.res" id="8_c7xta"]
+[ext_resource type="Material" path="res://assets/materials/plastic_dark.tres" id="9_dlrq6"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/cf_terminal_plastic_dark.res" id="10_36jay"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_c5daw"]
+size = Vector3(1.2, 0.8, 0.7)
+
+[node name="Terminal" type="Node3D" unique_id=2004284981]
+
+[node name="Mesh_planks_old" type="MeshInstance3D" parent="." unique_id=1523473270]
+material_override = ExtResource("1_8hm4s")
+mesh = ExtResource("2_24w78")
+
+[node name="Mesh_metal_dark" type="MeshInstance3D" parent="." unique_id=1617841347]
+material_override = ExtResource("3_0g1se")
+mesh = ExtResource("4_g2m5i")
+
+[node name="Mesh_plastic_beige" type="MeshInstance3D" parent="." unique_id=1217900077]
+material_override = ExtResource("5_58pqn")
+mesh = ExtResource("6_potc6")
+
+[node name="Mesh_screen_green" type="MeshInstance3D" parent="." unique_id=598537973]
+material_override = ExtResource("7_m7nnh")
+mesh = ExtResource("8_c7xta")
+
+[node name="Mesh_plastic_dark" type="MeshInstance3D" parent="." unique_id=2102311539]
+material_override = ExtResource("9_dlrq6")
+mesh = ExtResource("10_36jay")
+
+[node name="Collision" type="StaticBody3D" parent="." unique_id=837719578]
+collision_mask = 0
+
+[node name="@CollisionShape3D@155" type="CollisionShape3D" parent="Collision" unique_id=993201661]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.4, 0)
+shape = SubResource("BoxShape3D_c5daw")
