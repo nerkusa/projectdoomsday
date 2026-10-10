@@ -1923,7 +1923,7 @@ func _ready() -> void:
 	var wreck_found := false
 	for tries in 12:
 		for wi in loc.items():
-			if String(wi.name).begins_with("Wreck") and not wreck_found and not str(wi.get_meta("kind", "")) in ["tower", "serge"]:
+			if String(wi.name).begins_with("Wreck") and not wreck_found and not str(wi.get_meta("kind", "")) in ["tower", "serge", "wagon"]:
 				wreck_found = true
 				loc.on_interact(wi)
 				await frames(2)

@@ -343,6 +343,7 @@ func _sign() -> PackedScene:
 	l.modulate = Color("2f2a22")
 	l.outline_size = 0
 	l.position = Vector3(-0.1, 1.95, 0.04)
+	fit_label(l, 2.0, 0.45)
 	r.add_child(l)
 	var l2 := Label3D.new()
 	l2.text = "РО"
@@ -475,6 +476,38 @@ func _main_scene() -> void:
 
 # ---------------- локация Нахарро ----------------
 var root: Node3D
+
+
+## Подогнать надпись под вывеску w×h метров (pad — доля под текст, остальное — поля):
+## меряет текст тем же шрифтом, что рисует Label3D, и уменьшает pixel_size, пока не влезет.
+## С переносом строк (autowrap) ширина строки пересчитывается под новый масштаб.
+func fit_label(l: Label3D, w: float, h: float, pad := 0.86) -> void:
+	var wrap := l.autowrap_mode != TextServer.AUTOWRAP_OFF
+	var hi := l.pixel_size
+	if not _label_fits(l, w, h, pad, hi, wrap):
+		# наибольший масштаб, при котором текст ещё влезает (с переносом — строки перестраиваются)
+		var lo := 0.0003
+		for i in 24:
+			var mid := (lo + hi) / 2.0
+			if _label_fits(l, w, h, pad, mid, wrap):
+				lo = mid
+			else:
+				hi = mid
+		hi = lo
+	l.pixel_size = hi
+	if wrap:
+		l.width = w * pad / hi
+	if hi < 0.003:
+		print("  ВНИМАНИЕ: мелкая надпись (%.4f): %s" % [hi, l.text.replace("\n", " / ")])
+
+
+func _label_fits(l: Label3D, w: float, h: float, pad: float, px: float, wrap: bool) -> bool:
+	var f: Font = l.font if l.font else ThemeDB.fallback_font
+	var wpx := w * pad / px
+	var sz := f.get_multiline_string_size(l.text, HORIZONTAL_ALIGNMENT_CENTER, wpx if wrap else -1.0, l.font_size,
+		-1, TextServer.BREAK_MANDATORY | TextServer.BREAK_WORD_BOUND)
+	sz += Vector2.ONE * float(l.outline_size) * 2.0
+	return sz.x <= wpx + 0.5 and sz.y * px <= h * pad
 
 
 func put(ps: PackedScene, parent: Node, pos: Vector3, rot_y := 0.0, nm := "", sc := 1.0) -> Node3D:

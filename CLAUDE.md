@@ -43,6 +43,8 @@
 `xvfb-run -a -s "-screen 0 1600x900x24" $G --rendering-driver opengl3 --resolution 1600x900 --path . res://tools/render_shots.tscn -- "кадры" префикс`
 Формат кадров — в шапке `tools/render_shots.gd` (локация|x|z|zoom|час|флаги, MAP, WAIT). Один проп: `tools/preview_prop.tscn`.
 
+Надписи на вывесках/экранах (Label3D) — через `fit_label(label, ширина, высота)` из build_scenes.gd: подгоняет масштаб под доску; «ВНИМАНИЕ: мелкая надпись» при сборке — сократить текст.
+
 ## Сборка Windows
 ```
 $G --headless --path . --export-release "Windows" build/windows/Nakharro.exe

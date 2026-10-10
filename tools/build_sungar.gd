@@ -101,6 +101,7 @@ func _stele(parent: Node, pos: Vector3, rot: float) -> void:
 	l.modulate = Color("c8c0a8")
 	l.outline_size = 6
 	l.position = Vector3(0, 3.0, 0.24)
+	fit_label(l, 1.45, 3.6)
 	s.add_child(l)
 	l.owner = root
 
@@ -128,6 +129,7 @@ func _honor_board(parent: Node, pos: Vector3, rot: float) -> void:
 	l.modulate = Color("8a2a24")
 	l.outline_size = 0
 	l.position = Vector3(0, 2.68, 0.14)
+	fit_label(l, 4.4, 0.36)
 	s.add_child(l)
 	l.owner = root
 
@@ -239,11 +241,12 @@ func _info_screen(parent: Node, pos: Vector3, rot: float, text: String) -> void:
 	l.text = text
 	l.font_size = 40
 	l.pixel_size = 0.0055
-	l.modulate = Color(2.2, 1.3, 0.35)
+	l.modulate = Color(0.16, 0.08, 0.02)
 	l.outline_size = 0
 	l.width = 1.35 / 0.0055
 	l.autowrap_mode = TextServer.AUTOWRAP_WORD
 	l.position = _slot(b, "text")
+	fit_label(l, 1.4, 0.9)
 	l.rotation.y = rot
 	parent.add_child(l)
 	l.owner = root
@@ -327,7 +330,7 @@ func _sungar() -> void:
 	# столбы ЛЭП, громкоговоритель, экран, мусор, жаровни, пожарище
 	_power_line(vil, [Vector3(16, 0, 26.8), Vector3(31, 0, 26.8), Vector3(45, 0, 26.6), Vector3(59, 0, 26.8), Vector3(72.5, 0, 26.8)])
 	_bld(vil, "loudspeaker", "Loudspeaker", Vector3(38.5, 0, 26.8))
-	_info_screen(vil, Vector3(18, 0, 34.4), 0.0, "СУНГАР-ИНФОРМ\nКурс: 1 соль = 5 р.\nКомендантский час с 23:00\nПрописка — в администрации")
+	_info_screen(vil, Vector3(18, 0, 34.4), 0.0, "СУНГАР-ИНФОРМ\nКурс: 1 соль = 5 р.\nКомендантский час с 23:00")
 	_bld(vil, "notice_board", "NoticeBoard", Vector3(54.5, 0, 18.6))
 	_clutter(vil, [["trash_pile", 14.8, 40.5], ["trash_pile_b", 53.5, 41.2], ["burn_barrel", 24, 33.2], ["burn_barrel", 70, 33.8],
 		["rubble", 80, 38.5], ["car_wreck", 8, 40.5, 0.3], ["burnt_shed", 50, 47, 0.2], ["boardwalk", 40, 44.6, 0.0], ["boardwalk", 40, 47.8, 0.0],
@@ -467,6 +470,7 @@ func _barge(parent: Node, pos: Vector3) -> void:
 	l.modulate = Color("ff5a3a")
 	l.outline_size = 10
 	l.position = Vector3(-1.5, 4.6, -2.0)
+	fit_label(l, 13.5, 1.2)
 	l.rotation.y = PI
 	l.billboard = BaseMaterial3D.BILLBOARD_DISABLED
 	b.add_child(l)
@@ -533,7 +537,7 @@ func _sungar_center() -> void:
 	_bld(vil, "sandbags", "Sandbags", Vector3(80.0, 0, 10.6))
 	_power_line(vil, [Vector3(8, 0, 26.8), Vector3(22, 0, 26.6), Vector3(38, 0, 26.8), Vector3(53.5, 0, 26.8), Vector3(66, 0, 26.6)])
 	_bld(vil, "loudspeaker", "Loudspeaker", Vector3(44.6, 0, 35.4))
-	_info_screen(vil, Vector3(48.2, 0, 34.4), 0.0, "СУНГАР-ИНФОРМ\nДолги — в контору отдела ф. м.\nТалоны — по прописке\nПожарная безопасность — долг каждого")
+	_info_screen(vil, Vector3(48.2, 0, 34.4), 0.0, "СУНГАР-ИНФОРМ\nДолги — в контору отдела ф. м.\nТалоны — по прописке")
 	_clutter(vil, [["trash_pile", 61.5, 37.2], ["burn_barrel", 8.5, 36.5], ["rubble", 26, 49.2], ["car_wreck", 52, 53, 0.4],
 		["trash_pile_b", 79.5, 54.0], ["boardwalk", 38, 47.5, 0.0], ["trash_pile", 4.5, 13.5]])
 	_graffiti(vil, "ТАЛОНЫ — НЕ ЕДА", Vector3(28.03, 1.8, 12), PI / 2.0)
@@ -679,7 +683,7 @@ func _sungar_quarter() -> void:
 	_neon(bar, "ПИВО · ВОДКА", Vector3(5.03, 3.4, 1.0), PI / 2.0, Color("ff3a5a"), 72, true)
 	_power_line(vil, [Vector3(6, 0, 43.4), Vector3(22, 0, 43.4), Vector3(36, 0, 43.2), Vector3(52, 0, 43.4), Vector3(70, 0, 43.4)])
 	_bld(vil, "loudspeaker", "Loudspeaker", Vector3(50.5, 0, 38.6))
-	_info_screen(vil, Vector3(25.5, 0, 37.0), 0.0, "СУНГАР-ИНФОРМ\nНабор на баржи: 3 р./день\nДолжникам — явка в контору\nУголь — по талонам")
+	_info_screen(vil, Vector3(25.5, 0, 37.0), 0.0, "СУНГАР-ИНФОРМ\nНабор на баржи: 3 р./день\nДолжникам — явка в контору")
 	_clutter(vil, [["trash_pile", 16, 14.2], ["trash_pile_b", 28, 13.0], ["burn_barrel", 12, 18.2], ["rubble", 70, 49],
 		["car_wreck", 6, 47.5, 1.2], ["boardwalk", 33, 20.0, PI / 2.0], ["boardwalk", 40, 20.2, PI / 2.0], ["trash_pile", 66.5, 36.0]])
 	_graffiti(vil, "ДЕНЕГ НЕТ", Vector3(35.53, 1.6, 31), PI / 2.0)

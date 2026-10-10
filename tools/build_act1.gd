@@ -1021,6 +1021,7 @@ func _bunker_portal(vil: Node) -> void:
 	l.pixel_size = 0.006
 	l.modulate = Color("e3a23a")
 	l.position = Vector3(40.0, 2.85, 21.32)
+	fit_label(l, 5.4, 0.5)
 	g.add_child(l)
 	l.owner = root
 	# гермоворота: закрытые — диск в проёме, открытые — диск откатился вбок, за ним темнота
@@ -1451,6 +1452,7 @@ func _upper() -> void:
 	lbl.pixel_size = 0.004
 	lbl.modulate = Color("e8e4d8")
 	lbl.position = Vector3(rc.position.x + 0.25, 1.05, 2.4)
+	fit_label(lbl, 1.6, 0.85)
 	lbl.rotation.y = PI / 2.0
 	gC.add_child(lbl)
 	lbl.owner = root
@@ -1689,6 +1691,7 @@ func _bk_gate(v: Node, r: Rect2) -> void:
 	sign.pixel_size = 0.005
 	sign.modulate = Color("e8d8a8")
 	sign.position = Vector3(5, 1.15, r.position.y + 0.25)
+	fit_label(sign, 3.6, 0.6)
 	v.add_child(sign)
 	sign.owner = root
 	# обвал в юго-западном углу и трещина со светом с поверхности
@@ -1789,6 +1792,7 @@ func _bk_control(v: Node, r: Rect2) -> void:
 	lb.pixel_size = 0.004
 	lb.modulate = Color("8fe08a")
 	lb.position = Vector3(20, 1.42, r.position.y + 0.36)
+	fit_label(lb, 6.2, 0.3)
 	scr.add_child(lb)
 	lb.owner = root
 	_own(collider(v, Vector3(6.4, 1.2, 0.3), Vector3(20, 0.6, r.position.y + 0.3)), root)
@@ -1941,7 +1945,8 @@ func _signboard(parent: Node, text: String, pos: Vector3, rot: float, w := 3.4, 
 	l.modulate = col
 	l.outline_size = 6
 	l.position = Vector3(0, 0, 0.06)
-	l.width = w / 0.006
+	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	fit_label(l, w, 0.7)
 	b.add_child(l)
 	l.owner = root
 
