@@ -2286,6 +2286,43 @@ func _ready() -> void:
 	loc.on_interact(sh)
 	sh.remove_meta("act")
 	ok(Game.item_count("rope") == 1 and not Game.flag("shaft_rope"), "верёвку отвязал и забрал")
+	# ======== пост связи: дорогу находит кассета «Эфир» ========
+	WorldMap.reveal("tower")
+	var cas_n: int = Game.item_count("cas_ether")
+	Game.remove_item("cas_ether", cas_n)
+	var cas_in: Array = Game.hero.get("cassettes", []).duplicate()
+	Game.hero.cassettes = []
+	ok(not wm.can_go("tower"), "без кассеты «Эфир» пост связи не найти")
+	Game.hero.cassettes = cas_in
+	Game.add_item("cas_ether", maxi(cas_n, 1))
+	ok(wm.can_go("tower"), "с кассетой «Эфир» — дорога к посту связи")
+	wm.visible = false
+	await main.load_location("radio_post", "Road")
+	await frames(3)
+	var rp: Node = main.location
+	main.dialog.close()
+	ok(rp.location_id == "radio_post", "пришёл на пост связи")
+	var ru := unreachable(rp, rp.spawn_point("Road"))
+	ok(ru.is_empty(), "пост связи: до всего можно дойти (%s)" % ", ".join(ru))
+	rp.on_interact(rp.item("RadioSet"))
+	main.dialog.close()
+	ok(not Game.flag("kirk_heard"), "пока охрана жива — к рации не подойти")
+	var pm: Character = rp.character("Merc1")
+	await tp(pm.global_position + Vector3(-3, 0, 0))
+	if not main.combat.on:
+		main.start_fight([pm])
+	await frames(2)
+	await fight(300)
+	await wait(1.0)
+	main.dialog.close()
+	ok(rp.squad_cleared("post"), "охрана поста снята")
+	rp.on_interact(rp.item("RadioSet"))
+	rp.on_interact(rp.item("Logbook"))
+	rp.on_interact(rp.item("MastClimb"))
+	main.dialog.close()
+	ok(Game.flag("kirk_heard") and "Север-два" in str(Game.hero.notes) and Game.flag("post_log") and Game.flag("mast_climbed"),
+		"перехват: Кирк отчитывается «Первому» — ищут браслет; журнал радиста прочитан")
+	loc = rp
 	# назад в Кресты — накладную торговке
 	loc.on_interact(loc.item("WestExit"))
 	await frames(2)

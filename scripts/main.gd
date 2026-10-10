@@ -11,6 +11,7 @@ const LOCATIONS := {
 	"encounter": "res://scenes/locations/encounter.tscn",
 	"nakharro_cellar": "res://scenes/locations/nakharro_cellar.tscn",
 	"nakharro_upper": "res://scenes/locations/nakharro_upper.tscn",
+	"radio_post": "res://scenes/locations/radio_post.tscn",
 	"ruin_bunker": "res://scenes/locations/ruin_bunker.tscn",
 	"sungar": "res://scenes/locations/sungar.tscn",
 	"sungar_center": "res://scenes/locations/sungar_center.tscn",

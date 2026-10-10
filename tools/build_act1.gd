@@ -33,6 +33,7 @@ func _build() -> void:
 	_ruin()
 	_cellar()
 	_upper()
+	_radio_post()
 	_bunker()
 
 
@@ -1042,6 +1043,139 @@ func _bunker_portal(vil: Node) -> void:
 	_signboard(g, "ОБЪЕКТ «СЫТЫГАН-14» · ВЪЕЗД ПО ПРОПУСКАМ", Vector3(34.6, 1.6, 29.0), 0.0, 3.2)
 	for x in [33.2, 36.0]:
 		cyl(g, 0.06, 0.06, 1.6, Vector3(x, 0.8, 28.95), "rust").owner = root
+
+
+# ======================================================================
+# ПОСТ СВЯЗИ: ретранслятор наёмников на сопке — решётчатая мачта, кунг с рацией,
+# генератор, палатка. Откуда идёт сигнал из модуля «Связь». Туда ведёт кассета «Эфир».
+# ======================================================================
+func _radio_post() -> void:
+	var rect := Rect2(0, 0, 56, 46)
+	_begin("radio_post", "Пост связи", rect, "res://scripts/locations/radio_post.gd")
+	var cg := StandardMaterial3D.new()
+	cg.albedo_color = Color("4a5232")
+	cg.roughness = 1.0
+	M["cloth_green"] = cg
+	M["glow_green"] = load(MAT_DIR + "screen_green.tres")
+	var d := "ground_dirt"
+	strip(null, Vector2(-4, 26), Vector2(18, 25), 2.4, d)
+	strip(null, Vector2(18, 25), Vector2(28, 23), 2.6, d)
+	road_segs.append([Vector2(24, 22), Vector2(36, 22), 4.0])
+	_meadow.append(Rect2(12, 6, 36, 34))
+	# поляна на сопке широкая: камера смотрит с юго-востока, лес не должен закрывать лагерь
+	_clear.append(Rect2(8, 2, 44, 44))
+	_clear.append(Rect2(-4, 21, 22, 10))
+	_mud.append(Rect2(22, 24, 8, 4))
+	_ground_for("radio_post")
+	var vil := group(root, "Village")
+	# решётчатая мачта: четыре ноги, раскосы, красно-белые пояса, антенны наверху
+	var m := group(vil, "Mast")
+	m.position = Vector3(36, 0, 16)
+	var H := 16.0
+	for c in [Vector2(-1, -1), Vector2(1, -1), Vector2(-1, 1), Vector2(1, 1)]:
+		box(m, Vector3(0.12, H, 0.12), Vector3(c.x * 0.9, H / 2.0, c.y * 0.9), "metal_dark", Vector3(-c.y * 0.035, 0, c.x * 0.035)).owner = root
+	for k in 8:
+		var y := 1.0 + k * 1.9
+		var w := 1.8 - y * 0.06
+		var band := "paint_white" if k % 2 == 0 else "cloth_red"
+		for side in 4:
+			var a := side * PI / 2.0
+			box(m, Vector3(w, 0.08, 0.08), Vector3(cos(a) * w / 2.0, y, sin(a) * w / 2.0), band, Vector3(0, a + PI / 2.0, 0)).owner = root
+			box(m, Vector3(w * 1.3, 0.05, 0.05), Vector3(cos(a) * w / 2.0, y + 0.95, sin(a) * w / 2.0), "metal_dark", Vector3(0, a + PI / 2.0, 0.6)).owner = root
+	for k in 3:
+		var a := k * TAU / 3.0
+		cyl(m, 0.45, 0.45, 0.08, Vector3(cos(a) * 0.5, H - 1.5 - k * 0.6, sin(a) * 0.5), "paint_white", Vector3(PI / 2.0, a, 0), 14).owner = root
+	cyl(m, 0.03, 0.03, 2.4, Vector3(0, H + 1.2, 0), "metal_dark").owner = root
+	_lamp(m, "Beacon", Vector3(0, H + 2.4, 0), Color("ff3a2a"), 1.2, 4.0).shadow_enabled = false
+	_own(collider(m, Vector3(2.2, 3.0, 2.2), Vector3(0, 1.5, 0)), root)
+	# растяжки к бетонным якорям
+	for a in [0.4, 2.5, 4.6]:
+		var anc := Vector3(36 + cos(a) * 8.0, 0.2, 16 + sin(a) * 8.0)
+		box(vil, Vector3(0.6, 0.4, 0.6), anc, "concrete").owner = root
+		var top := Vector3(36, H * 0.7, 16)
+		var mid := (anc + top) / 2.0
+		var dv := top - anc
+		var cable := MeshInstance3D.new()
+		var cm := CylinderMesh.new()
+		cm.top_radius = 0.012
+		cm.bottom_radius = 0.012
+		cm.height = dv.length()
+		cm.radial_segments = 4
+		cable.mesh = cm
+		cable.material_override = M["metal_dark"]
+		cable.position = mid
+		cable.basis = Basis(Quaternion(Vector3.UP, dv.normalized()))
+		vil.add_child(cable)
+		cable.owner = root
+	# кунг на шасси: будка связи, дверь открыта, внутри светятся шкалы
+	var k := group(vil, "Kung")
+	k.position = Vector3(26, 0, 17)
+	k.rotation.y = 0.15
+	box(k, Vector3(2.6, 2.2, 5.0), Vector3(0, 1.9, 0), "paint_faded").owner = root
+	box(k, Vector3(2.62, 0.12, 5.02), Vector3(0, 3.05, 0), "metal_dark").owner = root
+	box(k, Vector3(2.4, 1.0, 1.8), Vector3(0, 1.3, 3.4), "paint_faded").owner = root
+	box(k, Vector3(2.2, 0.5, 0.05), Vector3(0, 1.6, 4.31), "glass").owner = root
+	for wz in [3.2, -0.8, -1.9]:
+		for sx in [-1.2, 1.2]:
+			cyl(k, 0.5, 0.5, 0.34, Vector3(sx, 0.5, wz), "tire", Vector3(0, 0, PI / 2.0), 12).owner = root
+	box(k, Vector3(0.05, 1.7, 0.9), Vector3(1.32, 1.85, -1.0), "coal").owner = root
+	box(k, Vector3(0.05, 1.7, 0.9), Vector3(1.9, 1.85, -0.3), "paint_faded", Vector3(0, -1.2, 0)).owner = root
+	box(k, Vector3(0.02, 0.4, 0.5), Vector3(1.28, 2.0, -1.0), "glow_green").owner = root
+	_lamp(k, "Dial", Vector3(1.8, 2.0, -1.0), Color("8fe08a"), 0.5, 3.0).shadow_enabled = false
+	cyl(k, 0.03, 0.03, 4.0, Vector3(-0.9, 5.0, -2.0), "metal_dark").owner = root
+	for st in 3:
+		box(k, Vector3(0.7, 0.06, 0.28), Vector3(1.5 + st * 0.2, 0.3 + st * 0.3, -1.0), "metal_dark").owner = root
+	_own(collider(k, Vector3(2.7, 3.0, 7.0), Vector3(0, 1.5, 0.6)), root)
+	# кабель от кунга к мачте, генератор, бочки
+	box(vil, Vector3(9.5, 0.05, 0.08), Vector3(31.2, 0.03, 16.6), "tire", Vector3(0, -0.06, 0)).owner = root
+	box(vil, Vector3(1.6, 1.0, 0.9), Vector3(29.5, 0.5, 21.0), "metal_dark").owner = root
+	box(vil, Vector3(0.5, 0.3, 0.5), Vector3(29.5, 1.15, 21.0), "rust").owner = root
+	_own(collider(vil, Vector3(1.6, 1.2, 0.9), Vector3(29.5, 0.6, 21.0)), root)
+	for p in [Vector3(31.2, 0, 21.4), Vector3(31.9, 0, 20.6), Vector3(31.4, 0, 22.3)]:
+		put(P.barrel, vil, p, randf() * TAU)
+	# палатка, стол с картой под маскировочной сетью, костровище
+	var t := group(vil, "Tent")
+	t.position = Vector3(41, 0, 27)
+	t.rotation.y = -0.3
+	prism(t, Vector3(3.2, 1.8, 4.2), Vector3(0, 0.9, 0), "cloth_sack").owner = root
+	_own(collider(t, Vector3(3.2, 1.8, 4.2), Vector3(0, 0.9, 0)), root)
+	put(P.table, vil, Vector3(32, 0, 27), 0.2, "MapTable")
+	box(vil, Vector3(1.0, 0.01, 0.7), Vector3(32, 0.8, 27), "paper", Vector3(0, 0.3, 0)).owner = root
+	for c in [Vector2(30, 25.5), Vector2(34, 25.5), Vector2(30, 28.5), Vector2(34, 28.5)]:
+		cyl(vil, 0.04, 0.04, 2.3, Vector3(c.x, 1.15, c.y), "log_dark").owner = root
+	box(vil, Vector3(4.6, 0.04, 3.6), Vector3(32, 2.3, 27), "cloth_green").owner = root
+	put(P.bench, vil, Vector3(32, 0, 28.3), 0.2)
+	var fire := put(P.fire, vil, Vector3(37, 0.2, 31), 0.0, "Fire", 0.7)
+	fire.set("strength", 0.6)
+	# ограда из колючей проволоки на кольях с проходом с запада
+	for i in 14:
+		var a := i * TAU / 14.0
+		var pp := Vector3(33 + cos(a) * 13.0, 0, 21 + sin(a) * 11.0)
+		if pp.x < 22.0 and absf(pp.z - 23.0) < 4.0:
+			continue
+		cyl(vil, 0.05, 0.06, 1.3, pp + Vector3(0, 0.65, 0), "log_dark").owner = root
+	_woods(450)
+	var chars := group(root, "Characters")
+	character(chars, "Merc1", "raider_gun", Vector3(27.5, 0, 24.5), PI * 0.7, {"display_name": "Охранник поста", "hostile": true,
+		"aggro_radius": 9.0, "squad": "post", "patrol": PackedVector3Array([Vector3(27.5, 0, 24.5), Vector3(40, 0, 22.5)]), "patrol_wait": 5.0})
+	character(chars, "Merc2", "raider_gun", Vector3(38.5, 0, 19.5), -PI / 2.0, {"display_name": "Охранник поста", "hostile": true,
+		"aggro_radius": 9.0, "squad": "post"})
+	character(chars, "Operator", "raider", Vector3(32.3, 0, 28.0), PI, {"display_name": "Радист", "hostile": true,
+		"aggro_radius": 7.0, "squad": "post", "start_pose": "sit"})
+	var items := group(root, "Items")
+	_exit(items, "WestExit", "Тропа назад", Vector3(1.0, 0, 26), Vector3(1.6, 2.2, 5.0))
+	var rs := _use(items, "RadioSet", "Рация в кунге", Vector3(28.2, 0, 16.6), Vector3(1.2, 2.2, 1.4))
+	rs.set("reach", 2)
+	_use(items, "Logbook", "Журнал радиста", Vector3(32, 0, 26.4), Vector3(1.4, 1.0, 1.0))
+	var mc := _use(items, "MastClimb", "Лестница на мачту", Vector3(36, 0, 17.6), Vector3(1.4, 3.0, 1.0))
+	mc.set("reach", 2)
+	var ac := _use(items, "AmmoCrate", "Ящик с патронами", Vector3(40.2, 0, 24.6), Vector3(0.9, 0.8, 0.8))
+	box(ac, Vector3(0.9, 0.5, 0.6), Vector3(0, 0.25, 0), "cloth_green").owner = root
+	_own(collider(ac, Vector3(0.9, 0.5, 0.6), Vector3(0, 0.25, 0)), root)
+	_spawn("Start", Vector3(4.5, 0, 26))
+	_spawn("Road", Vector3(4.5, 0, 26))
+	_dress(Rect2(14, 8, 32, 28), 350)
+	_finish("radio_post")
 
 
 # ======================================================================

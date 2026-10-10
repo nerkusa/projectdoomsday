@@ -196,6 +196,9 @@ func can_go(id: String) -> bool:
 	# need: [задание, этап] — куда не дойти, пока не узнаешь дорогу
 	if n.has("need") and Game.quest_stage(str(n.need[0])) < int(n.need[1]):
 		return false
+	# need_item: без этой вещи (или вставленной кассеты) место не найти
+	if n.has("need_item") and Game.item_count(str(n.need_item)) == 0 and not Game.hero.get("cassettes", []).has(str(n.need_item)):
+		return false
 	if n.has("end"):
 		return true
 	return n.has("loc") and not n.get("burned", false)
