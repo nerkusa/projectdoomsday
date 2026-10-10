@@ -26,7 +26,7 @@
           "next": "keg",
           "if": {
             "quest": "barrel",
-            "stage_min": 1,
+            "stage_min": 2,
             "stage_max": 2,
             "no_item": "keg",
             "not_flag": "keg_left"

@@ -82,7 +82,8 @@
           "text": "[Отдать пиво] Держи. Поправь здоровье.",
           "next": "road",
           "if": {
-            "item": "beer"
+            "item": "beer",
+            "not_flag": "semen_accused"
           },
           "take": {
             "beer": 1
@@ -93,14 +94,19 @@
           "next": "road",
           "if": {
             "quest": "debt",
-            "stage": 3
+            "stage": 3,
+            "not_flags": [
+              "semen_accused",
+              "debt_force"
+            ]
           }
         },
         {
           "text": "Хватит придуриваться. Ты Прокопию про всех чужих докладываешь.",
           "next": "road",
           "if": {
-            "flag": "kr_drunk_sober"
+            "flag": "kr_drunk_sober",
+            "not_flag": "semen_accused"
           }
         },
         {
@@ -125,6 +131,14 @@
         {
           "text": "Потом.",
           "next": "start"
+        }
+      ],
+      "text_if": [
+        {
+          "if": {
+            "flag": "semen_accused"
+          },
+          "text": "(Сэмэн с разбитой губой глядит исподлобья.) А, это ты. Ты Дьулусу на меня наплёл? Про дорогу тебе? Ничего я тебе не скажу. Задаром — ничего."
         }
       ]
     },

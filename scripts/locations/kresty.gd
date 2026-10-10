@@ -240,8 +240,8 @@ func dialog_cond(id: String) -> bool:
 		"wood3":
 			return Game.item_count("firewood") >= 3
 		"brewer_trust":
-			# пивовар: вернул бочонок (или честно сказал, где он), или принёс хмель
-			return Game.quest_stage("barrel") >= 4 or Game.flag("keg_left") or Game.quest_stage("hops") >= 3
+			# пивовар: с бочонком решено (вернул, честно сказал, где он, или свалил на Сэмэна), или принёс хмель
+			return Game.quest_stage("barrel") >= 4 or Game.quest_stage("hops") >= 3
 	return super.dialog_cond(id)
 
 
@@ -267,6 +267,24 @@ func objective() -> String:
 		return "Осмотреть сушилки для сетей у реки."
 	if Game.quest_stage("kr_banya") == 1:
 		return "Набрать дров для бани: по охапке с поленниц у изб (%d из 3)." % Game.item_count("firewood")
+	match Game.quest_stage("barrel"):
+		1:
+			return "Бочонок Дьулуса: расспросить в Крестах, кто что видел ночью. Мальчишка Уйгун всё замечает."
+		2:
+			return "Бочонок унесли к лагерю оборванцев за рекой. Найти его там."
+		3:
+			return "Бочонок решён в лагере — рассказать Дьулусу."
+	match Game.quest_stage("hops"):
+		1:
+			return "Набрать дикого хмеля для Дьулуса — у заимки Дьаакыпа (%d из 3)." % Game.item_count("hops")
+		2:
+			return "Отнести хмель Дьулусу."
+	if Game.quest_stage("debt") == 1:
+		return "Стребовать с Сэмэна долг Аграфены — или отдать соль за него."
+	if Game.quest_stage("debt") == 2:
+		return "Сказать Аграфене, что с долгом Сэмэна решено."
+	if Game.quest_stage("kr_iron") == 1:
+		return "Найти кузнецу три куска лома (%d из 3) — в брошенной технике по дорогам." % Game.item_count("scrap_iron")
 	if Game.quest_stage("kr_letter") == 1:
 		return "Отдать письмо Аграфене — торговке на площади."
 	if Game.quest_stage("kr_pilot") == 1 and Game.item_count("pilot_tag") > 0:
