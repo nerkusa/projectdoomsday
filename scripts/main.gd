@@ -580,7 +580,9 @@ func filler_bark(ch: Character) -> void:
 				Game.set_flag(str(pick.once))
 			dialog._apply_effects(pick)
 		else:
-			var lines: Dictionary = b.get("village" if lid == "nakharro" else "generic", {})
+			# свои реплики у деревни (Нахарро — «village», остальные — по id локации)
+			var key := "village" if lid == "nakharro" else (lid if b.has(lid) and lid not in ["rumors", "night"] else "generic")
+			var lines: Dictionary = b.get(key, {})
 			var arr: Array = lines.get(tier, lines.get("plain", ["…"]))
 			text = str(arr[randi() % arr.size()])
 	if ch.pose == "" and not asleep:
@@ -590,6 +592,11 @@ func filler_bark(ch: Character) -> void:
 
 
 func talk_to(ch: Character, node := "") -> void:
+	# спящего не добудишься: утром приходи
+	if ch.pose == "sleep":
+		ch.bark(["Хр-р…", "(Спит.)", "Мм… утром… утром приходи…"][randi() % 3])
+		Game.log_line("%s спит. Утром — поговорить." % ch.display_name, "", "look")
+		return
 	if is_filler(ch):
 		filler_bark(ch)
 		return
@@ -1325,6 +1332,8 @@ func _look_text(ch: Character) -> String:
 			return "%s сидит, о чём-то задумавшись." % n
 		"down":
 			return "%s лежит и тяжело дышит." % n
+		"sleep":
+			return "%s спит." % n
 		"yield":
 			return "%s стоит на коленях, руки за головой." % n
 	if not ch.patrol.is_empty():

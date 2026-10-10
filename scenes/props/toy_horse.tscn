@@ -1,0 +1,16 @@
+[gd_scene format=3]
+
+[ext_resource type="Material" path="res://assets/materials/planks_old.tres" id="1_8qhlk"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/toy_horse_planks_old.res" id="2_68rsg"]
+[ext_resource type="Material" path="res://assets/materials/cloth_red.tres" id="3_x2s7s"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/toy_horse_cloth_red.res" id="4_l6sp7"]
+
+[node name="ToyHorse" type="Node3D" unique_id=1457811988]
+
+[node name="Mesh_planks_old" type="MeshInstance3D" parent="." unique_id=1762471096]
+material_override = ExtResource("1_8qhlk")
+mesh = ExtResource("2_68rsg")
+
+[node name="Mesh_cloth_red" type="MeshInstance3D" parent="." unique_id=219622750]
+material_override = ExtResource("3_x2s7s")
+mesh = ExtResource("4_l6sp7")

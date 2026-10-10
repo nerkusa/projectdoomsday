@@ -34,8 +34,11 @@ extends Node3D
 @export var patrol := PackedVector3Array()
 ## Сколько секунд постоять в каждой точке
 @export var patrol_wait := 4.0
-## Поза с начала: "", "sit", "down", "yield"
+## Поза с начала: "", "sit", "down", "yield"; "sleep" — спит лёжа на кровати или печи
+## (высота лежанки — sleep_height)
 @export var start_pose := ""
+## На какой высоте лежит спящий: кровать ~0,45 м, русская печь ~1,4 м
+var sleep_height := 0.45
 ## Показывать героя моделью из hero.glb
 @export var use_hero_model := false
 ## Манекен из Universal Animation Library с готовыми анимациями
@@ -744,6 +747,9 @@ func _animate(delta: float) -> void:
 				a.elL = Vector3(-1.0 - sin(t * 12) * 0.2, 0, 0)
 				if t > 0.6:
 					_end_act()
+	if pose == "sleep":
+		rig_rot_x = -1.5
+		rig_y = sleep_height + 0.15
 	rig.rotation.x = rig_rot_x
 	rig.position.y = rig_y
 	body.apply(a)
@@ -767,7 +773,11 @@ func _animate_clips(delta: float) -> void:
 	var gun := _held_key != "" and DB.is_gun(_held_key)
 	var first := not _clip_started
 	_clip_started = true
+	# спящий лежит на лежанке: тело поднято на её высоту
+	ab.position.y = sleep_height if pose == "sleep" else 0.0
 	match pose:
+		"sleep":
+			ab.play("Death01", 0.0, 1.0, false, true)
 		"dead":
 			# труп с начала уровня не должен падать у игрока на глазах
 			ab.play("Death01", 0.25, 1.0, false, first)
@@ -1073,7 +1083,7 @@ func _mark_kind() -> String:
 		if loc and not loc.ws().looted.has(uid()):
 			return "corpse"
 		return "none"
-	if pose in ["sit", "down"] and not hostile:
+	if pose in ["sit", "down", "sleep"] and not hostile:
 		# сидящих за столом и лежащих на кровати видно и так;
 		# кружок и силуэт пробивались бы сквозь скамейку или кровать
 		return "none"

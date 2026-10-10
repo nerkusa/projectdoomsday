@@ -1,0 +1,10 @@
+[gd_scene format=3]
+
+[ext_resource type="Material" path="res://assets/materials/tire.tres" id="1_mdatc"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/boots_tire.res" id="2_kpseo"]
+
+[node name="Boots" type="Node3D" unique_id=1889993521]
+
+[node name="Mesh_tire" type="MeshInstance3D" parent="." unique_id=1271103811]
+material_override = ExtResource("1_mdatc")
+mesh = ExtResource("2_kpseo")

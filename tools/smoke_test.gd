@@ -146,6 +146,147 @@ func unreachable(loc, start: Vector3, only := Callable()) -> Array:
 	return out
 
 
+## Кресты: дойти можно до всех; баня, кузня, жетон лётчика, письмо
+func kresty_life_tests() -> void:
+	var loc = main.location
+	main.dialog.close()
+	await frames(2)
+	var u := unreachable(loc, loc.spawn_point("Start"))
+	ok(u.is_empty(), "Кресты: до всех жителей и предметов можно дойти (%s)" % ", ".join(u))
+	# баня: дрова с трёх поленниц
+	var bw: Character = loc.character("BanyaWoman")
+	await tp(bw.global_position + Vector3(1.2, 0, 0))
+	main.talk_to(bw)
+	await frames(2)
+	await choose(find_opt("Затопишь"))
+	await choose(find_opt("Принесу"))
+	ok(Game.quest_stage("kr_banya") == 1, "банщица просит дров")
+	await shut()
+	for n in ["Woodpile1", "Woodpile2", "Woodpile3", "Woodpile1"]:
+		main.dialog.close()
+		loc.on_interact(loc.item(n))
+		await frames(1)
+	main.dialog.close()
+	ok(Game.item_count("firewood") == 3, "три охапки с трёх поленниц, с одной дважды не берут (%d)" % Game.item_count("firewood"))
+	main.talk_to(bw)
+	await frames(2)
+	await choose(find_opt("три охапки"))
+	ok(Game.quest_stage("kr_banya") == 2 and Game.item_count("firewood") == 0, "дрова отданы — баня топится")
+	await shut()
+	Game.set_hero_hp(3)
+	loc.on_interact(loc.item("Banya"))
+	await frames(1)
+	main.dialog.close()
+	ok(Game.hero_hp() == Game.hero_max() and int(Game.flag_value("steamed_day", -1)) == Clock.day(), "попарился — здоровье полное")
+	Game.set_hero_hp(3)
+	loc.on_interact(loc.item("Banya"))
+	main.dialog.close()
+	ok(Game.hero_hp() == 3, "второй раз за день баня не лечит")
+	Game.set_hero_hp(Game.hero_max())
+	# кузнец: три куска лома — топор
+	var sm: Character = loc.character("Smith")
+	await tp(sm.global_position + Vector3(1.2, 0, 0))
+	main.talk_to(sm)
+	await frames(2)
+	await choose(find_opt("помочь"))
+	await choose(find_opt("Поищу"))
+	ok(Game.quest_stage("kr_iron") == 1, "кузнецу нужно железо")
+	await shut()
+	Game.add_item("scrap_iron", 3)
+	var axe0 := Game.item_count("axe")
+	main.talk_to(sm)
+	await frames(2)
+	await choose(find_opt("куска лома"))
+	ok(Game.quest_stage("kr_iron") == 2 and Game.item_count("axe") == axe0 + 1 and Game.item_count("scrap_iron") == 0, "лом отдан — кузнец выковал топор")
+	await shut()
+	# бабка Мотрёна и жетон лётчика (найден на обломках «кукурузника»)
+	var gr: Character = loc.character("Granny")
+	await tp(gr.global_position + Vector3(1.2, 0, 0))
+	main.talk_to(gr)
+	await frames(2)
+	await choose(find_opt("жетон"))
+	ok(Game.quest_stage("kr_pilot") == 2 and Game.item_count("pilot_tag") == 0 and Game.item_count("t_badge") >= 1, "жетон отца — бабке Мотрёне")
+	await shut()
+	# письмо от почтальона — торговке
+	var tr: Character = loc.character("Trader")
+	await tp(tr.global_position + Vector3(1.2, 0, 0))
+	main.talk_to(tr)
+	await frames(2)
+	await choose(find_opt("письмо"))
+	ok(Game.quest_stage("kr_letter") == 2 and Game.item_count("letter_kr") == 0, "письмо из Мирного доставлено")
+	await shut()
+	for nm in ["Chapel", "Anvil", "HeadPhoto", "KidStash"]:
+		main.dialog.close()
+		var it = loc.item(nm)
+		ok(it != null and not loc.describe(it).is_empty(), "в Крестах есть %s с описанием" % nm)
+
+
+## Встречи: ориентиры с лором, жетон лётчика, дневник геолога, мини-задания
+func encounter_lore_tests() -> void:
+	var wm: WorldMap = main.world_map
+	var loc = main.location
+	var got := {}
+	for lm in [["plane", "tower", "camp"], ["heli", "wagon", "serge"]]:
+		Game.hero.flags["enc"] = "refugees"
+		Game.hero.flags["enc_mode"] = "peace"
+		Game.hero.flags["enc_biome"] = "field"
+		Game.hero.flags["enc_force_landmarks"] = lm
+		wm.visible = false
+		await main.load_location("encounter", "Start")
+		await frames(2)
+		loc = main.location
+		for wi in loc.items():
+			if String(wi.name).begins_with("Wreck"):
+				got[str(wi.get_meta("kind", ""))] = true
+				var notes0: int = Game.hero.notes.size()
+				if str(wi.get_meta("kind", "")) == "serge":
+					Game.add_item("t_ribbon")
+				if str(wi.get_meta("kind", "")) == "wagon":
+					Game.force_check = 1
+				main.dialog.close()
+				loc.on_interact(wi)
+				Game.force_check = 0
+				await frames(2)
+				if main.loot_win.visible:
+					main.loot_win.take_all()
+					main.loot_win.close()
+				main.dialog.close()
+				ok(Game.hero.notes.size() > notes0, "ориентир «%s»: в записях клочок лора" % str(wi.get_meta("kind", "")))
+	ok(got.size() == 6, "все заказанные ориентиры поставлены (%s)" % ", ".join(got.keys()))
+	ok(Game.item_count("pilot_tag") == 1 and Game.flag("pilot_tag_found"), "на обломках Ан-2 — жетон лётчика")
+	ok(Game.quest_stage("geo_diary") >= 1 and Game.item_count("geo_page") >= 1, "на стоянке — листок дневника геолога")
+	ok(Game.flag("serge_ribbon"), "на сэргэ повязана лента")
+	# мини-задания: телега, почтальон, странники
+	Game.add_item("rope")
+	Game.add_item("rusks", 3)
+	var rope0 := Game.item_count("rope")
+	for e in ["carter", "postman", "pilgrims"]:
+		Game.hero.flags["enc"] = e
+		Game.hero.flags["enc_mode"] = "peace"
+		Game.hero.flags["enc_biome"] = "field"
+		wm.visible = false
+		await main.load_location("encounter", "Start")
+		await frames(2)
+		loc = main.location
+		var npc: Character = loc.characters()[0]
+		await tp(npc.global_position + Vector3(1.2, 0, 0))
+		main.talk_to(npc)
+		await frames(2)
+		match e:
+			"carter":
+				await choose(find_opt("верёвку"))
+				await choose(find_opt("Удачи"))
+				ok(Game.flag("carter_helped") and Game.item_count("rope") == rope0 - 1, "телеге помог верёвкой (%s, верёвок %d→%d)" % [main.dialog.node_id, rope0, Game.item_count("rope")])
+			"postman":
+				await choose(find_opt("письмо в Кресты"))
+				await choose(find_opt("Отнесу"))
+				ok(Game.quest_stage("kr_letter") == 1 and Game.item_count("letter_kr") == 1, "почтальон отдал письмо в Кресты")
+			"pilgrims":
+				await choose(find_opt("Поделиться едой"))
+				ok(Game.flag("pilgrims_fed") and Game.item_count("t_cross") >= 1, "странников накормил — крестик в подарок")
+		await shut()
+
+
 ## Каменный Сунгар: до всех жителей и предметов можно дойти; этажи, лестницы, задания в домах
 func city_tests() -> void:
 	var loc = main.location
@@ -1569,7 +1710,7 @@ func _ready() -> void:
 	var wreck_found := false
 	for tries in 12:
 		for wi in loc.items():
-			if String(wi.name).begins_with("Wreck") and not wreck_found:
+			if String(wi.name).begins_with("Wreck") and not wreck_found and not str(wi.get_meta("kind", "")) in ["tower", "serge"]:
 				wreck_found = true
 				loc.on_interact(wi)
 				await frames(2)
@@ -1587,6 +1728,7 @@ func _ready() -> void:
 		await frames(2)
 		loc = main.location
 	ok(wreck_found, "в генерации встречаются обломки")
+	await encounter_lore_tests()
 	# ======== нападение: засада сразу ========
 	Game.force_check = -1
 	wm.open("encounter")
@@ -2037,6 +2179,7 @@ func _ready() -> void:
 	ok(Game.quest_stage("son_gun") == 3 and "сунгарским" in str(Game.hero.notes), "вернул карабин — Байбал рассказал про проводника")
 	await shut()
 	Game.hero.stats["INT"] = int1
+	await kresty_life_tests()
 	# ======== день и ночь: расписание ========
 	Clock.force_day = false
 	var trd: Character = loc.character("Trader")
@@ -2044,7 +2187,15 @@ func _ready() -> void:
 	Clock.update_schedules(true)
 	Clock.apply_light(loc)
 	var sun: DirectionalLight3D = loc.get_node("Env/Sun")
-	ok(Clock.is_night() and not trd.visible and trd.get_meta("asleep", false), "ночью торговка дома — лавка закрыта")
+	var krh: Character = loc.character("KrHead")
+	ok(Clock.is_night() and trd.visible and trd.pose == "sleep" and trd.get_meta("asleep", false), "ночью торговка дома — спит, лавка закрыта")
+	var izba2 := loc.get_node("Village/Izba2") as Node3D
+	ok(trd.global_position.distance_to(izba2.global_position) < 4.0, "торговка спит у себя в избе")
+	ok(krh.pose == "sleep" and krh.global_position.distance_to((loc.get_node("Village/HeadHouse") as Node3D).global_position) < 7.0, "староста спит дома")
+	main.dialog.close()
+	main.talk_to(trd)
+	await frames(2)
+	ok(not main.dialog.visible, "спящую не разбудить разговором")
 	ok(sun.light_energy < 0.5, "ночью темно (солнце %.2f)" % sun.light_energy)
 	var hn := Clock.hours()
 	main.wait_time(true)
@@ -2053,6 +2204,7 @@ func _ready() -> void:
 	Clock.update_schedules(true)
 	Clock.apply_light(loc)
 	ok(trd.visible and not trd.get_meta("asleep", false) and sun.light_energy > 0.8, "утром торговка снова за прилавком, светло")
+	ok(trd.pose != "sleep" and trd.global_position.distance_to(trd.get_meta("work_pos")) < 0.5 and krh.pose != "sleep", "утром встали и пошли по делам")
 	Clock.force_day = true
 	# сохранение и загрузка в новой локации
 	main.autosave()

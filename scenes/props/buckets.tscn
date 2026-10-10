@@ -1,0 +1,16 @@
+[gd_scene format=3]
+
+[ext_resource type="Material" path="res://assets/materials/tin.tres" id="1_8gbay"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/buckets_tin.res" id="2_l2m13"]
+[ext_resource type="Material" path="res://assets/materials/metal_dark.tres" id="3_k1j82"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/buckets_metal_dark.res" id="4_q584w"]
+
+[node name="Buckets" type="Node3D" unique_id=1180433620]
+
+[node name="Mesh_tin" type="MeshInstance3D" parent="." unique_id=1721371367]
+material_override = ExtResource("1_8gbay")
+mesh = ExtResource("2_l2m13")
+
+[node name="Mesh_metal_dark" type="MeshInstance3D" parent="." unique_id=2133965233]
+material_override = ExtResource("3_k1j82")
+mesh = ExtResource("4_q584w")

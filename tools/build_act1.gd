@@ -18,6 +18,13 @@ func _build() -> void:
 	for n in ["cloth_sack", "cloth_red", "rope_mat", "rust", "metal_dark", "tin", "hay", "bark_dark", "planks_old",
 			"stone_wall", "tire", "paper", "metal_roof", "glass", "paint_faded", "paint_white", "cloth", "rope_mat", "water", "log_dark", "log_weathered", "metal_dark", "ground_dirt"]:
 		M[n] = load(MAT_DIR + n + ".tres")
+	for n in ["concrete", "coal", "soot", "manure"]:
+		M[n] = load(MAT_DIR + n + ".tres")
+	for n in ["banya", "chapel", "smokehouse", "outhouse", "kennel", "coop", "well_crane", "serge", "manure", "fish_rack", "reeds",
+			"samovar", "buckets", "boots", "axe_stump", "fishing_rods", "sledge", "toy_horse", "pot", "yoke", "firewood", "bundle",
+			"boardwalk", "trash_pile", "burn_barrel"]:
+		P[n] = load(PROP_DIR + n + ".tscn")
+	_water_mats()
 	_kresty()
 	_camp()
 	_encounter()
@@ -55,6 +62,60 @@ func _finish(id: String) -> void:
 	ResourceSaver.save(ps, "res://scenes/locations/%s.tscn" % id)
 	root.free()
 	print("Собрано: ", id)
+
+
+# ---------------- вода ----------------
+## Материал реки на каждую локацию: у шейдера своя линия берега
+func _water_mats() -> void:
+	for spec in [["kresty", 66.0], ["sungar", 58.0], ["sungar_center", 57.0]]:
+		var m := ShaderMaterial.new()
+		m.shader = load("res://assets/shaders/water.gdshader")
+		m.set_shader_parameter("normal_a", load("res://assets/textures/water_n1.png"))
+		m.set_shader_parameter("normal_b", load("res://assets/textures/water_n2.png"))
+		m.set_shader_parameter("shore_z", spec[1])
+		m.set_shader_parameter("shore_dir", 1.0)
+		ResourceSaver.save(m, MAT_DIR + "water_%s.tres" % spec[0])
+
+
+## Гладь реки: сетка с рябью и шейдером воды; z0 — берег, вода к +z
+func _river_plane(parent: Node, id: String, x0: float, x1: float, z0: float, z1: float) -> void:
+	var mi := MeshInstance3D.new()
+	mi.name = "Water"
+	var pm := PlaneMesh.new()
+	pm.size = Vector2(x1 - x0, z1 - z0)
+	pm.subdivide_width = int((x1 - x0) / 2.0)
+	pm.subdivide_depth = int((z1 - z0) / 2.0)
+	mi.mesh = pm
+	mi.material_override = load(MAT_DIR + "water_%s.tres" % id)
+	mi.position = Vector3((x0 + x1) / 2.0, 0.04, (z0 + z1) / 2.0)
+	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	parent.add_child(mi)
+	mi.owner = root
+
+
+## Метка постройки Slot_<s> в мировых координатах (группы-родители стоят в нуле)
+func _slot_of(b: Node3D, s: String) -> Vector3:
+	var m := b.get_node_or_null("Slot_" + s) as Node3D
+	return b.transform * m.position if m else b.position
+
+
+## Жилая изба: внутри — самовар, чугунок на печи, сапоги, узелок; у крыльца — хозяйство
+func _homely(parent: Node, b: Node3D, outside: Array) -> void:
+	var inside := {"table": ["samovar", "pot"], "stove": ["pot"], "floor": ["boots", "bundle", "toy_horse"], "chest": ["bundle"]}
+	for sl in inside:
+		if b.get_node_or_null("Slot_" + sl) == null:
+			continue
+		var opts: Array = inside[sl]
+		var p := _slot_of(b, sl)
+		put(P[opts[randi() % opts.size()]], parent, p, randf() * TAU)
+	# у крыльца: door — середина дверного проёма в координатах дома
+	var door: Vector3 = b.get("door") if b.get("door") != null else Vector3.ZERO
+	var k := 0
+	for o in outside:
+		var side := -1.0 if k % 2 == 0 else 1.0
+		var local := door + Vector3(side * (1.6 + 0.6 * int(k / 2)), 0, 1.0 + 0.3 * k)
+		put(P[o], parent, b.transform * local, randf() * TAU)
+		k += 1
 
 
 # ---------------- земля ----------------
@@ -362,31 +423,37 @@ func _spawn(nm: String, pos: Vector3) -> void:
 # река на юге с мостками и сушилками для сетей, выгон на северо-востоке.
 # ======================================================================
 func _kresty() -> void:
-	var rect := Rect2(0, 0, 92, 78)
+	var rect := Rect2(0, 0, 116, 80)
 	_begin("kresty", "Кресты", rect, "res://scripts/locations/kresty.gd")
 	var d := "ground_dirt"
-	strip(null, Vector2(-4, 38), Vector2(96, 38), 3.0, d)
+	strip(null, Vector2(-4, 38), Vector2(120, 38), 3.0, d)
+	strip(null, Vector2(100, 38), Vector2(100, 58), 1.8, d)
 	strip(null, Vector2(47, 38), Vector2(47, 64), 2.2, d)
 	strip(null, Vector2(47, 38), Vector2(47, 24), 2.0, d)
 	strip(null, Vector2(64, 38), Vector2(72, 20), 1.6, d)
 	road_segs.append([Vector2(41, 36), Vector2(53, 40), 3.5])  # площадь
 	_meadow.append(Rect2(62, 6, 26, 14))  # выгон
 	_meadow.append(Rect2(4, 28, 12, 7))  # погост
-	_mud.append(Rect2(-10, 64.5, 112, 3.0))  # берег
-	_clear.append(Rect2(14, 20, 76, 46))
-	_clear.append(Rect2(80, 26, 14, 26))
+	_mud.append(Rect2(-10, 64.5, 140, 3.0))  # берег
+	# грязь: у колодца, у пивоварни, у ворот выгона, на восточной улице, у бани
+	for r in [Rect2(38.5, 38.5, 7, 6), Rect2(27, 39.5, 11, 4.5), Rect2(59, 19.5, 11, 5), Rect2(54, 35.6, 14, 4.6),
+			Rect2(86, 35.5, 24, 5), Rect2(21, 55, 9, 5), Rect2(97, 40, 7, 6), Rect2(55, 55, 9, 6)]:
+		_mud.append(r)
+	_clear.append(Rect2(14, 20, 98, 46))
+	_clear.append(Rect2(80, 22, 34, 34))
 	_clear.append(Rect2(60, 4, 30, 18))
 	_clear.append(Rect2(-2, 24, 20, 30))
 	_clear.append(Rect2(-10, 60, 112, 30))
 	_no_edge.append(Rect2(-40, 63, 180, 35))
 	_no_edge.append(Rect2(-14, 28, 14, 20))  # у въезда с запада лес реже — не закрывает героя
 	_ground_for("kresty")
-	# река: вода и невидимая стена по берегу
+	# река: гладь с рябью, невидимая стена по берегу, камыш
 	var river := group(root, "River")
 	river.set_meta("no_xray", true)
-	var wtr := box(river, Vector3(160, 0.02, 30), Vector3(46, 0.035, 82.5), "water")
-	wtr.owner = root
-	_own(collider(river, Vector3(160, 1.5, 12), Vector3(46, 0.75, 73.5)), root)
+	_river_plane(river, "kresty", -40, 160, 66.0, 100.0)
+	_own(collider(river, Vector3(200, 1.5, 12), Vector3(60, 0.75, 73.5)), root)
+	for x in [6.0, 13.0, 19.5, 31.0, 35.5, 52.0, 61.5, 71.0, 78.0, 84.5, 92.0, 99.0, 106.5, 112.0]:
+		put(P.reeds, river, Vector3(x + randf_range(-1, 1), 0, 66.2 + randf_range(-0.2, 0.6)), randf() * TAU, "", randf_range(0.8, 1.3))
 	# мостки
 	for i in 6:
 		box(river, Vector3(1.4, 0.08, 0.5), Vector3(47, 0.12, 64.8 + i * 0.55), "planks_old").owner = root
@@ -406,7 +473,41 @@ func _kresty() -> void:
 	put(P.izba_long, vil, Vector3(75, 0, 44.5), PI, "Izba8")
 	put(P.izba_small, vil, Vector3(58, 0, 57), PI / 2.0, "FisherHut")
 	put(P.shed, vil, Vector3(38, 0, 57), 0.1)
-	put(P.shed, vil, Vector3(86, 0, 44.5), -0.1)
+	put(P.shed, vil, Vector3(87.5, 0, 44.5), -0.1)
+	# восточный конец: новые избы, кузница, колодец-журавль
+	put(P.izba, vil, Vector3(96, 0, 31.5), 0.03, "Izba9")
+	put(P.izba_tall, vil, Vector3(107, 0, 31.2), -0.02, "Izba10")
+	put(P.izba_long, vil, Vector3(96.5, 0, 44.6), PI - 0.02, "Izba11")
+	put(P.workshop, vil, Vector3(108.5, 0, 45.2), PI, "Smithy")
+	put(P.well_crane, vil, Vector3(103.0, 0, 40.6), 0.3, "WellCrane")
+	put(P.woodpile, vil, Vector3(112.5, 0, 42.5), 1.5)
+	# баня у реки, часовня у погоста, коптильня у рыбака
+	put(P.banya, vil, Vector3(24.5, 0, 59.0), 0.0, "Banya")
+	put(P.chapel, vil, Vector3(14.5, 0, 24.0), 0.0, "Chapel")
+	put(P.smokehouse, vil, Vector3(63.0, 0, 58.8), 0.2, "Smokehouse")
+	# сэргэ на площади и у дома старосты
+	for sp in [Vector3(43.2, 0, 34.4), Vector3(44.6, 0, 34.0), Vector3(40.6, 0, 31.2)]:
+		put(P.serge, vil, sp, randf() * TAU)
+	# хозяйство: нужники за избами, будки, курятник, навоз, вешала с рыбой
+	for op in [Vector3(16.5, 0, 27.0), Vector3(56.5, 0, 27.6), Vector3(89.0, 0, 27.6), Vector3(101.5, 0, 27.6)]:
+		put(P.outhouse, vil, op, randf_range(-0.2, 0.2))
+	for kp in [Vector3(63.8, 0, 35.0), Vector3(90.8, 0, 34.6), Vector3(18.0, 0, 41.2)]:
+		put(P.kennel, vil, kp, randf() * TAU)
+	put(P.coop, vil, Vector3(60.0, 0, 50.0), PI)
+	for mp in [Vector3(61.5, 0, 24.6), Vector3(40.0, 0, 52.8), Vector3(110.5, 0, 50.5)]:
+		put(P.manure, vil, mp, randf() * TAU)
+	put(P.fish_rack, vil, Vector3(34.0, 0, 62.4), 0.05)
+	put(P.fish_rack, vil, Vector3(73.0, 0, 62.6), -0.04)
+	for bw in [[Vector3(41.6, 0, 41.4), 0.0], [Vector3(60.5, 0, 37.9), PI / 2.0], [Vector3(64.0, 0, 37.9), PI / 2.0], [Vector3(98.0, 0, 37.9), PI / 2.0]]:
+		put(P.boardwalk, vil, bw[0], bw[1])
+	# личные вещи в избах и у крыльца
+	var outs := {"Izba1": ["axe_stump", "buckets"], "Izba2": ["yoke", "firewood"], "Izba3": ["sledge", "buckets"], "Izba4": ["firewood", "axe_stump"],
+		"Izba5": ["buckets"], "Izba6": ["toy_horse", "yoke"], "Izba7": ["buckets", "firewood"], "Izba8": ["sledge", "toy_horse"],
+		"FisherHut": ["fishing_rods", "buckets"], "Izba9": ["axe_stump", "yoke"], "Izba10": ["firewood", "sledge"], "Izba11": ["buckets", "firewood"]}
+	for nm in outs:
+		var b := vil.get_node_or_null(nm) as Node3D
+		if b:
+			_homely(vil, b, outs[nm])
 	put(P.well, vil, Vector3(42, 0, 41.8), 0.0, "Well")
 	put(P.table_long, vil, Vector3(52.5, 0, 43.2), 0.0, "SquareTable")
 	put(P.table, vil, Vector3(50.8, 0, 35.4), 0.0, "TradeTable")
@@ -442,7 +543,7 @@ func _kresty() -> void:
 	_net_rack(vil, Vector3(60, 0, 63.3), 0.08)
 	_boat(vil, Vector3(40.5, 0, 63.5), 0.3)
 	_boat(vil, Vector3(66, 0, 63.8), -0.2)
-	for p in [Vector3(20, 0, 60), Vector3(28, 0, 62), Vector3(76, 0, 60), Vector3(84, 0, 62), Vector3(88, 0, 58)]:
+	for p in [Vector3(76, 0, 60), Vector3(84, 0, 62), Vector3(88, 0, 58), Vector3(104, 0, 60), Vector3(112, 0, 57)]:
 		put(P.bush, vil, p, randf() * TAU)
 	for p in [Vector3(40, 0, 50), Vector3(56, 0, 50), Vector3(36, 0, 22)]:
 		put(P.birch, vil, p, randf() * TAU, "", 1.1)
@@ -467,13 +568,27 @@ func _kresty() -> void:
 	var s1 := _seat(tbl, -0.6, 1.0)
 	var s2 := _seat(tbl, 0.5, -1.0)
 	character(chars, "Drunk", "kr_drunk", s1[0], s1[1], {"dialog": "kr_drunk", "start_pose": "sit"})
-	character(chars, "Granny", "villager_f", s2[0], s2[1], {"display_name": "Бабка Мотрёна", "dialog": "kr_rumors", "start_pose": "sit"})
+	character(chars, "Granny", "kr_motryona", s2[0], s2[1], {"dialog": "kr_motryona", "start_pose": "sit"})
 	character(chars, "KrVillager1", "villager", Vector3(24, 0, 38.8), 1.4, {"display_name": "Крестовский мужик", "dialog": "kr_rumors",
 		"patrol": PackedVector3Array([Vector3(24, 0, 38.8), Vector3(80, 0, 38.8)]), "patrol_wait": 5.0})
 	character(chars, "KrVillager2", "villager_f", Vector3(64, 0, 49.5), 0.0, {"display_name": "Хозяйка", "dialog": "kr_rumors",
 		"patrol": PackedVector3Array([Vector3(64, 0, 49.5), Vector3(47, 0, 49.5), Vector3(47, 0, 58)]), "patrol_wait": 4.0})
 	character(chars, "KrKid", "kid", Vector3(44, 0, 44), 0.5, {"display_name": "Мальчишка Уйгун", "dialog": "kr_kid",
 		"patrol": PackedVector3Array([Vector3(44, 0, 44), Vector3(40, 0, 40), Vector3(45, 0, 38.5)]), "patrol_wait": 2.0})
+	# новые жители: кузнец, банщица, пастух (если помог ему в дороге), бабы у колодца, детвора
+	character(chars, "Smith", "kr_smith", Vector3(107.4, 0, 41.8), 0.3, {"dialog": "kr_smith"})
+	character(chars, "BanyaWoman", "kr_banya", Vector3(26.6, 0, 61.4), -0.6, {"dialog": "kr_banya"})
+	character(chars, "Herder", "kr_herder", Vector3(70, 0, 18.0), 0.5, {"dialog": "kr_herder",
+		"patrol": PackedVector3Array([Vector3(70, 0, 18.0), Vector3(78, 0, 12.0), Vector3(84, 0, 17.0)]), "patrol_wait": 6.0})
+	character(chars, "WellWoman", "kr_woman", Vector3(41.2, 0, 43.8), 2.6, {"dialog": "kr_rumors", "display_name": "Кулустаана с вёдрами",
+		"patrol": PackedVector3Array([Vector3(41.2, 0, 43.8), Vector3(24, 0, 40.5)]), "patrol_wait": 8.0})
+	character(chars, "Maaya", "kr_woman2", Vector3(101.6, 0, 42.8), -2.2, {"dialog": "kr_rumors", "display_name": "Тётка Маайа у журавля"})
+	character(chars, "OldYldya", "kr_oldman", Vector3(57.0, 0, 60.6), 0.6, {"dialog": "kr_rumors", "display_name": "Дед Ылдьа", "start_pose": "sit"})
+	character(chars, "Aanys", "kr_woman", Vector3(33.4, 0, 61.4), 0.0, {"dialog": "kr_rumors", "display_name": "Рыбачка Ааныс у вешал"})
+	character(chars, "Girl", "kid", Vector3(84, 0, 40.5), 0.0, {"dialog": "kr_rumors", "display_name": "Девчонка Сардаана",
+		"patrol": PackedVector3Array([Vector3(84, 0, 40.5), Vector3(96, 0, 41.0), Vector3(90, 0, 36.6)]), "patrol_wait": 3.0})
+	character(chars, "EastMan", "kr_man", Vector3(95, 0, 36.6), PI / 2.0, {"dialog": "kr_rumors", "display_name": "Мужик с топором",
+		"patrol": PackedVector3Array([Vector3(95, 0, 36.6), Vector3(112, 0, 41.2), Vector3(104, 0, 36.8)]), "patrol_wait": 6.0})
 	# псы на выгоне: появляются, когда староста попросит
 	for i in 3:
 		character(chars, "Dog%d" % (i + 1), "wild_dog", Vector3(72 + i * 3.5, 0, 9 + (i % 2) * 3.0), randf() * TAU,
@@ -481,7 +596,19 @@ func _kresty() -> void:
 
 	var items := group(root, "Items")
 	_exit(items, "WestExit", "Дорога на запад", Vector3(1.0, 0, 38), Vector3(1.6, 2.2, 5.0))
-	_exit(items, "EastExit", "Дорога на восток", Vector3(91.0, 0, 38), Vector3(1.6, 2.2, 5.0))
+	_exit(items, "EastExit", "Дорога на восток", Vector3(115.0, 0, 38), Vector3(1.6, 2.2, 5.0))
+	_use(items, "Banya", "Баня", Vector3(24.5, 0, 61.0), Vector3(2.0, 2.0, 1.2))
+	_use(items, "Chapel", "Часовня", Vector3(14.5, 0, 26.2), Vector3(1.6, 2.4, 1.0))
+	for k in 3:
+		var wp: Vector3 = [Vector3(14.5, 0, 45.8), Vector3(66.5, 0, 26.9), Vector3(112.5, 0, 43.4)][k]
+		_use(items, "Woodpile%d" % (k + 1), "Поленница", wp, Vector3(1.6, 1.2, 1.2))
+	_use(items, "Anvil", "Наковальня у кузницы", Vector3(108.5, 0, 42.4), Vector3(1.2, 1.2, 1.2))
+	box(items.get_node("Anvil"), Vector3(0.7, 0.35, 0.3), Vector3(0, 0.75, 0), "metal_dark").owner = root
+	cyl(items.get_node("Anvil"), 0.22, 0.26, 0.6, Vector3(0, 0.3, 0), "log_dark").owner = root
+	_own(collider(items.get_node("Anvil"), Vector3(0.7, 0.9, 0.6), Vector3(0, 0.45, 0)), root)
+	var hp := _use(items, "HeadPhoto", "Фотография на стене", _slot_of(vil.get_node("HeadHouse"), "table") + Vector3(0, 0, -0.5), Vector3(0.8, 1.2, 0.6))
+	hp.set("reach", 2)
+	_use(items, "KidStash", "Тайник под крыльцом", Vector3(77.2, 0, 41.9), Vector3(0.8, 0.5, 0.8))
 	_use(items, "NetTracks", "Следы у сушилки", Vector3(62.6, 0, 62.4), Vector3(1.6, 0.4, 1.4))
 	_use(items, "Cemetery", "Погост", Vector3(10, 0, 31.2), Vector3(8.0, 1.5, 4.0))
 	# одинокая лиственница у восточной дороги: под ней сын Байбала зарыл карабин
@@ -495,7 +622,9 @@ func _kresty() -> void:
 	marker(root, "MarkBrew", Vector3(33, 0, 46.5), "Пивоварня")
 	marker(root, "MarkRiver", Vector3(47, 0, 64), "Мостки")
 	marker(root, "MarkPasture", Vector3(76, 0, 12), "Выгон")
-	_dress(Rect2(4, 22, 86, 44), 1200)
+	_dress(Rect2(4, 22, 108, 44), 1500)
+	# мусор и лужи на задах
+	put(P.trash_pile, vil, Vector3(37.0, 0, 52.5), 0.4)
 	_finish("kresty")
 
 
@@ -1085,7 +1214,7 @@ func _river_south(z_edge: float) -> void:
 	_clear.append(Rect2(-60, z_edge - 1.5, 220, 80))
 	var river := group(root, "River")
 	river.set_meta("no_xray", true)
-	box(river, Vector3(220, 0.02, 44), Vector3(42, 0.035, z_edge + 22), "water").owner = root
+	_river_plane(river, str(root.get("location_id")), -70, 150, z_edge, z_edge + 44)
 	_own(collider(river, Vector3(220, 1.5, 6), Vector3(42, 0.75, z_edge + 3.2)), root)
 
 

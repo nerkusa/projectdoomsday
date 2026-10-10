@@ -1,0 +1,62 @@
+[gd_scene format=3]
+
+[ext_resource type="Material" path="res://assets/materials/metal_dark.tres" id="1_gtusc"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/fire_tower_metal_dark.res" id="2_m3cxi"]
+[ext_resource type="Material" path="res://assets/materials/planks_old.tres" id="3_4coru"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/fire_tower_planks_old.res" id="4_m82q5"]
+[ext_resource type="Material" path="res://assets/materials/glass_city.tres" id="5_u06gb"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/fire_tower_glass_city.res" id="6_skceu"]
+[ext_resource type="Material" path="res://assets/materials/metal_roof.tres" id="7_rkd6f"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/fire_tower_metal_roof.res" id="8_7tujt"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_vg0mw"]
+size = Vector3(0.4, 2, 0.4)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_6m3uk"]
+size = Vector3(0.4, 2, 0.4)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_j8vuu"]
+size = Vector3(0.4, 2, 0.4)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_v6hck"]
+size = Vector3(0.4, 2, 0.4)
+
+[node name="FireTower" type="Node3D" unique_id=74002215]
+
+[node name="Mesh_metal_dark" type="MeshInstance3D" parent="." unique_id=1071288886]
+material_override = ExtResource("1_gtusc")
+mesh = ExtResource("2_m3cxi")
+
+[node name="Mesh_planks_old" type="MeshInstance3D" parent="." unique_id=1420648291]
+material_override = ExtResource("3_4coru")
+mesh = ExtResource("4_m82q5")
+
+[node name="Mesh_glass_city" type="MeshInstance3D" parent="." unique_id=865585469]
+material_override = ExtResource("5_u06gb")
+mesh = ExtResource("6_skceu")
+
+[node name="Mesh_metal_roof" type="MeshInstance3D" parent="." unique_id=256504378]
+material_override = ExtResource("7_rkd6f")
+mesh = ExtResource("8_7tujt")
+
+[node name="Slot_ladder" type="Marker3D" parent="." unique_id=1946625282]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 2.4)
+
+[node name="Collision" type="StaticBody3D" parent="." unique_id=803460896]
+collision_mask = 0
+
+[node name="@CollisionShape3D@20" type="CollisionShape3D" parent="Collision" unique_id=502167929]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.55, 1, -1.55)
+shape = SubResource("BoxShape3D_vg0mw")
+
+[node name="@CollisionShape3D@21" type="CollisionShape3D" parent="Collision" unique_id=691242031]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.55, 1, 1.55)
+shape = SubResource("BoxShape3D_6m3uk")
+
+[node name="@CollisionShape3D@22" type="CollisionShape3D" parent="Collision" unique_id=2008338555]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.55, 1, -1.55)
+shape = SubResource("BoxShape3D_j8vuu")
+
+[node name="@CollisionShape3D@23" type="CollisionShape3D" parent="Collision" unique_id=2098333635]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.55, 1, 1.55)
+shape = SubResource("BoxShape3D_v6hck")

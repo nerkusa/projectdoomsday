@@ -11,6 +11,10 @@ extends Act1Location
 ##   sneak  — герой подкрался: сидит в кустах у края, враги у костра его не видят;
 ##   peace  — мирная встреча.
 ## Состояние поляны не хранится: каждая встреча — заново.
+## Остатки старого мира (самолёт, вертолёт, техника, руины, пожарная вышка, вагон
+## узкоколейки, балаган, брошенная стоянка, круг сэргэ) можно обыскать: там вещи,
+## клочки лора (data/lore.json — в записи КПК, каждый один раз), листки дневника
+## геолога, жетон лётчика для бабки Мотрёны и железный лом для кузнеца.
 
 const SIZE := 46.0
 const BIOME_NAMES := {"field": "поле", "forest": "тайга", "swamp": "болото", "dead": "мёртвый лес"}
@@ -170,14 +174,25 @@ func _landmarks(t0: Vector2, t1: Vector2) -> void:
 	if rng.randf() < 0.35:
 		_power_line()
 	var n := 0
-	if rng.randf() < 0.8:
-		n = 1 if rng.randf() < 0.7 else 2
-	var kinds := ["plane", "vehicle", "ruin", "vehicle", "ruin"]
-	if biome == "swamp":
-		kinds = ["plane", "vehicle", "ruin"]
+	if rng.randf() < 0.85:
+		n = 1 if rng.randf() < 0.65 else 2
+	var kinds := ["plane", "heli", "vehicle", "ruin", "vehicle", "ruin", "tower", "wagon", "balagan", "camp", "serge"]
+	match biome:
+		"swamp":
+			kinds = ["plane", "heli", "vehicle", "ruin", "balagan", "camp"]
+		"field":
+			kinds = ["plane", "heli", "vehicle", "ruin", "vehicle", "tower", "wagon", "serge", "camp"]
+		"dead":
+			kinds = ["plane", "heli", "ruin", "tower", "wagon", "camp", "serge"]
+	# автотест может заказать, что поставить: Game.hero.flags["enc_force_landmarks"]
+	var forced: Array = Game.hero.flags.get("enc_force_landmarks", [])
+	if not forced.is_empty():
+		Game.hero.flags.erase("enc_force_landmarks")
+		n = forced.size()
 	for i in n:
-		var k: String = kinds[rng.randi() % kinds.size()]
-		var r: float = {"plane": 6.5, "vehicle": 3.6, "ruin": 4.5}[k]
+		var k: String = forced[i] if not forced.is_empty() else kinds[rng.randi() % kinds.size()]
+		var r: float = {"plane": 7.0, "heli": 7.0, "vehicle": 3.6, "ruin": 4.5, "tower": 3.0, "wagon": 4.8, "balagan": 3.6,
+			"camp": 3.2, "serge": 2.6}[k]
 		for t in 40:
 			var a := rng.randf() * TAU
 			var p := _center + Vector2(cos(a), sin(a)) * rng.randf_range(9.0, 15.0)
@@ -191,6 +206,14 @@ func _landmarks(t0: Vector2, t1: Vector2) -> void:
 					_vehicle(p, rng.randf() * TAU)
 				"ruin":
 					_ruin_house(p, rng.randf() * TAU)
+				"heli", "tower", "wagon", "balagan", "camp":
+					var prop: String = {"heli": "mi8_wreck", "tower": "fire_tower", "wagon": "rail_wagon", "balagan": "balagan", "camp": "camp_site"}[k]
+					var node := _put(prop, p, 1.0)
+					node.name = k.capitalize()
+				"serge":
+					for j in 4:
+						var a2 := j * TAU / 4.0 + rng.randf_range(-0.2, 0.2)
+						_put("serge", p + Vector2(cos(a2), sin(a2)) * 1.6, rng.randf_range(0.9, 1.15))
 			_wreck_loot(p, k, i)
 			break
 
@@ -303,40 +326,20 @@ func _asphalt(t0: Vector2, t1: Vector2) -> void:
 		_taken.append([sp, 0.8])
 
 
-## Разбившийся Ан-2: фюзеляж переломлен, крыло отломано, хвост торчит вверх
+## Разбившийся Ан-2 (детальная постройка an2_wreck): бортовой номер на фюзеляже
 func _plane(p: Vector2, rot: float) -> void:
-	var h := _holder(p, rot, "Plane")
-	var body := _cm("4f574c", 0.85, 0.0)
-	var rust := _m("rust")
-	var white := _m("paint_white")
-	# передняя часть: кабина и мотор
-	_cy(h, 0.85, 0.95, 4.2, Vector3(0, 0.9, 1.6), body, Vector3(PI / 2.0, 0, 0.08))
-	_cy(h, 0.75, 0.85, 0.9, Vector3(0, 0.95, 4.1), _m("metal_dark"), Vector3(PI / 2.0, 0, 0))
-	_bx(h, Vector3(0.12, 2.2, 0.18), Vector3(0, 1.0, 4.65), _m("metal_dark"), Vector3(0, 0, 0.6))
-	_bx(h, Vector3(1.1, 0.5, 0.05), Vector3(0, 1.75, 3.1), _m("glass"), Vector3(-0.5, 0, 0))
-	# хвостовая часть — отломилась и лежит под углом
-	_cy(h, 0.5, 0.85, 4.6, Vector3(0.6, 0.7, -3.0), body, Vector3(PI / 2.0 - 0.12, 0.35, 0))
-	_bx(h, Vector3(0.12, 1.6, 1.2), Vector3(1.4, 1.6, -5.0), white, Vector3(0, 0.35, 0.1))
-	_bx(h, Vector3(2.8, 0.08, 0.8), Vector3(1.4, 0.75, -5.0), white, Vector3(0, 0.35, 0.2))
-	# крылья: верхнее целое, нижнее отломано и лежит рядом
-	_bx(h, Vector3(12.0, 0.14, 1.7), Vector3(0, 2.1, 2.2), body, Vector3(0, 0, -0.05))
-	for x in [-3.0, 3.0]:
-		_cy(h, 0.04, 0.04, 1.3, Vector3(x, 1.45, 2.2), _m("metal_dark"))
-	_bx(h, Vector3(5.5, 0.12, 1.5), Vector3(-3.4, 0.35, 2.4), body, Vector3(0, 0, 0.0))
-	_bx(h, Vector3(4.0, 0.12, 1.5), Vector3(5.6, 0.12, 0.6), rust, Vector3(0.1, 0.5, 0.15))
-	# звезда/бортовой номер полосой
-	_bx(h, Vector3(0.02, 0.35, 2.0), Vector3(0.93, 1.0, 1.0), _cm("8a2a22", 0.7))
-	# гарь под мотором
-	var ash := MeshInstance3D.new()
-	var pm := PlaneMesh.new()
-	pm.size = Vector2(5, 7)
-	ash.mesh = pm
-	ash.material_override = _cm("201c18", 1.0)
-	ash.position = Vector3(0, 0.015, 1.5)
-	h.add_child(ash)
-	_col(h, Vector3(2.0, 2.0, 5.0), Vector3(0, 1.0, 1.8))
-	_col(h, Vector3(1.6, 1.6, 4.6), Vector3(0.6, 0.8, -3.0), 0.35)
-	_col(h, Vector3(5.4, 0.6, 1.5), Vector3(-3.4, 0.3, 2.4))
+	var node := _put("an2_wreck", p, 1.0)
+	node.name = "Plane"
+	node.rotation.y = rot
+	var l := Label3D.new()
+	l.text = "СССР-07431"
+	l.font_size = 48
+	l.pixel_size = 0.006
+	l.modulate = Color("2a2a2a")
+	l.outline_size = 0
+	l.position = Vector3(0.98, 1.25, 0.4)
+	l.rotation = Vector3(0, PI / 2.0, 0.09)
+	node.add_child(l)
 
 
 ## Брошенная техника: грузовик, автобус или БТР
@@ -479,7 +482,8 @@ func _wreck_loot(p: Vector2, kind: String, i: int) -> void:
 	var it := Interactable.new()
 	it.name = "Wreck%d" % i
 	it.kind = "use"
-	it.label = {"plane": "Обломки самолёта", "vehicle": "Брошенная машина", "ruin": "Руины"}[kind]
+	it.label = {"plane": "Обломки самолёта", "vehicle": "Брошенная машина", "ruin": "Руины", "heli": "Обломки вертолёта",
+		"tower": "Пожарная вышка", "wagon": "Вагон-теплушка", "balagan": "Балаган", "camp": "Брошенная стоянка", "serge": "Круг сэргэ"}[kind]
 	it.pick_size = Vector3(3.0, 1.6, 3.0)
 	it.reach = 2
 	it.position = Vector3(p.x, 0, p.y)
@@ -655,7 +659,13 @@ func _spawn_people() -> void:
 				props["start_pose"] = str(extra.pose)
 			if extra.has("name"):
 				props["display_name"] = str(extra.name)
-			_char(chars, str(pair[0]), 10 + i, p, props)
+			var ch := _char(chars, str(pair[0]), 10 + i, p, props)
+			# вещи при встрече (телега и т. п.) — рядом с первым
+			if i == 1:
+				for pr in enc.get("props", []):
+					var q := p + Vector2(float(pr[1]), float(pr[2]))
+					_put(str(pr[0]), q, 1.0)
+					_taken.append([q, 1.5])
 	if enc.get("fire", false) or mode == "sneak":
 		var fp := _center if mode == "sneak" else _center + Vector2(2.6, 0.4)
 		var fire := _put("fire", fp, 0.8)
@@ -716,19 +726,101 @@ func leave_hide() -> void:
 
 
 const WRECK_LOOT := {
-	"plane": [["ammo9", 4], ["medkit", 1], ["rope", 1], ["t_badge", 1], ["canned", 2], ["t_postcard", 1], ["bandage", 2]],
-	"vehicle": [["screwdriver", 1], ["ammo762", 3], ["canned", 1], ["t_lighter", 1], ["matches", 1], ["rope", 1], ["t_coin", 2]],
+	"plane": [["ammo9", 4], ["medkit", 1], ["rope", 1], ["t_badge", 1], ["canned", 2], ["t_postcard", 1], ["bandage", 2], ["scrap_iron", 1]],
+	"heli": [["medkit", 1], ["bandage", 2], ["ammo762", 4], ["canned", 2], ["scrap_iron", 1], ["t_photo", 1], ["flask", 1]],
+	"vehicle": [["screwdriver", 1], ["ammo762", 3], ["canned", 1], ["t_lighter", 1], ["matches", 1], ["rope", 1], ["t_coin", 2], ["scrap_iron", 1]],
 	"ruin": [["t_photo", 1], ["t_cross", 1], ["herbs", 1], ["rusks", 1], ["t_coin", 1], ["bandage", 1], ["hairpin", 1]],
+	"tower": [["matches", 1], ["rusks", 1], ["scrap_iron", 1]],
+	"wagon": [["salt", 1], ["canned", 2], ["scrap_iron", 1], ["rope", 1], ["tea", 1]],
+	"balagan": [["fur", 1], ["dried_fish", 2], ["herbs", 1], ["t_elk", 1], ["matches", 1]],
+	"camp": [["canned", 1], ["rusks", 2], ["t_dice", 1], ["flask", 1], ["bandage", 1]],
+	"serge": [],
 }
+
+const WRECK_LINES := {
+	"plane": "В кабине — истлевшие ремни, планшет пилота, сумка. Пятьдесят лет никто не заглядывал.",
+	"heli": "В грузовом отсеке — ящики, растяжки, сиденья вдоль бортов. Обшивка пробита изнутри.",
+	"vehicle": "Бардачок, ящик под сиденьем, кузов. Растащили почти всё — почти.",
+	"ruin": "Под обломками кирпича — чья-то жизнь: посуда, тряпки, жестянка.",
+	"tower": "Наверху будка наблюдателя: стол, журнал, бинокль без стёкол.",
+	"wagon": "В теплушке — нары, печка-буржуйка, мешки из-под соли.",
+	"balagan": "В балагане пахнет старым дымом. Лежанка, камелёк, мешки на крюках.",
+	"camp": "Палатка, кострище, котелок. Рюкзак брошен — хозяин уходил налегке.",
+}
+
+
+## Клочок лора: первый ещё не найденный из пула этого типа — в записи КПК
+func _lore(kind: String) -> String:
+	var pool: Array = DB._load("res://data/lore.json").get(kind, [])
+	for e in pool:
+		if not Game.flag("lore_" + str(e.id)):
+			Game.set_flag("lore_" + str(e.id))
+			Game.add_note(str(e.text))
+			return str(e.text)
+	return ""
+
+
+## Листок дневника геолога: пять страниц по стоянкам и брошенным домам
+func _diary_page() -> String:
+	var k := Game.quest_stage("geo_diary")
+	var pool: Array = DB._load("res://data/lore.json").get("diary", [])
+	if k >= pool.size():
+		return ""
+	var e: Dictionary = pool[k]
+	if k == 0:
+		Game.add_item("geo_page")
+	Game.set_quest("geo_diary", k + 1)
+	Game.add_note(str(e.text))
+	if k + 1 >= pool.size():
+		Game.grant_xp(120)
+	else:
+		Game.grant_xp(20)
+	return str(e.text)
+
+
+## Ближайшая неизвестная точка карты — видно с вышки
+func _reveal_from_tower() -> String:
+	var wm = main.world_map
+	var best := ""
+	var bd := 1e9
+	for id in wm.nodes():
+		var nd: Dictionary = wm.nodes()[id]
+		if wm.known(id) or nd.has("need") or not nd.has("loc"):
+			continue
+		var dd: float = wm.node_pos(id).distance_to(wm.pos)
+		if dd < bd:
+			bd = dd
+			best = id
+	if best != "":
+		WorldMap.reveal(best)
+		return str(wm.nodes()[best].get("name", best))
+	return ""
 
 
 func on_interact(it: Interactable) -> bool:
 	if String(it.name).begins_with("Wreck"):
+		var kind := str(it.get_meta("kind", "ruin"))
 		if ws().misc.has("searched_" + it.name):
 			main.think("Больше ничего полезного.")
 			return true
+		match kind:
+			"serge":
+				_serge(it)
+				return true
+			"tower":
+				ws().misc["searched_" + it.name] = true
+				var seen := _reveal_from_tower()
+				var lt := _lore("tower")
+				main.think("Лестница скрипит, но держит. Наверху — ветер и тайга до горизонта." + ((" Вижу: " + seen + ".") if seen != "" else "") +
+					(("\n" + lt) if lt != "" else ""))
+				Game.grant_xp(20)
+				return true
+			"wagon":
+				if Game.item_count("crowbar") == 0 and not Game.skill_check("Атлетика", "BODY", "Атлетика", 12) and not Game.flag("wagon_try_" + it.name):
+					Game.set_flag("wagon_try_" + it.name)
+					main.think("Дверь теплушки приржавела. Ещё рывок — может, поддастся.")
+					return true
 		ws().misc["searched_" + it.name] = true
-		var kind := str(it.get_meta("kind", "ruin"))
 		var table: Array = WRECK_LOOT.get(kind, [])
 		var picks := []
 		var used := {}
@@ -738,10 +830,21 @@ func on_interact(it: Interactable) -> bool:
 				continue
 			used[e[0]] = true
 			picks.append({"id": e[0], "n": int(e[1]), "name": DB.item_name(e[0])})
-		var line: String = {"plane": "В кабине — истлевшие ремни, планшет пилота, сумка. Пятьдесят лет никто не заглядывал.",
-			"vehicle": "Бардачок, ящик под сиденьем, кузов. Растащили почти всё — почти.",
-			"ruin": "Под обломками кирпича — чья-то жизнь: посуда, тряпки, жестянка."}[kind]
-		main.think(line)
+		var line: String = WRECK_LINES.get(kind, "")
+		var extra := _lore(kind)
+		# жетон лётчика — в первом же «кукурузнике»
+		if kind == "plane" and not Game.flag("pilot_tag_found"):
+			Game.set_flag("pilot_tag_found")
+			Game.add_item("pilot_tag")
+			Game.log_line("Найдено: Жетон лётчика", "", "hit")
+			extra = "На шее у пилота — жетон: «Ксенофонтов М. Е. · борт 07431»." + ("\n" + extra if extra != "" else "")
+		if kind in ["camp", "balagan"] or (kind in ["ruin", "wagon", "heli"] and rng.randf() < 0.5):
+			var pg := _diary_page()
+			if pg != "":
+				extra += ("\n" if extra != "" else "") + "Листок в клетку: " + pg
+		main.think(line + (("\n" + extra) if extra != "" else ""))
+		if picks.is_empty():
+			return true
 		main.loot_win.open(it.label, picks, func(e):
 			Game.add_item(e.id, int(e.get("n", 1)))
 			return true)
@@ -749,8 +852,29 @@ func on_interact(it: Interactable) -> bool:
 	return super.on_interact(it)
 
 
+## Круг сэргэ: повязать ленту — на удачу в дороге
+func _serge(it: Interactable) -> void:
+	var lt := _lore("serge")
+	if Game.item_count("t_ribbon") > 0:
+		ws().misc["searched_" + it.name] = true
+		Game.remove_item("t_ribbon")
+		Game.set_flag("serge_ribbon")
+		Game.grant_xp(25)
+		Game.change_rep(1, "почтил сэргэ", false)
+		main.think("Повязал ленту на сэргэ, как дед учил: «Алгыс». Ветер тронул ленты — будто кивнул кто." + (("\n" + lt) if lt != "" else ""))
+	else:
+		main.think("Резные столбы-коновязи стоят кругом, на них — выцветшие ленты. Повязать бы свою — да нечего." + (("\n" + lt) if lt != "" else ""))
+
+
 func item_actions(it: Interactable) -> Array:
 	if String(it.name).begins_with("Wreck"):
+		match str(it.get_meta("kind", "")):
+			"tower":
+				return [["Подняться на вышку", "use"]]
+			"serge":
+				return [["Повязать ленту" if Game.item_count("t_ribbon") > 0 else "Осмотреть", "use"]]
+			"wagon":
+				return [["Открыть теплушку", "use"]]
 		return [["Обыскать", "use"]]
 	return super.item_actions(it)
 
@@ -764,6 +888,18 @@ func describe(it: Interactable) -> String:
 				return "Брошенная довоенная техника. Ржавчина, выбитые стёкла, спущенные колёса."
 			"ruin":
 				return "Кирпичная коробка дома. Крыши нет, стены обломаны, внутри — березняк."
+			"heli":
+				return "Ми-8 на брюхе. Лопасти обвисли до земли, хвостовая балка переломлена, задние створки открыты."
+			"tower":
+				return "Пожарная вышка — железная решётка метров двенадцать, наверху будка наблюдателя."
+			"wagon":
+				return "Ржавая теплушка на узкоколейке, которая никуда больше не ведёт."
+			"balagan":
+				return "Якутский балаган: стены наклонно внутрь, крыша землёй и дёрном. Давно пустой."
+			"camp":
+				return "Брошенная стоянка: палатка, кострище, рюкзак."
+			"serge":
+				return "Круг резных сэргэ — коновязей для духов. На столбах ленты."
 	return ""
 
 

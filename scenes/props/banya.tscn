@@ -1,0 +1,44 @@
+[gd_scene format=3]
+
+[ext_resource type="Material" path="res://assets/materials/log_weathered.tres" id="1_r3im2"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/banya_log_weathered.res" id="2_t8kvf"]
+[ext_resource type="Material" path="res://assets/materials/planks_old.tres" id="3_4qhgy"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/banya_planks_old.res" id="4_5lris"]
+[ext_resource type="Material" path="res://assets/materials/metal_roof.tres" id="5_vo3fo"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/banya_metal_roof.res" id="6_14xrx"]
+[ext_resource type="Material" path="res://assets/materials/soot.tres" id="7_sypaw"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/banya_soot.res" id="8_8vqbf"]
+[ext_resource type="Material" path="res://assets/materials/herb.tres" id="9_ailg4"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/banya_herb.res" id="10_d6qgs"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_is332"]
+size = Vector3(3.9, 2.4, 3.3)
+
+[node name="Banya" type="Node3D" unique_id=1056055791]
+
+[node name="Mesh_log_weathered" type="MeshInstance3D" parent="." unique_id=211047580]
+material_override = ExtResource("1_r3im2")
+mesh = ExtResource("2_t8kvf")
+
+[node name="Mesh_planks_old" type="MeshInstance3D" parent="." unique_id=618827326]
+material_override = ExtResource("3_4qhgy")
+mesh = ExtResource("4_5lris")
+
+[node name="Mesh_metal_roof" type="MeshInstance3D" parent="." unique_id=416907435]
+material_override = ExtResource("5_vo3fo")
+mesh = ExtResource("6_14xrx")
+
+[node name="Mesh_soot" type="MeshInstance3D" parent="." unique_id=1914414941]
+material_override = ExtResource("7_sypaw")
+mesh = ExtResource("8_8vqbf")
+
+[node name="Mesh_herb" type="MeshInstance3D" parent="." unique_id=224090739]
+material_override = ExtResource("9_ailg4")
+mesh = ExtResource("10_d6qgs")
+
+[node name="Collision" type="StaticBody3D" parent="." unique_id=1290550003]
+collision_mask = 0
+
+[node name="@CollisionShape3D@2" type="CollisionShape3D" parent="Collision" unique_id=1262918400]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.2, 0)
+shape = SubResource("BoxShape3D_is332")

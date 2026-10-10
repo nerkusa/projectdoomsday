@@ -1,0 +1,28 @@
+[gd_scene format=3]
+
+[ext_resource type="Material" path="res://assets/materials/cloth_red.tres" id="1_y0x4g"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/bundle_cloth_red.res" id="2_1lakl"]
+[ext_resource type="Material" path="res://assets/materials/paper.tres" id="3_mtacn"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/bundle_paper.res" id="4_ev304"]
+[ext_resource type="Material" path="res://assets/materials/planks_old.tres" id="5_oiy8f"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/bundle_planks_old.res" id="6_6yv6m"]
+[ext_resource type="Material" path="res://assets/materials/brass.tres" id="7_yb6nq"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/bundle_brass.res" id="8_5mr65"]
+
+[node name="Bundle" type="Node3D" unique_id=282089989]
+
+[node name="Mesh_cloth_red" type="MeshInstance3D" parent="." unique_id=970184052]
+material_override = ExtResource("1_y0x4g")
+mesh = ExtResource("2_1lakl")
+
+[node name="Mesh_paper" type="MeshInstance3D" parent="." unique_id=532027579]
+material_override = ExtResource("3_mtacn")
+mesh = ExtResource("4_ev304")
+
+[node name="Mesh_planks_old" type="MeshInstance3D" parent="." unique_id=152752474]
+material_override = ExtResource("5_oiy8f")
+mesh = ExtResource("6_6yv6m")
+
+[node name="Mesh_brass" type="MeshInstance3D" parent="." unique_id=870783271]
+material_override = ExtResource("7_yb6nq")
+mesh = ExtResource("8_5mr65")

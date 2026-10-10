@@ -1,0 +1,39 @@
+[gd_scene format=3]
+
+[ext_resource type="Material" path="res://assets/materials/log_weathered.tres" id="1_ogrie"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/well_crane_log_weathered.res" id="2_y3im5"]
+[ext_resource type="Material" path="res://assets/materials/planks_old.tres" id="3_2nu1q"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/well_crane_planks_old.res" id="4_pnm6y"]
+[ext_resource type="Material" path="res://assets/materials/stone_wall.tres" id="5_medl2"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/well_crane_stone_wall.res" id="6_7fuvw"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_1hff3"]
+size = Vector3(1.2, 0.8, 1.2)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_k1kwn"]
+size = Vector3(0.4, 2, 0.4)
+
+[node name="WellCrane" type="Node3D" unique_id=376043430]
+
+[node name="Mesh_log_weathered" type="MeshInstance3D" parent="." unique_id=1878897610]
+material_override = ExtResource("1_ogrie")
+mesh = ExtResource("2_y3im5")
+
+[node name="Mesh_planks_old" type="MeshInstance3D" parent="." unique_id=290287027]
+material_override = ExtResource("3_2nu1q")
+mesh = ExtResource("4_pnm6y")
+
+[node name="Mesh_stone_wall" type="MeshInstance3D" parent="." unique_id=902909762]
+material_override = ExtResource("5_medl2")
+mesh = ExtResource("6_7fuvw")
+
+[node name="Collision" type="StaticBody3D" parent="." unique_id=1404216049]
+collision_mask = 0
+
+[node name="@CollisionShape3D@8" type="CollisionShape3D" parent="Collision" unique_id=759948351]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.4, 0)
+shape = SubResource("BoxShape3D_1hff3")
+
+[node name="@CollisionShape3D@9" type="CollisionShape3D" parent="Collision" unique_id=775022045]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.2, 1, 0)
+shape = SubResource("BoxShape3D_k1kwn")

@@ -1,0 +1,59 @@
+[gd_scene format=3]
+
+[ext_resource type="Material" path="res://assets/materials/log_weathered.tres" id="1_s2t4b"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/rail_wagon_log_weathered.res" id="2_u41lp"]
+[ext_resource type="Material" path="res://assets/materials/rust.tres" id="3_w2mgs"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/rail_wagon_rust.res" id="4_4toyi"]
+[ext_resource type="Material" path="res://assets/materials/wagon_brown.tres" id="5_ky6e3"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/rail_wagon_wagon_brown.res" id="6_dpdun"]
+[ext_resource type="Material" path="res://assets/materials/metal_roof.tres" id="7_hgp7a"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/rail_wagon_metal_roof.res" id="8_mbkwn"]
+[ext_resource type="Material" path="res://assets/materials/planks_old.tres" id="9_nd3g3"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/rail_wagon_planks_old.res" id="10_1ynog"]
+[ext_resource type="Material" path="res://assets/materials/soot.tres" id="11_5ivfw"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/rail_wagon_soot.res" id="12_uodkh"]
+[ext_resource type="Material" path="res://assets/materials/paper.tres" id="13_tuakk"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/rail_wagon_paper.res" id="14_o2g3n"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_glu6r"]
+size = Vector3(2.3, 2.6, 5.6)
+
+[node name="RailWagon" type="Node3D" unique_id=210000609]
+
+[node name="Mesh_log_weathered" type="MeshInstance3D" parent="." unique_id=1050150945]
+material_override = ExtResource("1_s2t4b")
+mesh = ExtResource("2_u41lp")
+
+[node name="Mesh_rust" type="MeshInstance3D" parent="." unique_id=1057414078]
+material_override = ExtResource("3_w2mgs")
+mesh = ExtResource("4_4toyi")
+
+[node name="Mesh_wagon_brown" type="MeshInstance3D" parent="." unique_id=1149444221]
+material_override = ExtResource("5_ky6e3")
+mesh = ExtResource("6_dpdun")
+
+[node name="Mesh_metal_roof" type="MeshInstance3D" parent="." unique_id=1461122174]
+material_override = ExtResource("7_hgp7a")
+mesh = ExtResource("8_mbkwn")
+
+[node name="Mesh_planks_old" type="MeshInstance3D" parent="." unique_id=762354334]
+material_override = ExtResource("9_nd3g3")
+mesh = ExtResource("10_1ynog")
+
+[node name="Mesh_soot" type="MeshInstance3D" parent="." unique_id=289193848]
+material_override = ExtResource("11_5ivfw")
+mesh = ExtResource("12_uodkh")
+
+[node name="Mesh_paper" type="MeshInstance3D" parent="." unique_id=673776151]
+material_override = ExtResource("13_tuakk")
+mesh = ExtResource("14_o2g3n")
+
+[node name="Slot_door" type="Marker3D" parent="." unique_id=621547444]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.6, 0, 1.4)
+
+[node name="Collision" type="StaticBody3D" parent="." unique_id=297096992]
+collision_mask = 0
+
+[node name="@CollisionShape3D@24" type="CollisionShape3D" parent="Collision" unique_id=1908918236]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.3, 0.5)
+shape = SubResource("BoxShape3D_glu6r")

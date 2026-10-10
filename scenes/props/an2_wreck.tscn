@@ -1,0 +1,113 @@
+[gd_scene format=3]
+
+[ext_resource type="Material" path="res://assets/materials/an_paint.tres" id="1_3iien"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/an2_wreck_an_paint.res" id="2_qq06o"]
+[ext_resource type="Material" path="res://assets/materials/an_red.tres" id="3_a4mny"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/an2_wreck_an_red.res" id="4_kb5bj"]
+[ext_resource type="Material" path="res://assets/materials/glass_city.tres" id="5_378yf"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/an2_wreck_glass_city.res" id="6_8bc2c"]
+[ext_resource type="Material" path="res://assets/materials/soot.tres" id="7_14xp6"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/an2_wreck_soot.res" id="8_83w28"]
+[ext_resource type="Material" path="res://assets/materials/metal_dark.tres" id="9_wey04"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/an2_wreck_metal_dark.res" id="10_b7wwt"]
+[ext_resource type="Material" path="res://assets/materials/an_fabric.tres" id="11_escgv"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/an2_wreck_an_fabric.res" id="12_c2uqy"]
+[ext_resource type="Material" path="res://assets/materials/tire.tres" id="13_lt7bp"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/an2_wreck_tire.res" id="14_0uy7o"]
+[ext_resource type="Material" path="res://assets/materials/rust.tres" id="15_3lrfl"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/an2_wreck_rust.res" id="16_o08ov"]
+[ext_resource type="Material" path="res://assets/materials/cloth_sack.tres" id="17_0iymt"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/an2_wreck_cloth_sack.res" id="18_oin12"]
+[ext_resource type="Material" path="res://assets/materials/cloth_red.tres" id="19_n1jpx"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/an2_wreck_cloth_red.res" id="20_54fgy"]
+[ext_resource type="Material" path="res://assets/materials/paper.tres" id="21_86kk1"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/an2_wreck_paper.res" id="22_4vjj4"]
+[ext_resource type="Material" path="res://assets/materials/coal.tres" id="23_da58e"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/an2_wreck_coal.res" id="24_kmjta"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_2vsqx"]
+size = Vector3(2, 2, 5)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_064s4"]
+size = Vector3(1.6, 1.6, 4.4)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_t3cde"]
+size = Vector3(6, 0.6, 1.8)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_n7gm0"]
+size = Vector3(4.6, 0.6, 1.8)
+
+[node name="An2Wreck" type="Node3D" unique_id=1246515253]
+
+[node name="Mesh_an_paint" type="MeshInstance3D" parent="." unique_id=500863758]
+material_override = ExtResource("1_3iien")
+mesh = ExtResource("2_qq06o")
+
+[node name="Mesh_an_red" type="MeshInstance3D" parent="." unique_id=887251220]
+material_override = ExtResource("3_a4mny")
+mesh = ExtResource("4_kb5bj")
+
+[node name="Mesh_glass_city" type="MeshInstance3D" parent="." unique_id=325576014]
+material_override = ExtResource("5_378yf")
+mesh = ExtResource("6_8bc2c")
+
+[node name="Mesh_soot" type="MeshInstance3D" parent="." unique_id=1108506643]
+material_override = ExtResource("7_14xp6")
+mesh = ExtResource("8_83w28")
+
+[node name="Mesh_metal_dark" type="MeshInstance3D" parent="." unique_id=846851375]
+material_override = ExtResource("9_wey04")
+mesh = ExtResource("10_b7wwt")
+
+[node name="Mesh_an_fabric" type="MeshInstance3D" parent="." unique_id=678164267]
+material_override = ExtResource("11_escgv")
+mesh = ExtResource("12_c2uqy")
+
+[node name="Mesh_tire" type="MeshInstance3D" parent="." unique_id=196193197]
+material_override = ExtResource("13_lt7bp")
+mesh = ExtResource("14_0uy7o")
+
+[node name="Mesh_rust" type="MeshInstance3D" parent="." unique_id=1968879280]
+material_override = ExtResource("15_3lrfl")
+mesh = ExtResource("16_o08ov")
+
+[node name="Mesh_cloth_sack" type="MeshInstance3D" parent="." unique_id=823562992]
+material_override = ExtResource("17_0iymt")
+mesh = ExtResource("18_oin12")
+
+[node name="Mesh_cloth_red" type="MeshInstance3D" parent="." unique_id=2069728700]
+material_override = ExtResource("19_n1jpx")
+mesh = ExtResource("20_54fgy")
+
+[node name="Mesh_paper" type="MeshInstance3D" parent="." unique_id=685901308]
+material_override = ExtResource("21_86kk1")
+mesh = ExtResource("22_4vjj4")
+
+[node name="Mesh_coal" type="MeshInstance3D" parent="." unique_id=1961856196]
+material_override = ExtResource("23_da58e")
+mesh = ExtResource("24_kmjta")
+
+[node name="Slot_cockpit" type="Marker3D" parent="." unique_id=833465758]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.5, 0, 3.4)
+
+[node name="Slot_tail" type="Marker3D" parent="." unique_id=151702322]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 0, -5.2)
+
+[node name="Collision" type="StaticBody3D" parent="." unique_id=1880230833]
+collision_mask = 0
+
+[node name="@CollisionShape3D@14" type="CollisionShape3D" parent="Collision" unique_id=138890462]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 1.6)
+shape = SubResource("BoxShape3D_2vsqx")
+
+[node name="@CollisionShape3D@15" type="CollisionShape3D" parent="Collision" unique_id=1152268318]
+transform = Transform3D(0.9393727, 0, 0.3428978, 0, 1, 0, -0.3428978, 0, 0.9393727, 0.7, 0.8, -3.4)
+shape = SubResource("BoxShape3D_064s4")
+
+[node name="@CollisionShape3D@16" type="CollisionShape3D" parent="Collision" unique_id=902275393]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.6, 0.3, 2.2)
+shape = SubResource("BoxShape3D_t3cde")
+
+[node name="@CollisionShape3D@17" type="CollisionShape3D" parent="Collision" unique_id=1612431674]
+transform = Transform3D(0.8253356, 0, 0.5646425, 0, 1, 0, -0.5646425, 0, 0.8253356, 6.2, 0.3, -0.4)
+shape = SubResource("BoxShape3D_n7gm0")

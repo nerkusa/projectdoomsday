@@ -1,0 +1,26 @@
+[gd_scene format=3]
+
+[ext_resource type="Material" path="res://assets/materials/manure.tres" id="1_wuljl"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/manure_manure.res" id="2_kcbog"]
+[ext_resource type="Material" path="res://assets/materials/hay.tres" id="3_kq027"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/manure_hay.res" id="4_51vyc"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_oat8m"]
+size = Vector3(2.2, 0.7, 1.8)
+
+[node name="Manure" type="Node3D" unique_id=1460910839]
+
+[node name="Mesh_manure" type="MeshInstance3D" parent="." unique_id=992102980]
+material_override = ExtResource("1_wuljl")
+mesh = ExtResource("2_kcbog")
+
+[node name="Mesh_hay" type="MeshInstance3D" parent="." unique_id=1142625977]
+material_override = ExtResource("3_kq027")
+mesh = ExtResource("4_51vyc")
+
+[node name="Collision" type="StaticBody3D" parent="." unique_id=431779289]
+collision_mask = 0
+
+[node name="@CollisionShape3D@11" type="CollisionShape3D" parent="Collision" unique_id=91982958]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.35, 0)
+shape = SubResource("BoxShape3D_oat8m")

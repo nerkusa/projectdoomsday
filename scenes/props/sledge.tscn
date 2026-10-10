@@ -1,0 +1,10 @@
+[gd_scene format=3]
+
+[ext_resource type="Material" path="res://assets/materials/planks_old.tres" id="1_b2xxh"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/sledge_planks_old.res" id="2_6xr71"]
+
+[node name="Sledge" type="Node3D" unique_id=1664389974]
+
+[node name="Mesh_planks_old" type="MeshInstance3D" parent="." unique_id=1712331007]
+material_override = ExtResource("1_b2xxh")
+mesh = ExtResource("2_6xr71")

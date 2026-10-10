@@ -1,0 +1,60 @@
+[gd_scene format=3]
+
+[ext_resource type="Material" path="res://assets/materials/cloth_sack.tres" id="1_iuw51"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/camp_site_cloth_sack.res" id="2_rytyp"]
+[ext_resource type="Material" path="res://assets/materials/soot.tres" id="3_ue7dk"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/camp_site_soot.res" id="4_xlurv"]
+[ext_resource type="Material" path="res://assets/materials/stone_wall.tres" id="5_udoqu"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/camp_site_stone_wall.res" id="6_pvq6f"]
+[ext_resource type="Material" path="res://assets/materials/coal.tres" id="7_o1842"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/camp_site_coal.res" id="8_fmxmf"]
+[ext_resource type="Material" path="res://assets/materials/log_weathered.tres" id="9_xc8yw"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/camp_site_log_weathered.res" id="10_ly6rv"]
+[ext_resource type="Material" path="res://assets/materials/cloth_red.tres" id="11_4dn1l"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/camp_site_cloth_red.res" id="12_aycvl"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_xvb07"]
+size = Vector3(2, 1.3, 2.4)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_4tx7w"]
+size = Vector3(1.8, 0.4, 0.4)
+
+[node name="CampSite" type="Node3D" unique_id=2113716150]
+
+[node name="Mesh_cloth_sack" type="MeshInstance3D" parent="." unique_id=1258304129]
+material_override = ExtResource("1_iuw51")
+mesh = ExtResource("2_rytyp")
+
+[node name="Mesh_soot" type="MeshInstance3D" parent="." unique_id=1295572835]
+material_override = ExtResource("3_ue7dk")
+mesh = ExtResource("4_xlurv")
+
+[node name="Mesh_stone_wall" type="MeshInstance3D" parent="." unique_id=180542064]
+material_override = ExtResource("5_udoqu")
+mesh = ExtResource("6_pvq6f")
+
+[node name="Mesh_coal" type="MeshInstance3D" parent="." unique_id=640781457]
+material_override = ExtResource("7_o1842")
+mesh = ExtResource("8_fmxmf")
+
+[node name="Mesh_log_weathered" type="MeshInstance3D" parent="." unique_id=1144049428]
+material_override = ExtResource("9_xc8yw")
+mesh = ExtResource("10_ly6rv")
+
+[node name="Mesh_cloth_red" type="MeshInstance3D" parent="." unique_id=2059281200]
+material_override = ExtResource("11_4dn1l")
+mesh = ExtResource("12_aycvl")
+
+[node name="Slot_pack" type="Marker3D" parent="." unique_id=1331568192]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.4, 0, 0.6)
+
+[node name="Collision" type="StaticBody3D" parent="." unique_id=1778434953]
+collision_mask = 0
+
+[node name="@CollisionShape3D@26" type="CollisionShape3D" parent="Collision" unique_id=1290535404]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.65, -1.2)
+shape = SubResource("BoxShape3D_xvb07")
+
+[node name="@CollisionShape3D@27" type="CollisionShape3D" parent="Collision" unique_id=626852092]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.8, 0.2, 2.1)
+shape = SubResource("BoxShape3D_4tx7w")

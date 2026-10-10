@@ -1,0 +1,16 @@
+[gd_scene format=3]
+
+[ext_resource type="Material" path="res://assets/materials/soot.tres" id="1_bmpk5"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/pot_soot.res" id="2_ehh5y"]
+[ext_resource type="Material" path="res://assets/materials/planks_old.tres" id="3_apvp4"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/pot_planks_old.res" id="4_u53uv"]
+
+[node name="Pot" type="Node3D" unique_id=1623860218]
+
+[node name="Mesh_soot" type="MeshInstance3D" parent="." unique_id=1788117169]
+material_override = ExtResource("1_bmpk5")
+mesh = ExtResource("2_ehh5y")
+
+[node name="Mesh_planks_old" type="MeshInstance3D" parent="." unique_id=2085202174]
+material_override = ExtResource("3_apvp4")
+mesh = ExtResource("4_u53uv")

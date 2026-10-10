@@ -1,0 +1,16 @@
+[gd_scene format=3]
+
+[ext_resource type="Material" path="res://assets/materials/log_weathered.tres" id="1_gckco"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/firewood_log_weathered.res" id="2_xymav"]
+[ext_resource type="Material" path="res://assets/materials/rope_mat.tres" id="3_xp6n6"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/firewood_rope_mat.res" id="4_18i02"]
+
+[node name="Firewood" type="Node3D" unique_id=1053536122]
+
+[node name="Mesh_log_weathered" type="MeshInstance3D" parent="." unique_id=375928744]
+material_override = ExtResource("1_gckco")
+mesh = ExtResource("2_xymav")
+
+[node name="Mesh_rope_mat" type="MeshInstance3D" parent="." unique_id=933514851]
+material_override = ExtResource("3_xp6n6")
+mesh = ExtResource("4_18i02")

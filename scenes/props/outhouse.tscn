@@ -1,0 +1,32 @@
+[gd_scene format=3]
+
+[ext_resource type="Material" path="res://assets/materials/planks_old.tres" id="1_t1fub"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/outhouse_planks_old.res" id="2_iwt0x"]
+[ext_resource type="Material" path="res://assets/materials/metal_roof.tres" id="3_hsc6s"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/outhouse_metal_roof.res" id="4_7itrt"]
+[ext_resource type="Material" path="res://assets/materials/soot.tres" id="5_7j8tr"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/outhouse_soot.res" id="6_ajion"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_7i0wh"]
+size = Vector3(1.1, 2, 1.1)
+
+[node name="Outhouse" type="Node3D" unique_id=1931464717]
+
+[node name="Mesh_planks_old" type="MeshInstance3D" parent="." unique_id=2113868741]
+material_override = ExtResource("1_t1fub")
+mesh = ExtResource("2_iwt0x")
+
+[node name="Mesh_metal_roof" type="MeshInstance3D" parent="." unique_id=58512350]
+material_override = ExtResource("3_hsc6s")
+mesh = ExtResource("4_7itrt")
+
+[node name="Mesh_soot" type="MeshInstance3D" parent="." unique_id=2115626601]
+material_override = ExtResource("5_7j8tr")
+mesh = ExtResource("6_ajion")
+
+[node name="Collision" type="StaticBody3D" parent="." unique_id=589748216]
+collision_mask = 0
+
+[node name="@CollisionShape3D@5" type="CollisionShape3D" parent="Collision" unique_id=1637872296]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+shape = SubResource("BoxShape3D_7i0wh")

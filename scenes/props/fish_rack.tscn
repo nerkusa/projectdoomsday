@@ -1,0 +1,26 @@
+[gd_scene format=3]
+
+[ext_resource type="Material" path="res://assets/materials/log_weathered.tres" id="1_2j206"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/fish_rack_log_weathered.res" id="2_4vvsr"]
+[ext_resource type="Material" path="res://assets/materials/fish.tres" id="3_ritpk"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/fish_rack_fish.res" id="4_jb57q"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_64ij0"]
+size = Vector3(2.6, 1.8, 0.3)
+
+[node name="FishRack" type="Node3D" unique_id=1548106565]
+
+[node name="Mesh_log_weathered" type="MeshInstance3D" parent="." unique_id=620844650]
+material_override = ExtResource("1_2j206")
+mesh = ExtResource("2_4vvsr")
+
+[node name="Mesh_fish" type="MeshInstance3D" parent="." unique_id=44491189]
+material_override = ExtResource("3_ritpk")
+mesh = ExtResource("4_jb57q")
+
+[node name="Collision" type="StaticBody3D" parent="." unique_id=2076509361]
+collision_mask = 0
+
+[node name="@CollisionShape3D@12" type="CollisionShape3D" parent="Collision" unique_id=1965438331]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
+shape = SubResource("BoxShape3D_64ij0")

@@ -1,0 +1,16 @@
+[gd_scene format=3]
+
+[ext_resource type="Material" path="res://assets/materials/log_weathered.tres" id="1_ukuth"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/fishing_rods_log_weathered.res" id="2_h2urg"]
+[ext_resource type="Material" path="res://assets/materials/rope_mat.tres" id="3_8hknf"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/fishing_rods_rope_mat.res" id="4_p0vl2"]
+
+[node name="FishingRods" type="Node3D" unique_id=177890839]
+
+[node name="Mesh_log_weathered" type="MeshInstance3D" parent="." unique_id=1942778816]
+material_override = ExtResource("1_ukuth")
+mesh = ExtResource("2_h2urg")
+
+[node name="Mesh_rope_mat" type="MeshInstance3D" parent="." unique_id=1743210730]
+material_override = ExtResource("3_8hknf")
+mesh = ExtResource("4_p0vl2")

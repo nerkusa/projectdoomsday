@@ -1,0 +1,38 @@
+[gd_scene format=3]
+
+[ext_resource type="Material" path="res://assets/materials/planks_old.tres" id="1_7goid"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/kennel_planks_old.res" id="2_a5juj"]
+[ext_resource type="Material" path="res://assets/materials/soot.tres" id="3_klugs"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/kennel_soot.res" id="4_qcdf7"]
+[ext_resource type="Material" path="res://assets/materials/metal_dark.tres" id="5_0qwl1"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/kennel_metal_dark.res" id="6_wygch"]
+[ext_resource type="Material" path="res://assets/materials/tin.tres" id="7_sdf1g"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/kennel_tin.res" id="8_q6hgu"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_tduci"]
+size = Vector3(1, 0.9, 1.1)
+
+[node name="Kennel" type="Node3D" unique_id=982705403]
+
+[node name="Mesh_planks_old" type="MeshInstance3D" parent="." unique_id=1133117947]
+material_override = ExtResource("1_7goid")
+mesh = ExtResource("2_a5juj")
+
+[node name="Mesh_soot" type="MeshInstance3D" parent="." unique_id=840009572]
+material_override = ExtResource("3_klugs")
+mesh = ExtResource("4_qcdf7")
+
+[node name="Mesh_metal_dark" type="MeshInstance3D" parent="." unique_id=1906841302]
+material_override = ExtResource("5_0qwl1")
+mesh = ExtResource("6_wygch")
+
+[node name="Mesh_tin" type="MeshInstance3D" parent="." unique_id=1610478828]
+material_override = ExtResource("7_sdf1g")
+mesh = ExtResource("8_q6hgu")
+
+[node name="Collision" type="StaticBody3D" parent="." unique_id=1825859242]
+collision_mask = 0
+
+[node name="@CollisionShape3D@6" type="CollisionShape3D" parent="Collision" unique_id=1895031603]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.45, 0)
+shape = SubResource("BoxShape3D_tduci")

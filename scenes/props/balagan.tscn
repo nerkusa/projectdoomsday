@@ -1,0 +1,50 @@
+[gd_scene format=3]
+
+[ext_resource type="Material" path="res://assets/materials/log_weathered.tres" id="1_jgf2p"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/balagan_log_weathered.res" id="2_eym0s"]
+[ext_resource type="Material" path="res://assets/materials/earth.tres" id="3_xelno"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/balagan_earth.res" id="4_3dh4g"]
+[ext_resource type="Material" path="res://assets/materials/grass_roof.tres" id="5_ip546"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/balagan_grass_roof.res" id="6_04g0q"]
+[ext_resource type="Material" path="res://assets/materials/planks_old.tres" id="7_vgml8"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/balagan_planks_old.res" id="8_qirna"]
+[ext_resource type="Material" path="res://assets/materials/glass.tres" id="9_p64ei"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/balagan_glass.res" id="10_p88df"]
+[ext_resource type="Material" path="res://assets/materials/stone_wall.tres" id="11_ipkko"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/balagan_stone_wall.res" id="12_m431p"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_h55sm"]
+size = Vector3(4.4, 2.6, 3.8)
+
+[node name="Balagan" type="Node3D" unique_id=324487160]
+
+[node name="Mesh_log_weathered" type="MeshInstance3D" parent="." unique_id=69870091]
+material_override = ExtResource("1_jgf2p")
+mesh = ExtResource("2_eym0s")
+
+[node name="Mesh_earth" type="MeshInstance3D" parent="." unique_id=342871382]
+material_override = ExtResource("3_xelno")
+mesh = ExtResource("4_3dh4g")
+
+[node name="Mesh_grass_roof" type="MeshInstance3D" parent="." unique_id=1818966716]
+material_override = ExtResource("5_ip546")
+mesh = ExtResource("6_04g0q")
+
+[node name="Mesh_planks_old" type="MeshInstance3D" parent="." unique_id=3321930]
+material_override = ExtResource("7_vgml8")
+mesh = ExtResource("8_qirna")
+
+[node name="Mesh_glass" type="MeshInstance3D" parent="." unique_id=1457259894]
+material_override = ExtResource("9_p64ei")
+mesh = ExtResource("10_p88df")
+
+[node name="Mesh_stone_wall" type="MeshInstance3D" parent="." unique_id=1261447266]
+material_override = ExtResource("11_ipkko")
+mesh = ExtResource("12_m431p")
+
+[node name="Collision" type="StaticBody3D" parent="." unique_id=433004846]
+collision_mask = 0
+
+[node name="@CollisionShape3D@25" type="CollisionShape3D" parent="Collision" unique_id=457246325]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.3, 0)
+shape = SubResource("BoxShape3D_h55sm")

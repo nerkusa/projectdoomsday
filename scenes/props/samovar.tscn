@@ -1,0 +1,22 @@
+[gd_scene format=3]
+
+[ext_resource type="Material" path="res://assets/materials/copper.tres" id="1_ae3vi"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/samovar_copper.res" id="2_dlty5"]
+[ext_resource type="Material" path="res://assets/materials/metal_dark.tres" id="3_t1vca"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/samovar_metal_dark.res" id="4_ybs47"]
+[ext_resource type="Material" path="res://assets/materials/plastic_dark.tres" id="5_mm4yv"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/samovar_plastic_dark.res" id="6_k8lgr"]
+
+[node name="Samovar" type="Node3D" unique_id=1136493371]
+
+[node name="Mesh_copper" type="MeshInstance3D" parent="." unique_id=1096177317]
+material_override = ExtResource("1_ae3vi")
+mesh = ExtResource("2_dlty5")
+
+[node name="Mesh_metal_dark" type="MeshInstance3D" parent="." unique_id=741109495]
+material_override = ExtResource("3_t1vca")
+mesh = ExtResource("4_ybs47")
+
+[node name="Mesh_plastic_dark" type="MeshInstance3D" parent="." unique_id=1590883253]
+material_override = ExtResource("5_mm4yv")
+mesh = ExtResource("6_k8lgr")

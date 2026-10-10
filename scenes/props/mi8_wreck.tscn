@@ -1,0 +1,78 @@
+[gd_scene format=3]
+
+[ext_resource type="Material" path="res://assets/materials/mi_olive.tres" id="1_pc1s5"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/mi8_wreck_mi_olive.res" id="2_qg37p"]
+[ext_resource type="Material" path="res://assets/materials/glass_city.tres" id="3_qli5h"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/mi8_wreck_glass_city.res" id="4_602r0"]
+[ext_resource type="Material" path="res://assets/materials/soot.tres" id="5_chvrc"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/mi8_wreck_soot.res" id="6_v5cdf"]
+[ext_resource type="Material" path="res://assets/materials/metal_dark.tres" id="7_1ha3p"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/mi8_wreck_metal_dark.res" id="8_0g6jb"]
+[ext_resource type="Material" path="res://assets/materials/metal_green.tres" id="9_cv5xj"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/mi8_wreck_metal_green.res" id="10_qchaw"]
+[ext_resource type="Material" path="res://assets/materials/paint_white.tres" id="11_2rpjy"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/mi8_wreck_paint_white.res" id="12_4718w"]
+[ext_resource type="Material" path="res://assets/materials/an_red.tres" id="13_brx56"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/mi8_wreck_an_red.res" id="14_xxj1f"]
+[ext_resource type="Material" path="res://assets/materials/tire.tres" id="15_6mcf4"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/mi8_wreck_tire.res" id="16_oduqi"]
+[ext_resource type="Material" path="res://assets/materials/coal.tres" id="17_rold3"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/mi8_wreck_coal.res" id="18_0ylnw"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_tgntw"]
+size = Vector3(2.8, 2.6, 8.2)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_ubsnb"]
+size = Vector3(1.2, 1.4, 6)
+
+[node name="Mi8Wreck" type="Node3D" unique_id=1326685028]
+
+[node name="Mesh_mi_olive" type="MeshInstance3D" parent="." unique_id=878816862]
+material_override = ExtResource("1_pc1s5")
+mesh = ExtResource("2_qg37p")
+
+[node name="Mesh_glass_city" type="MeshInstance3D" parent="." unique_id=1424816437]
+material_override = ExtResource("3_qli5h")
+mesh = ExtResource("4_602r0")
+
+[node name="Mesh_soot" type="MeshInstance3D" parent="." unique_id=89031392]
+material_override = ExtResource("5_chvrc")
+mesh = ExtResource("6_v5cdf")
+
+[node name="Mesh_metal_dark" type="MeshInstance3D" parent="." unique_id=364042439]
+material_override = ExtResource("7_1ha3p")
+mesh = ExtResource("8_0g6jb")
+
+[node name="Mesh_metal_green" type="MeshInstance3D" parent="." unique_id=1738523300]
+material_override = ExtResource("9_cv5xj")
+mesh = ExtResource("10_qchaw")
+
+[node name="Mesh_paint_white" type="MeshInstance3D" parent="." unique_id=599998118]
+material_override = ExtResource("11_2rpjy")
+mesh = ExtResource("12_4718w")
+
+[node name="Mesh_an_red" type="MeshInstance3D" parent="." unique_id=1949085092]
+material_override = ExtResource("13_brx56")
+mesh = ExtResource("14_xxj1f")
+
+[node name="Mesh_tire" type="MeshInstance3D" parent="." unique_id=1729334796]
+material_override = ExtResource("15_6mcf4")
+mesh = ExtResource("16_oduqi")
+
+[node name="Mesh_coal" type="MeshInstance3D" parent="." unique_id=1350986339]
+material_override = ExtResource("17_rold3")
+mesh = ExtResource("18_0ylnw")
+
+[node name="Slot_cargo" type="Marker3D" parent="." unique_id=1341164923]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -5)
+
+[node name="Collision" type="StaticBody3D" parent="." unique_id=480768054]
+collision_mask = 0
+
+[node name="@CollisionShape3D@18" type="CollisionShape3D" parent="Collision" unique_id=1110952350]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.3, 0.3)
+shape = SubResource("BoxShape3D_tgntw")
+
+[node name="@CollisionShape3D@19" type="CollisionShape3D" parent="Collision" unique_id=231184069]
+transform = Transform3D(0.921061, 0, 0.38941833, 0, 1, 0, -0.38941833, 0, 0.921061, 1.1, 0.7, -7.6)
+shape = SubResource("BoxShape3D_ubsnb")

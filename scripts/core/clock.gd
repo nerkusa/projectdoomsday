@@ -150,6 +150,12 @@ func apply_light(loc: Node) -> void:
 
 
 # ---------------- расписание жителей ----------------
+## Запись в data/schedules.json: {"from": 9, "to": 20, "home_node": "Izba1", "sleep": true,
+##   "plan": [[12, 13, x, z, "sit", поворот], ...]}
+## from..to — на работе (на своём месте или в обходе); plan — дела по часам: дойти до места
+## и побыть там (сесть, если "sit"); вне работы — домой. С "sleep" житель не пропадает,
+## а ложится спать: на кровать, следующий в доме — на печь, третий — на пол.
+
 ## Работает ли житель сейчас (по его расписанию)
 func on_duty(s: Dictionary) -> bool:
 	# автотест: «вечный день» — все на местах, у кого бы какое расписание ни было
@@ -166,6 +172,19 @@ func on_duty(s: Dictionary) -> bool:
 func schedule_for(loc_id: String, ch_name: String) -> Dictionary:
 	var all: Dictionary = DB._load("res://data/schedules.json").get(loc_id, {})
 	return all.get(ch_name, {})
+
+
+## Чем житель должен быть занят сейчас: "work", "plan:N" или "home"
+func wanted_state(s: Dictionary) -> String:
+	if force_day:
+		return "work"
+	var h := hour_of_day()
+	var plan: Array = s.get("plan", [])
+	for i in plan.size():
+		var seg: Array = plan[i]
+		if h >= float(seg[0]) and h < float(seg[1]):
+			return "plan:%d" % i
+	return "work" if on_duty(s) else "home"
 
 
 ## Разослать жителей по местам. instant — сразу (вход в локацию, ожидание);
@@ -188,13 +207,30 @@ func update_schedules(instant: bool) -> void:
 			ch.set_meta("work_pos", ch.global_position)
 			ch.set_meta("work_rot", ch.rotation.y)
 			ch.set_meta("work_patrol", ch.patrol)
+			ch.set_meta("work_pose", ch.pose)
+			ch.set_meta("state", "work")
+		var want := wanted_state(s)
+		var cur: String = ch.get_meta("state", "work")
+		if want == cur and not instant:
+			continue
+		if want == cur and instant and not ch.get_meta("walking", false):
+			continue
+		ch.set_meta("state", want)
 		var home := _home_of(loc, ch, s)
-		var duty := on_duty(s)
-		var asleep: bool = ch.get_meta("asleep", false)
-		if duty and asleep:
-			_wake(loc, ch, home, instant)
-		elif not duty and not asleep and not ch.get_meta("going_home", false):
-			_send_home(loc, ch, home, instant)
+		if want == "home":
+			if s.get("sleep", false) and _house_at(loc, home) != null:
+				_go_sleep(loc, ch, _house_at(loc, home), instant)
+			else:
+				_send_home(loc, ch, home, instant)
+		elif want.begins_with("plan:"):
+			var seg: Array = s.plan[int(want.substr(5))]
+			var spot := Vector3(float(seg[2]), 0, float(seg[3]))
+			var pose: String = str(seg[4]) if seg.size() > 4 else ""
+			var rot: float = float(seg[5]) if seg.size() > 5 else ch.rotation.y
+			_go_to(loc, ch, home, spot, rot, pose, PackedVector3Array(), instant)
+		else:
+			_go_to(loc, ch, home, ch.get_meta("work_pos"), float(ch.get_meta("work_rot")), str(ch.get_meta("work_pose")),
+				ch.get_meta("work_patrol"), instant)
 
 
 func _home_of(loc: Node, ch: Character, s: Dictionary) -> Vector3:
@@ -223,8 +259,97 @@ func _home_of(loc: Node, ch: Character, s: Dictionary) -> Vector3:
 	return best
 
 
+## Дом (house.gd), который стоит в точке home
+func _house_at(loc: Node, home: Vector3) -> House:
+	for h in loc.get_tree().get_nodes_in_group("houses"):
+		var hn := h as House
+		if hn and loc.is_ancestor_of(hn) and hn.global_position.distance_to(home) < 0.5:
+			return hn
+	return null
+
+
 func _near_hero(p: Vector3) -> bool:
 	return main.player and main.player.global_position.distance_to(p) < 22.0
+
+
+## Куда лечь в доме: первый — на кровать, второй — на печь, третий — на пол
+func _bed_spot(house: House, ch: Character) -> Dictionary:
+	var sleepers: Array = house.get_meta("sleepers", [])
+	if not sleepers.has(ch.name):
+		sleepers.append(ch.name)
+		house.set_meta("sleepers", sleepers)
+	var idx := sleepers.find(ch.name)
+	var spots := [["bed", Vector3(0, 0, 0.55), 0.45], ["stove", Vector3(-0.25, 0, 0.6), 1.36], ["floor", Vector3(0, 0, 0.7), 0.05]]
+	var sp: Array = spots[mini(idx, spots.size() - 1)]
+	var m := house.get_node_or_null("Slot_" + str(sp[0])) as Node3D
+	if m == null:
+		# нет кровати или печи — на пол
+		sp = spots[2]
+		m = house.get_node_or_null("Slot_floor") as Node3D
+	var local := Vector3(m.position.x, 0, m.position.z) + (sp[1] as Vector3) if m else Vector3.ZERO
+	if idx >= spots.size():
+		local += Vector3(0.7 * (idx - spots.size() + 1), 0, 0)
+	return {"pos": house.to_global(local), "rot": house.global_rotation.y, "h": float(sp[2])}
+
+
+func _go_sleep(loc: Node, ch: Character, house: House, instant: bool) -> void:
+	var spot := _bed_spot(house, ch)
+	ch.patrol = PackedVector3Array()
+	var lie := func():
+		ch.stop()
+		ch.global_position = spot.pos
+		ch.rotation.y = float(spot.rot)
+		ch.sleep_height = float(spot.h)
+		ch.pose = "sleep"
+		ch.visible = true
+		ch.process_mode = Node.PROCESS_MODE_INHERIT
+		ch.set_meta("asleep", true)
+		ch.set_meta("walking", false)
+	if instant or not _near_hero(ch.global_position):
+		lie.call()
+		return
+	ch.set_meta("walking", true)
+	ch.bark(["Пора домой.", "Темнеет. Спать пора.", "Всё, на сегодня хватит."][randi() % 3])
+	var pts := _route(loc, ch.global_position, house.door_point(1.2))
+	pts.append(house.door_point(-0.8))
+	pts.append(spot.pos)
+	ch.move_along(pts, lie, 1.4)
+
+
+## Проснуться (если спал) и пойти на место: на работу или по делам
+func _go_to(loc: Node, ch: Character, home: Vector3, to: Vector3, rot: float, pose: String, patrol: PackedVector3Array, instant: bool) -> void:
+	var was_asleep: bool = ch.get_meta("asleep", false)
+	var hidden := not ch.visible
+	ch.set_meta("asleep", false)
+	ch.set_meta("going_home", false)
+	ch.process_mode = Node.PROCESS_MODE_INHERIT
+	ch.visible = true
+	var start := ch.global_position
+	if ch.pose == "sleep":
+		ch.pose = ""
+		ch.sleep_height = 0.45
+		var house := _house_at(loc, home)
+		if house:
+			start = house.door_point(1.2)
+	elif hidden:
+		start = home
+	if ch.pose == "sit" and pose != "sit":
+		ch.pose = ""
+	var arrive := func():
+		ch.global_position = to
+		ch.rotation.y = rot
+		ch.pose = pose
+		ch.patrol = patrol
+		ch.set_meta("walking", false)
+	ch.patrol = PackedVector3Array()
+	if instant or not (_near_hero(start) or _near_hero(to)):
+		arrive.call()
+		return
+	if was_asleep:
+		ch.bark(["Утро доброе.", "(Зевает.)", "Ну, за дело."][randi() % 3])
+	ch.global_position = start
+	ch.set_meta("walking", true)
+	ch.move_along(_route(loc, start, to), arrive, 1.4)
 
 
 func _send_home(loc: Node, ch: Character, home: Vector3, instant: bool) -> void:
@@ -233,6 +358,7 @@ func _send_home(loc: Node, ch: Character, home: Vector3, instant: bool) -> void:
 		_hide(ch, home)
 		return
 	ch.set_meta("going_home", true)
+	ch.set_meta("walking", true)
 	ch.bark(["Пора домой.", "Темнеет. Домой.", "Всё, на сегодня хватит."][randi() % 3])
 	ch.move_along(_route(loc, ch.global_position, home), func():
 		ch.set_meta("going_home", false)
@@ -244,24 +370,9 @@ func _hide(ch: Character, home: Vector3) -> void:
 	ch.global_position = home
 	ch.set_meta("asleep", true)
 	ch.set_meta("going_home", false)
+	ch.set_meta("walking", false)
 	ch.visible = false
 	ch.process_mode = Node.PROCESS_MODE_DISABLED
-
-
-func _wake(loc: Node, ch: Character, home: Vector3, instant: bool) -> void:
-	var wp: Vector3 = ch.get_meta("work_pos")
-	ch.set_meta("asleep", false)
-	ch.process_mode = Node.PROCESS_MODE_INHERIT
-	ch.visible = true
-	var done := func():
-		ch.global_position = wp
-		ch.rotation.y = float(ch.get_meta("work_rot"))
-		ch.patrol = ch.get_meta("work_patrol")
-	if instant or not _near_hero(home):
-		done.call()
-		return
-	ch.global_position = home
-	ch.move_along(_route(loc, home, wp), done, 1.4)
 
 
 ## Путь по сетке ходов (каждый третий гекс), чтобы не идти сквозь стены

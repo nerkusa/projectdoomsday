@@ -1,0 +1,16 @@
+[gd_scene format=3]
+
+[ext_resource type="Material" path="res://assets/materials/reed.tres" id="1_7xqw5"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/reeds_reed.res" id="2_ocu3b"]
+[ext_resource type="Material" path="res://assets/materials/soot.tres" id="3_qj8rd"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/reeds_soot.res" id="4_lwvoq"]
+
+[node name="Reeds" type="Node3D" unique_id=1408920816]
+
+[node name="Mesh_reed" type="MeshInstance3D" parent="." unique_id=203496817]
+material_override = ExtResource("1_7xqw5")
+mesh = ExtResource("2_ocu3b")
+
+[node name="Mesh_soot" type="MeshInstance3D" parent="." unique_id=980501169]
+material_override = ExtResource("3_qj8rd")
+mesh = ExtResource("4_lwvoq")

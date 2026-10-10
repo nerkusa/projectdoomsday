@@ -1,0 +1,16 @@
+[gd_scene format=3]
+
+[ext_resource type="Material" path="res://assets/materials/log_weathered.tres" id="1_5k2uy"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/yoke_log_weathered.res" id="2_ku0ag"]
+[ext_resource type="Material" path="res://assets/materials/tin.tres" id="3_be38h"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/yoke_tin.res" id="4_worvg"]
+
+[node name="Yoke" type="Node3D" unique_id=2002385939]
+
+[node name="Mesh_log_weathered" type="MeshInstance3D" parent="." unique_id=13641662]
+material_override = ExtResource("1_5k2uy")
+mesh = ExtResource("2_ku0ag")
+
+[node name="Mesh_tin" type="MeshInstance3D" parent="." unique_id=245150120]
+material_override = ExtResource("3_be38h")
+mesh = ExtResource("4_worvg")

@@ -1,0 +1,38 @@
+[gd_scene format=3]
+
+[ext_resource type="Material" path="res://assets/materials/log_weathered.tres" id="1_k7ymk"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/serge_log_weathered.res" id="2_csrj1"]
+[ext_resource type="Material" path="res://assets/materials/ribbon_white.tres" id="3_vpj6a"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/serge_ribbon_white.res" id="4_xyusj"]
+[ext_resource type="Material" path="res://assets/materials/ribbon_blue.tres" id="5_y88wj"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/serge_ribbon_blue.res" id="6_84xty"]
+[ext_resource type="Material" path="res://assets/materials/cloth_red.tres" id="7_sk7wg"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/serge_cloth_red.res" id="8_tmudh"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_va4xy"]
+size = Vector3(0.4, 2, 0.4)
+
+[node name="Serge" type="Node3D" unique_id=1471691693]
+
+[node name="Mesh_log_weathered" type="MeshInstance3D" parent="." unique_id=942698619]
+material_override = ExtResource("1_k7ymk")
+mesh = ExtResource("2_csrj1")
+
+[node name="Mesh_ribbon_white" type="MeshInstance3D" parent="." unique_id=1385970871]
+material_override = ExtResource("3_vpj6a")
+mesh = ExtResource("4_xyusj")
+
+[node name="Mesh_ribbon_blue" type="MeshInstance3D" parent="." unique_id=1655414772]
+material_override = ExtResource("5_y88wj")
+mesh = ExtResource("6_84xty")
+
+[node name="Mesh_cloth_red" type="MeshInstance3D" parent="." unique_id=1957850255]
+material_override = ExtResource("7_sk7wg")
+mesh = ExtResource("8_tmudh")
+
+[node name="Collision" type="StaticBody3D" parent="." unique_id=1345037571]
+collision_mask = 0
+
+[node name="@CollisionShape3D@10" type="CollisionShape3D" parent="Collision" unique_id=1377724125]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+shape = SubResource("BoxShape3D_va4xy")

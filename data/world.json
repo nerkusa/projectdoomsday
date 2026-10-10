@@ -441,6 +441,58 @@
     "grave": {
       "weight": 1,
       "text": true
+    },
+    "carter": {
+      "weight": 3,
+      "npcs": [
+        [
+          "carter",
+          1
+        ]
+      ],
+      "props": [
+        [
+          "cart",
+          2.2,
+          0.6
+        ]
+      ],
+      "desc": "Застрявшая телега",
+      "once": true,
+      "biomes": [
+        "field",
+        "forest",
+        "swamp"
+      ]
+    },
+    "postman": {
+      "weight": 3,
+      "npcs": [
+        [
+          "postman",
+          1
+        ]
+      ],
+      "desc": "Почтальон на тропе",
+      "once": true,
+      "fire": true
+    },
+    "pilgrims": {
+      "weight": 2,
+      "npcs": [
+        [
+          "pilgrim",
+          2
+        ]
+      ],
+      "desc": "Странники",
+      "once": true,
+      "fire": true,
+      "biomes": [
+        "field",
+        "forest",
+        "dead"
+      ]
     }
   },
   "zones": [
