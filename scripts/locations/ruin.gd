@@ -35,8 +35,19 @@ func on_interact(it: Interactable) -> bool:
 				Game.set_flag("ruin_terminal_try")
 				main.think("Экран мигает зелёным и гаснет. Надо понять, как он включается.")
 			return true
-		"Hatch":
-			main.say("thoughts", "ruin_hatch")
+		"BunkerGate":
+			if Game.flag("bunker_gate_open"):
+				main.load_location("ruin_bunker", "Gate")
+			elif Game.item_count("crowbar") > 0 and (Game.skill_check("Атлетика", "BODY", "Атлетика", 12) or Game.flag("gate_pry_try")):
+				Game.set_flag("bunker_gate_open")
+				Game.grant_xp(30)
+				_apply_gate()
+				main.think("Вогнал монтировку в щель, навалился всем весом. Диск скрежетнул — и пополз в сторону. Из темноты пахнуло холодом и машинным маслом.")
+			elif Game.item_count("crowbar") > 0:
+				Game.set_flag("gate_pry_try")
+				main.think("Монтировка соскочила. Щель шире на палец. Ещё раз — и пойдёт.")
+			else:
+				main.think("Гермоворота «Сытыган-14». Заклинило: щель в ладонь. Монтировкой бы поддеть. Или открыть изнутри — если там есть ток.")
 			return true
 		"ContainerUse":
 			main.think("Пустой контейнер. На двери бирка: «Сдать: отдел безопасности. Опись прилагается». Описи нет.")
@@ -70,6 +81,24 @@ func on_interact(it: Interactable) -> bool:
 	return super.on_interact(it)
 
 
+func on_world_state_applied() -> void:
+	super.on_world_state_applied()
+	_apply_gate()
+
+
+func on_enter() -> void:
+	super.on_enter()
+	_apply_gate()
+
+
+## Гермоворота на пандусе: открыты или закрыты
+func _apply_gate() -> void:
+	var g := get_node_or_null("Village/BunkerPortal")
+	if g:
+		g.get_node("GateOpen").visible = Game.flag("bunker_gate_open")
+		g.get_node("GateClosed").visible = not Game.flag("bunker_gate_open")
+
+
 ## спуск чуть погодя, чтобы успеть прочесть мысль (on_interact сам ждать не должен)
 func _descend_later() -> void:
 	await get_tree().create_timer(1.2, false).timeout
@@ -89,8 +118,12 @@ func item_actions(it: Interactable) -> Array:
 			return [["Рассмотреть карту", "use"]]
 		"Terminal":
 			return [["Включить терминал", "use"]]
-		"Hatch", "ContainerUse", "Papers", "Burnt":
+		"ContainerUse", "Papers", "Burnt":
 			return [["Осмотреть", "use"]]
+		"BunkerGate":
+			if Game.flag("bunker_gate_open"):
+				return [["Спуститься в бункер", "use"]]
+			return [["Поддеть монтировкой" if Game.item_count("crowbar") > 0 else "Открыть (нужна монтировка)", "use"]]
 		"Shaft":
 			if Game.flag("shaft_rope"):
 				return [["Спуститься по верёвке", "use"], ["Отвязать верёвку", "use:untie"]]
@@ -104,8 +137,8 @@ func describe(it: Interactable) -> String:
 			return "Под навесом у двери — карта района, приколотая ржавыми кнопками."
 		"Terminal":
 			return "Довоенный терминал в нише стены. Экран целый."
-		"Hatch":
-			return "Круглый люк в бетоне. По краю — свежий шов сварки."
+		"BunkerGate":
+			return "Пандус уходит вниз, к круглым гермоворотам. " + ("Ворота открыты." if Game.flag("bunker_gate_open") else "Закрыты, но не до конца: щель в ладонь.")
 		"ContainerUse":
 			return "Морской контейнер, двери нараспашку."
 		"Papers":

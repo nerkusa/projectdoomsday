@@ -296,7 +296,7 @@ func _build() -> void:
 	grid.add_theme_constant_override("h_separation", 6)
 	grid.add_theme_constant_override("v_separation", 6)
 	row.add_child(grid)
-	for pair in [["kpk", "КПК  [I]"], ["reload", "Перезар. [R]"], ["sneak", "Красться [Z]"], ["give", "Сдаться"], ["end", "В бой"]]:
+	for pair in [["kpk", "КПК  [I]"], ["reload", "Перезар. [R]"], ["sneak", "Красться [Z]"], ["give", "Сдаться"], ["wait", "Ждать  [T]"], ["end", "В бой"]]:
 		var b := UITheme.key(pair[1], "primary" if pair[0] == "end" else "normal", 11)
 		b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		b.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -416,6 +416,7 @@ func refresh() -> void:
 	_btns.end.disabled = on and not my
 	_btns.give.visible = on
 	_btns.sneak.visible = not on
+	_btns.wait.visible = not on
 	_btns.give.disabled = not my
 	_btns.reload.disabled = not DB.is_gun(Game.hero_wkey()) or (on and not my)
 	UITheme.style_key(_btns.sneak, "sel" if h.get("sneak", false) else "normal")

@@ -146,6 +146,193 @@ func unreachable(loc, start: Vector3, only := Callable()) -> Array:
 	return out
 
 
+## Подняться / спуститься по лестнице в двухэтажной избе Нахарро
+func go_upstairs(house: String) -> Node:
+	var nk = main.location
+	nk.on_interact(nk.item("Stairs_" + house))
+	while main._loading:
+		await frames(2)
+	await frames(3)
+	main.dialog.close()
+	return main.location
+
+
+func go_downstairs(house: String) -> Node:
+	var up = main.location
+	up.on_interact(up.item("Down_" + house))
+	while main._loading:
+		await frames(2)
+	await frames(3)
+	main.dialog.close()
+	return main.location
+
+
+## Нахарро: светёлки на вторых этажах, эфир, прятки, ссора из-за сена, книга, костёр, вышка, сон
+func nakharro_life_tests() -> void:
+	var nak = main.location
+	main.dialog.close()
+	var u := unreachable(nak, nak.spawn_point("Start"), func(nd): return nd.is_inside_tree() and not String(nd.name).begins_with("Hide"))
+	ok(u.is_empty(), "Нахарро: до жителей и предметов можно дойти (%s)" % ", ".join(u))
+	ok((nak.get_node("Village/Izba13") as Node3D).get_node_or_null("Slot_stairs") != null, "терем двухэтажный: лестница наверх")
+	# --- эфир: Туйгун на втором этаже ---
+	var up: Node = await go_upstairs("Izba5")
+	ok(up.location_id == "nakharro_upper" and up.cur == "Izba5", "поднялся в светёлку Туйгуна")
+	ok(not up.character("Teacher").visible and up.character("Tuygun").visible, "видна только своя светёлка")
+	for hn in ["Izba5", "Izba9", "Izba13"]:
+		up._show(hn)
+		var uu := unreachable(up, up.spawn_point("From_" + hn))
+		ok(uu.is_empty(), "светёлка %s: до всего можно дойти (%s)" % [hn, ", ".join(uu)])
+	up._show("Izba5")
+	main.talk_to(up.character("Tuygun"))
+	await frames(2)
+	await choose(find_opt("помогу с антенной"))
+	await choose(find_opt("Принесу"))
+	ok(Game.quest_stage("radio") == 1, "Туйгун просит поправить антенну")
+	await shut()
+	up.on_interact(up.item("RoofWindow"))
+	main.dialog.close()
+	ok(not Game.flag("radio_fixed"), "без проволоки антенну не закрепить")
+	var nk: Node = await go_downstairs("Izba5")
+	ok(nk.location_id == "nakharro" and main.player.global_position.distance_to(nk.spawn_point("FromUp_Izba5")) < 1.0, "спустился по стремянке в избу")
+	var sm: Character = nk.character("Smith")
+	await tp(sm.global_position + Vector3(1.2, 0, 0))
+	main.talk_to(sm)
+	await frames(2)
+	await choose(find_opt("медная проволока"))
+	ok(Game.item_count("copper_wire") == 1, "мастер Тимир дал проволоку")
+	await shut()
+	up = await go_upstairs("Izba5")
+	Game.force_check = 1
+	up.on_interact(up.item("RoofWindow"))
+	Game.force_check = 0
+	main.dialog.close()
+	ok(Game.flag("radio_fixed") and Game.quest_stage("radio") == 2, "антенна поправлена через слуховое окно")
+	main.talk_to(up.character("Tuygun"))
+	await frames(2)
+	await choose(find_opt("Антенна стоит"))
+	ok(Game.quest_stage("radio") == 3 and "Север-два" in str(Game.hero.notes), "поймали чужой эфир: «ждём темноты»")
+	await close_dialogs()
+	nk = await go_downstairs("Izba5")
+	ok((nk.get_node("Village/RadioMast/Fixed") as Node3D).visible, "на крыше — ровная мачта")
+	# --- прятки ---
+	var kid: Character = nk.character("Kid")
+	await tp(kid.global_position + Vector3(1.0, 0, 0))
+	main.talk_to(kid)
+	await frames(2)
+	await choose(find_opt("Во что играете"))
+	await choose(find_opt("Найду"))
+	await close_dialogs()
+	ok(Game.quest_stage("hide_seek") == 1 and nk.character("HideKid1").visible, "Мичил водит — дети спрятались")
+	var hu := unreachable(nk, nk.spawn_point("Start"), func(nd): return String(nd.name).begins_with("HideKid"))
+	ok(hu.is_empty(), "до спрятавшихся можно дойти (%s)" % ", ".join(hu))
+	for i in [1, 2]:
+		var hk: Character = nk.character("HideKid%d" % i)
+		await tp(hk.global_position + Vector3(1.0, 0, 0))
+		main.talk_to(hk)
+		await frames(2)
+		await choose(find_opt("Беги к Мичилу"))
+		await close_dialogs()
+		ok(Game.flag("hs_%d" % i), "нашёл %s" % hk.display_name)
+	await wait(3.0)
+	ok(not nk.character("HideKid1").visible, "найденный убежал к Мичилу")
+	up = await go_upstairs("Izba9")
+	var k3: Character = up.character("HideKid3")
+	ok(up.cur == "Izba9" and k3.visible, "Кюннэй — в бабушкиной светёлке за станком")
+	main.talk_to(k3)
+	await frames(2)
+	await choose(find_opt("Беги к Мичилу"))
+	await close_dialogs()
+	ok(Game.flag("hs_3") and not k3.visible, "нашёл Кюннэй")
+	up.on_interact(up.item("HerbRack"))
+	main.dialog.close()
+	ok(Game.flag("upper_herbs"), "пучок трав со светёлки")
+	nk = await go_downstairs("Izba9")
+	kid = nk.character("Kid")
+	await tp(kid.global_position + Vector3(1.0, 0, 0))
+	main.talk_to(kid)
+	await frames(2)
+	await choose(find_opt("Нашёл всех"))
+	ok(Game.quest_stage("hide_seek") == 2 and Game.item_count("t_elk") >= 1, "Мичил подарил резного лося")
+	await close_dialogs()
+	# --- ссора из-за сена ---
+	var hm: Character = nk.character("HayMan1")
+	await tp(hm.global_position + Vector3(0, 0, -1.2))
+	main.talk_to(hm)
+	await frames(2)
+	await choose(find_opt("Позову старика"))
+	await close_dialogs()
+	ok(Game.quest_stage("hay") == 1, "спор у амбара: зовём Мэхээлэ")
+	var el: Character = nk.character("Elder1")
+	await tp(el.global_position + Vector3(0, 0, 1.4))
+	main.talk_to(el)
+	await frames(2)
+	await choose(find_opt("Ссора у амбара"))
+	ok(Game.flag("hay_elder"), "Мэхээлэ рассудил")
+	await choose(find_opt("Скажу"))
+	# заодно — книга
+	await close_dialogs()
+	main.talk_to(hm)
+	await frames(2)
+	await choose(find_opt("Мэхээлэ сказал"))
+	ok(Game.flag("hay_done") and Game.quest_stage("hay") == 2, "помирил соседей")
+	await close_dialogs()
+	# --- книга учительницы ---
+	up = await go_upstairs("Izba13")
+	ok(up.cur == "Izba13" and up.character("Teacher").visible, "светёлка учительницы в тереме")
+	main.talk_to(up.character("Teacher"))
+	await frames(2)
+	await choose(find_opt("помочь"))
+	await choose(find_opt("Принесу"))
+	ok(Game.quest_stage("book") == 1, "учительница просит вернуть книгу")
+	await close_dialogs()
+	nk = await go_downstairs("Izba13")
+	el = nk.character("Elder1")
+	await tp(el.global_position + Vector3(0, 0, 1.4))
+	main.talk_to(el)
+	await frames(2)
+	await choose(find_opt("Книга Айыыны"))
+	ok(Game.item_count("enc_book") == 1, "Мэхээлэ отдал энциклопедию")
+	await close_dialogs()
+	up = await go_upstairs("Izba13")
+	main.talk_to(up.character("Teacher"))
+	await frames(2)
+	await choose(find_opt("Отдать том"))
+	ok(Game.quest_stage("book") == 2 and Game.item_count("enc_book") == 0, "книга вернулась на полку")
+	await close_dialogs()
+	nk = await go_downstairs("Izba13")
+	# --- вечер у костра, вышка ночью, сон ---
+	var h0 := Clock.hours()
+	Clock.force_day = false
+	Clock.set_hours(floorf(h0 / 24.0) * 24.0 + 20.0)
+	Clock.update_schedules(true)
+	nk._apply_life()
+	var fl := nk.get_node("Items/Bonfire/Flame") as Node3D
+	var e1: Character = nk.character("Elder1")
+	ok(fl.visible and e1.pose == "sit" and e1.global_position.distance_to(Vector3(67.5, 0, 60.5)) < 3.0, "вечером горит костёр, старики сидят вокруг")
+	var bf: Interactable = nk.item("Bonfire")
+	await tp(bf.global_position + Vector3(0, 0, -2.0))
+	var hb := Clock.hours()
+	nk.on_interact(bf)
+	await frames(2)
+	while main.wait_scr.visible:
+		await frames(2)
+	main.dialog.close()
+	ok(Game.flag("fire_sat") and absf(Clock.hours() - hb - 1.0) < 0.05, "посидел у костра — прошёл час")
+	Clock.set_hours(floorf(h0 / 24.0) * 24.0 + 23.5)
+	Clock.update_schedules(true)
+	nk._apply_life()
+	var vr: Character = nk.character("Varvara")
+	ok(vr.pose == "sleep" and vr.visible and not fl.visible, "ночью костёр погас, тётка Варвара спит дома")
+	nk.on_interact(nk.item("TowerClimb"))
+	main.dialog.close()
+	ok(Game.flag("saw_lights"), "с вышки ночью — чужие огни в тайге")
+	Clock.set_hours(h0)
+	Clock.force_day = true
+	Clock.update_schedules(true)
+	nk._apply_life()
+	ok(vr.pose != "sleep", "утро: снова за делами")
+
+
 ## Кресты: дойти можно до всех; баня, кузня, жетон лётчика, письмо
 func kresty_life_tests() -> void:
 	var loc = main.location
@@ -192,12 +379,13 @@ func kresty_life_tests() -> void:
 	await choose(find_opt("Поищу"))
 	ok(Game.quest_stage("kr_iron") == 1, "кузнецу нужно железо")
 	await shut()
+	var scrap0 := Game.item_count("scrap_iron")
 	Game.add_item("scrap_iron", 3)
 	var axe0 := Game.item_count("axe")
 	main.talk_to(sm)
 	await frames(2)
 	await choose(find_opt("куска лома"))
-	ok(Game.quest_stage("kr_iron") == 2 and Game.item_count("axe") == axe0 + 1 and Game.item_count("scrap_iron") == 0, "лом отдан — кузнец выковал топор")
+	ok(Game.quest_stage("kr_iron") == 2 and Game.item_count("axe") == axe0 + 1 and Game.item_count("scrap_iron") == scrap0, "лом отдан — кузнец выковал топор (этап %d, топоров %d→%d, лома %d, узел %s)" % [Game.quest_stage("kr_iron"), axe0, Game.item_count("axe"), Game.item_count("scrap_iron"), main.dialog.node_id])
 	await shut()
 	# бабка Мотрёна и жетон лётчика (найден на обломках «кукурузника»)
 	var gr: Character = loc.character("Granny")
@@ -413,6 +601,9 @@ func city_tests() -> void:
 	ok(Game.quest_stage("sg_suitcase") == 1, "Ньургун: украли чемодан")
 	Game.set_hero_hp(3)
 	loc.on_interact(loc.item("HotelBed"))
+	while main.wait_scr.visible:
+		await frames(2)
+	await frames(2)
 	ok(Game.hero_hp() == Game.hero_max() and absf(fmod(Clock.hours(), 24.0) - 8.0) < 0.1, "выспался в номере 6 до утра")
 	loc.go_floor(3, "F3Below")
 	await frames(3)
@@ -975,6 +1166,8 @@ func _ready() -> void:
 	main.use_item("pass_elley")
 	await frames(2)
 	ok(Game.hero.notes.size() >= notes0, "пропуск читается")
+	await nakharro_life_tests()
+	nak = main.location
 	# колодец
 	var wc: Character = nak.character("WaterCarrier")
 	await tp(wc.global_position + Vector3(1.0, 0, 1.0))
@@ -1104,8 +1297,13 @@ func _ready() -> void:
 	# жители ходят
 	var walker: Character = main.location.character("Villager3")
 	var wp0 := walker.global_position
-	await wait(4.0)
-	ok(walker.global_position.distance_to(wp0) > 1.0, "прохожий гуляет по улице")
+	# между отрезками маршрута прохожий стоит 4–6 с — ждём до десяти
+	var ww := 0.0
+	while walker.global_position.distance_to(wp0) <= 1.0 and ww < 10.0:
+		await wait(0.5)
+		ww += 0.5
+	ok(walker.global_position.distance_to(wp0) > 1.0, "прохожий гуляет по улице (%s, маршрут %d, идёт %s, поза '%s', виден %s, %s, режим %d)" % [
+		walker.global_position, walker.patrol.size(), walker.moving, walker.pose, walker.visible, walker.get_meta("state", "-"), walker.process_mode])
 	# стрельбище: три мишени
 	var shooter: Character = main.location.character("Shooter")
 	await tp(shooter.global_position + Vector3(0, 0, 1.5))
@@ -2022,6 +2220,13 @@ func _ready() -> void:
 	bk.on_interact(bk.item("Generator"))
 	Game.force_check = 0
 	ok(Game.flag("bunker_power") and bk.get_node("Village/MainLights").get_child(0).visible, "генератор запущен — свет")
+	ok((bk.get_node("Village/Screens") as Node3D).visible, "с током ожили экраны пультов")
+	var bu := unreachable(bk, bk.spawn_point("Start"), func(nd): return nd.visible and not (nd.name in ["Files", "Registry"]))
+	ok(bu.is_empty(), "бункер: через обвалы до всего можно дойти (%s)" % ", ".join(bu))
+	bk.on_interact(bk.item("TapeDeck"))
+	bk.on_interact(bk.item("WallScreen"))
+	main.dialog.close()
+	ok(Game.flag("bunker_tape") and Game.flag("bunker_contour") and "Сытыган-14" in str(Game.hero.notes), "плёнка «Сытыган-14» и табло «Контур» — в записях")
 	bk.on_interact(bk.item("DoorLock"))
 	await wait(0.3)
 	ok(Game.flag("archive_open") and bk.get_node_or_null("Village/ArchiveDoor") == null, "архив открыт картой")
@@ -2042,12 +2247,30 @@ func _ready() -> void:
 	main.use_item("list_b")
 	await frames(2)
 	ok(Game.hero.notes.size() >= nn, "список Б читается в КПК")
-	bk.on_interact(bk.item("UpRope"))
+	bk.on_interact(bk.item("GateDoor"))
+	main.dialog.close()
+	ok(Game.flag("bunker_gate_open"), "гермоворота открыты изнутри — током")
+	bk.on_interact(bk.item("GateDoor"))
 	while main._loading:
 		await frames(2)
 	await frames(3)
 	loc = main.location
-	ok(loc.location_id == "ruin" and Game.flag("archive_open"), "поднялся из бункера, состояние сохранилось")
+	ok(loc.location_id == "ruin" and Game.flag("archive_open") and main.player.global_position.distance_to(loc.spawn_point("Ramp")) < 1.0,
+		"вышел из бункера по пандусу, состояние сохранилось")
+	main.dialog.close()
+	ok((loc.get_node("Village/BunkerPortal/GateOpen") as Node3D).visible, "на пандусе ворота открыты")
+	loc.on_interact(loc.item("BunkerGate"))
+	while main._loading:
+		await frames(2)
+	await frames(3)
+	ok(main.location.location_id == "ruin_bunker", "через ворота — снова в бункер")
+	main.dialog.close()
+	main.location.on_interact(main.location.item("UpRope"))
+	while main._loading:
+		await frames(2)
+	await frames(3)
+	loc = main.location
+	ok(loc.location_id == "ruin", "по верёвке — наверх")
 	main.dialog.close()
 	ok(loc.item_actions(loc.item("Shaft")).size() == 2, "у шахты: спуститься или отвязать верёвку")
 	var sh: Interactable = loc.item("Shaft")
@@ -2198,7 +2421,18 @@ func _ready() -> void:
 	ok(not main.dialog.visible, "спящую не разбудить разговором")
 	ok(sun.light_energy < 0.5, "ночью темно (солнце %.2f)" % sun.light_energy)
 	var hn := Clock.hours()
-	main.wait_time(true)
+	await main.wait_time(true)
+	ok(not main.wait_scr.visible, "затемнение после ожидания снято")
+	var h1 := Clock.hours()
+	main.open_wait()
+	ok(main.wait_scr.visible and main.wait_scr._ask.visible, "окно «Подождать»: выбор, сколько ждать")
+	main.wait_scr._choose(1)
+	await frames(2)
+	ok(main.wait_scr.running, "экран темнеет, часы бегут")
+	while main.wait_scr.visible:
+		await frames(2)
+	ok(absf(Clock.hours() - h1 - 3.0) < 0.01, "подождал три часа (%s)" % Clock.text())
+	Clock.set_hours(h1)
 	ok(fmod(Clock.hours(), 24.0) > 7.9 and fmod(Clock.hours(), 24.0) < 8.1 and Clock.hours() > hn, "подождал до утра: %s" % Clock.text())
 	Clock.set_hours(floorf(Clock.hours() / 24.0) * 24.0 + 10.0)
 	Clock.update_schedules(true)

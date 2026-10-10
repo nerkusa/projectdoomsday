@@ -201,6 +201,27 @@ func can_go(id: String) -> bool:
 	return n.has("loc") and not n.get("burned", false)
 
 
+## Тропы и старые дороги между местами (world.json → paths): видны, когда оба конца известны
+func paths() -> Array:
+	var out := []
+	for pth in data.get("paths", []):
+		if known(str(pth.a)) and known(str(pth.b)):
+			out.append(pth)
+	return out
+
+
+## Идёт ли герой по тропе (в пределах 14 пикселей карты)
+func on_path(q: Vector2) -> bool:
+	for pth in paths():
+		var pts: Array = pth.pts
+		for i in pts.size() - 1:
+			var a := Vector2(pts[i][0], pts[i][1])
+			var b := Vector2(pts[i + 1][0], pts[i + 1][1])
+			if Geometry2D.get_closest_point_to_segment(q, a, b).distance_to(q) < 14.0:
+				return true
+	return false
+
+
 ## Часы игры (общие с локациями)
 func hours() -> float:
 	return Clock.hours()
@@ -378,7 +399,9 @@ func enter(id: String) -> void:
 func _roll_encounter() -> bool:
 	if not encounters_on or not Game.flag("visited_kresty"):
 		return false
-	if randf() > float(data.get("encounter_chance", 0.2)):
+	# на натоптанной тропе или старой дороге встречи реже
+	var ch := float(data.get("encounter_chance", 0.2)) * (0.55 if on_path(pos) else 1.0)
+	if randf() > ch:
 		return false
 	var id := pick_encounter()
 	if id == "":
@@ -587,6 +610,19 @@ func _text(c: Control, p: Vector2, s: String, size: int, col: Color) -> void:
 
 func _draw_map() -> void:
 	var c := _canvas
+	# тропы (пунктир) и старые дороги (сплошная, светлее)
+	for pth in paths():
+		var pts: Array = pth.pts
+		var road: bool = str(pth.get("type", "trail")) == "road"
+		for i in pts.size() - 1:
+			var a := _to_px(Vector2(pts[i][0], pts[i][1]))
+			var b := _to_px(Vector2(pts[i + 1][0], pts[i + 1][1]))
+			if road:
+				c.draw_line(a, b, Color(0, 0, 0, 0.45), 4.5)
+				c.draw_line(a, b, Color("d8c8a0", 0.75), 2.5)
+			else:
+				c.draw_dashed_line(a, b, Color(0, 0, 0, 0.5), 3.5, 7.0)
+				c.draw_dashed_line(a, b, Color("e0c890", 0.85), 1.8, 7.0)
 	# след: красные точки, как в Fallout
 	for q in _trail:
 		c.draw_circle(_to_px(q), 2.2, Color("c0392b"))

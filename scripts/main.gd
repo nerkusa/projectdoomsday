@@ -10,6 +10,7 @@ const LOCATIONS := {
 	"ruin": "res://scenes/locations/ruin.tscn",
 	"encounter": "res://scenes/locations/encounter.tscn",
 	"nakharro_cellar": "res://scenes/locations/nakharro_cellar.tscn",
+	"nakharro_upper": "res://scenes/locations/nakharro_upper.tscn",
 	"ruin_bunker": "res://scenes/locations/ruin_bunker.tscn",
 	"sungar": "res://scenes/locations/sungar.tscn",
 	"sungar_center": "res://scenes/locations/sungar_center.tscn",
@@ -42,6 +43,7 @@ var dialog: DialogBox
 var kpk: KPK
 var sheet: CharSheet
 var loot_win: LootWindow
+var wait_scr: WaitScreen
 var trade_win: TradeWindow
 var world_map: WorldMap
 ## Меню действий по правой кнопке (взять, осмотреть, разобрать, обокрасть…)
@@ -138,6 +140,10 @@ func _build_ui() -> void:
 	loot_win = LootWindow.new()
 	root.add_child(loot_win)
 	loot_win.setup(self)
+	wait_scr = WaitScreen.new()
+	root.add_child(wait_scr)
+	wait_scr.setup(self)
+	wait_scr.picked.connect(func(dh, lbl): wait_hours(dh, str(lbl).to_lower()))
 	trade_win = TradeWindow.new()
 	root.add_child(trade_win)
 	trade_win.setup(self)
@@ -171,7 +177,7 @@ func space() -> PhysicsDirectSpaceState3D:
 
 
 func ui_blocked() -> bool:
-	return dialog.visible or kpk.visible or sheet.visible or loot_win.visible or trade_win.visible or world_map.visible or menu.visible or slides.visible or plugging or _loading
+	return wait_scr.visible or dialog.visible or kpk.visible or sheet.visible or loot_win.visible or trade_win.visible or world_map.visible or menu.visible or slides.visible or plugging or _loading
 
 
 ## Звук из assets/sounds/<name>.wav; громкость в децибелах
@@ -400,6 +406,8 @@ func _on_hud_action(a: String) -> void:
 				Game.hero_changed.emit()
 		"give":
 			combat.give_up()
+		"wait":
+			open_wait()
 		"end":
 			if combat.on:
 				if combat.my_turn():
@@ -732,7 +740,10 @@ func _unhandled_input(e: InputEvent) -> void:
 					combat.burst = false
 					combat.changed.emit()
 			KEY_T:
-				wait_time(e.shift_pressed)
+				if e.shift_pressed:
+					wait_time(true)
+				else:
+					open_wait()
 			KEY_F5:
 				quicksave()
 			KEY_F9:
@@ -741,17 +752,41 @@ func _unhandled_input(e: InputEvent) -> void:
 
 ## Подождать: час, или (until_morning) до восьми утра. Нельзя в бою и когда рядом враги
 func wait_time(until_morning := false) -> void:
-	if combat.on or location == null:
-		return
+	await wait_hours(Clock.until(8.0) if until_morning else 1.0, "до утра" if until_morning else "час")
+
+
+func _enemies_near() -> bool:
 	for ch in location.characters():
 		if ch.hostile and ch.visible and ch.pose != "dead" and ch.global_position.distance_to(player.global_position) < 20.0:
-			hud.flash_tip("Рядом враги — не до отдыха")
-			return
-	var dh := Clock.until(8.0) if until_morning else 1.0
-	Clock.advance(dh)
+			return true
+	return false
+
+
+## Окно «Подождать»: сколько ждать — выбирает игрок
+func open_wait() -> void:
+	if combat.on or location == null or ui_blocked():
+		return
+	if _enemies_near():
+		hud.flash_tip("Рядом враги — не до отдыха")
+		return
+	wait_scr.ask()
+
+
+## Промотать dh часов: экран темнеет, часы бегут, свет и жители меняются
+func wait_hours(dh: float, what := "") -> void:
+	if combat.on or location == null or wait_scr.running:
+		return
+	if _enemies_near():
+		hud.flash_tip("Рядом враги — не до отдыха")
+		return
+	player.stop()
+	var loc = location
+	await wait_scr.play(dh, func(d: float):
+		Clock.advance(d)
+		Clock.apply_light(loc))
 	Clock.update_schedules(true)
 	Clock.apply_light(location)
-	Game.log_line("Ждёшь %s. %s" % ["до утра" if until_morning else "час", Clock.text().to_lower()])
+	Game.log_line("Ждёшь %s. %s" % [what if what != "" else "%.0f ч" % dh, Clock.text().to_lower()])
 	hud.refresh()
 
 

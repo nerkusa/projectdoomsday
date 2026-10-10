@@ -26,7 +26,7 @@ func _bed() -> void:
 	if not Game.flag("sg_room"):
 		main.think("Чужой номер. Дежурная внизу сдаёт такие по десять рублей.")
 		return
-	main.wait_time(true)
+	await main.wait_time(true)
 	Game.set_hero_hp(Game.hero_max())
 	main.hud.refresh()
 	main.think("Проспал как убитый. Ни налёта, ни леса — ничего не снилось. Впервые за долгое время.")

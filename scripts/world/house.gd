@@ -11,6 +11,8 @@ extends Node3D
 
 var inside := false
 var _upper: Node3D
+var _player: Node3D
+var _t := 0.0
 ## Что ещё прячется вместе с верхом (вывески над входом: метка with_upper)
 var _extra: Array = []
 
@@ -23,10 +25,17 @@ func _ready() -> void:
 			_extra.append(c)
 
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
 	if _upper == null:
 		return
-	var p := get_tree().get_first_node_in_group("player") as Node3D
+	# проверять десять раз в секунду хватает: домов на локации — десятки
+	_t -= delta
+	if _t > 0.0:
+		return
+	_t = 0.1
+	if _player == null or not is_instance_valid(_player) or not _player.is_inside_tree():
+		_player = get_tree().get_first_node_in_group("player") as Node3D
+	var p := _player
 	if p == null:
 		return
 	var l := to_local(p.global_position)

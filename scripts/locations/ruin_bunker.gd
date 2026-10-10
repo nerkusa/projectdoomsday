@@ -1,12 +1,14 @@
 extends Location
-## Бункер под базой на Сытыгане — второй уровень. Спуск — по верёвке через вентшахту.
-## Генератор (Механика) включает свет и электрозамок архива. Без тока дверь можно
-## поддеть отвёрткой (Воровство). В архиве — копия «списка Б» и ведомость на Эллэя.
+## Бункер «Сытыган-14» под базой на Сытыгане — второй уровень, наполовину обрушен.
+## Входы: по верёвке через вентшахту или через гермоворота с пандуса (монтировкой снаружи
+## или током изнутри). Генератор (Механика) включает свет, экраны пультов, ворота и
+## электрозамок архива. Без тока дверь архива можно поддеть отвёрткой (Воровство).
+## В архиве — копия «списка Б» и ведомость на Эллэя; на пульте и магнитофоне — последние дни объекта.
 
 
 func _ready() -> void:
 	location_id = "ruin_bunker"
-	title = "Бункер под Сытыганом"
+	title = "Бункер «Сытыган-14»"
 	# открытая дверь архива не должна мешать сетке ходов
 	if Game.flag("archive_open"):
 		var d := get_node_or_null("Village/ArchiveDoor")
@@ -24,6 +26,11 @@ func _apply_power() -> void:
 		l.visible = on
 	for l in get_node("Village/Emergency").get_children():
 		(l as OmniLight3D).light_energy = 0.4 if on else 0.9
+	# экраны пультов, табло и полосы светильников — только с током
+	for n in ["Village/Screens", "Village/Strips"]:
+		var g := get_node_or_null(n) as Node3D
+		if g:
+			g.visible = on
 
 
 func on_enter() -> void:
@@ -52,6 +59,43 @@ func on_interact(it: Interactable) -> bool:
 	match String(it.name):
 		"UpRope":
 			main.load_location("ruin", "Shaft")
+			return true
+		"GateDoor":
+			if Game.flag("bunker_gate_open"):
+				main.load_location("ruin", "Ramp")
+			elif Game.flag("bunker_power"):
+				Game.set_flag("bunker_gate_open")
+				Game.grant_xp(20)
+				main.sfx("plug", -4.0)
+				main.think("Нажал зелёную кнопку у ворот. Гидравлика вздохнула, штурвал провернулся сам — и диск пополз в сторону. Снаружи — серый свет и пандус наверх.")
+			else:
+				main.think("Гермоворота. Без тока гидравлика мертва — не сдвинуть. Генератор бы запустить.")
+			return true
+		"TapeDeck":
+			if not Game.flag("bunker_power"):
+				main.think("Магнитофонная стойка «Электроника». Бобины на месте, лента заправлена. Без тока — мёртвая.")
+			elif not Game.flag("bunker_tape"):
+				Game.set_flag("bunker_tape")
+				Game.grant_xp(30)
+				Game.add_note("Плёнка из бункера «Сытыган-14», 14.12.2012: «Говорит Сытыган-14. Связи с Москвой нет третьи сутки. Распоряжение по линии „Горизонта“: архив отдела цифровых моделей — вывезти, персонал — по списку Б… Повторяю: по списку Б. Кто это слушает — простите нас».")
+				main.think("Щёлкнул тумблер — бобины поползли. Сквозь треск — усталый голос: «Говорит Сытыган-14. Связи с Москвой нет третьи сутки… персонал — по списку Б… Кто это слушает — простите нас». Плёнка кончилась.")
+			else:
+				main.think("Бобины крутятся вхолостую. Плёнка кончилась.")
+			return true
+		"WallScreen":
+			if Game.flag("bunker_power"):
+				if not Game.flag("bunker_contour"):
+					Game.set_flag("bunker_contour")
+					Game.add_note("Табло в бункере: «Контур „Горизонт“ · объектов 14 · активных 0». Сытыган — четырнадцатый. Значит, были ещё тринадцать.")
+				main.think("Табло ожило: сетка, точки объектов. «Контур „Горизонт“ · объектов 14 · активных 0». Четырнадцать таких бункеров — и ни одного живого.")
+			else:
+				main.think("Огромное тёмное табло во всю стену. В стекле — моё отражение и красный отсвет аварийных ламп.")
+			return true
+		"Console":
+			if Game.flag("bunker_power"):
+				main.think("Пульт мигает лампочками. На экране янтарём: «ДЕЖУРНЫЙ ОПЕРАТОР: —. ПОСЛЕДНИЙ ВХОД: 16.12.2012 03:12». Пятьдесят лет никто не садился в это кресло.")
+			else:
+				main.think("Пульт оператора: кнопки, тумблеры, телефонная трубка на шнуре. Пыль в палец толщиной.")
 			return true
 		"Generator":
 			if Game.flag("bunker_power"):
@@ -145,11 +189,27 @@ func item_actions(it: Interactable) -> Array:
 			return [["Открыть шкафчики", "use"]]
 		"Files", "Registry":
 			return [["Читать", "use"]]
+		"GateDoor":
+			if Game.flag("bunker_gate_open"):
+				return [["Выйти на пандус", "use"]]
+			return [["Открыть гермоворота", "use"]]
+		"TapeDeck":
+			return [["Включить магнитофон", "use"]]
+		"WallScreen", "Console":
+			return [["Осмотреть", "use"]]
 	return []
 
 
 func describe(it: Interactable) -> String:
 	match String(it.name):
+		"GateDoor":
+			return "Круглые гермоворота в метр толщиной. " + ("Открыты." if Game.flag("bunker_gate_open") else "Закрыты.")
+		"TapeDeck":
+			return "Магнитофонная стойка: две бобины за стеклом, красная лампочка «запись»."
+		"WallScreen":
+			return "Табло во всю стену — карта района с точками объектов."
+		"Console":
+			return "Бежевый пульт с кнопками и экраном в рамке."
 		"Generator":
 			return "Дизель-генератор с табличкой «Мин. обороны». Топливный бак на треть полон."
 		"DoorLock":

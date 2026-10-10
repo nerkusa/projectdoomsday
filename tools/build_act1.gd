@@ -32,6 +32,7 @@ func _build() -> void:
 	_convoy()
 	_ruin()
 	_cellar()
+	_upper()
 	_bunker()
 
 
@@ -941,9 +942,7 @@ func _ruin() -> void:
 	_block(vil, "Store", Vector3(44, 0, 33), Vector3(8, 3.0, 6), PI)
 	put(P.tower, vil, Vector3(48.5, 0, 14), 0.0, "Watchtower")
 	put(P.shed, vil, Vector3(24, 0, 37.5), 0.3)
-	# заваренный люк бункера
-	cyl(vil, 0.9, 0.9, 0.25, Vector3(40, 0.12, 22.5), "metal_dark", Vector3.ZERO, 16).owner = root
-	box(vil, Vector3(1.6, 0.06, 0.12), Vector3(40, 0.27, 22.5), "rust").owner = root
+	_bunker_portal(vil)
 	# пустой контейнер и бумаги
 	box(vil, Vector3(2.4, 2.4, 5.6), Vector3(26, 1.2, 30), "paint_faded", Vector3(0, 0.2, 0), "Container").owner = root
 	_own(collider(vil, Vector3(2.4, 2.4, 5.6), Vector3(26, 1.2, 30), 0.2), root)
@@ -966,7 +965,9 @@ func _ruin() -> void:
 	_exit(items, "WestExit", "Дорога назад", Vector3(1.0, 0, 27), Vector3(1.6, 2.2, 5.0))
 	_use(items, "WallMap", "Карта на стене", Vector3(28, 0, 19.8), Vector3(1.6, 2.0, 0.8))
 	_use(items, "Terminal", "Терминал", Vector3(32.5, 0, 19.9), Vector3(1.0, 1.6, 0.8))
-	_use(items, "Hatch", "Люк", Vector3(40, 0, 22.5), Vector3(1.8, 0.5, 1.8))
+	var bg := _use(items, "BunkerGate", "Гермоворота бункера", Vector3(40.0, 0, 21.3), Vector3(3.0, 2.6, 1.2))
+	bg.set("reach", 2)
+	_spawn("Ramp", Vector3(40.0, 0, 23.4))
 	_use(items, "ContainerUse", "Контейнер", Vector3(27.5, 0, 30.5), Vector3(1.4, 2.0, 2.0))
 	_use(items, "Papers", "Бумаги", Vector3(32, 0, 22.5), Vector3(3.0, 0.4, 2.0))
 	_use(items, "Burnt", "Пепелище", Vector3(9, 0, 45), Vector3(5.0, 1.0, 5.0))
@@ -982,6 +983,65 @@ func _ruin() -> void:
 	_spawn("Shaft", Vector3(45.0, 0, 22.0))
 	_dress(Rect2(14, 6, 42, 40), 500)
 	_finish("ruin")
+
+
+## Въезд в бункер «Сытыган-14»: бетонная дорога от пролома в ограде, траншея-пандус
+## с подпорными стенками, портал и круглые гермоворота (открытые и закрытые — для ruin.gd)
+func _bunker_portal(vil: Node) -> void:
+	var g := group(vil, "BunkerPortal")
+	var cd: StandardMaterial3D = (load(MAT_DIR + "concrete.tres") as StandardMaterial3D).duplicate()
+	cd.albedo_color = Color("8a867c")
+	M["concrete_dark"] = cd
+	# дорога: бетонные плиты от пролома в ограде к пандусу, по краям — столбики
+	strip(g, Vector2(19.5, 27), Vector2(33.5, 27), 3.4, "concrete_dark", 0.02)
+	strip(g, Vector2(33.5, 27), Vector2(40.0, 27.6), 3.4, "concrete_dark", 0.02)
+	for x in [23.0, 27.0, 31.0]:
+		for dz in [-1.9, 1.9]:
+			cyl(g, 0.07, 0.07, 0.8, Vector3(x, 0.4, 27 + dz), "paint_faded").owner = root
+	# траншея-пандус с юга на север: стенки растут к воротам — будто пол уходит вниз
+	for k in 4:
+		var z0 := 26.4 - k * 1.5
+		var h := 0.35 + k * 0.33
+		for x in [38.2, 41.8]:
+			box(g, Vector3(0.35, h, 1.52), Vector3(x, h / 2.0, z0 - 0.75), "concrete_dark").owner = root
+	_own(collider(g, Vector3(0.4, 1.5, 6.0), Vector3(38.2, 0.75, 23.4)), root)
+	_own(collider(g, Vector3(0.4, 1.5, 6.0), Vector3(41.8, 0.75, 23.4)), root)
+	box(g, Vector3(3.3, 0.03, 6.0), Vector3(40.0, 0.03, 23.4), "coal").owner = root
+	for k in 9:
+		for x in [38.55, 41.45]:
+			box(g, Vector3(0.12, 0.035, 0.3), Vector3(x, 0.04, 26.0 - k * 0.62), "paint_faded" if k % 2 == 0 else "tire").owner = root
+	# портал: торцевая стена, балка с надписью над воротами
+	box(g, Vector3(5.6, 2.8, 0.9), Vector3(40.0, 1.4, 19.9), "concrete_dark").owner = root
+	box(g, Vector3(5.6, 0.5, 1.4), Vector3(40.0, 2.85, 20.6), "concrete_dark").owner = root
+	_own(collider(g, Vector3(5.6, 2.8, 0.9), Vector3(40.0, 1.4, 19.9)), root)
+	var l := Label3D.new()
+	l.text = "СЫТЫГАН-14"
+	l.font_size = 64
+	l.pixel_size = 0.006
+	l.modulate = Color("e3a23a")
+	l.position = Vector3(40.0, 2.85, 21.32)
+	g.add_child(l)
+	l.owner = root
+	# гермоворота: закрытые — диск в проёме, открытые — диск откатился вбок, за ним темнота
+	for st in ["GateClosed", "GateOpen"]:
+		var d := Node3D.new()
+		d.name = st
+		g.add_child(d)
+		d.owner = root
+		var dx := 0.0 if st == "GateClosed" else 1.7
+		if st == "GateOpen":
+			box(d, Vector3(2.2, 2.2, 0.05), Vector3(40.0, 1.2, 20.37), "coal").owner = root
+		cyl(d, 1.15, 1.15, 0.35, Vector3(40.0 + dx, 1.2, 20.5), "metal_dark", Vector3(PI / 2.0, 0, 0), 24).owner = root
+		cyl(d, 0.35, 0.35, 0.06, Vector3(40.0 + dx, 1.2, 20.7), "paint_faded", Vector3(PI / 2.0, 0, 0), 12).owner = root
+		for k in 3:
+			box(d, Vector3(0.9, 0.07, 0.05), Vector3(40.0 + dx, 1.2, 20.74), "rust", Vector3(0, 0, k * PI / 3.0)).owner = root
+	# полуобвал: плита съехала в траншею с западной стенки, щебень
+	box(g, Vector3(1.4, 0.25, 2.4), Vector3(38.9, 0.5, 24.2), "concrete_dark", Vector3(0.1, 0.2, 0.5)).owner = root
+	for k in 6:
+		put(P.rock_small, g, Vector3(randf_range(38.5, 39.1), 0, randf_range(22.5, 25.5)), randf() * TAU, "", randf_range(0.5, 0.9))
+	_signboard(g, "ОБЪЕКТ «СЫТЫГАН-14» · ВЪЕЗД ПО ПРОПУСКАМ", Vector3(34.6, 1.6, 29.0), 0.0, 3.2)
+	for x in [33.2, 36.0]:
+		cyl(g, 0.06, 0.06, 1.6, Vector3(x, 0.8, 28.95), "rust").owner = root
 
 
 # ======================================================================
@@ -1117,88 +1177,582 @@ func _cellar() -> void:
 	_finish("nakharro_cellar")
 
 
+# ---------------- вторые этажи изб Нахарро ----------------
+## Светёлки трёх двухэтажных изб лежат в одной сцене рядом (виден только тот дом,
+## где стоит герой). Люк с лестницей — над стремянкой первого этажа (у задней стены).
+const UPPER_ROOMS := {"Izba5": Rect2(0, 0, 5.4, 4.6), "Izba9": Rect2(12, 0, 5.4, 4.6), "Izba13": Rect2(24, 0, 7.4, 4.4)}
+
+
+func _glow(col: Color, e := 1.6) -> StandardMaterial3D:
+	var m := StandardMaterial3D.new()
+	m.albedo_color = col.darkened(0.4)
+	m.emission_enabled = true
+	m.emission = col
+	m.emission_energy_multiplier = e
+	return m
+
+
+func _upper() -> void:
+	seed(5959)
+	root = Node3D.new()
+	root.name = "NakharroUpper"
+	root.set_script(load("res://scripts/locations/nakharro_upper.gd"))
+	root.set("location_id", "nakharro_upper")
+	root.set("title", "Нахарро · светёлка")
+	root.set("map_rect", Rect2(-2, -2, 36, 9))
+	root.set("camera_start", Vector3(2.7, 0, 2.3))
+	for n in ["herb", "brass", "whitewash", "trim"]:
+		M[n] = load(MAT_DIR + n + ".tres")
+	M["dial_glow"] = _glow(Color("8fe08a"))
+	M["lamp_glow"] = _glow(Color("ffb347"), 2.2)
+	M["board"] = _glow(Color("1c2a22"), 0.0)
+	M["book_a"] = _glow(Color("6a2e24"), 0.0)
+	M["book_b"] = _glow(Color("2e4a5a"), 0.0)
+	M["book_c"] = _glow(Color("5a5a2e"), 0.0)
+	_dark_env(Color("8a7a62"), 0.55)
+	var items := group(root, "Items")
+	var chars := group(root, "Characters")
+	var vil := group(root, "Village")
+	for hn in UPPER_ROOMS:
+		var r: Rect2 = UPPER_ROOMS[hn]
+		var g := group(vil, "Room_" + hn)
+		_floor(g, r.grow(0.15), "planks_old")
+		# дальние стены — в рост, ближние к камере (юг и восток) — по пояс, как в разрезе
+		for w in [[Vector3(r.size.x + 0.3, 1.5, 0.3), Vector3(r.get_center().x, 0.75, r.position.y)],
+				[Vector3(0.3, 1.5, r.size.y + 0.3), Vector3(r.position.x, 0.75, r.get_center().y)],
+				[Vector3(r.size.x + 0.3, 0.55, 0.3), Vector3(r.get_center().x, 0.275, r.end.y)],
+				[Vector3(0.3, 0.55, r.size.y + 0.3), Vector3(r.end.x, 0.275, r.get_center().y)]]:
+			box(g, w[0], w[1], "log_weathered").owner = root
+			_own(collider(g, Vector3(w[0].x, 1.5, w[0].z), Vector3(w[1].x, 0.75, w[1].z)), root)
+		# окна в торцах и в фасаде, тёплый свет дня
+		box(g, Vector3(0.08, 0.6, 0.6), Vector3(r.position.x + 0.17, 1.0, r.get_center().y), "glass").owner = root
+		box(g, Vector3(0.7, 0.6, 0.08), Vector3(r.get_center().x + 1.4, 1.0, r.position.y + 0.17), "glass").owner = root
+		_lamp(g, "Day", Vector3(r.get_center().x, 2.6, r.get_center().y), Color("f2dcb0"), 1.1, 7.0)
+		# люк и стремянка вниз — над лестницей первого этажа
+		var hx := r.get_center().x - 0.15
+		var hz := r.position.y + 0.75
+		box(g, Vector3(0.9, 0.04, 0.9), Vector3(hx, 0.01, hz), "coal").owner = root
+		for sx in [-1, 1]:
+			box(g, Vector3(0.06, 0.8, 0.06), Vector3(hx + sx * 0.5, 0.4, hz + 0.5), "planks_old").owner = root
+			box(g, Vector3(0.06, 0.06, 1.0), Vector3(hx + sx * 0.5, 0.8, hz), "planks_old").owner = root
+		_own(collider(g, Vector3(1.0, 0.8, 0.9), Vector3(hx, 0.4, hz)), root)
+		var dn := _use(items, "Down_" + hn, "Люк вниз", Vector3(hx, 0, hz), Vector3(1.0, 1.0, 1.0))
+		dn.set("reach", 2)
+		_spawn("From_" + hn, Vector3(hx, 0, hz + 1.0))
+		# балки потолка по краям — без перекрытия (камера сверху)
+		box(g, Vector3(r.size.x, 0.14, 0.14), Vector3(r.get_center().x, 1.55, r.position.y + 0.2), "log_dark").owner = root
+	# --- светёлка Туйгуна: самодельный приёмник, провода, слуховое окно на крышу ---
+	var ra: Rect2 = UPPER_ROOMS["Izba5"]
+	var gA: Node = vil.get_node("Room_Izba5")
+	box(gA, Vector3(0.8, 0.06, 1.5), Vector3(4.75, 0.76, 2.7), "planks_old").owner = root
+	for lz in [-0.6, 0.6]:
+		box(gA, Vector3(0.06, 0.74, 0.06), Vector3(4.75, 0.37, 2.7 + lz), "planks_old").owner = root
+	_own(collider(gA, Vector3(0.8, 0.8, 1.5), Vector3(4.75, 0.4, 2.7)), root)
+	box(gA, Vector3(0.45, 0.3, 0.6), Vector3(4.85, 0.95, 2.5), "metal_dark").owner = root
+	box(gA, Vector3(0.02, 0.12, 0.3), Vector3(4.61, 0.98, 2.5), "dial_glow").owner = root
+	for k in 3:
+		cyl(gA, 0.035, 0.035, 0.04, Vector3(4.6, 0.88, 2.3 + k * 0.1), "brass", Vector3(0, 0, PI / 2.0)).owner = root
+	box(gA, Vector3(0.3, 0.2, 0.25), Vector3(4.8, 0.89, 3.15), "tire").owner = root
+	cyl(gA, 0.09, 0.09, 0.06, Vector3(4.7, 0.82, 3.0), "tin", Vector3(PI / 2.0, 0, 0)).owner = root
+	cyl(gA, 0.09, 0.09, 0.06, Vector3(4.7, 0.82, 3.25), "tin", Vector3(PI / 2.0, 0, 0)).owner = root
+	box(gA, Vector3(0.4, 0.45, 0.4), Vector3(3.95, 0.22, 2.7), "planks_old").owner = root
+	box(gA, Vector3(1.6, 0.06, 0.35), Vector3(4.3, 1.1, 0.3), "planks_old").owner = root
+	for k in 6:
+		cyl(gA, 0.04, 0.05, 0.14, Vector3(3.7 + k * 0.22, 1.2, 0.3), "glass").owner = root
+	box(gA, Vector3(0.9, 0.22, 1.9), Vector3(0.75, 0.11, 3.4), "cloth_sack").owner = root
+	box(gA, Vector3(0.6, 0.12, 0.4), Vector3(0.75, 0.28, 2.65), "cloth_red").owner = root
+	box(gA, Vector3(0.02, 0.5, 0.7), Vector3(0.17, 1.0, 1.4), "paper").owner = root
+	_lamp(gA, "Dial", Vector3(4.4, 1.1, 2.5), Color("8fe08a"), 0.5, 2.5)
+	var rcv := _use(items, "Receiver", "Самодельный приёмник", Vector3(4.75, 0, 2.5), Vector3(0.8, 1.1, 0.8))
+	rcv.set("reach", 2)
+	var rw := _use(items, "RoofWindow", "Слуховое окно на крышу", Vector3(ra.end.x - 0.35, 0, 1.0), Vector3(0.6, 1.6, 1.0))
+	rw.set("reach", 2)
+	box(gA, Vector3(0.1, 0.7, 0.7), Vector3(ra.end.x - 0.2, 0.9, 1.0), "planks_old").owner = root
+	box(gA, Vector3(0.06, 0.5, 0.5), Vector3(ra.end.x - 0.27, 0.95, 1.0), "glass").owner = root
+	character(chars, "Tuygun", "radio_kid", Vector3(4.12, 0, 2.7), PI / 2.0, {"dialog": "radio_kid", "start_pose": "sit"})
+	# --- светёлка бабушки (Izba9): ткацкий станок, прялка, травы, приданое ---
+	var gB: Node = vil.get_node("Room_Izba9")
+	var lx := 13.7
+	var lz2 := 2.6
+	for sx in [-1, 1]:
+		for sz in [-1, 1]:
+			box(gB, Vector3(0.08, 1.3, 0.08), Vector3(lx + sx * 0.7, 0.65, lz2 + sz * 0.4), "log_dark").owner = root
+	box(gB, Vector3(1.5, 0.08, 0.08), Vector3(lx, 1.25, lz2 - 0.4), "log_dark").owner = root
+	box(gB, Vector3(1.5, 0.08, 0.08), Vector3(lx, 0.7, lz2 + 0.4), "log_dark").owner = root
+	box(gB, Vector3(1.2, 0.6, 0.02), Vector3(lx, 0.95, lz2), "cloth_red").owner = root
+	box(gB, Vector3(1.2, 0.02, 0.5), Vector3(lx, 0.72, lz2 + 0.2), "cloth_sack").owner = root
+	_own(collider(gB, Vector3(1.5, 1.3, 0.9), Vector3(lx, 0.65, lz2)), root)
+	cyl(gB, 0.35, 0.35, 0.05, Vector3(16.5, 0.75, 3.5), "planks_old", Vector3(0, 0, PI / 2.0), 14).owner = root
+	box(gB, Vector3(0.5, 0.3, 0.2), Vector3(16.5, 0.25, 3.5), "planks_old").owner = root
+	box(gB, Vector3(3.4, 0.03, 0.03), Vector3(14.9, 1.45, 3.9), "rope_mat").owner = root
+	for k in 7:
+		cyl(gB, 0.08, 0.03, 0.35, Vector3(13.4 + k * 0.5, 1.25, 3.9), "herb", Vector3.ZERO, 6).owner = root
+	box(gB, Vector3(0.9, 0.5, 0.5), Vector3(16.7, 0.25, 0.55), "planks_old").owner = root
+	box(gB, Vector3(0.92, 0.06, 0.52), Vector3(16.7, 0.52, 0.55), "brass").owner = root
+	_own(collider(gB, Vector3(0.9, 0.55, 0.5), Vector3(16.7, 0.27, 0.55)), root)
+	box(gB, Vector3(0.9, 0.3, 1.8), Vector3(12.65, 0.15, 1.3), "cloth_sack").owner = root
+	_use(items, "Loom", "Ткацкий станок", Vector3(lx, 0, lz2), Vector3(1.5, 1.3, 0.9))
+	_use(items, "Dowry", "Сундук", Vector3(16.7, 0, 0.55), Vector3(0.9, 0.7, 0.6))
+	var hr := _use(items, "HerbRack", "Травы на верёвке", Vector3(14.9, 0, 3.9), Vector3(3.0, 1.6, 0.5))
+	hr.set("reach", 2)
+	character(chars, "HideKid3", "hs_kid3", Vector3(13.2, 0, 3.55), PI, {"dialog": "hs_kid3", "start_pose": "sit"})
+	# --- светёлка учительницы (Izba13): полки с книгами, доска, парты, глобус ---
+	var rc: Rect2 = UPPER_ROOMS["Izba13"]
+	var gC: Node = vil.get_node("Room_Izba13")
+	for sx in [rc.position.x + 1.3, rc.end.x - 1.3]:
+		box(gC, Vector3(2.0, 1.4, 0.35), Vector3(sx, 0.7, rc.position.y + 0.3), "planks_old").owner = root
+		_own(collider(gC, Vector3(2.0, 1.4, 0.4), Vector3(sx, 0.7, rc.position.y + 0.3)), root)
+		for row in 3:
+			var bx: float = sx - 0.9
+			while bx < sx + 0.9:
+				var bw := randf_range(0.05, 0.11)
+				var bh := randf_range(0.26, 0.36)
+				box(gC, Vector3(bw, bh, 0.24), Vector3(bx + bw / 2.0, 0.3 + row * 0.45 + bh / 2.0, rc.position.y + 0.5),
+					["book_a", "book_b", "book_c", "paper"][randi() % 4]).owner = root
+				bx += bw + 0.01
+	box(gC, Vector3(0.06, 0.9, 1.7), Vector3(rc.position.x + 0.2, 1.0, 2.4), "board").owner = root
+	var lbl := Label3D.new()
+	lbl.text = "2062. Август.\nжи — ши"
+	lbl.font_size = 40
+	lbl.pixel_size = 0.004
+	lbl.modulate = Color("e8e4d8")
+	lbl.position = Vector3(rc.position.x + 0.25, 1.05, 2.4)
+	lbl.rotation.y = PI / 2.0
+	gC.add_child(lbl)
+	lbl.owner = root
+	# две парты у передней стены — проход к полкам и глобусу остаётся свободным
+	for dx in [27.3, 28.9]:
+		box(gC, Vector3(0.9, 0.05, 0.55), Vector3(dx, 0.65, 3.55), "planks_old").owner = root
+		box(gC, Vector3(0.9, 0.6, 0.05), Vector3(dx, 0.32, 3.3), "planks_old").owner = root
+		box(gC, Vector3(0.8, 0.35, 0.3), Vector3(dx, 0.18, 4.0), "planks_old").owner = root
+		_own(collider(gC, Vector3(1.0, 0.7, 1.0), Vector3(dx, 0.35, 3.75)), root)
+	cyl(gC, 0.03, 0.12, 0.8, Vector3(30.8, 0.4, 2.2), "brass").owner = root
+	sphere(gC, 0.25, Vector3(30.8, 1.05, 2.2), "book_b").owner = root
+	box(gC, Vector3(0.4, 0.1, 0.3), Vector3(30.75, 1.07, 2.15), "book_c", Vector3(0, 0.4, 0.4)).owner = root
+	_use(items, "Globe", "Глобус", Vector3(30.8, 0, 2.2), Vector3(0.7, 1.4, 0.7))
+	var bb := _use(items, "Blackboard", "Школьная доска", Vector3(rc.position.x + 0.45, 0, 2.4), Vector3(0.5, 1.6, 1.8))
+	bb.set("reach", 2)
+	var sh := _use(items, "Shelves", "Книжные полки", Vector3(rc.end.x - 1.3, 0, rc.position.y + 0.6), Vector3(2.0, 1.6, 0.6))
+	sh.set("reach", 2)
+	character(chars, "Teacher", "teacher", Vector3(25.8, 0, 2.5), PI / 2.0, {"dialog": "teacher"})
+	_spawn("Start", Vector3(UPPER_ROOMS["Izba5"].get_center().x - 0.15, 0, 1.75))
+	_finish("nakharro_upper")
+
+
 # ---------------- бункер под Сытыганом ----------------
 func _bunker() -> void:
-	var rect := Rect2(0, 0, 34, 22)
+	var rect := Rect2(0, 0, 42, 24)
 	seed(1414)
 	root = Node3D.new()
 	root.name = "RuinBunker"
 	root.set_script(load("res://scripts/locations/ruin_bunker.gd"))
 	root.set("location_id", "ruin_bunker")
-	root.set("title", "Бункер под Сытыганом")
+	root.set("title", "Бункер «Сытыган-14»")
 	root.set("map_rect", rect)
-	root.set("camera_start", Vector3(4, 0, 4))
-	_dark_env(Color("2a2a30"), 0.18)
+	root.set("camera_start", Vector3(5, 0, 5))
+	_bunker_mats()
+	_dark_env(Color("262830"), 0.2)
 	var v := group(root, "Village")
-	_floor(v, rect.grow(0.3), "stone")
-	# комнаты: шахта (вход), коридор, казарма, генераторная, архив
-	var shaft := Rect2(1, 1, 6, 6)
-	var corr := Rect2(7, 2.5, 20, 3)
-	var bar := Rect2(9, 7, 9, 7)
-	var gen := Rect2(19, 7, 7, 6)
-	var arch := Rect2(27, 1, 6, 12)
-	_room_walls(v, shaft, 1.3, "stone_wall", [[Vector2(7, 4), 2.0]])
-	_room_walls(v, corr, 1.3, "stone_wall", [[Vector2(7, 4), 2.0], [Vector2(13.5, 5.5), 1.6], [Vector2(22.5, 5.5), 1.6], [Vector2(27, 4), 1.6]])
-	_room_walls(v, bar, 1.3, "stone_wall", [[Vector2(13.5, 7), 1.6]])
-	_room_walls(v, gen, 1.3, "stone_wall", [[Vector2(22.5, 7), 1.6]])
-	_room_walls(v, arch, 1.3, "stone_wall", [[Vector2(27, 4), 1.6]])
+	_floor(v, rect.grow(0.3), "bk_floor")
+	# помещения: шахта, шлюз с гермоворотами, коридор, пульт, казарма, генераторная, архив
+	var shaft := Rect2(1, 1, 8, 9)
+	var gate := Rect2(1, 10, 8, 8)
+	var corr := Rect2(9, 10.5, 23, 4)
+	var ctrl := Rect2(12, 1, 16, 9.5)
+	var bar := Rect2(10, 14.5, 9, 8)
+	var gen := Rect2(20, 14.5, 10, 8)
+	var arch := Rect2(32, 3, 9, 18)
+	_room_walls(v, shaft, 1.3, "concrete", [[Vector2(5, 10), 2.4]])
+	_room_walls(v, gate, 1.3, "concrete", [[Vector2(5, 10), 2.4], [Vector2(9, 12.5), 2.4]])
+	_room_walls(v, corr, 1.3, "concrete", [[Vector2(9, 12.5), 2.4], [Vector2(17, 10.5), 2.0], [Vector2(24, 10.5), 2.0],
+		[Vector2(14, 14.5), 2.0], [Vector2(25, 14.5), 2.0], [Vector2(32, 12.5), 2.0]])
+	_room_walls(v, ctrl, 1.3, "concrete", [[Vector2(17, 10.5), 2.0], [Vector2(24, 10.5), 2.0]])
+	_room_walls(v, bar, 1.3, "concrete", [[Vector2(14, 14.5), 2.0]])
+	_room_walls(v, gen, 1.3, "concrete", [[Vector2(25, 14.5), 2.0]])
+	_room_walls(v, arch, 1.3, "concrete", [[Vector2(32, 12.5), 2.0]])
+	# облицовка: бежевые панели с тёмными швами и оранжевой полосой — кассетный футуризм
+	for r in [gate, corr, ctrl, bar, gen, arch]:
+		_bk_panels(v, r)
 	# дверь архива — электрозамок: коллизия, пока не открыта
 	var door := Node3D.new()
 	door.name = "ArchiveDoor"
 	v.add_child(door)
 	door.owner = root
-	box(door, Vector3(0.2, 1.3, 1.6), Vector3(27, 0.65, 4), "metal_dark").owner = root
-	var dc := collider(door, Vector3(0.3, 2.2, 1.6), Vector3(27, 1.1, 4))
-	_own(dc, root)
-	# завал под шахтой и свет сверху
-	for i in 6:
-		put(P.rock_small, v, Vector3(randf_range(2, 5), 0, randf_range(2, 5)), randf() * TAU, "", randf_range(0.8, 1.4))
-	_lamp(v, "ShaftLight", Vector3(3.5, 3.5, 3.5), Color("c8c0a8"), 1.2, 6.0)
-	# аварийные красные лампы
+	box(door, Vector3(0.22, 1.3, 2.0), Vector3(32, 0.65, 12.5), "bk_dark").owner = root
+	box(door, Vector3(0.24, 0.12, 2.0), Vector3(32, 0.95, 12.5), "bk_orange").owner = root
+	box(door, Vector3(0.26, 0.4, 0.06), Vector3(32, 0.6, 11.7), "bk_yellow").owner = root
+	_own(collider(door, Vector3(0.3, 2.2, 2.0), Vector3(32, 1.1, 12.5)), root)
+	_hazard(v, Vector2(31.2, 11.5), Vector2(31.7, 13.5))
+	_hazard(v, Vector2(9.2, 11.3), Vector2(9.8, 13.7))
+	_bk_shaft(v, shaft)
+	_bk_gate(v, gate)
+	_bk_corridor(v, corr)
+	_bk_control(v, ctrl)
+	_bk_barracks(v, bar)
+	_bk_generator(v, gen)
+	_bk_archive(v, arch)
+	# аварийные красные лампы (горят всегда), основной свет — от генератора
 	var em := group(v, "Emergency")
-	for p in [Vector3(10, 2.2, 4), Vector3(17, 2.2, 4), Vector3(24, 2.2, 4), Vector3(13.5, 2.2, 10.5), Vector3(22.5, 2.2, 10)]:
-		_lamp(em, "Red", p, Color("ff3322"), 0.9, 6.5)
-	# основной свет (включается генератором)
+	for pt in [Vector3(5, 2.2, 5), Vector3(5, 2.2, 14), Vector3(12, 2.2, 12.5), Vector3(19, 2.2, 12.5), Vector3(28, 2.2, 12.5),
+			Vector3(20, 2.2, 5), Vector3(14.5, 2.2, 18.5), Vector3(25, 2.2, 18.5), Vector3(36.5, 2.2, 12)]:
+		_lamp(em, "Red", pt, Color("ff3322"), 0.9, 6.5).shadow_enabled = false
 	var main_l := group(v, "MainLights")
-	for p in [Vector3(4, 2.4, 4), Vector3(12, 2.4, 4), Vector3(20, 2.4, 4), Vector3(13.5, 2.4, 10.5), Vector3(22.5, 2.4, 10), Vector3(30, 2.4, 7)]:
-		_lamp(main_l, "Lamp", p, Color("e8f0ff"), 1.6, 8.0, false)
-	# казарма: двухъярусные койки и шкафчики
-	for i in 3:
-		var bx := 10.5 + i * 2.6
-		box(v, Vector3(0.9, 0.08, 2.0), Vector3(bx, 0.45, 12.6), "metal_dark").owner = root
-		box(v, Vector3(0.9, 0.08, 2.0), Vector3(bx, 1.35, 12.6), "metal_dark").owner = root
-		box(v, Vector3(0.85, 0.15, 1.9), Vector3(bx, 0.55, 12.6), "cloth_sack").owner = root
-		_own(collider(v, Vector3(0.9, 1.5, 2.0), Vector3(bx, 0.75, 12.6)), root)
-	for i in 4:
-		box(v, Vector3(0.6, 1.9, 0.5), Vector3(10.0 + i * 0.65, 0.95, 7.45), "paint_faded").owner = root
-	_own(collider(v, Vector3(2.6, 1.9, 0.5), Vector3(11.0, 0.95, 7.45)), root)
-	# генераторная
-	box(v, Vector3(2.4, 1.4, 1.4), Vector3(22.5, 0.7, 11.6), "metal_dark").owner = root
-	cyl(v, 0.35, 0.35, 1.6, Vector3(21.0, 0.8, 11.6), "rust").owner = root
-	_own(collider(v, Vector3(3.6, 1.5, 1.5), Vector3(22.0, 0.75, 11.6)), root)
-	# архив: стеллажи с папками
-	for z in [2.2, 5.6, 9.0, 11.8]:
-		box(v, Vector3(4.5, 2.0, 0.5), Vector3(30.5, 1.0, z), "metal_dark").owner = root
-		for k in 9:
-			box(v, Vector3(0.12, 0.32, 0.3), Vector3(28.6 + k * 0.45, 1.25, z), "paper").owner = root
-		_own(collider(v, Vector3(4.5, 2.0, 0.5), Vector3(30.5, 1.0, z)), root)
-	for i in 10:
-		box(v, Vector3(0.3, 0.01, 0.4), Vector3(randf_range(8, 26), 0.02, randf_range(3, 5)), "paper", Vector3(0, randf() * TAU, 0)).owner = root
+	for pt in [Vector3(5, 2.4, 14), Vector3(13, 2.4, 12.5), Vector3(27, 2.4, 12.5), Vector3(16, 2.4, 5.5), Vector3(22, 2.4, 6),
+			Vector3(14.5, 2.4, 18.5), Vector3(25, 2.4, 18.5), Vector3(36.5, 2.4, 7.5), Vector3(36.5, 2.4, 16.5)]:
+		_lamp(main_l, "Lamp", pt, Color("e8f0ff"), 1.5, 8.0, false)
 	var chars := group(root, "Characters")
-	character(chars, "DeadCleaner", "cleaner_dead", Vector3(15.5, 0, 9.5), 0.6, {"start_dead": true})
-	character(chars, "Squatter1", "ruin_looter", Vector3(12.5, 0, 10.5), -0.8, {"hostile": true, "aggro_radius": 7.0, "squad": "squat"})
-	character(chars, "Squatter2", "ruin_looter_gun", Vector3(16.0, 0, 11.5), -1.4, {"hostile": true, "aggro_radius": 7.0, "squad": "squat"})
+	character(chars, "DeadCleaner", "cleaner_dead", Vector3(19.5, 0, 8.6), 0.6, {"start_dead": true})
+	character(chars, "Squatter1", "ruin_looter", Vector3(13.0, 0, 18.6), -0.8, {"hostile": true, "aggro_radius": 7.0, "squad": "squat"})
+	character(chars, "Squatter2", "ruin_looter_gun", Vector3(16.2, 0, 19.2), -1.4, {"hostile": true, "aggro_radius": 7.0, "squad": "squat"})
 	var items := group(root, "Items")
 	var up := _use(items, "UpRope", "Верёвка наверх", Vector3(3.2, 0, 3.2), Vector3(1.0, 2.4, 1.0))
 	cyl(up, 0.03, 0.03, 3.6, Vector3(0, 1.8, 0), "rope_mat").owner = root
-	_use(items, "Generator", "Генератор", Vector3(22.5, 0, 10.4), Vector3(2.4, 1.6, 1.2))
-	_use(items, "DoorLock", "Электрозамок", Vector3(26.4, 0, 4.0), Vector3(0.8, 1.8, 1.6))
-	_use(items, "Lockers", "Шкафчики", Vector3(11.0, 0, 8.2), Vector3(2.6, 1.8, 0.8))
-	_use(items, "Files", "Шкаф с делами", Vector3(30.5, 0, 6.5), Vector3(3.5, 2.0, 1.0))
-	_use(items, "Registry", "Ведомость", Vector3(30.5, 0, 10.2), Vector3(3.5, 2.0, 1.0))
-	_spawn("Start", Vector3(3.8, 0, 4.6))
-	_spawn("Down", Vector3(3.8, 0, 4.6))
+	var gd := _use(items, "GateDoor", "Гермоворота", Vector3(1.9, 0, 14), Vector3(1.0, 2.6, 3.2))
+	gd.set("reach", 2)
+	_use(items, "Generator", "Дизель-генератор", Vector3(25, 0, 19.6), Vector3(3.0, 1.6, 1.2))
+	_use(items, "DoorLock", "Электрозамок", Vector3(31.4, 0, 11.2), Vector3(0.8, 1.8, 0.8))
+	_use(items, "Lockers", "Шкафчики", Vector3(16.6, 0, 15.7), Vector3(3.0, 1.8, 0.8))
+	_use(items, "Files", "Шкаф с делами", Vector3(36.5, 0, 9.0), Vector3(3.5, 2.0, 1.0))
+	_use(items, "Registry", "Ведомость", Vector3(36.5, 0, 15.5), Vector3(3.5, 2.0, 1.0))
+	var tp := _use(items, "TapeDeck", "Магнитофон «Электроника»", Vector3(13.3, 0, 4.0), Vector3(1.0, 1.6, 1.4))
+	tp.set("reach", 2)
+	var wall := _use(items, "WallScreen", "Табло «Контур»", Vector3(20, 0, 1.8), Vector3(6.0, 1.6, 0.8))
+	wall.set("reach", 2)
+	_use(items, "Console", "Пульт оператора", Vector3(17.5, 0, 7.4), Vector3(1.8, 1.2, 1.0))
+	_spawn("Start", Vector3(4.6, 0, 5.4))
+	_spawn("Down", Vector3(4.6, 0, 5.4))
+	_spawn("Gate", Vector3(3.4, 0, 14))
 	_finish("ruin_bunker")
+
+
+## Материалы бункера: беж и белый пластик, тёмный металл, оранжевые и бирюзовые акценты, светящиеся экраны
+func _bunker_mats() -> void:
+	M["concrete"] = load(MAT_DIR + "concrete.tres")
+	for n in ["brass", "trim", "coal"]:
+		M[n] = load(MAT_DIR + n + ".tres")
+	var plain := func(c: String, rough: float, metal := 0.0) -> StandardMaterial3D:
+		var m := StandardMaterial3D.new()
+		m.albedo_color = Color(c)
+		m.roughness = rough
+		m.metallic = metal
+		return m
+	M["bk_panel"] = plain.call("d8cfb8", 0.55)
+	M["bk_beige"] = plain.call("b8a882", 0.6)
+	M["bk_dark"] = plain.call("34383a", 0.45, 0.5)
+	M["bk_orange"] = plain.call("c8582a", 0.5)
+	M["bk_teal"] = plain.call("3a6a6e", 0.5)
+	M["bk_floor"] = plain.call("3c3f3e", 0.85)
+	M["bk_yellow"] = plain.call("c9a234", 0.6)
+	M["bk_black"] = plain.call("161616", 0.7)
+	M["bk_screen"] = plain.call("0c120e", 0.15)
+	M["scr_green"] = _glow(Color("8fe08a"), 1.8)
+	M["scr_amber"] = _glow(Color("ffb347"), 1.8)
+	M["strip"] = _glow(Color("dfe8ff"), 2.4)
+	M["btn_red"] = _glow(Color("ff4a2a"), 1.2)
+	M["btn_green"] = _glow(Color("6aff7a"), 1.0)
+
+
+## Стеновые панели по периметру комнаты: секции с швами, полоса на уровне пояса
+func _bk_panels(v: Node, r: Rect2) -> void:
+	for side in 4:
+		var horiz := side < 2
+		var ln := r.size.x if horiz else r.size.y
+		var n := int(ln / 1.2)
+		for k in n:
+			var t := (k + 0.5) * ln / n
+			var pos: Vector3
+			if side == 0:
+				pos = Vector3(r.position.x + t, 0.62, r.position.y + 0.19)
+			elif side == 1:
+				pos = Vector3(r.position.x + t, 0.62, r.end.y - 0.19)
+			elif side == 2:
+				pos = Vector3(r.position.x + 0.19, 0.62, r.position.y + t)
+			else:
+				pos = Vector3(r.end.x - 0.19, 0.62, r.position.y + t)
+			var sz := Vector3(ln / n - 0.06, 1.1, 0.05) if horiz else Vector3(0.05, 1.1, ln / n - 0.06)
+			box(v, sz, pos, "bk_panel").owner = root
+		var band := Vector3(ln, 0.08, 0.07) if horiz else Vector3(0.07, 0.08, ln)
+		var bp: Vector3
+		if side == 0:
+			bp = Vector3(r.get_center().x, 0.9, r.position.y + 0.22)
+		elif side == 1:
+			bp = Vector3(r.get_center().x, 0.9, r.end.y - 0.22)
+		elif side == 2:
+			bp = Vector3(r.position.x + 0.22, 0.9, r.get_center().y)
+		else:
+			bp = Vector3(r.end.x - 0.22, 0.9, r.get_center().y)
+		box(v, band, bp, "bk_orange").owner = root
+
+
+## Жёлто-чёрная разметка на полу у проёма (прямоугольник от a до b)
+func _hazard(v: Node, a: Vector2, b: Vector2) -> void:
+	var along_z := absf(b.y - a.y) > absf(b.x - a.x)
+	var ln := absf(b.y - a.y) if along_z else absf(b.x - a.x)
+	var n := int(ln / 0.3)
+	for k in n:
+		var t := (k + 0.5) / n
+		var p := a.lerp(b, t)
+		var sz := Vector3(absf(b.x - a.x), 0.012, ln / n) if along_z else Vector3(ln / n, 0.012, absf(b.y - a.y))
+		box(v, sz, Vector3(p.x, 0.01, p.y), "bk_yellow" if k % 2 == 0 else "bk_black").owner = root
+
+
+## Обвал: наклонные плиты, арматура, щебень (плюс коллизия на завал)
+func _collapse(v: Node, c: Vector3, size: Vector2, blocker := true) -> void:
+	for k in 4:
+		var off := Vector3(randf_range(-size.x, size.x) * 0.35, 0, randf_range(-size.y, size.y) * 0.35)
+		box(v, Vector3(randf_range(1.2, 2.2), 0.22, randf_range(0.9, 1.6)), c + off + Vector3(0, randf_range(0.3, 0.8), 0), "concrete",
+			Vector3(randf_range(-0.6, 0.6), randf() * TAU, randf_range(-0.5, 0.5))).owner = root
+	for k in 6:
+		cyl(v, 0.015, 0.015, randf_range(0.8, 1.6), c + Vector3(randf_range(-size.x, size.x) * 0.4, 0.6, randf_range(-size.y, size.y) * 0.4), "rust",
+			Vector3(randf_range(-1.2, 1.2), 0, randf_range(-1.2, 1.2)), 5).owner = root
+	for k in 10:
+		put(P.rock_small, v, c + Vector3(randf_range(-size.x, size.x) * 0.5, 0, randf_range(-size.y, size.y) * 0.5), randf() * TAU, "",
+			randf_range(0.5, 1.1))
+	if blocker:
+		_own(collider(v, Vector3(size.x * 0.8, 1.2, size.y * 0.8), c + Vector3(0, 0.6, 0)), root)
+
+
+func _bk_shaft(v: Node, r: Rect2) -> void:
+	# вентшахта: кожух вентилятора, сорванная решётка, свет сверху
+	cyl(v, 1.1, 1.1, 0.5, Vector3(3.2, 0.25, 3.2), "bk_dark", Vector3.ZERO, 18).owner = root
+	for k in 6:
+		box(v, Vector3(0.9, 0.04, 0.22), Vector3(3.2, 0.52, 3.2), "bk_panel", Vector3(0, k * PI / 3.0, 0.3)).owner = root
+	box(v, Vector3(1.4, 0.05, 1.4), Vector3(5.6, 0.03, 2.4), "rust", Vector3(0, 0.5, 0.1)).owner = root
+	for k in 6:
+		put(P.rock_small, v, Vector3(randf_range(2, 7), 0, randf_range(5, 8.5)), randf() * TAU, "", randf_range(0.7, 1.2))
+	box(v, Vector3(0.4, 1.2, 2.8), Vector3(r.end.x - 0.4, 0.6, 3.0), "bk_dark").owner = root
+	for k in 3:
+		cyl(v, 0.06, 0.06, 2.8, Vector3(r.end.x - 0.65, 0.3 + k * 0.35, 3.0), ["bk_orange", "bk_teal", "bk_yellow"][k], Vector3(PI / 2.0, 0, 0)).owner = root
+	_own(collider(v, Vector3(0.6, 1.2, 2.8), Vector3(r.end.x - 0.4, 0.6, 3.0)), root)
+	_lamp(v, "ShaftLight", Vector3(3.2, 3.5, 3.2), Color("c8c0a8"), 1.2, 6.0)
+
+
+func _bk_gate(v: Node, r: Rect2) -> void:
+	# круглые гермоворота в западной стене: диск, штурвал, петли, гидроцилиндры
+	var g := Node3D.new()
+	g.name = "Gate"
+	v.add_child(g)
+	g.owner = root
+	cyl(g, 1.55, 1.55, 0.45, Vector3(1.35, 1.2, 14), "bk_dark", Vector3(0, 0, PI / 2.0), 28).owner = root
+	cyl(g, 1.2, 1.2, 0.08, Vector3(1.6, 1.2, 14), "bk_panel", Vector3(0, 0, PI / 2.0), 24).owner = root
+	cyl(g, 0.45, 0.45, 0.06, Vector3(1.66, 1.2, 14), "bk_orange", Vector3(0, 0, PI / 2.0), 16).owner = root
+	for k in 4:
+		box(g, Vector3(0.05, 0.08, 1.0), Vector3(1.72, 1.2, 14), "brass", Vector3(k * PI / 4.0, 0, 0)).owner = root
+	for dz in [-1.75, 1.75]:
+		box(g, Vector3(0.3, 0.5, 0.3), Vector3(1.4, 1.2, 14 + dz), "bk_dark").owner = root
+		cyl(g, 0.08, 0.08, 1.6, Vector3(1.9, 1.7, 14 + dz * 0.8), "brass", Vector3(0.9 * signf(dz), 0, 0)).owner = root
+	_hazard(v, Vector2(1.9, 12.2), Vector2(2.4, 15.8))
+	# будка пропускного поста со стеклом и турникет
+	box(v, Vector3(1.6, 1.0, 1.4), Vector3(7.0, 0.5, 16.6), "bk_beige").owner = root
+	box(v, Vector3(1.62, 0.5, 1.42), Vector3(7.0, 1.25, 16.6), "glass").owner = root
+	box(v, Vector3(0.5, 0.35, 0.05), Vector3(7.0, 1.2, 15.88), "bk_screen").owner = root
+	_own(collider(v, Vector3(1.6, 1.5, 1.4), Vector3(7.0, 0.75, 16.6)), root)
+	for k in 3:
+		box(v, Vector3(0.06, 0.06, 0.6), Vector3(6.0, 0.8, 15.4 + k * 0.1), "brass", Vector3(0, 0, k * 0.4)).owner = root
+	var sign := Label3D.new()
+	sign.text = "ОБЪЕКТ «СЫТЫГАН-14»\nПРЕДЪЯВИТЕ ПРОПУСК"
+	sign.font_size = 44
+	sign.pixel_size = 0.005
+	sign.modulate = Color("e8d8a8")
+	sign.position = Vector3(5, 1.15, r.position.y + 0.25)
+	v.add_child(sign)
+	sign.owner = root
+	# обвал в юго-западном углу и трещина со светом с поверхности
+	_collapse(v, Vector3(2.8, 0, 16.8), Vector2(2.4, 1.6))
+	_lamp(v, "Crack", Vector3(2.2, 3.2, 16.5), Color("b8c4d0"), 0.8, 5.0)
+	var strips := v.get_node_or_null("Strips")
+	if strips == null:
+		strips = group(v, "Strips")
+	for x in [4.0, 7.0]:
+		box(strips, Vector3(1.4, 0.06, 0.08), Vector3(x, 1.27, r.position.y + 0.25), "strip").owner = root
+	_lamp(v, "GateWork", Vector3(6.0, 2.0, 12.0), Color("ffd9a0"), 0.5, 5.0)
+
+
+func _bk_corridor(v: Node, r: Rect2) -> void:
+	# кабельный лоток под потолком, трубы, полосы светильников (горят от генератора)
+	box(v, Vector3(r.size.x, 0.08, 0.35), Vector3(r.get_center().x, 1.22, r.position.y + 0.45), "bk_dark").owner = root
+	for k in 3:
+		cyl(v, 0.04, 0.04, r.size.x, Vector3(r.get_center().x, 1.3, r.position.y + 0.35 + k * 0.1), ["bk_orange", "bk_teal", "bk_black"][k],
+			Vector3(0, 0, PI / 2.0), 6).owner = root
+	cyl(v, 0.12, 0.12, r.size.x, Vector3(r.get_center().x, 1.15, r.end.y - 0.4), "bk_beige", Vector3(0, 0, PI / 2.0), 10).owner = root
+	var strips := v.get_node_or_null("Strips")
+	if strips == null:
+		strips = group(v, "Strips")
+	for x in range(int(r.position.x) + 2, int(r.end.x) - 1, 3):
+		for z in [r.position.y + 0.25, r.end.y - 0.25]:
+			box(strips, Vector3(1.4, 0.06, 0.08), Vector3(x, 1.27, z), "strip").owner = root
+	# обвал посреди коридора: потолок рухнул на северную половину, проход — вдоль южной стены
+	_collapse(v, Vector3(20.5, 0, 11.7), Vector2(3.0, 1.8))
+	for k in 4:
+		box(v, Vector3(0.03, randf_range(0.6, 1.1), 0.03), Vector3(19.5 + k * 0.6, 0.9, 12.4), "bk_orange", Vector3(randf_range(-0.4, 0.4), 0, randf_range(-0.4, 0.4))).owner = root
+	_lamp(v, "Sparks", Vector3(20.5, 1.2, 12.6), Color("ffb060"), 0.6, 3.0)
+	# указатели на стенах
+	for t in [["ПУЛЬТ ↑", Vector3(17, 1.05, 10.75)], ["АРХИВ →", Vector3(29.5, 1.05, 10.75)], ["КАЗАРМА ↓", Vector3(14, 1.05, 14.25)],
+			["ДЭС ↓", Vector3(25, 1.05, 14.25)]]:
+		var l := Label3D.new()
+		l.text = t[0]
+		l.font_size = 40
+		l.pixel_size = 0.005
+		l.modulate = Color("e3a23a")
+		l.position = t[1] + Vector3(1.4, 0, 0.05 if (t[1] as Vector3).z < 12 else -0.05)
+		l.rotation.y = 0.0 if (t[1] as Vector3).z < 12 else PI
+		v.add_child(l)
+		l.owner = root
+
+
+## Пульт оператора: бежевая тумба, наклонная панель с кнопками, ЭЛТ-монитор, кресло
+func _console(v: Node, scr: Node, at: Vector3, rot: float, amber := false) -> void:
+	var b := Basis.from_euler(Vector3(0, rot, 0))
+	var f := func(l: Vector3) -> Vector3: return at + b * l
+	box(v, Vector3(1.6, 0.72, 0.7), f.call(Vector3(0, 0.36, 0)), "bk_beige", Vector3(0, rot, 0)).owner = root
+	box(v, Vector3(1.6, 0.06, 0.55), f.call(Vector3(0, 0.78, 0.05)), "bk_panel", Vector3(-0.35, rot, 0)).owner = root
+	for k in 8:
+		var col: String = ["btn_red", "bk_orange", "bk_teal", "bk_panel", "btn_green", "bk_yellow"][k % 6]
+		box(v, Vector3(0.09, 0.04, 0.07), f.call(Vector3(-0.6 + k * 0.17, 0.83, 0.14)), col, Vector3(-0.35, rot, 0)).owner = root
+	for k in 3:
+		cyl(v, 0.05, 0.05, 0.04, f.call(Vector3(0.35 + k * 0.17, 0.82, -0.02)), "brass", Vector3(-0.35, rot, 0) + Vector3(PI / 2.0, 0, 0), 8).owner = root
+	# ЭЛТ: корпус, тёмный кинескоп; светящийся экран — в группе Screens (горит от генератора)
+	box(v, Vector3(0.55, 0.48, 0.5), f.call(Vector3(-0.35, 1.05, -0.12)), "bk_panel", Vector3(0, rot, 0)).owner = root
+	box(v, Vector3(0.42, 0.34, 0.02), f.call(Vector3(-0.35, 1.06, 0.135)), "bk_screen", Vector3(0, rot, 0)).owner = root
+	box(scr, Vector3(0.38, 0.3, 0.01), f.call(Vector3(-0.35, 1.06, 0.15)), "scr_amber" if amber else "scr_green", Vector3(0, rot, 0)).owner = root
+	_own(collider(v, Vector3(1.6, 1.3, 0.8), at + Vector3(0, 0.65, 0), rot), root)
+	# кресло на колёсиках
+	var c: Vector3 = f.call(Vector3(0.2, 0, 0.85))
+	cyl(v, 0.03, 0.03, 0.4, c + Vector3(0, 0.2, 0), "bk_dark").owner = root
+	box(v, Vector3(0.48, 0.08, 0.46), c + Vector3(0, 0.45, 0), "bk_orange", Vector3(0, rot, 0)).owner = root
+	box(v, Vector3(0.48, 0.5, 0.08), f.call(Vector3(0.2, 0.72, 1.08)), "bk_orange", Vector3(0, rot, 0)).owner = root
+
+
+## Магнитофонная стойка: шкаф с двумя бобинами за стеклом
+func _reel_unit(v: Node, scr: Node, at: Vector3, rot: float) -> void:
+	var b := Basis.from_euler(Vector3(0, rot, 0))
+	box(v, Vector3(0.8, 1.45, 0.6), at + Vector3(0, 0.725, 0), "bk_panel", Vector3(0, rot, 0)).owner = root
+	for k in 2:
+		var rp := at + b * Vector3(-0.18 + k * 0.36, 1.08, 0.31)
+		cyl(v, 0.16, 0.16, 0.03, rp, "bk_dark", Vector3(PI / 2.0, rot, 0), 16).owner = root
+		cyl(v, 0.05, 0.05, 0.04, rp + b * Vector3(0, 0, 0.01), "brass", Vector3(PI / 2.0, rot, 0), 8).owner = root
+	box(v, Vector3(0.7, 0.2, 0.02), at + b * Vector3(0, 0.55, 0.31), "bk_dark", Vector3(0, rot, 0)).owner = root
+	box(scr, Vector3(0.08, 0.04, 0.01), at + b * Vector3(0.25, 0.7, 0.32), "btn_red", Vector3(0, rot, 0)).owner = root
+	_own(collider(v, Vector3(0.8, 1.45, 0.6), at + Vector3(0, 0.725, 0), rot), root)
+
+
+func _bk_control(v: Node, r: Rect2) -> void:
+	var scr := v.get_node_or_null("Screens")
+	if scr == null:
+		scr = group(v, "Screens")
+	# большое табло на северной стене: тёмное стекло, светящаяся сетка и контур района
+	box(v, Vector3(6.4, 1.15, 0.1), Vector3(20, 0.75, r.position.y + 0.28), "bk_dark").owner = root
+	box(v, Vector3(6.0, 0.95, 0.03), Vector3(20, 0.75, r.position.y + 0.35), "bk_screen").owner = root
+	for k in 7:
+		box(scr, Vector3(0.015, 0.9, 0.01), Vector3(17.3 + k * 0.9, 0.75, r.position.y + 0.37), "scr_green").owner = root
+	for k in 4:
+		box(scr, Vector3(5.9, 0.012, 0.01), Vector3(20, 0.38 + k * 0.25, r.position.y + 0.37), "scr_green").owner = root
+	for p in [Vector2(18.1, 0.9), Vector2(19.3, 0.6), Vector2(21.4, 1.0), Vector2(22.2, 0.5), Vector2(20.4, 0.75)]:
+		box(scr, Vector3(0.12, 0.12, 0.01), Vector3(p.x, p.y, r.position.y + 0.38), "scr_amber").owner = root
+	var lb := Label3D.new()
+	lb.text = "КОНТУР «ГОРИЗОНТ» · ОБЪЕКТОВ 14 · АКТИВНЫХ 0"
+	lb.font_size = 36
+	lb.pixel_size = 0.004
+	lb.modulate = Color("8fe08a")
+	lb.position = Vector3(20, 1.42, r.position.y + 0.36)
+	scr.add_child(lb)
+	lb.owner = root
+	_own(collider(v, Vector3(6.4, 1.2, 0.3), Vector3(20, 0.6, r.position.y + 0.3)), root)
+	# два ряда пультов лицом к табло
+	for x in [15.5, 17.5, 19.5, 21.5]:
+		_console(v, scr, Vector3(x, 0, 4.2), 0.0, x > 18.0)
+	for x in [15.5, 17.5, 19.5]:
+		_console(v, scr, Vector3(x, 0, 6.6), 0.0, x < 16.0)
+	# магнитофонные стойки вдоль западной стены
+	for z in [2.6, 3.5, 4.4]:
+		_reel_unit(v, scr, Vector3(12.6, 0, z), PI / 2.0)
+	# столик с дисковым телефоном и пепельницей
+	box(v, Vector3(0.8, 0.05, 0.6), Vector3(13.4, 0.72, 8.6), "bk_beige").owner = root
+	box(v, Vector3(0.3, 0.12, 0.22), Vector3(13.3, 0.8, 8.6), "bk_orange").owner = root
+	cyl(v, 0.07, 0.07, 0.02, Vector3(13.3, 0.87, 8.62), "bk_panel", Vector3.ZERO, 12).owner = root
+	_own(collider(v, Vector3(0.8, 0.8, 0.6), Vector3(13.4, 0.4, 8.6)), root)
+	# северо-восточный угол обрушен: плиты, раздавленные пульты, висящие кабели
+	_collapse(v, Vector3(25.8, 0, 3.6), Vector2(4.0, 4.4))
+	box(v, Vector3(1.6, 0.4, 0.7), Vector3(24.6, 0.2, 6.4), "bk_beige", Vector3(0.2, 0.7, 0.4)).owner = root
+	for k in 5:
+		box(v, Vector3(0.025, randf_range(0.7, 1.2), 0.025), Vector3(24.0 + k * 0.5, 0.75, 5.8 + randf_range(-0.4, 0.4)), ["bk_orange", "bk_teal", "bk_black"][k % 3],
+			Vector3(randf_range(-0.5, 0.5), 0, randf_range(-0.5, 0.5))).owner = root
+	for k in 12:
+		box(v, Vector3(0.3, 0.01, 0.4), Vector3(randf_range(13, 23), 0.02, randf_range(5, 9.8)), "paper", Vector3(0, randf() * TAU, 0)).owner = root
+	for pt in [Vector3(17.5, 1.3, 4.6), Vector3(20.5, 1.3, 4.6), Vector3(16.5, 1.3, 7.0)]:
+		var gl := _lamp(scr, "Glow", pt, Color("8fe08a"), 0.35, 2.5)
+		gl.shadow_enabled = false
+
+
+func _bk_barracks(v: Node, r: Rect2) -> void:
+	for i in 3:
+		var bx := 11.3 + i * 2.6
+		box(v, Vector3(0.9, 0.08, 2.0), Vector3(bx, 0.45, 21.1), "bk_dark").owner = root
+		box(v, Vector3(0.9, 0.08, 2.0), Vector3(bx, 1.3, 21.1), "bk_dark").owner = root
+		box(v, Vector3(0.85, 0.15, 1.9), Vector3(bx, 0.55, 21.1), "cloth_sack").owner = root
+		box(v, Vector3(0.85, 0.12, 1.9), Vector3(bx, 1.38, 21.1), "bk_teal").owner = root
+		for c in [[-0.42, -0.95], [0.42, -0.95], [-0.42, 0.95], [0.42, 0.95]]:
+			box(v, Vector3(0.05, 1.4, 0.05), Vector3(bx + c[0], 0.7, 21.1 + c[1]), "bk_dark").owner = root
+		_own(collider(v, Vector3(0.9, 1.5, 2.0), Vector3(bx, 0.75, 21.1)), root)
+	# шкафчики охраны у северной стены (справа от проёма)
+	for i in 4:
+		box(v, Vector3(0.62, 1.8, 0.5), Vector3(15.6 + i * 0.66, 0.9, 15.0), "bk_teal" if i % 2 else "bk_beige").owner = root
+		box(v, Vector3(0.3, 0.05, 0.02), Vector3(15.6 + i * 0.66, 1.55, 15.26), "bk_dark").owner = root
+	_own(collider(v, Vector3(2.7, 1.8, 0.5), Vector3(16.6, 0.9, 15.0)), root)
+	# стол: карты, кружки, кассетный магнитофон
+	box(v, Vector3(1.4, 0.05, 0.8), Vector3(12.2, 0.74, 17.6), "bk_beige").owner = root
+	box(v, Vector3(0.5, 0.2, 0.15), Vector3(12.0, 0.87, 17.5), "bk_dark").owner = root
+	for k in 2:
+		cyl(v, 0.05, 0.05, 0.02, Vector3(11.88 + k * 0.24, 0.87, 17.58), "bk_panel", Vector3(PI / 2.0, 0, 0), 10).owner = root
+	for k in 5:
+		box(v, Vector3(0.06, 0.005, 0.09), Vector3(12.5 + randf_range(-0.2, 0.2), 0.77, 17.7 + randf_range(-0.2, 0.2)), "paper",
+			Vector3(0, randf() * TAU, 0)).owner = root
+	_own(collider(v, Vector3(1.4, 0.8, 0.8), Vector3(12.2, 0.4, 17.6)), root)
+	# плакат по технике безопасности
+	box(v, Vector3(0.7, 0.9, 0.02), Vector3(18.3, 0.9, 18.5), "paper", Vector3(0, PI / 2.0, 0)).owner = root
+	# одна койка рухнула: верхний ярус на нижнем, лужа
+	box(v, Vector3(0.9, 0.08, 2.0), Vector3(17.5, 0.6, 18.4), "bk_dark", Vector3(0.3, 0.6, 0.2)).owner = root
+	box(v, Vector3(1.6, 0.01, 1.1), Vector3(16.8, 0.012, 17.2), "glass").owner = root
+
+
+func _bk_generator(v: Node, r: Rect2) -> void:
+	var scr := v.get_node("Screens")
+	# дизель-генератор на раме, глушитель, бак
+	box(v, Vector3(3.2, 1.3, 1.4), Vector3(25, 0.65, 20.8), "bk_dark").owner = root
+	box(v, Vector3(3.3, 0.15, 1.5), Vector3(25, 0.07, 20.8), "bk_yellow").owner = root
+	box(v, Vector3(1.0, 0.5, 1.2), Vector3(26.2, 1.55, 20.8), "bk_orange").owner = root
+	cyl(v, 0.15, 0.15, 1.6, Vector3(23.6, 1.6, 21.3), "rust").owner = root
+	cyl(v, 0.45, 0.45, 1.8, Vector3(21.2, 0.9, 21.2), "bk_teal").owner = root
+	_own(collider(v, Vector3(4.6, 1.6, 1.6), Vector3(24.4, 0.8, 20.9)), root)
+	# конденсаторные банки и щит с манометрами
+	for k in 6:
+		cyl(v, 0.16, 0.16, 0.9, Vector3(28.6, 0.45, 16.0 + k * 0.42), "bk_panel").owner = root
+	_own(collider(v, Vector3(0.5, 1.0, 2.6), Vector3(28.6, 0.5, 17.05)), root)
+	box(v, Vector3(1.8, 1.2, 0.2), Vector3(22.2, 0.8, 15.05), "bk_beige").owner = root
+	for k in 3:
+		cyl(v, 0.14, 0.14, 0.04, Vector3(21.6 + k * 0.6, 1.0, 15.17), "bk_panel", Vector3(PI / 2.0, 0, 0), 14).owner = root
+		box(v, Vector3(0.02, 0.1, 0.01), Vector3(21.6 + k * 0.6, 1.03, 15.2), "bk_black", Vector3(0, 0, 0.6 - k * 0.4)).owner = root
+	box(scr, Vector3(0.1, 0.05, 0.01), Vector3(22.8, 0.55, 15.17), "btn_green").owner = root
+	_own(collider(v, Vector3(1.8, 1.2, 0.3), Vector3(22.2, 0.6, 15.05)), root)
+
+
+func _bk_archive(v: Node, r: Rect2) -> void:
+	# стеллажи с папками и полки с магнитной лентой
+	for z in [5.0, 9.0, 16.0, 19.5]:
+		box(v, Vector3(4.5, 2.0, 0.5), Vector3(36.8, 1.0, z), "bk_dark").owner = root
+		for k in 9:
+			box(v, Vector3(0.12, 0.32, 0.3), Vector3(34.9 + k * 0.45, 1.25, z), "paper" if z < 12 else "bk_beige").owner = root
+			if z > 12:
+				cyl(v, 0.14, 0.14, 0.03, Vector3(34.9 + k * 0.45, 0.6, z), "bk_black", Vector3(PI / 2.0, 0, 0), 12).owner = root
+		_own(collider(v, Vector3(4.5, 2.0, 0.5), Vector3(36.8, 1.0, z)), root)
+	# стол архивариуса с терминалом
+	var scr := v.get_node("Screens")
+	box(v, Vector3(1.4, 0.05, 0.7), Vector3(39.4, 0.74, 12.5), "bk_beige").owner = root
+	box(v, Vector3(0.5, 0.45, 0.45), Vector3(39.5, 1.0, 12.5), "bk_panel").owner = root
+	box(scr, Vector3(0.01, 0.3, 0.38), Vector3(39.24, 1.0, 12.5), "scr_amber").owner = root
+	_own(collider(v, Vector3(1.4, 0.8, 0.7), Vector3(39.4, 0.4, 12.5)), root)
+	for k in 8:
+		box(v, Vector3(0.3, 0.01, 0.4), Vector3(randf_range(33, 40), 0.02, randf_range(10.5, 14.5)), "paper", Vector3(0, randf() * TAU, 0)).owner = root
 
 
 # ======================================================================

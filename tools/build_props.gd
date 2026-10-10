@@ -24,17 +24,19 @@ var slots: Dictionary = {}   # имя -> позиция: куда класть �
 var _force_up := false       # деталь целиком в верхний слой (окна с наличниками)
 var root_props: Dictionary = {}  # предмет: свойства Interactable (item_id, label, pick_size)
 var _rng := RandomNumberGenerator.new()
+## Материал ставней текущей избы (крашеные доски)
+var _shutter := "planks_old"
 
 
 func _ready() -> void:
 	DirAccess.make_dir_recursive_absolute(MESH_DIR)
 	_materials()
-	# жилые дома: базовая изба и варианты
-	house("izba", {})
-	house("izba_long", {"w": 7.4, "d": 4.4, "windows_front": 3, "chimney": Vector2(-2.2, -0.8), "porch_x": -0.6})
-	house("izba_tall", {"w": 5.4, "d": 4.6, "floors": 2, "roof_h": 2.0, "windows_front": 2, "porch_x": 1.2})
-	house("izba_lean", {"w": 5.0, "d": 4.2, "lean": true, "porch_x": 0.9, "patches": 3})
-	house("izba_small", {"w": 4.0, "d": 3.6, "logs": 8, "roof_h": 1.4, "windows_front": 1, "porch_x": 0.2, "chimney": Vector2(-0.9, -0.5)})
+	_houses()
+	# только избы: godot ... res://tools/build_props.tscn -- houses
+	if "houses" in OS.get_cmdline_user_args():
+		print("Избы собраны.")
+		get_tree().quit()
+		return
 	hall()
 	tower()
 	barn()
@@ -59,6 +61,20 @@ func _ready() -> void:
 	locked_box()
 	print("Постройки собраны.")
 	get_tree().quit()
+
+
+## Жилые дома: базовая изба и варианты (ставни у каждой — своего цвета)
+func _houses() -> void:
+	house("izba", {"shutters": "shutter_blue"})
+	house("izba_long", {"w": 7.4, "d": 4.4, "windows_front": 3, "chimney": Vector2(-2.2, -0.8), "porch_x": -0.6,
+		"shutters": "shutter_green", "antenna": true})
+	house("izba_tall", {"w": 5.4, "d": 4.6, "floors": 2, "roof_h": 2.0, "windows_front": 2, "porch_x": 1.2, "shutters": "shutter_blue"})
+	house("izba_lean", {"w": 5.0, "d": 4.2, "lean": true, "porch_x": 0.9, "patches": 3, "shutters": "planks_old"})
+	house("izba_small", {"w": 4.0, "d": 3.6, "logs": 8, "roof_h": 1.4, "windows_front": 1, "porch_x": 0.2, "chimney": Vector2(-0.9, -0.5),
+		"shutters": "shutter_red"})
+	# терем: два этажа, крутая крыша, галерея-балкон по второму этажу
+	house("izba_terem", {"w": 7.4, "d": 4.4, "floors": 2, "roof_h": 2.5, "windows_front": 3, "porch_x": -2.3,
+		"chimney": Vector2(-1.3, -0.8), "shutters": "shutter_green", "balcony": true, "antenna": true})
 
 
 # ---------------- материалы ----------------
@@ -150,6 +166,10 @@ func _materials() -> void:
 	_tex_mat("mud_tex", "mud", 0.35, 0.35, 0.0, Color.WHITE, true)
 	_tex_mat("paint_faded", "planks_old", 2.0, 0.8, 0.1, Color("c86a30"))
 	_tex_mat("metal_dark", "metal_roof", 1.5, 0.6, 0.5, Color("6a6a66"))
+	# крашеные ставни и резьба: краска выгорела, но цвет ещё различим
+	_tex_mat("shutter_blue", "planks_old", 1.6, 0.85, 0.0, Color("7fa4b8"))
+	_tex_mat("shutter_green", "planks_old", 1.6, 0.85, 0.0, Color("93ad84"))
+	_tex_mat("shutter_red", "planks_old", 1.6, 0.85, 0.0, Color("b8786a"))
 	# земля: мировая проекция, чтобы соседние куски стыковались
 	_tex_mat("ground_grass", "grass_dark", 0.18, 1.0, 0.0, Color.WHITE, true)
 	_tex_mat("ground_meadow", "meadow", 0.15, 1.0, 0.0, Color("8c8672"), true)
@@ -430,6 +450,21 @@ func gable_roof(w: float, d: float, top: float, h: float, eave := 0.45, patches 
 			var pw := _rng.randf_range(0.8, 1.5)
 			box("metal_roof", Vector3(pw, 0.05, slope * _rng.randf_range(0.3, 0.55)), mid + rb * Vector3(fx, 0.05, sz * fz), rot)
 	box("metal_roof", Vector3(w + 1.05, 0.12, 0.3), Vector3(0, ridge_y + 0.04, 0), Vector3(PI / 4.0, 0, 0))
+	# причелины по краю фронтонов, «полотенце» под коньком, солярный знак
+	for sx in [-1, 1]:
+		for sz in [-1, 1]:
+			var mid := Vector3(sx * (hx + 0.5), ridge_y - (h + drop) / 2.0 - 0.13, sz * run / 2.0)
+			box("trim", Vector3(0.06, 0.24, slope), mid, Vector3(sz * ang, 0, 0))
+			for k in 4:
+				var t := (k + 0.5) / 4.0
+				prism("trim", Vector3(0.05, 0.12, 0.16), Vector3(sx * (hx + 0.5), ridge_y - (h + drop) * t - 0.3, sz * run * t),
+					Vector3(PI, 0, 0))
+		box("trim", Vector3(0.07, 0.75, 0.24), Vector3(sx * (hx + 0.52), ridge_y - 0.5, 0))
+		prism("trim", Vector3(0.06, 0.22, 0.3), Vector3(sx * (hx + 0.52), ridge_y - 0.98, 0), Vector3(PI, 0, 0))
+		cyl(_shutter, 0.17, 0.17, 0.04, Vector3(sx * (hx + 0.08), top + h * 0.72, 0), Vector3(0, 0, PI / 2.0), 12)
+	# жестяные желоба по свесам
+	for sz in [-1, 1]:
+		box("metal_dark", Vector3(w + 0.9, 0.07, 0.1), Vector3(0, ridge_y - (h + drop) - 0.04, sz * (run - 0.02)))
 
 
 ## Окно с наличником и ставнями. pos — центр на стене, rot — поворот стены.
@@ -448,9 +483,17 @@ func _window(pos: Vector3, rot: Vector3, shutters: bool) -> void:
 	box("trim", Vector3(0.1, 0.9, 0.08), at.call(Vector3(-0.4, 0, 0.04)), rot)
 	box("trim", Vector3(0.1, 0.9, 0.08), at.call(Vector3(0.4, 0, 0.04)), rot)
 	box("trim", Vector3(0.05, 0.8, 0.06), at.call(Vector3(0, 0, 0.04)), rot)
+	# кокошник над окном и резной подзор снизу
+	prism("trim", Vector3(1.0, 0.26, 0.09), at.call(Vector3(0, 0.65, 0.05)), rot)
+	box(_shutter, Vector3(0.5, 0.1, 0.1), at.call(Vector3(0, 0.6, 0.08)), rot)
+	for k in 3:
+		prism("trim", Vector3(0.18, 0.14, 0.06), at.call(Vector3(-0.25 + k * 0.25, -0.58, 0.08)), rot + Vector3(0, 0, PI))
 	if shutters:
-		box("planks_old", Vector3(0.36, 0.86, 0.05), at.call(Vector3(-0.66, 0, 0.03)), rot)
-		box("planks_old", Vector3(0.36, 0.86, 0.05), at.call(Vector3(0.66, 0, 0.03)), rot)
+		for sx in [-1, 1]:
+			box(_shutter, Vector3(0.36, 0.86, 0.05), at.call(Vector3(sx * 0.66, 0, 0.03)), rot)
+			# планки-накладки на ставне
+			box("trim", Vector3(0.3, 0.05, 0.03), at.call(Vector3(sx * 0.66, 0.26, 0.06)), rot)
+			box("trim", Vector3(0.3, 0.05, 0.03), at.call(Vector3(sx * 0.66, -0.26, 0.06)), rot)
 
 
 ## Дверной проём с наличником на фасаде (+Z); дверь распахнута внутрь
@@ -548,6 +591,11 @@ func porch(x: float, base: float, front: float) -> void:
 	box("metal_roof", Vector3(1.9, 0.04, 1.25), Vector3(x, base + 2.45, front + 0.55), Vector3(0.28, 0, 0))
 	for sx in [-1, 1]:
 		box("planks_old", Vector3(0.08, 0.08, 1.1), Vector3(x + sx * 0.8, base + 2.1, front + 0.45), Vector3(-0.6, 0, 0))
+		# резные столбики навеса и перила с балясинами
+		box("trim", Vector3(0.1, 2.4, 0.1), Vector3(x + sx * 0.85, base + 1.2, front + 0.95))
+		box("planks_old", Vector3(0.07, 0.07, 0.95), Vector3(x + sx * 0.85, base + 0.85, front + 0.5))
+		for k in 3:
+			box("trim", Vector3(0.05, 0.75, 0.05), Vector3(x + sx * 0.85, base + 0.45, front + 0.2 + k * 0.28))
 
 
 func chimney(x: float, z: float, top: float, h: float) -> void:
@@ -572,6 +620,7 @@ func house(n: String, opts: Dictionary) -> void:
 	var px: float = opts.get("porch_x", 0.9)
 	# проём не уже 1,9 м: при любом повороте дома через него проходит хотя бы один гекс
 	var door_w := 1.9
+	_shutter = opts.get("shutters", "planks_old")
 	cut_y = base + 0.95
 	inner = Vector2(w - 0.3, d - 0.3)
 	door_local = Vector3(px, 0, hz)
@@ -608,11 +657,54 @@ func house(n: String, opts: Dictionary) -> void:
 		box("metal_roof", Vector3(2.8, 0.05, d + 0.2), Vector3(lx, 2.55, 0), Vector3(0, 0, 0.3))
 		box("planks_old", Vector3(0.9, 1.8, 0.06), Vector3(lx, 0.9, (d - 0.6) / 2.0 + 0.03))
 		solid(Vector3(2.4, 2.4, d - 0.4), Vector3(lx, 1.2, 0))
-	# мелочи у стены: бочка и поленница под окном
+	# мелочи у стены: бочка под водостоком, поленница, лавка, пучки трав под свесом
 	cyl("metal_dark", 0.3, 0.3, 0.85, Vector3(hx + 0.55, 0.43, hz - 0.3))
+	box("metal_dark", Vector3(0.08, top - 0.6, 0.08), Vector3(hx + 0.45, (top - 0.6) / 2.0 + 0.85, hz + 0.5))
 	for i in 3:
 		cyl("log_weathered", 0.12, 0.12, 0.9, Vector3(-hx + 0.8 + i * 0.26, 0.12, -hz - 0.45), Vector3(0, 0, PI / 2.0), 7)
+	var bench_x := -hx + 1.0 if px > -hx + 2.4 else hx - 1.0
+	box("planks_old", Vector3(1.3, 0.07, 0.32), Vector3(bench_x, 0.45, front + 0.32))
+	for lx in [-0.5, 0.5]:
+		box("planks_old", Vector3(0.07, 0.42, 0.26), Vector3(bench_x + lx, 0.21, front + 0.32))
+	for k in 3:
+		cyl("herb", 0.07, 0.03, 0.4, Vector3(bench_x - 0.4 + k * 0.4, top - 0.35, front + 0.25), Vector3.ZERO, 6)
+	if opts.get("antenna", false):
+		# самодельная антенна-«волновой канал» на коньке
+		var ax := hx - 0.9
+		var ay := top + roof_h + 0.1
+		cyl("metal_dark", 0.03, 0.03, 2.2, Vector3(ax, ay + 1.1, 0), Vector3.ZERO, 6)
+		for k in 4:
+			box("metal_dark", Vector3(0.025, 0.025, 0.9 - k * 0.12), Vector3(ax + 0.35 - k * 0.22, ay + 2.0, 0))
+		box("metal_dark", Vector3(0.95, 0.03, 0.03), Vector3(ax, ay + 2.0, 0))
+		box("wire", Vector3(0.02, 0.02, 1.2), Vector3(ax + 0.05, ay + 0.6, hz * 0.4), Vector3(-0.9, 0, 0))
+	if opts.get("balcony", false):
+		# галерея по второму этажу над правой частью фасада: настил, перила, подкосы
+		var bl := 3.6
+		var bx := hx - bl / 2.0 - 0.3
+		var by := base + 2.45
+		box("planks_old", Vector3(bl, 0.1, 1.0), Vector3(bx, by, front + 0.5))
+		for k in 10:
+			box("trim", Vector3(0.05, 0.7, 0.05), Vector3(bx - bl / 2.0 + 0.15 + k * (bl - 0.3) / 9.0, by + 0.4, front + 0.95))
+		box("shutter_green", Vector3(bl, 0.08, 0.1), Vector3(bx, by + 0.78, front + 0.96))
+		for k in [-1, 1]:
+			box("planks_old", Vector3(0.09, 0.09, 1.25), Vector3(bx + k * (bl / 2.0 - 0.3), by - 0.45, front + 0.45), Vector3(0.75, 0, 0))
+			box("trim", Vector3(0.09, 1.3, 0.09), Vector3(bx + k * (bl / 2.0 - 0.1), by + 0.7, front + 0.95))
+		box("metal_roof", Vector3(bl + 0.3, 0.04, 1.2), Vector3(bx, by + 1.45, front + 0.55), Vector3(0.25, 0, 0))
 	izba_interior(w, d, ch, px)
+	if floors > 1:
+		# лестница-стремянка на второй этаж у задней стены, между печью и сундуком
+		var lz := -hz + 0.55
+		var lx := -0.15
+		for k in 2:
+			var rx: float = lx + (k * 2 - 1) * 0.3
+			box("planks_old", Vector3(0.07, 1.0, 0.07), Vector3(rx, 0.5, lz + 0.18), Vector3(0.35, 0, 0))
+			box("planks_old", Vector3(0.07, 1.6, 0.07), Vector3(rx, 1.75, lz - 0.2), Vector3(0.35, 0, 0))
+		for k in 9:
+			var ry := 0.22 + k * 0.3
+			box("planks_old", Vector3(0.6, 0.05, 0.09), Vector3(lx, ry, lz + 0.35 - ry * 0.36))
+		box("planks_old", Vector3(1.0, 0.05, 0.9), Vector3(lx, 2.75, lz - 0.35))
+		solid(Vector3(0.8, 1.6, 0.7), Vector3(lx, 0.8, lz))
+		self.slots["stairs"] = Vector3(lx, 0.0, lz + 0.75)
 	wall_colliders(w, d, px, door_w)
 	finish(n, "Izba")
 

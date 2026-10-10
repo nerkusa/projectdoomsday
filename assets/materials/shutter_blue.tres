@@ -1,0 +1,15 @@
+[gd_resource type="StandardMaterial3D" format=3]
+
+[ext_resource type="Texture2D" path="res://assets/textures/planks_old.png" id="1_7vvrk"]
+[ext_resource type="Texture2D" path="res://assets/textures/planks_old_n.png" id="2_ru0mh"]
+
+[resource]
+resource_name = "shutter_blue"
+albedo_color = Color(0.49803922, 0.6431373, 0.72156864, 1)
+albedo_texture = ExtResource("1_7vvrk")
+roughness = 0.85
+normal_enabled = true
+normal_texture = ExtResource("2_ru0mh")
+uv1_scale = Vector3(1.6, 1.6, 1.6)
+uv1_triplanar = true
+uv1_triplanar_sharpness = 4.0

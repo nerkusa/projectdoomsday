@@ -3,51 +3,153 @@
   "nakharro": {
     "Varvara": {
       "from": 7,
-      "to": 21
+      "to": 21,
+      "home_node": "Izba10",
+      "sleep": true
     },
     "Stepan": {
       "from": 7,
-      "to": 21
+      "to": 21,
+      "home_node": "IzbaStepan",
+      "sleep": true,
+      "plan": [
+        [
+          19,
+          21.5,
+          67.05,
+          62.59,
+          "sit",
+          3.142
+        ]
+      ]
     },
     "Kid": {
       "from": 8,
-      "to": 20
+      "to": 20,
+      "home_node": "Izba8",
+      "sleep": true
     },
     "Smith": {
       "from": 8,
-      "to": 20
+      "to": 20,
+      "home_node": "Izba12",
+      "sleep": true
     },
     "Shooter": {
       "from": 9,
-      "to": 19
+      "to": 19,
+      "home_node": "Izba6",
+      "sleep": true
     },
     "Gambler": {
       "from": 11,
-      "to": 23
+      "to": 23,
+      "home_node": "Izba14",
+      "sleep": true,
+      "plan": [
+        [
+          19,
+          22.5,
+          69.59,
+          60.95,
+          "sit",
+          -1.571
+        ]
+      ]
     },
     "Elder1": {
       "from": 9,
-      "to": 19
+      "to": 19,
+      "home_node": "Izba15",
+      "sleep": true,
+      "plan": [
+        [
+          19,
+          22,
+          65.41,
+          60.05,
+          "sit",
+          1.571
+        ]
+      ]
+    },
+    "Elder2": {
+      "from": 9,
+      "to": 19,
+      "home_node": "Izba15",
+      "sleep": true,
+      "plan": [
+        [
+          19,
+          22,
+          65.41,
+          60.95,
+          "sit",
+          1.571
+        ]
+      ]
     },
     "Nyurguyana": {
       "from": 8,
-      "to": 20
+      "to": 20,
+      "home_node": "Izba3",
+      "sleep": true,
+      "plan": [
+        [
+          19,
+          21,
+          67.95,
+          62.59,
+          "sit",
+          3.142
+        ]
+      ]
     },
     "Ebee": {
       "from": 9,
-      "to": 18
+      "to": 18,
+      "home_node": "Izba7",
+      "sleep": true
     },
     "WaterCarrier": {
       "from": 6,
-      "to": 20
+      "to": 20,
+      "home_node": "Izba2",
+      "sleep": true
     },
     "Villager3": {
       "from": 9,
-      "to": 20
+      "to": 20,
+      "home_node": "Izba11",
+      "sleep": true
     },
     "Villager4": {
       "from": 9,
-      "to": 20
+      "to": 20,
+      "home_node": "Izba11",
+      "sleep": true,
+      "plan": [
+        [
+          19.5,
+          22,
+          69.59,
+          60.05,
+          "sit",
+          -1.571
+        ]
+      ]
+    },
+    "HayMan1": {
+      "from": 7,
+      "to": 20,
+      "home_node": "Izba6",
+      "sleep": true
+    },
+    "HayMan2": {
+      "from": 7,
+      "to": 20,
+      "home_node": "Izba2",
+      "sleep": true
     }
   },
   "kresty": {

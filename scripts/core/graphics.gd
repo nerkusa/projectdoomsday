@@ -81,11 +81,18 @@ static func apply(tree: SceneTree) -> void:
 		RenderingServer.SHADOW_QUALITY_HARD if sh == "low" else RenderingServer.SHADOW_QUALITY_SOFT_MEDIUM)
 	for sun in tree.get_nodes_in_group("sun_light"):
 		(sun as DirectionalLight3D).shadow_enabled = sh != "off"
+	# тени от ламп и костров (кубические карты — самые дорогие): только при «мягких»
+	vp.positional_shadow_atlas_size = 4096 if sh == "high" else 2048
 	var loc := tree.get_first_node_in_group("location")
 	if loc:
 		var s := loc.get_node_or_null("Env/Sun") as DirectionalLight3D
 		if s:
 			s.shadow_enabled = sh != "off"
+		for l in loc.find_children("*", "OmniLight3D", true, false):
+			var ol := l as OmniLight3D
+			if not ol.has_meta("shadow0"):
+				ol.set_meta("shadow0", ol.shadow_enabled)
+			ol.shadow_enabled = bool(ol.get_meta("shadow0")) and sh == "high"
 		var we := loc.get_node_or_null("Env/WorldEnvironment") as WorldEnvironment
 		if we and we.environment:
 			we.environment.glow_enabled = value("gfx_glow") == "on"

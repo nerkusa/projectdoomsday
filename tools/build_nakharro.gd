@@ -46,7 +46,7 @@ func _ready() -> void:
 			"cabbage", "ash", "mushroom_cap", "mushroom_leg", "berry", "cloth",
 			"ground_grass", "ground_meadow", "ground_dirt", "planks_old", "log_weathered", "mud_tex", "water"]:
 		M[n] = load(MAT_DIR + n + ".tres")
-	for n in ["izba", "izba_long", "izba_tall", "izba_lean", "izba_small", "hall", "tower", "barn", "shed", "workshop",
+	for n in ["izba", "izba_long", "izba_tall", "izba_lean", "izba_small", "izba_terem", "hall", "tower", "barn", "shed", "workshop",
 			"palisade", "gate", "barricade", "greenhouse", "wind_turbine", "spruce", "pine", "birch", "dead_tree", "bush",
 			"rock", "fire", "well", "woodpile", "table", "tractor", "garden", "fence", "fence_broken", "fence_gate", "border_post", "sign",
 			"planks", "basket", "mushroom", "berries", "bandage",
@@ -80,6 +80,7 @@ func _build() -> void:
 	_clear_overlaps()
 	_fence_mend()
 	_tutorial_extras()
+	_village_life()
 	var ps := PackedScene.new()
 	var err := ps.pack(root)
 	if err != OK:
@@ -295,7 +296,7 @@ func _village() -> void:
 	put(P.izba_lean, vil, Vector3(76, 0, 71), 0.0, "Izba10")
 	put(P.izba_small, vil, Vector3(92, 0, 71), 0.04, "Izba11")
 	put(P.izba, vil, Vector3(34, 0, 81.5), PI, "Izba12")
-	put(P.izba_long, vil, Vector3(48, 0, 81.5), PI - 0.03, "Izba13")
+	put(P.izba_terem, vil, Vector3(48, 0, 81.5), PI - 0.03, "Izba13")
 	put(P.izba_small, vil, Vector3(78, 0, 81.5), PI, "Izba14")
 	put(P.izba, vil, Vector3(90, 0, 81.5), PI + 0.05, "Izba15")
 	# площадь: дом собраний (двери к площади), колодец, стол, костровище
@@ -962,7 +963,7 @@ func _details() -> void:
 	# --- во дворах: бочки, ящики, телеги, скамьи, сено ---
 	for d in [["barrel", Vector3(35.6, 0, 67.2)], ["barrel", Vector3(36.3, 0, 67.9)], ["crates", Vector3(84.4, 0, 57.4)],
 			["barrel", Vector3(76.8, 0, 56.2)], ["cart", Vector3(72.5, 0, 52.6)], ["hay_bale", Vector3(83.6, 0, 55.4)],
-			["hay_bale", Vector3(82.2, 0, 55.2)], ["bench", Vector3(56.2, 0, 62.6)], ["bench", Vector3(68.4, 0, 63.0)],
+			["hay_bale", Vector3(82.2, 0, 55.2)], ["bench", Vector3(56.2, 0, 62.6)], ["barrel", Vector3(71.8, 0, 65.4)],
 			["crates", Vector3(57.4, 0, 40.8)], ["cart", Vector3(29.5, 0, 72.5)], ["barrel", Vector3(94.8, 0, 75.4)],
 			["crates", Vector3(47.2, 0, 85.2)], ["bench", Vector3(40.6, 0, 43.2)], ["barrel", Vector3(89.6, 0, 43.4)],
 			["hay_bale", Vector3(70.2, 0, 90.6)], ["crates", Vector3(97.8, 0, 58.2)]]:
@@ -1102,3 +1103,92 @@ func _sacred_tree(items: Node) -> void:
 	use.position = at + Vector3(0.9, 0, 0.9)
 	items.add_child(use)
 	use.owner = root
+
+
+# ---------------- жизнь деревни: светёлки, костёр, прятки, ссора, вышка ----------------
+## Двухэтажные избы — лестница наверх (в локацию nakharro_upper) и точка возвращения
+const UPSTAIRS := ["Izba5", "Izba9", "Izba13"]
+## Вечерний костёр на площади
+const BONFIRE := Vector3(67.5, 0, 60.5)
+
+
+func _village_life() -> void:
+	var items: Node = root.get_node("Items")
+	var vil: Node = root.get_node("Village")
+	var chars: Node = root.get_node("Characters")
+	var sp: Node = root.get_node("Spawns")
+	for hn in UPSTAIRS:
+		var h: Node3D = vil.get_node(hn)
+		var st: Vector3 = h.transform * (h.get_node("Slot_stairs") as Node3D).position
+		var u := _item_base("Stairs_" + hn)
+		u.set("kind", "use")
+		u.set("label", "Лестница на второй этаж")
+		u.set("pick_size", Vector3(0.9, 2.2, 0.9))
+		u.set("reach", 2)
+		u.position = h.transform * ((h.get_node("Slot_stairs") as Node3D).position + Vector3(0, 0, -0.5))
+		items.add_child(u)
+		u.owner = root
+		var m := Marker3D.new()
+		m.name = "FromUp_" + hn
+		m.position = Vector3(st.x, 0, st.z)
+		sp.add_child(m)
+		m.owner = root
+	# мачта Туйгуна на избе Izba5: сломанная (до починки) и целая
+	var i5: Node3D = vil.get_node("Izba5")
+	var mast := Node3D.new()
+	mast.name = "RadioMast"
+	mast.transform = i5.transform
+	vil.add_child(mast)
+	mast.owner = root
+	var ridge := 7.45
+	for state in ["Broken", "Fixed"]:
+		var g := Node3D.new()
+		g.name = state
+		mast.add_child(g)
+		g.owner = root
+		var tilt := Vector3(0, 0, 1.15) if state == "Broken" else Vector3.ZERO
+		var piv := Node3D.new()
+		piv.position = Vector3(-1.4, ridge - 0.1, 0)
+		piv.rotation = tilt
+		g.add_child(piv)
+		piv.owner = root
+		cyl(piv, 0.04, 0.05, 3.0, Vector3(0, 1.5, 0), "metal").owner = root
+		for k in 5:
+			box(piv, Vector3(0.03, 0.03, 1.2 - k * 0.15), Vector3(0.5 - k * 0.25, 2.8, 0), "metal").owner = root
+		box(piv, Vector3(1.3, 0.04, 0.04), Vector3(0, 2.8, 0), "metal").owner = root
+		box(piv, Vector3(0.18, 0.12, 0.12), Vector3(0, 2.2, 0), "paint_orange").owner = root
+	# вечерний костёр: каменный круг, огонь (горит с 19 до 23), три скамьи вокруг
+	var bf := _item_base("Bonfire")
+	bf.set("kind", "use")
+	bf.set("label", "Костровище")
+	bf.set("pick_size", Vector3(1.6, 1.0, 1.6))
+	bf.set("reach", 2)
+	bf.position = BONFIRE
+	items.add_child(bf)
+	bf.owner = root
+	for k in 9:
+		var a := k * TAU / 9.0
+		put(P.rock_small, bf, Vector3(cos(a) * 0.75, 0, sin(a) * 0.75), randf() * TAU, "", 0.45)
+	box(bf, Vector3(0.9, 0.04, 0.9), Vector3(0, 0.02, 0), "ash").owner = root
+	var fire := put(P.fire, bf, Vector3(0, 0.15, 0), 0.0, "Flame", 0.7)
+	fire.set("strength", 0.8)
+	_own(collider(bf, Vector3(1.4, 0.5, 1.4), Vector3(0, 0.25, 0)), root)
+	for d in [Vector2(-1, 0), Vector2(1, 0), Vector2(0, 1)]:
+		put(P.bench, vil, BONFIRE + Vector3(d.x, 0, d.y) * 2.4, atan2(d.x, d.y))
+	# прятки: двое в деревне (третья — наверху, в светёлке Izba9)
+	var HS := ["phase_morning", "hide_kids"]
+	character(chars, "HideKid1", "hs_kid1", Vector3(67.2, 0, 87.6), PI * 0.8, {"dialog": "hs_kid1", "start_pose": "sit", "groups": HS})
+	character(chars, "HideKid2", "hs_kid2", Vector3(42.4, 0, 89.4), -PI * 0.3, {"dialog": "hs_kid2", "start_pose": "sit", "groups": HS})
+	# ссора у амбара: двое над стогом
+	character(chars, "HayMan1", "hay_man1", Vector3(82.4, 0, 53.9), PI * 0.6, {"dialog": "hay_quarrel", "groups": ["phase_morning"]})
+	character(chars, "HayMan2", "hay_man2", Vector3(84.9, 0, 54.1), -PI * 0.6, {"dialog": "hay_quarrel", "groups": ["phase_morning"]})
+	# северная вышка: можно забраться и посмотреть на тайгу
+	var tw: Node3D = root.get_node("Palisade/TowerNorth")
+	var tc := _item_base("TowerClimb")
+	tc.set("kind", "use")
+	tc.set("label", "Лестница на вышку")
+	tc.set("pick_size", Vector3(1.4, 2.6, 1.4))
+	tc.set("reach", 2)
+	tc.position = tw.position + Vector3(0, 0, 2.2)
+	items.add_child(tc)
+	tc.owner = root

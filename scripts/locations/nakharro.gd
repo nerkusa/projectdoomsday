@@ -36,11 +36,17 @@ func _ready() -> void:
 	location_id = "nakharro"
 	title = "Нахарро"
 	Game.hero_changed.connect(_on_hero_changed)
+	Clock.hour_changed.connect(_on_hour)
+	Game.quest_changed.connect(_on_quest)
 
 
 func _exit_tree() -> void:
 	if Game.hero_changed.is_connected(_on_hero_changed):
 		Game.hero_changed.disconnect(_on_hero_changed)
+	if Clock.hour_changed.is_connected(_on_hour):
+		Clock.hour_changed.disconnect(_on_hour)
+	if Game.quest_changed.is_connected(_on_quest):
+		Game.quest_changed.disconnect(_on_quest)
 
 
 func phase() -> String:
@@ -154,6 +160,7 @@ func _apply_phase() -> void:
 				ch.visible = false
 				ch.process_mode = Node.PROCESS_MODE_DISABLED
 	_update_exit_guard()
+	_apply_life()
 
 
 ## Свет: день, к вечеру (после DUSK_AT находок) — низкое тёплое солнце, во время налёта — зарево
@@ -190,7 +197,8 @@ func schedule_active(_ch: Character) -> bool:
 func _set_on(n: Node, on: bool) -> void:
 	if n is Character:
 		var ch := n as Character
-		if ch.get_meta("asleep", false):
+		# спящий в постели виден; ушедший «домой» без постели — нет
+		if ch.get_meta("asleep", false) and ch.pose != "sleep":
 			on = false
 		if ws().misc.has("gone_" + ch.uid()):
 			on = false
@@ -828,7 +836,84 @@ func on_looted(ch: Character) -> void:
 	main.hud.refresh_objective()
 
 
+# ---------------- жизнь деревни ----------------
+func _on_hour(_h: int) -> void:
+	_apply_life()
+
+
+func _on_quest(id: String) -> void:
+	if id in ["hide_seek", "radio"] and main:
+		_apply_life()
+
+
+## Вечер ли у костра: огонь горит с 19 до 23, пока в деревне мирно
+func bonfire_lit() -> bool:
+	var h := Clock.hour_of_day()
+	return phase() == "morning" and not Game.flag("dusk") and h >= 19.0 and h < 23.0
+
+
+## Прятки, мачта Туйгуна, вечерний костёр
+func _apply_life() -> void:
+	var raid := phase() != "morning"
+	for i in [1, 2]:
+		var k := character("HideKid%d" % i)
+		if k:
+			var on: bool = not raid and Game.quest_stage("hide_seek") == 1 and not Game.flag("hs_%d" % i) \
+				and not ws().misc.has("gone_" + k.uid())
+			k.visible = on
+			k.process_mode = Node.PROCESS_MODE_INHERIT if on else Node.PROCESS_MODE_DISABLED
+	var mast := get_node_or_null("Village/RadioMast")
+	if mast:
+		mast.get_node("Fixed").visible = Game.flag("radio_fixed")
+		mast.get_node("Broken").visible = not Game.flag("radio_fixed")
+	var bf := get_node_or_null("Items/Bonfire/Flame") as Node3D
+	if bf:
+		bf.visible = bonfire_lit()
+
+
+func _bonfire() -> void:
+	if not bonfire_lit():
+		main.think("Костровище посреди площади: круг камней, зола. Вечерами тут собирается вся деревня.")
+		return
+	var songs: Array = DB._load("res://data/barks.json").get("fire_songs", [])
+	var k := int(Game.flag_value("fire_song", 0))
+	if not Game.flag("fire_sat"):
+		Game.set_flag("fire_sat")
+		Game.grant_xp(15)
+	Game.set_flag("fire_song", k + 1)
+	main.think("Сел у огня. " + str(songs[k % songs.size()]) if not songs.is_empty() else "Сел у огня.")
+	main.wait_hours(1.0, "у костра")
+
+
+## Северная вышка: днём — тайга и дым из труб, ночью — чужие огни на севере
+func _tower() -> void:
+	if phase() != "morning":
+		main.think("Не до вышки.")
+		return
+	var h := Clock.hour_of_day()
+	if h >= 21.0 or h < 5.0:
+		if not Game.flag("saw_lights"):
+			Game.set_flag("saw_lights")
+			Game.grant_xp(20)
+			Game.add_note("С северной вышки ночью: огоньки в тайге, далеко на севере. Вспыхнут — погаснут. Охотники так не ходят.")
+		main.think("Наверху холодно. Тайга чёрная, сплошная. И вдруг — далеко на севере — огонёк. Мигнул и погас. Ещё один, левее. Охотники так не светят.")
+	else:
+		main.think("С вышки видно всю деревню: дым из труб, бабы на огородах, ребятня у колодца. А за частоколом — тайга до самого неба.")
+
+
 func on_interact(it: Interactable) -> bool:
+	if String(it.name).begins_with("Stairs_"):
+		if phase() != "morning":
+			main.think("Не до светёлок. Деревня горит.")
+		else:
+			main.load_location("nakharro_upper", "From_" + String(it.name).substr(7))
+		return true
+	if it.name == "Bonfire":
+		_bonfire()
+		return true
+	if it.name == "TowerClimb":
+		_tower()
+		return true
 	if it.name == "SacredTree":
 		if Game.quest_stage("salama") == 1 and Game.item_count("salama") > 0:
 			Game.remove_item("salama")
@@ -904,6 +989,19 @@ func on_interact(it: Interactable) -> bool:
 
 
 func on_dialog_action(a: String, _sp: Character) -> bool:
+	if a == "hs_leave" and _sp:
+		ws().misc["gone_" + _sp.uid()] = true
+		_sp.start_pose = ""
+		_sp.pose = ""
+		# бежит на улицу — к Мичилу — и через пару секунд пропадает из виду
+		var gone := func():
+			if is_instance_valid(_sp):
+				_sp.stop()
+				_sp.visible = false
+				_sp.process_mode = Node.PROCESS_MODE_DISABLED
+		_sp.move_along(Clock._route(self, _sp.global_position, Vector3(60, 0, 76.5)), gone, 2.5)
+		get_tree().create_timer(2.5, false).timeout.connect(gone)
+		return true
 	match a:
 		"ded_dies":
 			var ded := character("DedRaid")
@@ -1230,6 +1328,12 @@ func item_actions(it: Interactable) -> Array:
 		return [["Заделать досками", "use"]]
 	if n == "CellarHatch":
 		return [["Спуститься в подпол", "use"]]
+	if n.begins_with("Stairs_"):
+		return [["Подняться на второй этаж", "use"]]
+	if n == "Bonfire":
+		return [["Посидеть у костра (час)", "use"]] if bonfire_lit() else [["Осмотреть", "use"]]
+	if n == "TowerClimb":
+		return [["Забраться на вышку", "use"]]
 	if n == "WellUse":
 		if Game.quest_stage("well") == 1:
 			return [["Достать ведро (верёвка)" if Game.item_count("rope") > 0 else "Достать ведро (нужна верёвка)", "use"]]
@@ -1262,6 +1366,12 @@ func describe(it: Interactable) -> String:
 		return "Старая черта: дальше за неё жителям ходить запрещено."
 	if n == "CellarHatch":
 		return "Люк в подпол. Дед хранит там соленья и старьё."
+	if n.begins_with("Stairs_"):
+		return "Стремянка на второй этаж, в светёлку."
+	if n == "Bonfire":
+		return "Вечерний костёр. Вокруг — скамьи, на них старики и молодёжь." if bonfire_lit() else "Костровище: круг камней и зола."
+	if n == "TowerClimb":
+		return "Лестница на северную вышку. Часовой разрешает — если не мешать."
 	if n == "WellUse":
 		return "Колодец с воротом. Цепь оборвана — ведро ушло на дно." if Game.quest_stage("well") == 1 else "Колодец с воротом."
 	return ""

@@ -1,0 +1,15 @@
+[gd_resource type="StandardMaterial3D" format=3]
+
+[ext_resource type="Texture2D" path="res://assets/textures/planks_old.png" id="1_a7syv"]
+[ext_resource type="Texture2D" path="res://assets/textures/planks_old_n.png" id="2_xm4ux"]
+
+[resource]
+resource_name = "shutter_red"
+albedo_color = Color(0.72156864, 0.47058824, 0.41568628, 1)
+albedo_texture = ExtResource("1_a7syv")
+roughness = 0.85
+normal_enabled = true
+normal_texture = ExtResource("2_xm4ux")
+uv1_scale = Vector3(1.6, 1.6, 1.6)
+uv1_triplanar = true
+uv1_triplanar_sharpness = 4.0
