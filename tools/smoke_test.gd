@@ -1646,6 +1646,21 @@ func _ready() -> void:
 	ok(wm.can_go("kresty") and not wm.can_go("camp") and not wm.can_go("sungar"), "с карты можно только в Кресты")
 	ok(wm.node_pos("kresty").x > wm.node_pos("nakharro").x and wm.node_pos("sungar").x > wm.node_pos("kresty").x and wm.node_pos("camp").y > wm.node_pos("kresty").y,
 		"карта сходится с дизайн-доком: путь на восток — Нахарро, Кресты, Сунгар; лагерь к югу за рекой")
+	# реки: перейти можно только по переправам; ни одно место не стоит в воде
+	var wet := []
+	for nid in wm.nodes():
+		if wm._snap_free(wm.node_pos(nid)) != wm.node_pos(nid):
+			wet.append(nid)
+	ok(wet.is_empty(), "все места карты на суше (%s)" % ", ".join(wet))
+	ok(not wm.seg_free(wm.node_pos("kresty"), wm.node_pos("nyurba")), "Вилюй между Крестами и Нью-Рбой напрямую не перейти")
+	var rr: Array = wm.route(wm.node_pos("kresty"), wm.node_pos("nyurba"))
+	var via_bridge := false
+	for q in rr:
+		if (q as Vector2).distance_to(Vector2(wm.data.crossings[2].pos[0], wm.data.crossings[2].pos[1])) < 60.0:
+			via_bridge = true
+	ok(not rr.is_empty() and via_bridge, "путь в Нью-Рбу — через мост (%d поворотов)" % rr.size())
+	ok(not wm.route(wm.node_pos("nyurba"), wm.node_pos("mirny")).is_empty() and not wm.route(wm.node_pos("mirny"), wm.node_pos("yakutsk")).is_empty(),
+		"до Мирного и Якутска путь по суше есть")
 
 	# ======== АКТ I: Кресты ========
 	var h_before := Clock.hours()

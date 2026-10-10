@@ -4,7 +4,7 @@ extends Node
 ##     res://tools/render_shots.tscn -- "кадр;кадр;…" /путь/префикс     → префикс_0.png, _1.png…
 ## Кадр: loc|x|z|zoom|час|флаги — флаги через запятую, «квест=этап» ставит этап.
 ##       encounter|x|z|zoom|час|enc_id|ориентиры(plane,heli,…)
-##       MAP — карта мира с тропами;  WAIT|часов|через_сколько_сек — экран ожидания.
+##       MAP — карта мира с тропами (MAP|all — все места);  WAIT|часов|через_сколько_сек — экран ожидания.
 var main: Node
 
 func _ready() -> void:
@@ -23,10 +23,15 @@ func _ready() -> void:
 	for s in shots:
 		var p: Array = s.split("|")
 		if p[0] == "MAP":
-			for id in ["kresty", "camp", "zaimka", "convoy", "ruin"]:
+			var ids: Array = ["kresty", "camp", "zaimka", "convoy", "ruin"]
+			if p.size() > 1 and p[1] == "all":
+				ids = main.world_map.nodes().keys()
+			for id in ids:
 				WorldMap.reveal(id)
 			Game.set_flag("visited_kresty")
 			main.world_map.open("kresty")
+			if p.size() > 2:
+				main.world_map.set_zoom(float(p[2]))
 			for k in 40:
 				await get_tree().process_frame
 			get_viewport().get_texture().get_image().save_png("%s_%d.png" % [out, i])

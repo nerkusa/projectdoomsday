@@ -25,6 +25,11 @@ const REVEAL_R := 45.0
 var main: Node
 var data: Dictionary = {}
 var img_size := Vector2(1935, 812)
+## Реки непроходимы: сетка проходимости (клетка NAV_CELL пикселей карты), переправы открыты
+const NAV_CELL := 6.0
+var _astar: AStarGrid2D
+## Маршрут к цели: точки поворота (последняя — сама цель)
+var _route: Array = []
 ## Точка, где стоит герой ("" — посреди тайги)
 var at := ""
 var sel := ""
@@ -59,6 +64,7 @@ func setup(m: Node) -> void:
 	data = DB._load("res://data/world.json")
 	var sz: Array = data.get("size", [1935, 812])
 	img_size = Vector2(float(sz[0]), float(sz[1]))
+	_build_nav()
 	UITheme.full_rect(self)
 	mouse_filter = Control.MOUSE_FILTER_STOP
 	var bg := ColorRect.new()
@@ -235,7 +241,104 @@ func time_text() -> String:
 
 
 func hours_to(p: Vector2) -> float:
-	return pos.distance_to(p) / 100.0 * float(data.get("hours_per_100px", 2.5))
+	var r := route(pos, _snap_free(p))
+	var L := 0.0
+	var prev := pos
+	for q in r:
+		L += prev.distance_to(q)
+		prev = q
+	if r.is_empty():
+		L = pos.distance_to(p)
+	return L / 100.0 * float(data.get("hours_per_100px", 2.5))
+
+
+# ---------------- реки и переправы ----------------
+func _build_nav() -> void:
+	_astar = AStarGrid2D.new()
+	_astar.region = Rect2i(0, 0, int(ceil(img_size.x / NAV_CELL)), int(ceil(img_size.y / NAV_CELL)))
+	_astar.cell_size = Vector2(NAV_CELL, NAV_CELL)
+	_astar.diagonal_mode = AStarGrid2D.DIAGONAL_MODE_ONLY_IF_NO_OBSTACLES
+	_astar.default_compute_heuristic = AStarGrid2D.HEURISTIC_EUCLIDEAN
+	_astar.update()
+	var widest := 0.0
+	for r in data.get("rivers", []):
+		# на картинке ширина «дышит» до ×1.3 — плюс запас, чтобы не срезать по берегу
+		var half: float = float(r.width) * 0.65 + 5.0
+		widest = maxf(widest, half)
+		var pts: Array = r.pts
+		for i in pts.size() - 1:
+			var a := Vector2(pts[i][0], pts[i][1])
+			var b := Vector2(pts[i + 1][0], pts[i + 1][1])
+			var n := maxi(1, int(ceil(a.distance_to(b) / (NAV_CELL * 0.5))))
+			for k in n + 1:
+				_disc(a.lerp(b, float(k) / n), half, true)
+	for c in data.get("crossings", []):
+		_disc(Vector2(c.pos[0], c.pos[1]), widest + 12.0, false)
+
+
+func _disc(p: Vector2, rad: float, solid: bool) -> void:
+	var c0 := _cell(p - Vector2(rad, rad))
+	var c1 := _cell(p + Vector2(rad, rad))
+	for x in range(c0.x, c1.x + 1):
+		for y in range(c0.y, c1.y + 1):
+			var cc := Vector2i(x, y)
+			if _astar.is_in_boundsv(cc) and (Vector2(x + 0.5, y + 0.5) * NAV_CELL).distance_to(p) <= rad:
+				_astar.set_point_solid(cc, solid)
+
+
+func _cell(p: Vector2) -> Vector2i:
+	return Vector2i(clampi(int(p.x / NAV_CELL), 0, _astar.region.size.x - 1), clampi(int(p.y / NAV_CELL), 0, _astar.region.size.y - 1))
+
+
+## Можно ли идти по прямой (не пересекая реку)
+func seg_free(a: Vector2, b: Vector2) -> bool:
+	var n := maxi(1, int(ceil(a.distance_to(b) / (NAV_CELL * 0.5))))
+	for k in n + 1:
+		if _astar.is_point_solid(_cell(a.lerp(b, float(k) / n))):
+			return false
+	return true
+
+
+## Ближайшая к p точка на суше (клик в реку — к берегу)
+func _snap_free(p: Vector2) -> Vector2:
+	var c := _cell(p)
+	if not _astar.is_point_solid(c):
+		return p
+	for r in range(1, 30):
+		for x in range(-r, r + 1):
+			for y in range(-r, r + 1):
+				if absi(x) != r and absi(y) != r:
+					continue
+				var cc := c + Vector2i(x, y)
+				if _astar.is_in_boundsv(cc) and not _astar.is_point_solid(cc):
+					return (Vector2(cc) + Vector2(0.5, 0.5)) * NAV_CELL
+	return p
+
+
+## Маршрут по суше от a до b: точки поворота (пусто — не дойти)
+func route(a: Vector2, b: Vector2) -> Array:
+	if seg_free(a, b):
+		return [b]
+	b = _snap_free(b)
+	var ids := _astar.get_id_path(_cell(_snap_free(a)), _cell(b))
+	if ids.is_empty():
+		return []
+	var pts := []
+	for id in ids:
+		pts.append((Vector2(id) + Vector2(0.5, 0.5)) * NAV_CELL)
+	pts[-1] = b
+	# выпрямить: из текущей точки — к самой дальней, что видна по прямой
+	var out := []
+	var cur := a
+	var i := 0
+	while i < pts.size():
+		var j := pts.size() - 1
+		while j > i and not seg_free(cur, pts[j]):
+			j -= 1
+		out.append(pts[j])
+		cur = pts[j]
+		i = j + 1
+	return out
 
 
 # ---------------- открыть / закрыть ----------------
@@ -247,9 +350,16 @@ func open(from_id: String) -> void:
 	else:
 		at = ""
 		var wp = Game.hero.flags.get("wm_pos", null)
-		pos = Vector2(float(wp[0]), float(wp[1])) if wp is Array and wp.size() == 2 else node_pos("nakharro")
+		# карта сменилась (другая версия) — старые координаты не годятся: встаём у последней точки
+		if int(Game.hero.flags.get("wm_ver", 1)) != int(data.get("version", 1)):
+			wp = null
+		pos = Vector2(float(wp[0]), float(wp[1])) if wp is Array and wp.size() == 2 \
+			else node_pos(str(Game.hero.flags.get("map_at", "kresty")) if nodes().has(str(Game.hero.flags.get("map_at", ""))) else "kresty")
+		pos = _snap_free(pos)
+	Game.hero.flags["wm_ver"] = int(data.get("version", 1))
 	_start = pos
 	target = pos
+	_route = []
 	moving = false
 	_paused = false
 	_entering = false
@@ -297,7 +407,10 @@ func travel(id: String) -> void:
 
 
 func _go_to(p: Vector2) -> void:
-	target = Vector2(clampf(p.x, 4, img_size.x - 4), clampf(p.y, 4, img_size.y - 4))
+	target = _snap_free(Vector2(clampf(p.x, 4, img_size.x - 4), clampf(p.y, 4, img_size.y - 4)))
+	_route = route(pos, target)
+	if _route.is_empty():
+		target = pos
 	moving = true
 	_paused = false
 	at = ""
@@ -315,11 +428,14 @@ func _process(delta: float) -> void:
 		return
 	_t += delta
 	if moving and not _paused and not _entering and not main.dialog.visible:
+		var goal: Vector2 = _route[0] if not _route.is_empty() else target
 		var step := SPEED * delta
-		var d := pos.distance_to(target)
+		var d := pos.distance_to(goal)
 		if step >= d:
 			step = d
-		pos = pos.move_toward(target, step)
+		pos = pos.move_toward(goal, step)
+		if pos.distance_to(goal) < 0.5 and _route.size() > 1:
+			_route.pop_front()
 		Clock.advance(step / 100.0 * float(data.get("hours_per_100px", 2.5)))
 		if _trail.is_empty() or (_trail[-1] as Vector2).distance_to(pos) > 9.0:
 			_trail.append(pos)
@@ -630,7 +746,10 @@ func _draw_map() -> void:
 	for q in _trail:
 		c.draw_circle(_to_px(q), 2.2, Color("c0392b"))
 	if moving:
-		c.draw_dashed_line(_to_px(pos), _to_px(target), Color(UITheme.AMBER, 0.8), 1.5, 6.0)
+		var prev := pos
+		for q in _route:
+			c.draw_dashed_line(_to_px(prev), _to_px(q), Color(UITheme.AMBER, 0.8), 1.5, 6.0)
+			prev = q
 		c.draw_arc(_to_px(target), 6.0, 0, TAU, 16, UITheme.AMBER, 1.5)
 	for id in nodes():
 		if not known(id):

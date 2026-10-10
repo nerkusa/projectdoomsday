@@ -57,7 +57,7 @@ cd build && zip -q -9 -r -s 25m Nakharro_split.zip windows   # → .zip .z01 .z0
 - Диалоги `data/dialogs/*.json`: условия `if` (flag, not_flag, flags, quest+stage/stage_min/stage_max, item, cond → `dialog_cond` локации, rep_min/max), эффекты (take, give, xp, quest, set_flags, note, rep, action, check/success/fail), `text_if`.
 - **Без метагейминга:** реплика, где герой отдаёт вещь и задание идёт дальше 1-го этапа, обязана проверять это задание (`"quest": id, "stage"…`). `check.tscn` ловит нарушения («МЕТАГЕЙМИНГ: …»). Деньги (rubles, salt) — оплата, не сдача. `Game.set_quest` этап назад не откатывает.
 - Расписание жителей — `schedules.json` (from/to, home_node, sleep, plan [[с,до,x,z,поза,поворот]]).
-- Карта мира, встречи, тропы — `world.json`; клочки лора — `lore.json`; реплики — `barks.json`.
+- Карта мира, встречи, тропы, реки и переправы — `world.json` (картинку перерисовывает `python3 tools/gen_world_map.py`; реки непроходимы, места не должны стоять в воде); клочки лора — `lore.json`; реплики — `barks.json`.
 
 ## Устройство кода
 - `scripts/main.gd` — загрузка локаций, ввод, разговоры, ожидание (`wait_hours`).
