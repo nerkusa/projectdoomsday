@@ -217,13 +217,23 @@ func move_along(points: Array, cb := Callable(), spd := 3.2) -> void:
 	speed = spd
 	_on_arrive = cb
 	moving = not path.is_empty()
+	# сидящий или лежащий сначала встаёт, потом идёт — а не едет по земле в позе
+	if moving and pose in ["sit", "down", "sleep", "yield"]:
+		_rise_t = 0.8 if pose in ["down", "sleep"] else 0.5
+		pose = ""
+		sleep_height = 0.45
 	if not moving and cb.is_valid():
 		cb.call()
+
+
+## Сколько ещё вставать перед ходьбой (с)
+var _rise_t := 0.0
 
 
 func stop() -> void:
 	path.clear()
 	moving = false
+	_rise_t = 0.0
 	_on_arrive = Callable()
 
 
@@ -350,7 +360,9 @@ func _process(delta: float) -> void:
 			_bark.modulate.a = maxf(0.0, _bark_t / 0.6)
 		if _bark_t <= 0.0:
 			_bark.visible = false
-	if moving and not path.is_empty():
+	if _rise_t > 0.0:
+		_rise_t -= delta
+	elif moving and not path.is_empty():
 		var tgt: Vector3 = path[0]
 		var g := global_position
 		var d := Vector2(tgt.x - g.x, tgt.z - g.z)
@@ -640,7 +652,7 @@ func _animate(delta: float) -> void:
 	a.shL = Vector3(0, 0, -0.06)
 	a.elR = Vector3(-0.12, 0, 0)
 	a.elL = Vector3(-0.12, 0, 0)
-	if moving:
+	if moving and _rise_t <= 0.0:
 		_walk_ph += delta * speed * 3.2
 		var s := sin(_walk_ph)
 		var c := cos(_walk_ph)
@@ -791,11 +803,12 @@ func _animate_clips(delta: float) -> void:
 			ab.play("Crouch_Idle", 0.3)
 		_:
 			var sneak := is_player and bool(Game.hero.get("sneak", false))
-			if sneak and moving:
+			var walking := moving and _rise_t <= 0.0
+			if sneak and walking:
 				ab.play("Crouch_Fwd", 0.2, clampf(speed / CROUCH_CLIP_SPEED, 0.6, 1.8))
 			elif sneak:
 				ab.play("Crouch_Idle", 0.3)
-			elif moving:
+			elif walking:
 				if speed < 2.2:
 					ab.play("Walk", 0.2, clampf(speed / WALK_CLIP_SPEED, 0.6, 1.8))
 				else:

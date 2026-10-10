@@ -309,6 +309,14 @@ func nakharro_life_tests() -> void:
 	var fl := nk.get_node("Items/Bonfire/Flame") as Node3D
 	var e1: Character = nk.character("Elder1")
 	ok(fl.visible and e1.pose == "sit" and e1.global_position.distance_to(Vector3(67.5, 0, 60.5)) < 3.0, "вечером горит костёр, старики сидят вокруг")
+	# сидящий, получив маршрут, сначала встаёт на месте, а не едет по земле сидя
+	var ep := e1.global_position
+	e1.move_along([ep + Vector3(1.5, 0, 0)])
+	await frames(2)
+	ok(e1.pose == "" and e1.global_position.distance_to(ep) < 0.05, "сидящий сначала встаёт, потом идёт")
+	await wait(0.6)
+	ok(e1.global_position.distance_to(ep) > 0.1, "встал — пошёл")
+	e1.stop()
 	var bf: Interactable = nk.item("Bonfire")
 	await tp(bf.global_position + Vector3(0, 0, -2.0))
 	var hb := Clock.hours()
