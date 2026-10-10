@@ -30,7 +30,9 @@
           "text": "[Отдать жетон лётчика] Я нашёл в тайге самолёт. Вот.",
           "next": "tag",
           "if": {
-            "item": "pilot_tag"
+            "item": "pilot_tag",
+            "quest": "kr_pilot",
+            "stage": 1
           }
         },
         {

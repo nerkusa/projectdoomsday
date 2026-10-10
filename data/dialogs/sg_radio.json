@@ -18,7 +18,10 @@
           "next": "copper",
           "if": {
             "item": "suitcase",
-            "flag": "sg_kesha_wire_need"
+            "flag": "sg_kesha_wire_need",
+            "quest": "sg_suitcase",
+            "stage_min": 1,
+            "stage_max": 3
           }
         },
         {

@@ -25,7 +25,9 @@
           "text": "[Отдать том энциклопедии] Мэхээлэ отдал.",
           "next": "book_done",
           "if": {
-            "item": "enc_book"
+            "item": "enc_book",
+            "quest": "book",
+            "stage": 1
           }
         },
         {

@@ -170,6 +170,10 @@ func go_downstairs(house: String) -> Node:
 ## Нахарро: светёлки на вторых этажах, эфир, прятки, ссора из-за сена, книга, костёр, вышка, сон
 func nakharro_life_tests() -> void:
 	var nak = main.location
+	Game.set_quest("_probe", 2)
+	Game.set_quest("_probe", 1)
+	ok(Game.quest_stage("_probe") == 2, "этап задания назад не откатывается")
+	Game.hero.q.erase("_probe")
 	main.dialog.close()
 	var u := unreachable(nak, nak.spawn_point("Start"), func(nd): return nd.is_inside_tree() and not String(nd.name).begins_with("Hide"))
 	ok(u.is_empty(), "Нахарро: до жителей и предметов можно дойти (%s)" % ", ".join(u))
@@ -400,6 +404,9 @@ func kresty_life_tests() -> void:
 	await tp(gr.global_position + Vector3(1.2, 0, 0))
 	main.talk_to(gr)
 	await frames(2)
+	ok(find_opt("жетон") < 0, "жетон не отдать, пока Мотрёна не рассказала про отца (без метагейминга)")
+	await choose(find_opt("смотрите в небо"))
+	await choose(find_opt("Если найду"))
 	await choose(find_opt("жетон"))
 	ok(Game.quest_stage("kr_pilot") == 2 and Game.item_count("pilot_tag") == 0 and Game.item_count("t_badge") >= 1, "жетон отца — бабке Мотрёне")
 	await shut()

@@ -141,10 +141,14 @@ func quest_stage(id: String) -> int:
 	return int(hero.q.get(id, 0))
 
 
-func set_quest(id: String, stage: int) -> void:
+## Этап задания только растёт: повторный выбор «взять задание» не откатывает
+## уже выполненное (allow_back — для отладки и особых случаев)
+func set_quest(id: String, stage: int, allow_back := false) -> void:
 	if quest_stage(id) == stage:
 		return
 	var was := quest_stage(id)
+	if stage < was and not allow_back:
+		return
 	hero.q[id] = stage
 	var q: Dictionary = DB.quests.get(id, {})
 	var st: Dictionary = q.get("stages", {})

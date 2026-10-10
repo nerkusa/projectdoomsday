@@ -53,6 +53,7 @@ cd build && zip -q -9 -r -s 25m Nakharro_split.zip windows   # → .zip .z01 .z0
 ## Данные (`data/`)
 - `characters.json`, `items.json` — одна запись на строку; править через `tools/data_lib.py` (load/dump сохраняют стиль).
 - Диалоги `data/dialogs/*.json`: условия `if` (flag, not_flag, flags, quest+stage/stage_min/stage_max, item, cond → `dialog_cond` локации, rep_min/max), эффекты (take, give, xp, quest, set_flags, note, rep, action, check/success/fail), `text_if`.
+- **Без метагейминга:** реплика, где герой отдаёт вещь и задание идёт дальше 1-го этапа, обязана проверять это задание (`"quest": id, "stage"…`). `check.tscn` ловит нарушения («МЕТАГЕЙМИНГ: …»). Деньги (rubles, salt) — оплата, не сдача. `Game.set_quest` этап назад не откатывает.
 - Расписание жителей — `schedules.json` (from/to, home_node, sleep, plan [[с,до,x,z,поза,поворот]]).
 - Карта мира, встречи, тропы — `world.json`; клочки лора — `lore.json`; реплики — `barks.json`.
 

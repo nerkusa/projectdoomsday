@@ -45,7 +45,9 @@
           "text": "[Поставить гребень] А на гребень сыграем?",
           "next": "comb_bet",
           "if": {
-            "item": "t_comb"
+            "item": "t_comb",
+            "quest": "comb",
+            "stage": 1
           }
         },
         {

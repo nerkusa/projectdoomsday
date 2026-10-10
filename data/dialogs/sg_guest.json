@@ -40,7 +40,10 @@
           "text": "[Отдать чемодан] Вот твой чемодан.",
           "next": "back",
           "if": {
-            "item": "suitcase"
+            "item": "suitcase",
+            "quest": "sg_suitcase",
+            "stage_min": 1,
+            "stage_max": 3
           }
         },
         {

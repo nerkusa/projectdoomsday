@@ -98,7 +98,9 @@
           "text": "[Отдать письмо] Тебе письмо. От сестры, из Мирного.",
           "next": "letter",
           "if": {
-            "item": "letter_kr"
+            "item": "letter_kr",
+            "quest": "kr_letter",
+            "stage": 1
           }
         },
         {
