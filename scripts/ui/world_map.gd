@@ -15,8 +15,8 @@ signal arrived
 const SPEED := 55.0
 ## Приближение карты: камера ходит за героем. Колесо мыши, +/− — ближе / дальше
 const ZOOM_MIN := 1.0
-const ZOOM_MAX := 4.0
-const ZOOM_START := 2.6
+const ZOOM_MAX := 6.0
+const ZOOM_START := 4.0
 ## Насколько близко к точке надо подойти, чтобы считалось «на месте»
 const NEAR := 12.0
 ## Радиус открытия точек по умолчанию (пиксели картинки)
@@ -368,6 +368,7 @@ func open(from_id: String) -> void:
 	sel = at if at != "" else ""
 	_save_pos()
 	_reveal_near()
+	zoom = ZOOM_START  # каждый раз открывается приближенной, вокруг героя
 	visible = true
 	_layout()
 	_refresh()
@@ -551,8 +552,10 @@ func biome_at(p: Vector2) -> String:
 		var zp: Array = z.get("pos", [0, 0])
 		if p.distance_to(Vector2(float(zp[0]), float(zp[1]))) < float(z.get("r", 50)):
 			return str(z.get("type", "forest"))
-	if _img == null and _tex.texture:
-		_img = _tex.texture.get_image()
+	# местность — по маленькой карте из gen_world_map.py (на самой картинке янтарный фильтр)
+	if _img == null:
+		var bt: Texture2D = load("res://assets/textures/world_biome.png")
+		_img = bt.get_image() if bt else null
 		if _img and _img.is_compressed():
 			_img.decompress()
 	var b := "forest"
@@ -727,15 +730,32 @@ func _text(c: Control, p: Vector2, s: String, size: int, col: Color) -> void:
 	c.draw_string(f, p, s, HORIZONTAL_ALIGNMENT_LEFT, -1, size, col)
 
 
+## Сглаживание ломаной (Чайкин): тропы рисуются плавными изгибами, без углов
+func _smooth(raw: Array) -> PackedVector2Array:
+	var pts := PackedVector2Array()
+	for q in raw:
+		pts.append(Vector2(q[0], q[1]))
+	for _k in 3:
+		if pts.size() < 3:
+			break
+		var out := PackedVector2Array([pts[0]])
+		for i in pts.size() - 1:
+			out.append(pts[i].lerp(pts[i + 1], 0.25))
+			out.append(pts[i].lerp(pts[i + 1], 0.75))
+		out.append(pts[pts.size() - 1])
+		pts = out
+	return pts
+
+
 func _draw_map() -> void:
 	var c := _canvas
 	# тропы (пунктир) и старые дороги (сплошная, светлее)
 	for pth in paths():
-		var pts: Array = pth.pts
+		var pts := _smooth(pth.pts)
 		var road: bool = str(pth.get("type", "trail")) == "road"
 		for i in pts.size() - 1:
-			var a := _to_px(Vector2(pts[i][0], pts[i][1]))
-			var b := _to_px(Vector2(pts[i + 1][0], pts[i + 1][1]))
+			var a := _to_px(pts[i])
+			var b := _to_px(pts[i + 1])
 			if road:
 				c.draw_line(a, b, Color(0, 0, 0, 0.45), 4.5)
 				c.draw_line(a, b, Color("d8c8a0", 0.75), 2.5)
