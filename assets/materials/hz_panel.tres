@@ -1,0 +1,6 @@
+[gd_resource type="StandardMaterial3D" format=3]
+
+[resource]
+resource_name = "hz_panel"
+albedo_color = Color(0.18039216, 0.19607843, 0.21176471, 1)
+roughness = 0.35

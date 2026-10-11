@@ -281,9 +281,9 @@ Project Doomsday — 1–4
 ### scripts/locations/convoy.gd (88)
 Ржавый конвой: разграбленный караван из Сунгара на старой дороге и засада.
 
-### scripts/locations/encounter.gd (1015)
+### scripts/locations/encounter.gd (1022)
 Случайная встреча в пути. Местность каждый раз собирается заново — по тому месту
-`_ready:33` `_p:53` `_put:59` `_free:68` `_scatter_props:76` `_xf:90` `_multi:94` `_build:106` `_landmarks:173` `_m:224` `_cm:231` `_bx:241` `_cy:253` `_col:269` `_holder:282` `_asphalt:292` `_plane:333` `_vehicle:349` `_ruin_house:400` `_power_line:432` `_wreck_loot:484` `_seg_d:497` `_ground:504` `_ponds:559` `_edge:602` `_ring_point:622` `_spawn_people:632` `_char:681` `foes:693` `on_enter:702` `leave_hide:727` `_lore:756` `_diary_page:767` `_reveal_from_tower:785` `on_interact:803` `_serge:859` `item_actions:872` `describe:885` `on_dialog_action:910` `_jaegers_leave:965` `on_looted:973` `_first_of:980` `_walk_off:987` `on_combat_end:998` `objective:1005` `status_line:1013`
+`_ready:33` `_p:53` `_put:59` `_free:68` `_scatter_props:76` `_xf:90` `_multi:94` `_build:106` `_landmarks:173` `_m:227` `_cm:234` `_bx:244` `_cy:256` `_col:272` `_holder:285` `_asphalt:295` `_plane:336` `_vehicle:356` `_ruin_house:407` `_power_line:439` `_wreck_loot:491` `_seg_d:504` `_ground:511` `_ponds:566` `_edge:609` `_ring_point:629` `_spawn_people:639` `_char:688` `foes:700` `on_enter:709` `leave_hide:734` `_lore:763` `_diary_page:774` `_reveal_from_tower:792` `on_interact:810` `_serge:866` `item_actions:879` `describe:892` `on_dialog_action:917` `_jaegers_leave:972` `on_looted:980` `_first_of:987` `_walk_off:994` `on_combat_end:1005` `objective:1012` `status_line:1020`
 
 ### scripts/locations/kresty.gd (293)
 Кресты — первое живое поселение за чертой.
@@ -454,9 +454,9 @@ Project Doomsday — 1–4
 Генератор построек и растительности в стиле референса «Нахарра».
 `_ready:31` `_houses:67` `_tex_mat:81` `_card_mat:100` `_decal_mat:117` `_plain_mat:133` `_materials:145` `begin:214` `add:224` `rough:233` `rsphere:257` `rcone:266` `save_mesh:277` `box:293` `cyl:299` `prism:309` `solid:315` `finish:319` `_merge:377` `log_walls:405` `gable_roof:427` `window:471` `_window:477` `door:500` `wall_colliders:517` `plinth:531` `izba_interior:541` `porch:586` `chimney:601` `house:608` `hall:713` `tower:775` `barn:817` `shed:877` `workshop:892` `gate:917` `barricade:934` `greenhouse:950` `wind_turbine:975` `card:1001` `leaf:1019` `spruce:1026` `pine:1065` `birch:1099` `bush:1122` `dead_tree:1136` `rocks:1150` `tractor:1171` `palisades:1228` `small_props:1271` `scatter_meshes:1402` `travel_items:1449` `_item:1501` `junk:1509` `locked_box:1522`
 
-### tools/build_rural.gd (499)
+### tools/build_rural.gd (903)
 Деревня и дорога: постройки и вещи для Крестов (баня, часовня, коптильня, нужник,
-`_ready:10` `village_props:37` `personal_items:159` `wreck_props:231` `_an2:343` `_wing:419` `_mi8:436` `_tw:487` `beam:493`
+`_ready:10` `village_props:43` `personal_items:165` `wreck_props:237` `_an2:353` `_cwing:452` `_rivets:471` `_mi8:479` `_scorch:575` `_grime:583` `_bb:593` `_rbox_mesh:608` `_rotor:633` `_vtol:647` `_drone:731` `_duct:782` `_ring_mesh:802` `_jet:816` `_tw:891` `beam:897`
 
 ### tools/build_scenes.gd (775)
 Генератор стартовых сцен: материалы, пропсы (избы, амбар, деревья…),
@@ -479,7 +479,7 @@ Project Doomsday — 1–4
 ### tools/preview_prop.gd (26)
 Превью одного пропа: тот же свет, что в деревне, изометрическая камера.
 
-### tools/render_shots.gd (90)
+### tools/render_shots.gd (93)
 Скриншоты для проверки (нужен рендер, не --headless):
 
 ### tools/screenshots.gd (107)

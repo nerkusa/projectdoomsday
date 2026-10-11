@@ -1,0 +1,101 @@
+[gd_scene format=3]
+
+[ext_resource type="Material" path="res://assets/materials/hz_white.tres" id="1_5qo8o"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/jet_wreck_hz_white.res" id="2_eolew"]
+[ext_resource type="Material" path="res://assets/materials/hz_panel.tres" id="3_rkuid"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/jet_wreck_hz_panel.res" id="4_btykf"]
+[ext_resource type="Material" path="res://assets/materials/hz_orange.tres" id="5_q5el5"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/jet_wreck_hz_orange.res" id="6_vw5m4"]
+[ext_resource type="Material" path="res://assets/materials/hz_grey.tres" id="7_ggyqn"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/jet_wreck_hz_grey.res" id="8_p1yax"]
+[ext_resource type="Material" path="res://assets/materials/hz_metal.tres" id="9_xigog"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/jet_wreck_hz_metal.res" id="10_7up6n"]
+[ext_resource type="Material" path="res://assets/materials/soot.tres" id="11_6we2g"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/jet_wreck_soot.res" id="12_6ssrn"]
+[ext_resource type="Material" path="res://assets/materials/screen_amber.tres" id="13_jrer2"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/jet_wreck_screen_amber.res" id="14_jcear"]
+[ext_resource type="Material" path="res://assets/materials/tire.tres" id="15_ydm4f"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/jet_wreck_tire.res" id="16_0o3sf"]
+[ext_resource type="Material" path="res://assets/materials/earth.tres" id="17_i8vru"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/jet_wreck_earth.res" id="18_0emy3"]
+[ext_resource type="Material" path="res://assets/materials/coal.tres" id="19_t82va"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/jet_wreck_coal.res" id="20_p5l35"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_xwf2l"]
+size = Vector3(2.8, 2.6, 7)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_dlcia"]
+size = Vector3(2.8, 2.6, 7)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_ekm7t"]
+size = Vector3(7, 0.8, 3)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_hotj1"]
+size = Vector3(4.2, 0.8, 2)
+
+[node name="JetWreck" type="Node3D" unique_id=1265622997]
+
+[node name="Mesh_hz_white" type="MeshInstance3D" parent="." unique_id=1443020164]
+material_override = ExtResource("1_5qo8o")
+mesh = ExtResource("2_eolew")
+
+[node name="Mesh_hz_panel" type="MeshInstance3D" parent="." unique_id=150247192]
+material_override = ExtResource("3_rkuid")
+mesh = ExtResource("4_btykf")
+
+[node name="Mesh_hz_orange" type="MeshInstance3D" parent="." unique_id=91751814]
+material_override = ExtResource("5_q5el5")
+mesh = ExtResource("6_vw5m4")
+
+[node name="Mesh_hz_grey" type="MeshInstance3D" parent="." unique_id=1672578996]
+material_override = ExtResource("7_ggyqn")
+mesh = ExtResource("8_p1yax")
+
+[node name="Mesh_hz_metal" type="MeshInstance3D" parent="." unique_id=1160974411]
+material_override = ExtResource("9_xigog")
+mesh = ExtResource("10_7up6n")
+
+[node name="Mesh_soot" type="MeshInstance3D" parent="." unique_id=1481625908]
+material_override = ExtResource("11_6we2g")
+mesh = ExtResource("12_6ssrn")
+
+[node name="Mesh_screen_amber" type="MeshInstance3D" parent="." unique_id=509549846]
+material_override = ExtResource("13_jrer2")
+mesh = ExtResource("14_jcear")
+
+[node name="Mesh_tire" type="MeshInstance3D" parent="." unique_id=591756844]
+material_override = ExtResource("15_ydm4f")
+mesh = ExtResource("16_0o3sf")
+
+[node name="Mesh_earth" type="MeshInstance3D" parent="." unique_id=1707454338]
+material_override = ExtResource("17_i8vru")
+mesh = ExtResource("18_0emy3")
+
+[node name="Mesh_coal" type="MeshInstance3D" parent="." unique_id=835844327]
+material_override = ExtResource("19_t82va")
+mesh = ExtResource("20_p5l35")
+
+[node name="Slot_cockpit" type="Marker3D" parent="." unique_id=1384256732]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.9, 0, 5)
+
+[node name="Slot_tail" type="Marker3D" parent="." unique_id=1787718589]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.2, 0, -8)
+
+[node name="Collision" type="StaticBody3D" parent="." unique_id=1403240409]
+collision_mask = 0
+
+[node name="@CollisionShape3D@26" type="CollisionShape3D" parent="Collision" unique_id=792369618]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.3, 2.4)
+shape = SubResource("BoxShape3D_xwf2l")
+
+[node name="@CollisionShape3D@27" type="CollisionShape3D" parent="Collision" unique_id=65891288]
+transform = Transform3D(0.8525245, 0, 0.52268726, 0, 1, 0, -0.52268726, 0, 0.8525245, 1.4, 1.3, -5.6)
+shape = SubResource("BoxShape3D_dlcia")
+
+[node name="@CollisionShape3D@28" type="CollisionShape3D" parent="Collision" unique_id=1733192159]
+transform = Transform3D(0.8525245, 0, 0.52268726, 0, 1, 0, -0.52268726, 0, 0.8525245, -2.5, 0.4, -5)
+shape = SubResource("BoxShape3D_ekm7t")
+
+[node name="@CollisionShape3D@29" type="CollisionShape3D" parent="Collision" unique_id=1540922753]
+transform = Transform3D(0.8253356, 0, -0.5646425, 0, 1, 0, 0.5646425, 0, 0.8253356, 6.2, 0.4, 1.6)
+shape = SubResource("BoxShape3D_hotj1")

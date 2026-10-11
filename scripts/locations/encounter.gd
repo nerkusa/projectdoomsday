@@ -211,6 +211,9 @@ func _landmarks(t0: Vector2, t1: Vector2) -> void:
 					_ruin_house(p, rng.randf() * TAU)
 				"heli", "tower", "wagon", "balagan", "camp":
 					var prop: String = {"heli": "mi8_wreck", "tower": "fire_tower", "wagon": "rail_wagon", "balagan": "balagan", "camp": "camp_site"}[k]
+					if k == "heli":
+						# Ми-8, конвертоплан «Горизонта» или грузовой дрон
+						prop = ["mi8_wreck", "vtol_wreck", "drone_wreck"][rng.randi() % 3]
 					var node := _put(prop, p, 1.0)
 					node.name = k.capitalize()
 				"serge":
@@ -331,9 +334,13 @@ func _asphalt(t0: Vector2, t1: Vector2) -> void:
 
 ## Разбившийся Ан-2 (детальная постройка an2_wreck): бортовой номер на фюзеляже
 func _plane(p: Vector2, rot: float) -> void:
-	var node := _put("an2_wreck", p, 1.0)
+	# Ан-2 из старых времён или реактивный транспортник поздних лет
+	var jet := rng.randf() < 0.45
+	var node := _put("jet_wreck" if jet else "an2_wreck", p, 1.0)
 	node.name = "Plane"
 	node.rotation.y = rot
+	if jet:
+		return
 	var l := Label3D.new()
 	l.text = "СССР-07431"
 	l.font_size = 48

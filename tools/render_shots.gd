@@ -51,6 +51,9 @@ func _ready() -> void:
 			Game.hero.flags["enc_biome"] = "field"
 			Game.hero.flags["enc_mode"] = "peace"
 			Game.hero.flags["enc_force_landmarks"] = Array(p[6].split(",")) if p.size() > 6 else []
+			# каждый кадр — новая встреча (зерно местности иначе сохраняется)
+			Game.hero.flags["enc_seed"] = randi()
+			Game.world.erase("encounter")
 		elif p.size() > 5 and p[5] != "":
 			for f in str(p[5]).split(","):
 				if f.contains("="):
