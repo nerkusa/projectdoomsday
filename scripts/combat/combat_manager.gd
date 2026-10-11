@@ -197,6 +197,9 @@ func begin_turn() -> void:
 	main.location.on_combat_round(round_n)
 	if not on:
 		return
+	# союзник мог добить последнего врага — бой окончен, ход не нужен
+	if check_end():
+		return
 	# союзник мог свалить того, чей ход начался
 	if not u.active():
 		end_turn(true)
@@ -806,6 +809,8 @@ func ally_hit(t: Fighter, dmg: int, who: String) -> void:
 	if t.hp <= 0 and t.lethal:
 		kill(t)
 	changed.emit()
+	if on and not busy and enemies().is_empty():
+		check_end()
 
 
 func react(dfn: Fighter, r: Dictionary) -> void:

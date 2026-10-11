@@ -201,36 +201,36 @@ Project Doomsday — 1–4
 - radio_kid: tools/build_act1.gd:1407
 - road: —
 - rumors: tools/build_nakharro.gd:492, tools/build_nakharro.gd:494, tools/build_nakharro.gd:496, tools/build_nakharro.gd:507, tools/build_nakharro.gd:509, tools/build_nakharro.gd:511, tools/build_nakharro.gd:513
-- sg_archylan: tools/build_sungar.gd:1079
-- sg_barman: tools/build_sungar.gd:720
-- sg_brawler: tools/build_sungar.gd:721
-- sg_butcher: tools/build_sungar.gd:386
-- sg_chief: tools/build_sungar.gd:414
-- sg_clerk: tools/build_sungar.gd:589
-- sg_collector: tools/build_sungar.gd:724, tools/build_sungar.gd:725
-- sg_cop: tools/build_sungar.gd:256
-- sg_dealer: tools/build_sungar.gd:588
-- sg_fishwife: tools/build_sungar.gd:387
-- sg_granny: tools/build_sungar.gd:726
-- sg_guard: tools/build_sungar.gd:382
-- sg_guest: tools/build_sungar.gd:1065
-- sg_gunsmith: tools/build_sungar.gd:722
-- sg_head: tools/build_sungar.gd:1178
-- sg_hostess: tools/build_sungar.gd:587
-- sg_innkeeper: tools/build_sungar.gd:399
-- sg_market_boss: tools/build_sungar.gd:384
-- sg_merchant: tools/build_sungar.gd:583
-- sg_mother: tools/build_sungar.gd:1109
-- sg_operator: tools/build_sungar.gd:1184
-- sg_passport: tools/build_sungar.gd:614
-- sg_radio: tools/build_sungar.gd:1116
-- sg_rival: tools/build_sungar.gd:584
-- sg_runaway: tools/build_sungar.gd:723
-- sg_stoker: tools/build_sungar.gd:739
-- sg_storekeeper: tools/build_sungar.gd:402
-- sg_teacher: tools/build_sungar.gd:1102
-- sg_thief: tools/build_sungar.gd:1157
-- sg_watchwoman: tools/build_sungar.gd:736
+- sg_archylan: tools/build_sungar.gd:1316
+- sg_barman: tools/build_sungar.gd:957
+- sg_brawler: tools/build_sungar.gd:958
+- sg_butcher: tools/build_sungar.gd:608
+- sg_chief: tools/build_sungar.gd:636
+- sg_clerk: tools/build_sungar.gd:819
+- sg_collector: tools/build_sungar.gd:961, tools/build_sungar.gd:962
+- sg_cop: tools/build_sungar.gd:471
+- sg_dealer: tools/build_sungar.gd:818
+- sg_fishwife: tools/build_sungar.gd:609
+- sg_granny: tools/build_sungar.gd:963
+- sg_guard: tools/build_sungar.gd:604
+- sg_guest: tools/build_sungar.gd:1302
+- sg_gunsmith: tools/build_sungar.gd:959
+- sg_head: tools/build_sungar.gd:1415
+- sg_hostess: tools/build_sungar.gd:817
+- sg_innkeeper: tools/build_sungar.gd:621
+- sg_market_boss: tools/build_sungar.gd:606
+- sg_merchant: tools/build_sungar.gd:813
+- sg_mother: tools/build_sungar.gd:1346
+- sg_operator: tools/build_sungar.gd:1421
+- sg_passport: tools/build_sungar.gd:844
+- sg_radio: tools/build_sungar.gd:1353
+- sg_rival: tools/build_sungar.gd:814
+- sg_runaway: tools/build_sungar.gd:960
+- sg_stoker: tools/build_sungar.gd:976
+- sg_storekeeper: tools/build_sungar.gd:624
+- sg_teacher: tools/build_sungar.gd:1339
+- sg_thief: tools/build_sungar.gd:1394
+- sg_watchwoman: tools/build_sungar.gd:973
 - shooter: tools/build_nakharro.gd:504
 - sick: tools/build_nakharro.gd:521
 - smith: tools/build_nakharro.gd:483
@@ -244,9 +244,9 @@ Project Doomsday — 1–4
 
 Формат: файл (строк) — назначение. Ниже — функции `имя:строка` (для файлов от 150 строк).
 
-### scripts/combat/combat_manager.gd (896) · class CombatManager
+### scripts/combat/combat_manager.gd (901) · class CombatManager
 Пошаговый бой на гексах. Правила и ИИ перенесены из прототипа «Недострой»:
-`setup:30` `grid:34` `clog:38` `whose_turn:43` `my_turn:49` `enemies:53` `occ:63` `mode_cost:71` `mode_name:77` `cycle_mode:81` `start:92` `begin_turn:177` `end_turn:215` `after_hero_action:240` `paint:251` `units_center:270` `best_adj:279` `hover:294` `hero_wkey:349` `hero_weapon:353` `click:357` `_world_path:430` `do_attack:437` `zone_picked:452` `exec_attack:462` `reload:506` `use_med:536` `give_up:563` `ai_turn:573` `ai_move:624` `ai_shoot:662` `ai_melee:680` `ai_flee:697` `resolve_attack:724` `ally_hit:799` `react:811` `kill:824` `check_end:841` `finish:856` `game_over:887`
+`setup:30` `grid:34` `clog:38` `whose_turn:43` `my_turn:49` `enemies:53` `occ:63` `mode_cost:71` `mode_name:77` `cycle_mode:81` `start:92` `begin_turn:177` `end_turn:218` `after_hero_action:243` `paint:254` `units_center:273` `best_adj:282` `hover:297` `hero_wkey:352` `hero_weapon:356` `click:360` `_world_path:433` `do_attack:440` `zone_picked:455` `exec_attack:465` `reload:509` `use_med:539` `give_up:566` `ai_turn:576` `ai_move:627` `ai_shoot:665` `ai_melee:683` `ai_flee:700` `resolve_attack:727` `ally_hit:802` `react:816` `kill:829` `check_end:846` `finish:861` `game_over:892`
 
 ### scripts/combat/fighter.gd (99) · class Fighter
 Участник боя: герой или NPC. Хранит всё, что нужно правилам.
@@ -254,9 +254,9 @@ Project Doomsday — 1–4
 ### scripts/combat/hex_overlay.gd (105) · class HexOverlay
 Подсветка гексов в бою: куда можно дойти, путь, цели, контур поля боя.
 
-### scripts/core/clock.gd (394)
+### scripts/core/clock.gd (401)
 Часы игры и смена дня и ночи.
-`hours:24` `set_hours:30` `advance:35` `hour_of_day:41` `day:47` `is_night:52` `text:57` `until:63` `_process:71` `_tick_hour:85` `daylight:94` `dusk_tint:106` `apply_light:113` `on_duty:160` `schedule_for:172` `wanted_state:178` `update_schedules:192` `_home_of:236` `_house_at:263` `_near_hero:271` `_bed_spot:276` `_go_sleep:295` `_go_to:320` `_send_home:355` `_hide:368` `_route:379`
+`hours:24` `set_hours:30` `advance:35` `hour_of_day:41` `day:47` `is_night:52` `text:57` `until:63` `_process:71` `_tick_hour:85` `daylight:94` `dusk_tint:106` `apply_light:113` `on_duty:167` `schedule_for:179` `wanted_state:185` `update_schedules:199` `_home_of:243` `_house_at:270` `_near_hero:278` `_bed_spot:283` `_go_sleep:302` `_go_to:327` `_send_home:362` `_hide:375` `_route:386`
 
 ### scripts/core/db.gd (89)
 Автозагрузка DB: читает все данные игры из папки data/.
@@ -281,9 +281,9 @@ Project Doomsday — 1–4
 ### scripts/locations/convoy.gd (88)
 Ржавый конвой: разграбленный караван из Сунгара на старой дороге и засада.
 
-### scripts/locations/encounter.gd (1012)
+### scripts/locations/encounter.gd (1015)
 Случайная встреча в пути. Местность каждый раз собирается заново — по тому месту
-`_ready:33` `_p:50` `_put:56` `_free:65` `_scatter_props:73` `_xf:87` `_multi:91` `_build:103` `_landmarks:170` `_m:221` `_cm:228` `_bx:238` `_cy:250` `_col:266` `_holder:279` `_asphalt:289` `_plane:330` `_vehicle:346` `_ruin_house:397` `_power_line:429` `_wreck_loot:481` `_seg_d:494` `_ground:501` `_ponds:556` `_edge:599` `_ring_point:619` `_spawn_people:629` `_char:678` `foes:690` `on_enter:699` `leave_hide:724` `_lore:753` `_diary_page:764` `_reveal_from_tower:782` `on_interact:800` `_serge:856` `item_actions:869` `describe:882` `on_dialog_action:907` `_jaegers_leave:962` `on_looted:970` `_first_of:977` `_walk_off:984` `on_combat_end:995` `objective:1002` `status_line:1010`
+`_ready:33` `_p:53` `_put:59` `_free:68` `_scatter_props:76` `_xf:90` `_multi:94` `_build:106` `_landmarks:173` `_m:224` `_cm:231` `_bx:241` `_cy:253` `_col:269` `_holder:282` `_asphalt:292` `_plane:333` `_vehicle:349` `_ruin_house:400` `_power_line:432` `_wreck_loot:484` `_seg_d:497` `_ground:504` `_ponds:559` `_edge:602` `_ring_point:622` `_spawn_people:632` `_char:681` `foes:693` `on_enter:702` `leave_hide:727` `_lore:756` `_diary_page:767` `_reveal_from_tower:785` `on_interact:803` `_serge:859` `item_actions:872` `describe:885` `on_dialog_action:910` `_jaegers_leave:965` `on_looted:973` `_first_of:980` `_walk_off:987` `on_combat_end:998` `objective:1005` `status_line:1013`
 
 ### scripts/locations/kresty.gd (293)
 Кресты — первое живое поселение за чертой.
@@ -389,9 +389,9 @@ Project Doomsday — 1–4
 Пропуск времени. Сначала — выбор, сколько ждать (час, три, шесть, до вечера,
 `setup:21` `options:77` `ask:87` `_close_ask:101` `_choose:107` `_unhandled_key_input:113` `play:125` `_update_lbl:170` `_draw_dial:176`
 
-### scripts/ui/world_map.gd (874) · class WorldMap
+### scripts/ui/world_map.gd (877) · class WorldMap
 Карта мира как в Fallout: по картинке (data/world.json → image) герой ходит сам,
-`setup:62` `_layout:147` `set_zoom:163` `nodes:170` `node_pos:174` `known:179` `reveal:185` `can_go:198` `paths:214` `on_path:223` `hours:235` `time_text:239` `hours_to:243` `_build_nav:256` `_disc:279` `_cell:289` `seg_free:294` `_snap_free:303` `route:319` `open:346` `close:378` `_can_back:385` `go_node:392` `travel:401` `_go_to:410` `halt:421` `_process:427` `_save_pos:461` `_arrive:465` `_reveal_near:480` `enter:490` `_roll_encounter:519` `_roll_encounter_with:534` `biome_at:550` `pick_encounter:583` `_mark_seen:624` `start_road_event:631` `_on_dialog_closed:640` `on_action:649` `start_encounter:666` `select:684` `_refresh_time:691` `_refresh:695` `_to_px:719` `_from_px:723` `_text:727` `_smooth:734` `_draw_map:750` `_node_at:805` `_on_canvas_input:818` `_unhandled_key_input:853`
+`setup:62` `_layout:147` `set_zoom:163` `nodes:170` `node_pos:174` `known:179` `reveal:185` `can_go:198` `paths:214` `on_path:223` `hours:235` `time_text:239` `hours_to:243` `_build_nav:256` `_disc:279` `_cell:289` `seg_free:294` `_snap_free:303` `route:319` `open:346` `close:378` `_can_back:385` `go_node:392` `travel:401` `_go_to:410` `halt:421` `_process:427` `_save_pos:461` `_arrive:465` `_reveal_near:480` `enter:490` `_roll_encounter:519` `_roll_encounter_with:534` `biome_at:550` `pick_encounter:583` `_mark_seen:624` `start_road_event:631` `_on_dialog_closed:640` `on_action:649` `start_encounter:666` `select:687` `_refresh_time:694` `_refresh:698` `_to_px:722` `_from_px:726` `_text:730` `_smooth:737` `_draw_map:753` `_node_at:808` `_on_canvas_input:821` `_unhandled_key_input:856`
 
 ### scripts/world/anim_body.gd (162) · class AnimBody
 Манекен из Universal Animation Library (Quaternius, CC0) с готовыми анимациями.
@@ -400,9 +400,9 @@ Project Doomsday — 1–4
 ### scripts/world/arm_length.gd (23) · class ArmLength
 Укорачивает (или удлиняет) руки скелета UAL для модели с другими пропорциями:
 
-### scripts/world/character.gd (1238) · class Character
+### scripts/world/character.gd (1246) · class Character
 Персонаж на локации: герой, жители, враги, звери.
-`_ready:105` `uid:139` `_rebuild_preview:143` `_build_visual:175` `move_along:215` `stop:233` `bark:245` `barking:265` `apply_hero_skin:270` `fov:287` `in_view:297` `show_cone:313` `face_towards:347` `_process:353` `_patrol:397` `act:412` `set_held:420` `_chest_attach:464` `_low_ready:485` `_two_handed:492` `_setup_two_hands:496` `_update_two_hands:538` `_make_weapon_mesh:590` `muzzle_flash:629` `_animate:641` `_animate_clips:778` `_act_clip:823` `_clip_act:840` `_fire_cb_once:886` `_end_act:895` `show_bracelet:909` `_plain:943` `_plug_tick:953` `_sound:980` `_plug_build:986` `_plug_update:1035` `_seg:1057` `_plug_clear:1066` `_collect_meshes:1082` `_mark_kind:1089` `_update_marks:1110` `_set_ghost:1153` `_stencil_write:1178` `_stencil_mat:1198` `_sil_mat:1213` `_ring_mat:1224` `_sound_bolt:1236`
+`_ready:108` `uid:147` `_rebuild_preview:151` `_build_visual:183` `move_along:223` `stop:241` `bark:253` `barking:273` `apply_hero_skin:278` `fov:295` `in_view:305` `show_cone:321` `face_towards:355` `_process:361` `_patrol:405` `act:420` `set_held:428` `_chest_attach:472` `_low_ready:493` `_two_handed:500` `_setup_two_hands:504` `_update_two_hands:546` `_make_weapon_mesh:598` `muzzle_flash:637` `_animate:649` `_animate_clips:786` `_act_clip:831` `_clip_act:848` `_fire_cb_once:894` `_end_act:903` `show_bracelet:917` `_plain:951` `_plug_tick:961` `_sound:988` `_plug_build:994` `_plug_update:1043` `_seg:1065` `_plug_clear:1074` `_collect_meshes:1090` `_mark_kind:1097` `_update_marks:1118` `_set_ghost:1161` `_stencil_write:1186` `_stencil_mat:1206` `_sil_mat:1221` `_ring_mat:1232` `_sound_bolt:1244`
 
 ### scripts/world/fire_fx.gd (98) · class FireFX
 Огонь: мерцающий свет, языки пламени и столб дыма.
@@ -439,9 +439,9 @@ Project Doomsday — 1–4
 Генератор локаций первого акта: Кресты (живое поселение у реки) и
 `_build:17` `_begin:40` `_finish:59` `_water_mats:71` `_river_plane:83` `_slot_of:99` `_homely:105` `_ground_for:124` `_paint:160` `_woods:190` `_blocked:228` `_free2:239` `_boxes_of:248` `_dress:272` `_cross:307` `_mound:324` `_net_rack:331` `_tent:351` `_lean_to:366` `_boat:381` `_exit:390` `_use:401` `_spawn:412` `_kresty:427` `_camp:637` `_encounter:713` `_spawn_mark:722` `_zaimka:734` `_truck:824` `_convoy:846` `_block:884` `_ruin:901` `_bunker_portal:991` `_radio_post:1053` `_dark_env:1186` `_lamp:1204` `_room_walls:1219` `_floor:1258` `_cellar:1263` `_glow:1321` `_upper:1330` `_bunker:1479` `_bunker_mats:1565` `_bk_panels:1592` `_hazard:1624` `_collapse:1636` `_bk_shaft:1651` `_bk_gate:1666` `_bk_corridor:1708` `_console:1741` `_reel_unit:1764` `_bk_control:1776` `_bk_barracks:1825` `_bk_generator:1856` `_bk_archive:1877` `_river_south:1904` `_stall:1914` `_signboard:1934` `_lamp_post:1954` `_laundry:1968`
 
-### tools/build_city.gd (1135)
+### tools/build_city.gd (1227)
 Каменный Сунгар (бывший посёлок городского типа): дома в 2–4 этажа из штукатурки
-`_ready:18` `_city_materials:81` `_glow_mat:141` `swin:156` `balcony:178` `entry:213` `open_door:228` `roof:238` `stone_block:273` `_wkind:371` `_shop_window:381` `_portico:393` `_shell:409` `_lining:433` `stair_flight:448` `partition_z:462` `_table:474` `_bed:491` `_wardrobe:502` `_counter:508` `_shelf_goods:514` `_stove:528` `_rug:534` `_plant:538` `_interior:546` `heat_pipes:731` `boiler_house:769` `water_tower:795` `garages:808` `kiosk:823` `bus_stop:839` `conc_fence:859` `paz_wreck:870` `bins:887` `furniture:899` `_stair_piece:963` `_crt:976` `cassette_props:985` `ruin_props:1071`
+`_ready:18` `_city_materials:81` `_glow_mat:146` `swin:161` `balcony:202` `entry:237` `open_door:252` `roof:262` `stone_block:297` `_wkind:396` `_wear:415` `_shop_window:473` `_portico:485` `_shell:501` `_lining:525` `stair_flight:540` `partition_z:554` `_table:566` `_bed:583` `_wardrobe:594` `_counter:600` `_shelf_goods:606` `_stove:620` `_rug:626` `_plant:630` `_interior:638` `heat_pipes:823` `boiler_house:861` `water_tower:887` `garages:900` `kiosk:915` `bus_stop:931` `conc_fence:951` `paz_wreck:962` `bins:979` `furniture:991` `_stair_piece:1055` `_crt:1068` `cassette_props:1077` `ruin_props:1163`
 
 ### tools/build_hero_skin.gd (78)
 Собирает сетку героя с новой развёрткой из assets/models/hero_skin_mesh.bin
@@ -454,17 +454,17 @@ Project Doomsday — 1–4
 Генератор построек и растительности в стиле референса «Нахарра».
 `_ready:31` `_houses:67` `_tex_mat:81` `_card_mat:100` `_decal_mat:117` `_plain_mat:133` `_materials:145` `begin:214` `add:224` `rough:233` `rsphere:257` `rcone:266` `save_mesh:277` `box:293` `cyl:299` `prism:309` `solid:315` `finish:319` `_merge:377` `log_walls:405` `gable_roof:427` `window:471` `_window:477` `door:500` `wall_colliders:517` `plinth:531` `izba_interior:541` `porch:586` `chimney:601` `house:608` `hall:713` `tower:775` `barn:817` `shed:877` `workshop:892` `gate:917` `barricade:934` `greenhouse:950` `wind_turbine:975` `card:1001` `leaf:1019` `spruce:1026` `pine:1065` `birch:1099` `bush:1122` `dead_tree:1136` `rocks:1150` `tractor:1171` `palisades:1228` `small_props:1271` `scatter_meshes:1402` `travel_items:1449` `_item:1501` `junk:1509` `locked_box:1522`
 
-### tools/build_rural.gd (461)
+### tools/build_rural.gd (499)
 Деревня и дорога: постройки и вещи для Крестов (баня, часовня, коптильня, нужник,
-`_ready:10` `village_props:37` `personal_items:159` `wreck_props:231` `_an2:320` `_wing:396` `_mi8:413`
+`_ready:10` `village_props:37` `personal_items:159` `wreck_props:231` `_an2:343` `_wing:419` `_mi8:436` `_tw:487` `beam:493`
 
 ### tools/build_scenes.gd (775)
 Генератор стартовых сцен: материалы, пропсы (избы, амбар, деревья…),
 `_ready:17` `_mat:30` `_materials:44` `_own:74` `box:80` `cyl:94` `sphere:110` `prism:125` `collider:137` `save_prop:153` `_props:167` `_izba:193` `_barn:214` `_shed:231` `_fence:244` `_well:261` `_woodpile:274` `_birch:285` `_larch:295` `_dead_tree:305` `_bush:315` `_border_post:323` `_sign:332` `_tractor:361` `_table:375` `_garden:387` `_fire:397` `_item_base:404` `_mushroom:411` `_berries:421` `_planks_item:432` `_basket:441` `_bandage:451` `_rock:458` `_main_scene:467` `fit_label:484` `_label_fits:504` `put:513` `group:526` `character:534` `item:552` `marker:559` `strip:569` `_nakharro:575`
 
-### tools/build_sungar.gd (1190)
+### tools/build_sungar.gd (1427)
 Сунгар — бывший посёлок городского типа: три района (ворота и рынок, центр,
-`_build:20` `_bld:50` `_slot:55` `_face:64` `_pipes:69` `_pavement:78` `_stele:84` `_honor_board:110` `_sign_on:139` `_clear_town:150` `_clutter:167` `_power_line:177` `_neon:208` `_graffiti:224` `_info_screen:238` `_cop:255` `_stairs_item:264` `_sungar:273` `_barge:454` `_sungar_center:493` `_sungar_quarter:651` `_house_begin:773` `_house_finish:801` `_finish:806` `_lw:816` `_lw_gaps:836` `_bulb:862` `_door_no:873` `_corridor_floor:889` `_furnish:965` `_rp:1040` `_to_door:1047` `_hotel_floors:1054` `_dom_floors:1089` `_obshaga_floors:1129` `_admin_floors:1166`
+`_build:20` `_edges:54` `_junk_fence:139` `_place_sentries:202` `_ep:210` `_bld:223` `_slot:228` `_face:237` `_pipes:242` `_pavement:251` `_stele:257` `_honor_board:283` `_sign_on:312` `_clear_town:323` `_clutter:340` `_broken_road:351` `_power_line:392` `_neon:423` `_graffiti:439` `_info_screen:453` `_cop:470` `_stairs_item:479` `_sungar:488` `_barge:676` `_sungar_center:715` `_sungar_quarter:881` `_house_begin:1010` `_house_finish:1038` `_finish:1043` `_lw:1053` `_lw_gaps:1073` `_bulb:1099` `_door_no:1110` `_corridor_floor:1126` `_furnish:1202` `_rp:1277` `_to_door:1284` `_hotel_floors:1291` `_dom_floors:1326` `_obshaga_floors:1366` `_admin_floors:1403`
 
 ### tools/build_weapons.gd (260)
 Собирает модели оружия из загруженных файлов в assets/models/weapons/<ключ>/
@@ -485,9 +485,9 @@ Project Doomsday — 1–4
 ### tools/screenshots.gd (107)
 Снимки экрана для проверки интерфейса (нужен рендер, не --headless).
 
-### tools/smoke_test.gd (2527)
+### tools/smoke_test.gd (2556)
 Автотест пролога: проходит всю цепочку без участия человека и печатает, что сломалось.
-`ok:11` `wait:19` `frames:23` `close_dialogs:28` `shut:37` `choose:42` `opt_texts:48` `find_opt:55` `tp:63` `fight:70` `wait_loading:112` `unreachable:121` `go_upstairs:150` `go_downstairs:160` `nakharro_life_tests:171` `kresty_life_tests:349` `encounter_lore_tests:428` `city_tests:494` `admin_tests:687` `sungar_tests:764` `_ready:921`
+`new_enc:12` `ok:17` `wait:25` `frames:29` `close_dialogs:34` `shut:43` `choose:48` `opt_texts:54` `find_opt:61` `tp:69` `fight:76` `wait_loading:118` `unreachable:127` `go_upstairs:156` `go_downstairs:166` `nakharro_life_tests:177` `kresty_life_tests:355` `encounter_lore_tests:434` `city_tests:502` `admin_tests:695` `sungar_tests:772` `_ready:929`
 
 ## Данные (data/)
 

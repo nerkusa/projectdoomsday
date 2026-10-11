@@ -671,6 +671,9 @@ func start_encounter(id: String, mode := "fight") -> void:
 	_enter_on_arrive = ""
 	_save_pos()
 	Game.hero.flags["enc"] = id
+	# новая встреча — новая местность и чистое состояние (кто убит, что подобрано)
+	Game.hero.flags["enc_seed"] = randi()
+	Game.world.erase("encounter")
 	Game.hero.pos = []
 	visible = false
 	main.dialog.close()

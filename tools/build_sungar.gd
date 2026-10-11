@@ -35,7 +35,7 @@ func _build() -> void:
 			"bins", "f_bed", "f_wardrobe", "f_table", "f_table_kitchen", "f_card_table", "f_stove", "f_kitchen_stove", "f_sofa",
 			"f_shelf", "f_sink", "f_tv", "f_plant", "f_radio", "f_stairs", "st_police", "st_admin", "cf_terminal", "cf_mainframe",
 			"cf_info_screen", "loudspeaker", "power_pole", "sandbags", "checkpoint", "notice_board", "trash_pile", "trash_pile_b",
-			"rubble", "car_wreck", "burnt_shed", "burn_barrel", "boardwalk"]:
+			"rubble", "car_wreck", "burnt_shed", "burn_barrel", "boardwalk", "mi8_wreck"]:
 		P[n] = load(PROP_DIR + n + ".tscn")
 	_sungar()
 	_sungar_center()
@@ -44,6 +44,179 @@ func _build() -> void:
 	_dom_floors()
 	_obshaga_floors()
 	_admin_floors()
+
+
+# ---------------- края района: город дальше, забор и кордон ----------------
+## Переход в соседний район не упирается в лес: за краем карты продолжается улица
+## с домами; остальной периметр — бетонный забор, за ним кордон (вышки, мешки,
+## будки, колючка, часовые), лес — только дальше. Вызывать до _woods().
+##   city  — [[сторона "E"/"W", z улицы], …];  fence — стороны "N", "S", "E", "W"
+func _edges(rect: Rect2, city: Array, fence: Array, breaches := {}) -> void:
+	var g := group(root, "TownEdge")
+	g.set_meta("no_xray", true)
+	var cityx := {}
+	for c in city:
+		cityx[str(c[0])] = float(c[1])
+	# --- город за краем ---
+	var rows := ["st_block3a", "st_barrack2", "st_block2", "st_block4", "st_block3b", "st_block2b", "garages", "boiler_house"]
+	var k := 0
+	for side in cityx:
+		var rz: float = cityx[side]
+		var sgn := 1.0 if side == "E" else -1.0
+		var x0 := rect.end.x if side == "E" else rect.position.x
+		_no_edge.append(Rect2(x0 - 1.0 if side == "E" else x0 - 60.0, -40.0, 61.0, rect.size.y + 80.0))
+		_clear.append(Rect2(x0 - 16.0 if side == "E" else x0, 0, 16.0, rect.size.y))
+		strip(null, Vector2(x0, rz), Vector2(x0 + sgn * 60.0, rz), 3.4, "ground_dirt")
+		for i in 3:
+			var x := x0 + sgn * (13.0 + i * 22.0)
+			for row in [-1, 1]:
+				var z: float = rz + row * 12.0
+				if z < 5.0 or z > rect.end.y - 8.0:
+					z = rz + row * 25.0
+					if z < 5.0 or z > rect.end.y - 8.0:
+						continue
+				var pr: String = rows[k % rows.size()]
+				k += 1
+				put(P[pr], g, Vector3(x, 0, z), 0.0 if row < 0 else PI, "Far_%s_%d" % [side, k])
+			put(P.power_pole, g, Vector3(x - sgn * 5.0, 0, rz - 3.2), 0.0)
+	# --- забор и кордон ---
+	for side in fence:
+		var horiz: bool = side == "N" or side == "S"
+		var along: float = rect.size.x if horiz else rect.size.y
+		var t0 := -60.0 if (horiz and cityx.has("W")) else 0.0
+		var t1 := along + (60.0 if (horiz and cityx.has("E")) else 0.0)
+		# полоса без леса за забором
+		match side:
+			"N":
+				_no_edge.append(Rect2(rect.position.x + t0 - 4, rect.position.y - 16.0, t1 - t0 + 8, 16.0))
+			"E":
+				_no_edge.append(Rect2(rect.end.x, rect.position.y - 16.0, 16.0, rect.size.y + 16.0))
+			"S":
+				_no_edge.append(Rect2(rect.position.x + t0 - 4, rect.end.y, t1 - t0 + 8, 16.0))
+			"W":
+				_no_edge.append(Rect2(rect.position.x - 16.0, rect.position.y - 16.0, 16.0, rect.size.y + 16.0))
+		var rot := 0.0 if horiz else PI / 2.0
+		var t := t0 + 2.0
+		var gaps: Array = breaches.get(side, [])
+		while t < t1:
+			var broken := false
+			for gp in gaps:
+				if t > float(gp[0]) and t < float(gp[1]):
+					broken = true
+			_junk_fence(g, _ep(rect, side, t, 0.6), rot, broken)
+			t += 4.0
+		# дорога патруля и колючка
+		strip(null, Vector2(_ep(rect, side, t0, 4.5).x, _ep(rect, side, t0, 4.5).z), Vector2(_ep(rect, side, t1, 4.5).x, _ep(rect, side, t1, 4.5).z), 2.4, "ground_dirt")
+		t = t0
+		while t < t1:
+			box(g, Vector3(0.1, 1.6, 0.1), _ep(rect, side, t, 9.0) + Vector3(0, 0.8, 0), "metal_dark").owner = root
+			for h in [0.5, 0.95, 1.4]:
+				box(g, Vector3(3.0, 0.025, 0.025) if horiz else Vector3(0.025, 0.025, 3.0),
+					_ep(rect, side, t + 1.5, 9.0) + Vector3(0, h, 0), "rust").owner = root
+			t += 3.0
+		# вышки, блокпосты, мешки; часовые
+		var n := 0
+		t = t0 + 14.0
+		while t < t1 - 6.0:
+			if n % 2 == 0:
+				put(P.tower, g, _ep(rect, side, t, 6.5), rot)
+			else:
+				put(P.checkpoint, g, _ep(rect, side, t, 6.0), rot + PI / 2.0)
+				put(P.sandbags, g, _ep(rect, side, t + 3.5, 3.2), rot)
+				put(P.burn_barrel, g, _ep(rect, side, t - 2.5, 3.5), 0.0)
+				_sentries.append(["Sentry_%s%d" % [side, n], _ep(rect, side, t + 3.5, 4.2), {"N": 0.0, "S": PI, "E": PI / 2.0, "W": -PI / 2.0}[side]])
+			n += 1
+			t += 26.0
+
+
+var _sentries := []
+
+
+## Пролёт забора, собранного выжившими (4 м вдоль локальной X): столбы из брёвен и рельсов,
+## на них что нашлось — ржавый профлист, доски, крашеные листы, кусок бетонной плиты,
+## дверь от машины; сверху где-то колючка. broken — пролёт пробит: стоят столбы,
+## листы сорваны, погнуты и валяются на земле.
+func _junk_fence(g: Node, pos: Vector3, rot: float, broken: bool) -> void:
+	var h := Node3D.new()
+	h.position = pos
+	h.rotation.y = rot
+	g.add_child(h)
+	h.owner = root
+	var parts := []
+	# столбы
+	for x in [-2.0, 2.0]:
+		var hh := randf_range(2.3, 2.8)
+		if randf() < 0.6:
+			parts.append([Vector3(0.22, hh, 0.22), Vector3(x, hh / 2.0, 0), "log_weathered", Vector3(0, 0, randf_range(-0.05, 0.05))])
+		else:
+			parts.append([Vector3(0.12, hh, 0.12), Vector3(x, hh / 2.0, 0), "rust", Vector3.ZERO])
+	# поперечины
+	for y in [0.5, 1.8]:
+		parts.append([Vector3(4.0, 0.1, 0.08), Vector3(0, y, -0.12), "planks_old", Vector3(0, 0, randf_range(-0.03, 0.03))])
+	if broken:
+		# сорванные листы: один висит наискось, остальные на земле
+		parts.append([Vector3(1.3, 2.0, 0.03), Vector3(-1.2, 1.1, 0.08), "metal_roof", Vector3(0.1, 0.1, 0.5)])
+		for k in 3:
+			var c: String = ["metal_roof", "rust", "planks_old"][k]
+			parts.append([Vector3(randf_range(1.0, 1.5), 0.04, randf_range(1.6, 2.1)), Vector3(randf_range(-1.6, 1.6), 0.05 + k * 0.05, randf_range(0.6, 2.2)),
+				c, Vector3(randf_range(-0.15, 0.15), randf() * TAU, randf_range(-0.12, 0.12))])
+	else:
+		var x := -2.0
+		while x < 2.0:
+			var wdt := minf(randf_range(0.9, 1.5), 2.0 - x)
+			var r := randf()
+			var mat := "metal_roof"
+			var hgt := randf_range(1.9, 2.3)
+			if r < 0.3:
+				mat = "rust"
+			elif r < 0.5:
+				mat = "planks_old"
+			elif r < 0.6:
+				mat = ["paint_blue", "paint_green", "paint_faded"][randi() % 3]
+			elif r < 0.68:
+				mat = "concrete"
+				hgt = randf_range(1.2, 1.6)
+			var y0 := randf_range(0.05, 0.2)
+			parts.append([Vector3(wdt + 0.08, hgt, 0.04 if mat != "concrete" else 0.18), Vector3(x + wdt / 2.0, y0 + hgt / 2.0, 0.0),
+				mat, Vector3(0, randf_range(-0.04, 0.04), randf_range(-0.04, 0.04))])
+			if mat == "planks_old":
+				# доски — щелями
+				for k in 3:
+					parts.append([Vector3(wdt, 0.03, 0.05), Vector3(x + wdt / 2.0, y0 + 0.4 + k * 0.6, 0.04), "planks_old", Vector3(0, 0, randf_range(-0.05, 0.05))])
+			if mat == "concrete":
+				# над плитой — набито листом
+				parts.append([Vector3(wdt, 0.7, 0.03), Vector3(x + wdt / 2.0, y0 + hgt + 0.35, 0.0), "rust", Vector3.ZERO])
+			x += wdt
+		# дверь от машины, прибитая поверх
+		if randf() < 0.15:
+			parts.append([Vector3(1.0, 0.9, 0.06), Vector3(randf_range(-1.0, 1.0), 1.0, 0.07), ["paint_blue", "paint_faded"][randi() % 2], Vector3(0, 0, randf_range(-0.2, 0.2))])
+		# колючка поверху
+		if randf() < 0.6:
+			for k in 2:
+				parts.append([Vector3(4.0, 0.02, 0.02), Vector3(0, 2.35 + k * 0.15, 0), "rust", Vector3.ZERO])
+	for pt in parts:
+		box(h, pt[0], pt[1], pt[2], pt[3]).owner = root
+
+
+## Часовые кордона — декорация за забором (не жители: не выбираются, до них не дойти)
+func _place_sentries(_chars: Node) -> void:
+	var g: Node = root.get_node("TownEdge")
+	for e in _sentries:
+		character(g, e[0], "sg_guard", e[1], e[2], {"display_name": "Часовой на кордоне", "armed": true, "decor": true})
+	_sentries.clear()
+
+
+## Точка у края района: t — вдоль стороны, d — наружу от края
+func _ep(rect: Rect2, side: String, t: float, d: float) -> Vector3:
+	match side:
+		"N":
+			return Vector3(rect.position.x + t, 0, rect.position.y - d)
+		"S":
+			return Vector3(rect.position.x + t, 0, rect.end.y + d)
+		"E":
+			return Vector3(rect.end.x + d, 0, rect.position.y + t)
+		_:
+			return Vector3(rect.position.x - d, 0, rect.position.y + t)
 
 
 # ---------------- помощники ----------------
@@ -171,6 +344,48 @@ func _clutter(parent: Node, list: Array) -> void:
 		if c[0] == "burn_barrel":
 			var f := put(P.fire, parent, Vector3(c[1], 0.85, c[2]), 0.0, "BarrelFire")
 			f.set("strength", 0.45)
+
+
+## Разбитая дорога: выбоины, лужи в ямах, трещины, вывороченные куски асфальта.
+## Только плоские метки — проходу не мешают.
+func _broken_road(a: Vector2, b: Vector2, w: float, n: int) -> void:
+	var g := root.get_node_or_null("RoadWear")
+	if g == null:
+		g = group(root, "RoadWear")
+	var d := (b - a)
+	var L := d.length()
+	var u := d / L
+	var nrm := Vector2(-u.y, u.x)
+	for i in n:
+		var t := randf_range(0.03, 0.97) * L
+		var off := randf_range(-w * 0.45, w * 0.45)
+		var p := a + u * t + nrm * off
+		var r := randf_range(0.25, 0.75)
+		# яма: тёмная середина и рваный край из нескольких пятен
+		for k in 3:
+			var o := Vector2(randf_range(-r, r), randf_range(-r, r)) * 0.4
+			var rr := r * randf_range(0.6, 1.0)
+			var hole := cyl(g, rr, rr, 0.01, Vector3(p.x + o.x, 0.02 + k * 0.002, p.y + o.y), "coal", Vector3(0, randf() * TAU, 0), 14)
+			hole.scale = Vector3(1.0, 1.0, randf_range(0.5, 1.2))
+			hole.owner = root
+		if randf() < 0.45:
+			var m := cyl(g, r * 0.7, r * 0.7, 0.02, Vector3(p.x, 0.03, p.y), "water", Vector3.ZERO, 9)
+			m.scale = Vector3(1.0, 1.0, randf_range(0.6, 1.2))
+			m.owner = root
+		if randf() < 0.4:
+			# вывороченный кусок покрытия
+			box(g, Vector3(randf_range(0.4, 0.8), 0.08, randf_range(0.3, 0.6)), Vector3(p.x + r, 0.05, p.y + randf_range(-0.4, 0.4)), "concrete",
+				Vector3(randf_range(-0.25, 0.25), randf() * TAU, randf_range(-0.2, 0.2))).owner = root
+	# трещины поперёк и вдоль
+	for i in n:
+		var q := a + u * randf_range(0.0, L) + nrm * randf_range(-w * 0.5, w * 0.5)
+		var ang := randf() * TAU
+		for k in randi_range(3, 5):
+			var l := randf_range(0.4, 1.0)
+			var q2 := q + Vector2(cos(ang), sin(ang)) * l
+			box(g, Vector3(0.06, 0.01, l), Vector3((q.x + q2.x) / 2.0, 0.025, (q.y + q2.y) / 2.0), "tar", Vector3(0, atan2(q2.x - q.x, q2.y - q.y), 0)).owner = root
+			q = q2
+			ang += randf_range(-0.8, 0.8)
 
 
 ## Линия электропередачи: столбы по точкам, провода между верхушками с провисом
@@ -335,6 +550,11 @@ func _sungar() -> void:
 	_clutter(vil, [["trash_pile", 14.8, 40.5], ["trash_pile_b", 53.5, 41.2], ["burn_barrel", 24, 33.2], ["burn_barrel", 70, 33.8],
 		["rubble", 80, 38.5], ["car_wreck", 8, 40.5, 0.3], ["burnt_shed", 50, 47, 0.2], ["boardwalk", 40, 44.6, 0.0], ["boardwalk", 40, 47.8, 0.0],
 		["trash_pile", 36.5, 7.6], ["rubble", 70.5, 7.4]])
+	# разруха: машины, мусор, разбитая дорога
+	_clutter(vil, [["car_wreck", 78, 19.0, 1.4], ["car_wreck", 74, 55.0, -0.3], ["trash_pile_b", 81, 21.5], ["rubble", 60, 55.5],
+		["trash_pile", 66, 56.0], ["bins", 82, 23.5, PI / 2.0]])
+	_broken_road(Vector2(14, 30), Vector2(84, 30), 3.4, 26)
+	_broken_road(Vector2(40, 30), Vector2(40, 55), 2.0, 6)
 	_graffiti(vil, "КОНТОРА — ВОРЫ", Vector3(26.03, 1.7, 46), PI / 2.0)
 	_graffiti(vil, "ВЕРНИТЕ СВЕТ", Vector3(50.53, 1.8, 13.5), PI / 2.0, Color("1c1c1c"))
 	_graffiti(vil, "ЗДЕСЬ БЫЛ БООТУР", Vector3(79.5, 1.9, 16.03), 0.0)
@@ -377,8 +597,10 @@ func _sungar() -> void:
 		put(P[dd[0]], det, dd[1], randf() * TAU)
 	for p in [Vector3(28, 0, 27.5), Vector3(52, 0, 27.5), Vector3(28, 0, 32.5), Vector3(62, 0, 32.5), Vector3(40, 0, 50), Vector3(72, 0, 27.5)]:
 		_lamp_post(vil, p)
-	_woods(500)
+	_edges(rect, [["E", 30.0]], ["N"], {"N": [[46.0, 51.0]]})
+	_woods(110)
 	var chars := group(root, "Characters")
+	_place_sentries(chars)
 	character(chars, "GateGuard", "sg_guard", Vector3(14.4, 0, 28.2), -PI / 2.0, {"display_name": "Стражник Уйгулаан", "dialog": "sg_guard", "armed": true})
 	character(chars, "GateGuard2", "sg_guard", Vector3(14.2, 0, 32.4), -PI / 2.0 + 0.3, {"display_name": "Стражник", "armed": true})
 	character(chars, "MarketBoss", "sg_market_boss", Vector3(44, 0, 29.5), 0.3, {"dialog": "sg_market_boss",
@@ -540,6 +762,12 @@ func _sungar_center() -> void:
 	_info_screen(vil, Vector3(48.2, 0, 34.4), 0.0, "СУНГАР-ИНФОРМ\nДолги — в контору отдела ф. м.\nТалоны — по прописке")
 	_clutter(vil, [["trash_pile", 61.5, 37.2], ["burn_barrel", 8.5, 36.5], ["rubble", 26, 49.2], ["car_wreck", 52, 53, 0.4],
 		["trash_pile_b", 79.5, 54.0], ["boardwalk", 38, 47.5, 0.0], ["trash_pile", 4.5, 13.5]])
+	# разруха: Ми-8 упал у забора и так и лежит, машины, мусор, разбитая дорога
+	_bld(vil, "mi8_wreck", "HeliWreck", Vector3(66, 0, 5.5), 0.35)
+	_clutter(vil, [["rubble", 58, 3.5], ["trash_pile_b", 75, 9.0], ["paz_wreck", 74, 25.0, 1.5], ["car_wreck", 74, 36.5, 2.6],
+		["car_wreck", 64, 34.5, 0.2], ["trash_pile", 80, 33.0], ["rubble", 62, 25.0]])
+	_broken_road(Vector2(0, 30), Vector2(84, 30), 3.4, 30)
+	_broken_road(Vector2(60, 14.5), Vector2(84, 14.5), 3.0, 8)
 	_graffiti(vil, "ТАЛОНЫ — НЕ ЕДА", Vector3(28.03, 1.8, 12), PI / 2.0)
 	_graffiti(vil, "ОТДЕЛ Ф. М. = СМЕРТЬ", Vector3(69.53, 1.6, 17.5), PI / 2.0, Color("1c1c1c"))
 	_graffiti(vil, "Б. + С.", Vector3(21.03, 1.4, 45.5), PI / 2.0)
@@ -578,8 +806,10 @@ func _sungar_center() -> void:
 		put(P[dd[0]], det, dd[1], randf() * TAU)
 	for p in [Vector3(30, 0, 33), Vector3(50, 0, 33), Vector3(36, 0, 50), Vector3(60, 0, 27.5), Vector3(70, 0, 27.5), Vector3(20, 0, 33)]:
 		_lamp_post(vil, p)
-	_woods(400)
+	_edges(rect, [["W", 30.0], ["E", 14.5]], ["N"], {"N": [[59.0, 73.0]]})
+	_woods(80)
 	var chars := group(root, "Characters")
+	_place_sentries(chars)
 	character(chars, "Merchant", "sg_merchant", Vector3(26, 0, 22.0), 0.0, {"dialog": "sg_merchant"})
 	character(chars, "Rival", "sg_rival", Vector3(42, 0, 22.0), 0.0, {"dialog": "sg_rival"})
 	character(chars, "RowSeller", "villager", Vector3(18, 0, 22.0), 0.0, {"display_name": "Лоточник"})
@@ -686,6 +916,11 @@ func _sungar_quarter() -> void:
 	_info_screen(vil, Vector3(25.5, 0, 37.0), 0.0, "СУНГАР-ИНФОРМ\nНабор на баржи: 3 р./день\nДолжникам — явка в контору")
 	_clutter(vil, [["trash_pile", 16, 14.2], ["trash_pile_b", 28, 13.0], ["burn_barrel", 12, 18.2], ["rubble", 70, 49],
 		["car_wreck", 6, 47.5, 1.2], ["boardwalk", 33, 20.0, PI / 2.0], ["boardwalk", 40, 20.2, PI / 2.0], ["trash_pile", 66.5, 36.0]])
+	# разруха: сгоревшие машины во дворе, мусор, разбитая дорога
+	_clutter(vil, [["car_wreck", 52, 12.0, 0.9], ["car_wreck", 56, 16.5, 2.2], ["trash_pile_b", 50, 8.0], ["rubble", 44, 53.5],
+		["trash_pile", 48, 54.0], ["burn_barrel", 54, 9.5]])
+	_broken_road(Vector2(0, 40), Vector2(76, 40), 3.0, 28)
+	_broken_road(Vector2(14, 20), Vector2(60, 20), 3.0, 10)
 	_graffiti(vil, "ДЕНЕГ НЕТ", Vector3(35.53, 1.6, 31), PI / 2.0)
 	_graffiti(vil, "СЕНЬКА — КРЫСА", Vector3(20.03, 1.5, 30.5), PI / 2.0, Color("1c1c1c"))
 	for t in [Vector3(54, 0, 37.4), Vector3(61.5, 0, 37.2)]:
@@ -715,8 +950,10 @@ func _sungar_quarter() -> void:
 		put(P[dd[0]], det, dd[1], randf() * TAU)
 	for p in [Vector3(22, 0, 37.5), Vector3(48, 0, 38.4), Vector3(66, 0, 42.5), Vector3(36, 0, 42.6)]:
 		_lamp_post(vil, p, Color("ffb050"))
-	_woods(450)
+	_edges(rect, [["W", 40.0]], ["N", "E", "S"], {"E": [[20.0, 26.0]]})
+	_woods(70)
 	var chars := group(root, "Characters")
+	_place_sentries(chars)
 	character(chars, "Barman", "sg_barman", _slot(bar, "barman"), PI / 2.0, {"dialog": "sg_barman"})
 	character(chars, "Brawler", "sg_brawler", Vector3(58, 0, 18), PI, {"dialog": "sg_brawler"})
 	character(chars, "Gunsmith", "sg_gunsmith", Vector3(16, 0, 46.6), PI, {"dialog": "sg_gunsmith"})

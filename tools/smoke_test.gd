@@ -8,6 +8,12 @@ var main: Node
 var fails := 0
 
 
+## Новая случайная встреча (как с карты мира): новое зерно местности и чистое состояние
+func new_enc() -> void:
+	Game.hero.flags["enc_seed"] = randi()
+	Game.world.erase("encounter")
+
+
 func ok(cond: bool, what: String) -> void:
 	if cond:
 		print("  ok  ", what)
@@ -435,6 +441,7 @@ func encounter_lore_tests() -> void:
 		Game.hero.flags["enc_biome"] = "field"
 		Game.hero.flags["enc_force_landmarks"] = lm
 		wm.visible = false
+		new_enc()
 		await main.load_location("encounter", "Start")
 		await frames(2)
 		loc = main.location
@@ -468,6 +475,7 @@ func encounter_lore_tests() -> void:
 		Game.hero.flags["enc_mode"] = "peace"
 		Game.hero.flags["enc_biome"] = "field"
 		wm.visible = false
+		new_enc()
 		await main.load_location("encounter", "Start")
 		await frames(2)
 		loc = main.location
@@ -1920,12 +1928,32 @@ func _ready() -> void:
 	loc.on_interact(loc.item("EastExit"))
 	await frames(2)
 
+	# ======== встреча после загрузки (гибель → загрузка) — та же местность ========
+	Game.hero.flags["enc"] = "refugees"
+	Game.hero.flags["enc_mode"] = "peace"
+	Game.hero.flags["enc_biome"] = "forest"
+	new_enc()
+	wm.visible = false
+	await main.load_location("encounter", "Start")
+	await frames(3)
+	var snap := func() -> String:
+		var lay := ""
+		for c in main.location.get_node("Terrain").get_children():
+			if c is Node3D:
+				lay += "%s@%.2f,%.2f;" % [c.get_class(), (c as Node3D).position.x, (c as Node3D).position.z]
+		return lay
+	var lay0: String = snap.call()
+	await main.load_location("encounter", "Start")
+	await frames(3)
+	ok(lay0 != "" and snap.call() == lay0, "встреча после загрузки — та же местность")
+
 	# ======== генератор местности: все четыре вида ========
 	for bio in ["field", "forest", "swamp", "dead"]:
 		Game.hero.flags["enc"] = "refugees"
 		Game.hero.flags["enc_mode"] = "peace"
 		Game.hero.flags["enc_biome"] = bio
 		wm.visible = false
+		new_enc()
 		await main.load_location("encounter", "Start")
 		await frames(2)
 		loc = main.location
@@ -1952,6 +1980,7 @@ func _ready() -> void:
 		if wreck_found:
 			break
 		Game.hero.flags["enc_biome"] = ["field", "dead", "forest", "swamp"][tries % 4]
+		new_enc()
 		await main.load_location("encounter", "Start")
 		await frames(2)
 		loc = main.location

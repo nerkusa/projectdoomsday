@@ -231,31 +231,54 @@ func personal_items() -> void:
 func wreck_props() -> void:
 	_an2()
 	_mi8()
-	# пожарная вышка: решётчатые ноги, лестница, будка наверху
+	# пожарная вышка: четыре ноги на бетонных пятах, пояса и крестовые связи по граням,
+	# наклонная лестница по южной грани, площадка с перилами и будка наверху.
+	# Всё строится по точкам (beam) — ноги стоят на земле, связи сходятся в узлах.
 	begin()
 	var hgt := 12.0
+	var lv := [0.0, 2.4, 4.8, 7.2, 9.6, hgt]
 	for sx in [-1, 1]:
 		for sz in [-1, 1]:
-			var bot := Vector3(sx * 1.6, 0, sz * 1.6)
-			var top := Vector3(sx * 0.9, hgt, sz * 0.9)
-			var mid := (bot + top) / 2.0
-			var d := top - bot
-			box("metal_dark", Vector3(0.12, d.length(), 0.12), mid, Vector3(-atan2(d.z, d.y), 0, atan2(d.x, d.y)))
-	for k in 5:
-		var y := 1.5 + k * 2.2
-		var w := 1.6 - (1.6 - 0.9) * (y / hgt)
-		for e in [[Vector3(0, y, w), 0.0], [Vector3(0, y, -w), 0.0], [Vector3(w, y, 0), PI / 2.0], [Vector3(-w, y, 0), PI / 2.0]]:
-			box("metal_dark", Vector3(w * 2.0, 0.06, 0.06), e[0], Vector3(0, e[1], 0))
-			box("metal_dark", Vector3(w * 2.4, 0.04, 0.04), e[0] + Vector3(0, 1.1, 0), Vector3(0, e[1], 0.75))
-	for k in 24:
-		box("metal_dark", Vector3(0.5, 0.03, 0.04), Vector3(0, 0.4 + k * 0.48, 1.62 - (0.7 * (0.4 + k * 0.48) / hgt)))
-	box("planks_old", Vector3(2.4, 0.1, 2.4), Vector3(0, hgt, 0))
-	box("planks_old", Vector3(2.2, 1.0, 2.2), Vector3(0, hgt + 0.55, 0))
-	box("glass_city", Vector3(2.25, 0.6, 2.25), Vector3(0, hgt + 1.35, 0))
-	prism("metal_roof", Vector3(2.8, 0.8, 2.8), Vector3(0, hgt + 2.05, 0))
+			beam("metal_dark", _tw(sx, sz, -0.3, hgt), _tw(sx, sz, hgt, hgt), 0.16)
+			box("concrete", Vector3(0.7, 0.45, 0.7), _tw(sx, sz, 0.12, hgt) * Vector3(1, 0, 1) + Vector3(0, 0.12, 0))
+	for k in lv.size():
+		var y: float = lv[k]
+		if k > 0:
+			# пояс по периметру
+			var c := [_tw(-1, -1, y, hgt), _tw(1, -1, y, hgt), _tw(1, 1, y, hgt), _tw(-1, 1, y, hgt)]
+			for e in 4:
+				beam("metal_dark", c[e], c[(e + 1) % 4], 0.08)
+		if k < lv.size() - 1:
+			var y2: float = lv[k + 1]
+			# крест на каждой грани
+			for f in [[-1, -1, 1, -1], [1, -1, 1, 1], [1, 1, -1, 1], [-1, 1, -1, -1]]:
+				beam("metal_dark", _tw(f[0], f[1], y, hgt), _tw(f[2], f[3], y2, hgt), 0.05)
+				beam("metal_dark", _tw(f[2], f[3], y, hgt), _tw(f[0], f[1], y2, hgt), 0.05)
+	# лестница: две тетивы вдоль южной грани в 0,25 м от неё, ступени через 0,35 м
+	var off := 0.28
+	for rx in [-0.3, 0.3]:
+		beam("metal_dark", Vector3(rx, 0.0, _tw(1, 1, 0.0, hgt).z + off), Vector3(rx, hgt + 1.0, _tw(1, 1, hgt, hgt).z + off), 0.06)
+	var steps := int(hgt / 0.35)
+	for k in range(1, steps + 1):
+		var y := k * 0.35
+		var z := _tw(1, 1, y, hgt).z + off
+		box("metal_dark", Vector3(0.6, 0.04, 0.05), Vector3(0, y, z))
+	# площадка, перила, будка
+	box("planks_old", Vector3(2.6, 0.12, 2.6), Vector3(0, hgt + 0.06, 0))
+	for e in [[Vector3(0, hgt + 1.0, 1.25), 0.0], [Vector3(0, hgt + 1.0, -1.25), 0.0], [Vector3(1.25, hgt + 1.0, 0), PI / 2.0], [Vector3(-1.25, hgt + 1.0, 0), PI / 2.0]]:
+		box("metal_dark", Vector3(2.5, 0.05, 0.05), e[0], Vector3(0, e[1], 0))
 	for sx in [-1, 1]:
 		for sz in [-1, 1]:
-			solid(Vector3(0.4, 2.0, 0.4), Vector3(sx * 1.55, 1.0, sz * 1.55))
+			box("metal_dark", Vector3(0.06, 1.0, 0.06), Vector3(sx * 1.25, hgt + 0.5, sz * 1.25))
+	box("planks_old", Vector3(1.8, 1.0, 1.8), Vector3(0, hgt + 0.62, -0.2))
+	box("glass_city", Vector3(1.84, 0.6, 1.84), Vector3(0, hgt + 1.42, -0.2))
+	for sx in [-1, 1]:
+		for sz in [-1, 1]:
+			box("planks_old", Vector3(0.1, 0.62, 0.1), Vector3(sx * 0.88, hgt + 1.42, -0.2 + sz * 0.88))
+	prism("metal_roof", Vector3(2.4, 0.7, 2.4), Vector3(0, hgt + 2.07, -0.2))
+	for sx in [-1, 1]:
+		for sz in [-1, 1]:
+			solid(Vector3(0.5, 2.0, 0.5), _tw(sx, sz, 0.0, hgt) + Vector3(0, 1.0, 0))
 	slots["ladder"] = Vector3(0, 0, 2.4)
 	finish("fire_tower", "FireTower")
 	# узкоколейка: рельсы, шпалы, ржавый вагон-теплушка с приоткрытой дверью
@@ -458,3 +481,18 @@ func _mi8() -> void:
 	solid(Vector3(1.2, 1.4, 6.0), Vector3(1.1, 0.7, -7.6), 0.4)
 	slots["cargo"] = Vector3(0, 0, -5.0)
 	finish("mi8_wreck", "Mi8Wreck")
+
+
+## Узел вышки: угол (sx, sz) на высоте y — ноги сходятся от 1,6 м у земли к 0,9 м наверху
+func _tw(sx: float, sz: float, y: float, hgt: float) -> Vector3:
+	var w := 1.6 - 0.7 * clampf(y, 0.0, hgt) / hgt
+	return Vector3(sx * w, y, sz * w)
+
+
+## Брус от точки a до точки b (квадратное сечение t)
+func beam(mat: String, a: Vector3, b: Vector3, t: float) -> void:
+	var d := b - a
+	var y := d.normalized()
+	var x := y.cross(Vector3.FORWARD if absf(y.z) < 0.9 else Vector3.RIGHT).normalized()
+	var z := x.cross(y).normalized()
+	box(mat, Vector3(t, d.length(), t), (a + b) / 2.0, Basis(x, y, z).get_euler())

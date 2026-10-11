@@ -35,13 +35,16 @@ func _ready() -> void:
 	autosave_on_enter = false
 	map_rect = Rect2(0, 0, SIZE, SIZE)
 	camera_start = Vector3(_center.x, 0, _center.y)
-	Game.world.erase("encounter")
 	enc_id = str(Game.hero.flags.get("enc", "dogs"))
 	enc = DB._load("res://data/world.json").get("encounters", {}).get(enc_id, {})
 	biome = str(Game.hero.flags.get("enc_biome", "forest"))
 	mode = str(Game.hero.flags.get("enc_mode", "peace" if enc.get("enemies", []).is_empty() else "fight"))
 	title = "%s · %s" % [enc.get("desc", "Тайга"), BIOME_NAMES.get(biome, "тайга")]
-	rng.randomize()
+	# зерно встречи сохраняется с игрой: после загрузки (в том числе после гибели)
+	# местность та же, а не новая случайная
+	if not Game.hero.flags.has("enc_seed"):
+		Game.hero.flags["enc_seed"] = randi()
+	rng.seed = int(Game.hero.flags["enc_seed"])
 	_build()
 	super._ready()
 

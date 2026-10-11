@@ -101,6 +101,11 @@ func _city_materials() -> void:
 	_plain_mat("linoleum_b", Color("44503f"), 0.85)
 	_plain_mat("felt", Color("2c5638"), 1.0)
 	_plain_mat("tar", Color("2a2826"), 0.9)
+	# следы разрухи на фасадах: копоть, фанера, плёнка, брезент
+	_plain_mat("soot_city", Color(0.05, 0.045, 0.04, 0.72), 1.0, true)
+	_plain_mat("plywood", Color("8c6e48"), 0.9)
+	M["film"] = load(MAT_DIR + "film.tres")  # плёнка с теплицы — ей же затягивают окна
+	_plain_mat("tarp_blue", Color("2c5280"), 0.85)
 	_plain_mat("coal", Color("161514"), 0.95)
 	_plain_mat("bottle", Color("2c4a30"), 0.2)
 	_plain_mat("sofa", Color("6a3a30"), 1.0)
@@ -157,7 +162,26 @@ func swin(pos: Vector3, yaw: float, kind := "") -> void:
 	var b := Basis.from_euler(Vector3(0, yaw, 0))
 	var r := Vector3(0, yaw, 0)
 	var at := func(l: Vector3) -> Vector3: return pos + b * l
-	if kind == "boarded":
+	if kind == "bricked":
+		# заложено кирпичом — рамы нет, только кладка другого цвета и подоконник
+		box("brick", Vector3(1.24, 1.5, 0.05), at.call(Vector3(0, 0, 0.02)), r)
+		box("concrete", Vector3(1.4, 0.07, 0.22), at.call(Vector3(0, -0.75, 0.08)), r)
+		return
+	if kind == "broken":
+		# выбито: чёрная дыра, осколки в углах, копоть над окном
+		box("coal", Vector3(1.1, 1.4, 0.04), at.call(Vector3(0, 0, 0.02)), r)
+		box("glass_city", Vector3(0.45, 0.3, 0.03), at.call(Vector3(-0.32, 0.5, 0.04)), r + Vector3(0, 0, 0.5))
+		box("glass_city", Vector3(0.35, 0.25, 0.03), at.call(Vector3(0.36, -0.52, 0.04)), r + Vector3(0, 0, -0.6))
+		if _rng.randf() < 0.6:
+			box("soot_city", Vector3(1.3, 1.4, 0.02), at.call(Vector3(0, 1.3, 0.012)), r)
+			box("soot_city", Vector3(0.9, 0.7, 0.02), at.call(Vector3(0, 2.2, 0.013)), r)
+	elif kind == "plywood":
+		box("plywood", Vector3(1.16, 1.46, 0.05), at.call(Vector3(0, 0, 0.05)), r + Vector3(0, 0, _rng.randf_range(-0.04, 0.04)))
+	elif kind == "film":
+		box("coal", Vector3(1.1, 1.4, 0.03), at.call(Vector3(0, 0, 0.015)), r)
+		box("film", Vector3(1.12, 1.42, 0.02), at.call(Vector3(0, 0, 0.05)), r)
+		box("planks_old", Vector3(1.2, 0.06, 0.04), at.call(Vector3(0, 0.66, 0.07)), r)
+	elif kind == "boarded":
 		box("glass_city", Vector3(1.1, 1.4, 0.04), at.call(Vector3(0, 0, 0.02)), r)
 		box("planks_old", Vector3(1.3, 0.22, 0.05), at.call(Vector3(0, 0.3, 0.06)), r + Vector3(0, 0, 0.3))
 		box("planks_old", Vector3(1.3, 0.22, 0.05), at.call(Vector3(0, -0.3, 0.07)), r + Vector3(0, 0, -0.25))
@@ -357,6 +381,7 @@ func stone_block(n: String, o: Dictionary) -> void:
 				swin(Vector3(sx * (hx + 0.01), y, 0), sx * PI / 2.0, _wkind())
 	if o.get("portico", false):
 		_portico(w, d, top, base)
+	_wear(n, w, d, top, base, mat, enter, o.get("roof", "flat"))
 	roof(w, d, top, o.get("roof", "flat"))
 	if o.get("flag", false):
 		cyl("metal_dark", 0.05, 0.05, 4.0, Vector3(hx - 1.0, top + 2.0, hz - 1.0), Vector3.ZERO, 6)
@@ -370,11 +395,78 @@ func stone_block(n: String, o: Dictionary) -> void:
 
 func _wkind() -> String:
 	var r := _rng.randf()
-	if r < 0.14:
+	if r < 0.1:
 		return "boarded"
-	if r < 0.32:
+	if r < 0.2:
 		return "lit"
+	if r < 0.3:
+		return "broken"
+	if r < 0.38:
+		return "plywood"
+	if r < 0.43:
+		return "bricked"
+	if r < 0.49:
+		return "film"
 	return ""
+
+
+## Разруха и ремонт: трещины, заплаты другим кирпичом, потёки, брезент на крыше;
+## у части глухих жилых домов — обрушенный угол с завалом у стены
+func _wear(n: String, w: float, d: float, top: float, base: float, mat: String, enter: String, roof_kind: String) -> void:
+	var hx := w / 2.0
+	var hz := d / 2.0
+	var patch := "concrete" if mat.begins_with("brick") else "brick"
+	for face in [1.0, -1.0]:
+		var zf: float = face * (hz + 0.02)
+		var yaw: float = 0.0 if face > 0 else PI
+		# трещины ломаной линией
+		for c in _rng.randi_range(2, 4):
+			var p := Vector3(_rng.randf_range(-hx + 1.0, hx - 1.0), _rng.randf_range(base + 1.0, top - 1.0), zf)
+			var a := _rng.randf_range(-2.4, -0.7)
+			for k in _rng.randi_range(3, 6):
+				var l := _rng.randf_range(0.25, 0.6)
+				var q := p + Vector3(cos(a) * l, sin(a) * l, 0)
+				box("tar", Vector3(l, 0.035, 0.02), (p + q) / 2.0, Vector3(0, yaw, a))
+				p = q
+				a += _rng.randf_range(-0.7, 0.7)
+		# заплаты: другой кирпич / бетон, иногда лист фанеры
+		for c in _rng.randi_range(0, 2):
+			var x := _rng.randf_range(-hx + 1.2, hx - 1.2)
+			var y := _rng.randf_range(base + 0.8, top - 1.4)
+			box(patch if _rng.randf() < 0.7 else "plywood", Vector3(_rng.randf_range(0.9, 1.8), _rng.randf_range(0.7, 1.3), 0.04),
+				Vector3(x, y, zf + face * 0.01))
+		# ржавые потёки из-под крыши
+		for c in _rng.randi_range(1, 3):
+			var x := _rng.randf_range(-hx + 0.6, hx - 0.6)
+			var l := _rng.randf_range(1.0, 2.6)
+			box("soot_city", Vector3(0.25, l, 0.02), Vector3(x, top - 0.3 - l / 2.0, zf + face * 0.015))
+	# брезент или жесть на крыше — латали
+	if _rng.randf() < 0.5:
+		var rx := _rng.randf_range(-hx + 2.0, hx - 2.0)
+		if roof_kind == "flat":
+			box("tarp_blue" if _rng.randf() < 0.6 else "rust", Vector3(_rng.randf_range(2.0, 3.5), 0.05, _rng.randf_range(1.5, 3.0)), Vector3(rx, top + 0.06, _rng.randf_range(-hz + 1.5, hz - 1.5)))
+			for k in 3:
+				box("tire", Vector3(0.5, 0.15, 0.5), Vector3(rx + _rng.randf_range(-1.0, 1.0), top + 0.14, _rng.randf_range(-1.0, 1.0)))
+	# обрушенный угол: только глухие жилые дома, примерно каждый третий
+	if enter == "" and (n.begins_with("st_block") or n.begins_with("st_barrack")) and hash(n + "ruin") % 3 == 0:
+		var sx := 1.0 if hash(n) % 2 == 0 else -1.0
+		var cx := sx * (hx - 1.3)
+		# чёрный провал на углу последнего этажа (по обеим граням угла)
+		box("coal", Vector3(2.4, 2.2, 0.06), Vector3(cx, top - 1.3, hz + 0.03))
+		box("coal", Vector3(0.06, 2.2, 2.4), Vector3(sx * (hx + 0.03), top - 1.3, hz - 1.3))
+		box("soot_city", Vector3(3.2, 2.6, 0.02), Vector3(cx, top - 0.9, hz + 0.07))
+		# торчащая арматура и обломки плит по краю
+		for k in 6:
+			var px := cx + _rng.randf_range(-1.1, 1.1)
+			box("rust", Vector3(0.03, _rng.randf_range(0.4, 0.9), 0.03), Vector3(px, top - 0.3, hz + 0.05), Vector3(_rng.randf_range(-0.4, 0.4), 0, _rng.randf_range(-0.5, 0.5)))
+		box(mat, Vector3(0.9, 0.6, 0.12), Vector3(cx - sx * 0.9, top - 2.3, hz + 0.08), Vector3(0, 0, 0.4 * sx))
+		# завал у стены
+		for k in 9:
+			var bp := Vector3(cx + sx * _rng.randf_range(-0.5, 1.4), _rng.randf_range(0.1, 0.35), hz + _rng.randf_range(0.3, 1.6))
+			box(mat if k % 3 else "concrete", Vector3(_rng.randf_range(0.3, 0.8), _rng.randf_range(0.2, 0.5), _rng.randf_range(0.3, 0.7)), bp,
+				Vector3(_rng.randf_range(-0.4, 0.4), _rng.randf_range(0, PI), _rng.randf_range(-0.4, 0.4)))
+		# подпорка из бруса — дом подлатали, живут дальше
+		box("planks_old", Vector3(0.18, 3.6, 0.18), Vector3(cx + sx * 0.6, 1.7 + base * 0.5, hz + 1.1), Vector3(0.35, 0, 0))
 
 
 ## Витрина первого этажа: большое стекло, рама, подоконник

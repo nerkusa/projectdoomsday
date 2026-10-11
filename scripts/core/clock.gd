@@ -131,6 +131,13 @@ func apply_light(loc: Node) -> void:
 			we.set_meta("fog", e.fog_light_color)
 	var k := daylight()
 	var t := dusk_tint()
+	# свет в окнах: днём окна тёмные, в сумерки и ночью — горят
+	var wl := load("res://assets/materials/window_lit.tres") as StandardMaterial3D
+	if wl:
+		wl.emission_energy_multiplier = lerpf(1.6, 0.0, clampf(k * 1.4, 0.0, 1.0))
+	var wi := load("res://assets/materials/window.tres") as StandardMaterial3D  # окна изб
+	if wi:
+		wi.emission_energy_multiplier = lerpf(0.9, 0.1, clampf(k * 1.4, 0.0, 1.0))
 	var base_rot: Vector3 = sun.get_meta("base_rot")
 	var h := hour_of_day()
 	# солнце идёт с востока на запад; ночью вместо него — луна, холодная и слабая

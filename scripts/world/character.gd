@@ -100,13 +100,17 @@ const MARKS := {
 ## Отношение к герою: friend | neutral | enemy. Пусто — само: враг, если hostile,
 ## нейтральный, если в шаблоне "neutral": true, иначе свой.
 @export var attitude := ""
+## Декорация: стоит и дышит, но не жилец локации — не выбирается мышью, не в группе
+## characters (часовые за забором, фигуры за краем карты)
+@export var decor := false
 
 
 func _ready() -> void:
 	if Engine.is_editor_hint():
 		_rebuild_preview()
 		return
-	add_to_group("characters")
+	if not decor:
+		add_to_group("characters")
 	tpl = DB.characters.get(char_id, {})
 	# герой — в той одежде, что выбрали при создании
 	if char_id == "hero" and str(Game.hero.get("skin", "")) != "":
@@ -115,6 +119,10 @@ func _ready() -> void:
 	if display_name == "":
 		display_name = tpl.get("name", char_id)
 	_build_visual()
+	if decor:
+		if not is_player and tpl.has("weapon"):
+			set_held(tpl.weapon if armed else "")
+		return
 	_pick_area = Area3D.new()
 	_pick_area.collision_layer = 2
 	_pick_area.collision_mask = 0
