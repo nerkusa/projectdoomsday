@@ -158,3 +158,8 @@ func objective() -> String:
 	if not Game.flag("ruin_map"):
 		return "Осмотреть базу: что здесь искали?"
 	return ""
+
+
+## Фон: довоенная база «светится»
+func rad_level() -> float:
+	return 0.5

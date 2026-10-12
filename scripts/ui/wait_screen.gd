@@ -121,6 +121,31 @@ func _unhandled_key_input(e: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 
 
+## Катсцена-затемнение: экран чернеет, по центру — подпись, посередине — mid
+## (звук, перестановка мира), потом светлеет
+func blackout(text: String, hold: float, mid := Callable()) -> void:
+	running = true
+	visible = true
+	_ask.visible = false
+	_dial.visible = false
+	_clock_lbl.visible = true
+	_clock_lbl.text = text
+	_clock_lbl.modulate.a = 0.0
+	var tw := create_tween().set_parallel()
+	tw.tween_property(_dim, "color:a", 1.0, 0.6)
+	tw.tween_property(_clock_lbl, "modulate:a", 1.0, 0.8)
+	await tw.finished
+	if mid.is_valid():
+		mid.call()
+	await get_tree().create_timer(hold, false).timeout
+	var tw2 := create_tween().set_parallel()
+	tw2.tween_property(_dim, "color:a", 0.0, 0.7)
+	tw2.tween_property(_clock_lbl, "modulate:a", 0.0, 0.4)
+	await tw2.finished
+	visible = false
+	running = false
+
+
 ## Сама промотка: затемнение, часы бегут, свет меняется, затем светлеет
 func play(dh: float, step: Callable) -> void:
 	running = true

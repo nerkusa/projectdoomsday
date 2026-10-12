@@ -231,3 +231,8 @@ func objective() -> String:
 	if not Game.flag("list_b_found"):
 		return "Осмотреть архив."
 	return ""
+
+
+## Фон: довоенная база «светится»
+func rad_level() -> float:
+	return 0.9

@@ -36,6 +36,7 @@ func advance(dh: float) -> void:
 	if dh <= 0.0:
 		return
 	set_hours(hours() + dh)
+	Weather.tick()
 
 
 func hour_of_day() -> float:
@@ -154,6 +155,7 @@ func apply_light(loc: Node) -> void:
 		e.ambient_light_color = Color(0.42, 0.48, 0.72).lerp(we.get_meta("amb_col"), k)
 		e.background_color = Color(0.04, 0.05, 0.09).lerp(we.get_meta("bg"), k)
 		e.fog_light_color = Color(0.12, 0.14, 0.22).lerp((we.get_meta("fog") as Color).lerp(Color("c08a5a"), t * 0.5), k)
+	Weather.apply(loc)
 
 
 # ---------------- расписание жителей ----------------
@@ -185,6 +187,9 @@ func schedule_for(loc_id: String, ch_name: String) -> Dictionary:
 func wanted_state(s: Dictionary) -> String:
 	if force_day:
 		return "work"
+	# в бурю все по домам
+	if Weather.shelter():
+		return "home"
 	var h := hour_of_day()
 	var plan: Array = s.get("plan", [])
 	for i in plan.size():
@@ -206,6 +211,9 @@ func update_schedules(instant: bool) -> void:
 	for nm in cfg:
 		var ch: Character = loc.character(nm)
 		if ch == null or ch.pose == "dead" or ch.hostile or ch.fighter != null:
+			continue
+		# сбежал (после резни) или ушёл насовсем — расписание его больше не касается
+		if loc.ws().misc.has("gone_" + ch.uid()):
 			continue
 		if loc.has_method("schedule_active") and not loc.schedule_active(ch):
 			continue
@@ -343,6 +351,8 @@ func _go_to(loc: Node, ch: Character, home: Vector3, to: Vector3, rot: float, po
 	if ch.pose == "sit" and pose != "sit":
 		ch.pose = ""
 	var arrive := func():
+		# шёл и его поставили на место сразу (после ожидания) — путь оборвать, иначе поедет сидя
+		ch.stop()
 		ch.global_position = to
 		ch.rotation.y = rot
 		ch.pose = pose

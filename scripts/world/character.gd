@@ -1104,9 +1104,10 @@ func _mark_kind() -> String:
 		if loc and not loc.ws().looted.has(uid()):
 			return "corpse"
 		return "none"
-	if pose in ["sit", "down", "sleep"] and not hostile:
-		# сидящих за столом и лежащих на кровати видно и так;
-		# кружок и силуэт пробивались бы сквозь скамейку или кровать
+	if pose in ["sit", "sleep"] and not hostile:
+		# сидящих за столом и спящих на кровати видно и так;
+		# кружок и силуэт пробивались бы сквозь скамейку или кровать.
+		# Лежащий на земле живой (раненый) — подсвечен: его легко принять за труп
 		return "none"
 	if hostile or attitude == "enemy":
 		return "enemy"

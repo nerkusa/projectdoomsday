@@ -769,6 +769,163 @@ func admin_tests() -> void:
 
 
 ## Сунгар: три района, плата за вход, квесты, след Боотура — и дорога в Мар-Кун
+## Погода: виды, смена сама собой, туман и осадки, укрытие жителей, радиация
+func weather_tests() -> void:
+	print("--- погода ---")
+	await main.load_location("kresty", "Start")
+	await frames(3)
+	var loc: Node = main.location
+	ok(Weather.outdoor(), "Кресты — под открытым небом")
+	var e: Environment = (loc.get_node("Env/WorldEnvironment") as WorldEnvironment).environment
+	Weather.set_kind("clear", 999.0)
+	Clock.apply_light(loc)
+	var fog0 := e.fog_density
+	var sun: DirectionalLight3D = loc.get_node("Env/Sun")
+	var en0 := sun.light_energy
+	for k in Weather.KINDS:
+		Weather.set_kind(k, 999.0)
+		# без вспышки молнии в кадре
+		Weather._flash = 0.0
+		Weather._flash_t = 999.0
+		Clock.apply_light(loc)
+		await frames(2)
+		var inf: Dictionary = Weather.KINDS[k]
+		ok(main.status_text().ends_with(str(inf.name)), "погода «%s» в строке состояния" % inf.name)
+		if k != "clear":
+			ok(e.fog_density >= fog0 and sun.light_energy <= en0 + 0.01, "%s: туманнее и темнее" % inf.name)
+		if inf.has("rain"):
+			ok(Weather._rain.emitting, "%s: идут капли" % inf.name)
+		if inf.has("dust"):
+			ok(Weather._dust.emitting, "%s: несёт пыль/пепел" % inf.name)
+		if inf.get("shelter", false):
+			ok(Weather.shelter() and Weather.vis_mult() < 1.0, "%s: жители прячутся, видно хуже" % inf.name)
+	# радиационная буря жжёт
+	Weather.set_kind("rad_storm", 999.0)
+	Game.set_hero_hp(Game.hero_max())
+	var hp0 := Game.hero_hp()
+	Game.hero["rad"] = 0.0
+	Rad.tick(3.0)
+	ok(Rad.level() >= 8.0 and Rad.exposure() > 0.0 and Rad.text().begins_with("☢"), "радиационная буря копит дозу (%s)" % Rad.text())
+	Game.hero["rad"] = 150.0
+	Rad.tick(8.5)
+	ok(Game.hero_hp() < hp0, "облучение под фоном снимает ХП")
+	Weather.set_kind("clear", 999.0)
+	Game.set_hero_hp(Game.hero_max())
+	Game.hero["rad"] = 350.0
+	var hp1 := Game.hero_hp()
+	Rad.tick(4.5)
+	ok(Game.hero_hp() < hp1 and Rad.tier() == "лучевая болезнь", "лучевая болезнь жжёт и без фона")
+	Game.add_item("antirad", 2)
+	main.use_item("antirad")
+	main.use_item("antirad")
+	ok(Rad.level() < 1.0 and Game.item_count("antirad") == 0, "антирадин выводит дозу")
+	Game.set_hero_hp(Game.hero_max())
+	# карта мира: туман войны и находки
+	var wm: WorldMap = main.world_map
+	ok(wm.explored(Vector2(Game.hero.flags.wm_pos[0], Game.hero.flags.wm_pos[1])) and not wm.explored(Vector2(3000, 200)), "туман войны: рядом с героем открыто, у Якутска — нет")
+	ok(wm.can_go("kresty") and not wm.can_go("nyurba"), "в найденные места — свободно, в закрытые города — нет")
+	# смена сама собой: время вышло — погода другая или та же, но срок продлён
+	Weather.frozen = false
+	Weather.set_kind("rain", 0.5)
+	Clock.advance(1.0)
+	ok(float(Game.world["_weather"]["until"]) > Clock.hours(), "погода сменилась сама (%s)" % Weather.title())
+	Weather.frozen = true
+	Weather.set_kind("clear", 999.0)
+	Clock.apply_light(loc)
+
+
+## Свобода: вещи по миру, уход с любого края, фоновые реплики, болтовня и дружба,
+## переговоры вместо драки, резня в поселении (в самом конце — после неё Кресты пустеют)
+func social_tests() -> void:
+	print("--- жизнь вокруг: вещи, реплики, дружба, переговоры, резня ---")
+	var soc: Social = main.social
+	await main.load_location("kresty", "Start")
+	await frames(3)
+	var loc: Node = main.location
+	var loot := []
+	for it in loc.items():
+		if String(it.name).begins_with("Loot"):
+			loot.append(it)
+	ok(loot.size() >= 3, "по Крестам разбросаны вещи (%d)" % loot.size())
+	ok(unreachable(loc, loc.spawn_point("Start"), func(nd): return String(nd.name).begins_with("Loot")).is_empty(), "до всех разбросанных вещей можно дойти")
+	var n0 := Game.item_count(loot[0].item_id)
+	main.interact(loot[0])
+	await wait(2.5)
+	# патроны сразу уходят в магазин — проверяем, что вещь подобрана и пропала с земли
+	ok(loc.ws().picked.has(loot[0].uid()) and not loot[0].visible and (Game.item_count(loot[0].item_id) > n0 or str(loot[0].item_id).begins_with("ammo")), "разбросанную вещь можно подобрать (%s)" % loot[0].item_id)
+	ok(main._can_leave() and main._near_edge(Vector3(loc.map_rect.position.x + 0.5, 0, loc.map_rect.get_center().y)), "с любого края Крестов можно уйти на карту")
+	var folk: Character = null
+	for ch in loc.characters():
+		if soc._peaceful(ch) and ch.pose != "sleep":
+			folk = ch
+			break
+	ok(folk != null and soc.ambient_line(folk) != "", "жители бросают свои реплики (%s: «%s»)" % [folk.display_name if folk else "—", soc.ambient_line(folk) if folk else ""])
+	for a in ["guard", "kid", "old", "woman", "man", "worker", "trader"]:
+		ok(not DB._load("res://data/barks.json").ambient.get(a, []).is_empty(), "реплики для «%s» есть" % a)
+	# болтовня и подарки — до дружбы
+	soc.chat(folk)
+	await frames(2)
+	ok(main.dialog.visible, "с жителем можно поболтать")
+	main.dialog.close()
+	soc.on_action("aff_chat:2", folk)
+	ok(soc.chatted_today(folk) and soc.affinity(folk) == 2, "поболтали — стал теплее (%d)" % soc.affinity(folk))
+	Game.add_item("t_harmonica", 2)
+	var items_before: Dictionary = Game.hero.items.duplicate(true)
+	soc.on_action("gift:t_harmonica", folk)
+	ok(soc.affinity(folk) == 7 and soc.tier_text(folk) == " · приятель", "подарок — приятель")
+	soc.on_action("gift:t_harmonica", folk)
+	ok(soc.affinity(folk) >= Social.FRIEND and soc.tier_text(folk) == " · друг", "ещё подарок — друг")
+	var got_gift := false
+	for k in Game.hero.items:
+		if int(Game.hero.items[k]) > int(items_before.get(k, 0)):
+			got_gift = true
+	ok(got_gift, "друг подарил что-то в ответ")
+	# переговоры: враг заметил — можно договориться, договорённость помнится
+	soc.parley_enabled = true
+	var foe: Character = folk
+	foe.hostile = true
+	foe.aggro_radius = 10.0
+	ok(soc.can_parley(foe), "с человеком можно договориться до драки")
+	soc.parley(foe)
+	await frames(2)
+	ok(main.dialog.visible and main.dialog.data.nodes.start.options.size() >= 4, "переговоры: уговорить, запугать, обмануть, напасть")
+	main._on_dialog_action("parley_ok", foe)
+	await frames(2)
+	ok(not foe.hostile and not main.dialog.visible and not main.combat.on and loc.ws().misc.has("calm_" + foe.uid()), "договорились — драки нет")
+	soc.parley_enabled = false
+	# резня: напал на мирного — вооружённые в бой, остальные бегут; место запоминает
+	var victim: Character = null
+	for ch in loc.characters():
+		if soc._peaceful(ch) and ch != folk:
+			victim = ch
+			break
+	var rep0 := Game.rep()
+	main.start_fight([victim], {"hero_attack": true})
+	await frames(3)
+	ok(main.combat.on and loc.ws().misc.get("hostile", false) and Game.rep() < rep0, "напал на мирного — поселение поднялось, молва упала")
+	var fled := 0
+	for ch in loc.characters():
+		if loc.ws().misc.has("gone_" + ch.uid()):
+			fled += 1
+	ok(fled > 0, "безоружные бегут (%d)" % fled)
+	await fight(200)
+	ok(not main.combat.on, "бой в поселении закончился")
+	await main.load_location("kresty", "Start")
+	await frames(3)
+	loc = main.location
+	await wait(1.5)
+	var calm := []
+	var hostile := 0
+	for ch in loc.characters():
+		if ch.pose == "dead" or not ch.visible or not Social.talks(ch):
+			continue
+		if ch.hostile:
+			hostile += 1
+		else:
+			calm.append(ch.display_name)
+	ok(calm.is_empty(), "после резни в Крестах никто мирно не ходит (мирных: %s, врагов: %d)" % [str(calm), hostile])
+
+
 func sungar_tests() -> void:
 	var wm: WorldMap = main.world_map
 	var loc = main.location
@@ -935,6 +1092,12 @@ func _ready() -> void:
 	main = load("res://scenes/main.tscn").instantiate()
 	add_child(main)
 	await frames(3)
+	# сюжетный прогон: бои начинаются сразу, переговоры проверяются отдельно в конце
+	main.social.parley_enabled = false
+	main.social.idle_enabled = false
+	# погода в сюжетном прогоне ясная и не меняется; проверяется отдельно в конце
+	Weather.frozen = true
+	Weather.set_kind("clear", 999.0)
 	ok(main.menu.visible, "главное меню открыто")
 	main._on_menu("new")
 	await frames(2)
@@ -1393,8 +1556,12 @@ func _ready() -> void:
 	var hp0 := Game.hero_hp()
 	await tp(foods[4].global_position + Vector3(0.9, 0, 0))
 	main.interact(foods[4])
-	await wait(2.0)
-	ok(Game.flag_value("phase") == "raid", "начался налёт")
+	await wait(1.5)
+	ok(main.wait_scr.visible, "затемнение: «прошло несколько часов», выстрелы")
+	while main.wait_scr.visible:
+		await frames(2)
+	await wait(0.5)
+	ok(Game.flag_value("phase") == "raid" and fmod(Clock.hours(), 24.0) >= 21.0, "начался налёт — уже ночь")
 	var prowler: Character = main.location.character("Prowler")
 	if stealth:
 		await wait(3.0)
@@ -1430,12 +1597,13 @@ func _ready() -> void:
 	await tp(Vector3(62, 0, 31.5))
 	await wait(0.5)
 	ok(Game.flag("gate_started"), "часовой у ворот зовёт на помощь")
+	ok(main.cutscene, "катсцена: герой замер и смотрит на ворота")
 	var tg := 0.0
 	while not main.combat.on and tg < 10.0:
 		await wait(0.25)
 		tg += 0.25
 	ok(main.location.character("GateGuard").pose == "dead", "часового застрелили")
-	ok(main.combat.on, "бой у ворот")
+	ok(main.combat.on and not main.cutscene, "после катсцены — бой у ворот")
 	await fight()
 	var gate_ok := true
 	for n in ["Executioner", "GateRaider"]:
@@ -1479,8 +1647,8 @@ func _ready() -> void:
 		await frames(2)
 	else:
 		await tp(Vector3(65.5, 0, 60.0))
-		await wait(1.0)
-		ok(Game.flag("barn_started") and main.combat.on, "бой у амбара начался")
+		await wait(2.0)
+		ok(Game.flag("barn_started") and main.combat.on, "бой у амбара начался (услышали топот)")
 		await fight(120)
 		ok(not main.combat.on, "бой у амбара окончен")
 		print("  ХП героя после боя у амбара: ", Game.hero_hp(), "/", Game.hero_max())
@@ -2337,16 +2505,25 @@ func _ready() -> void:
 	loc.on_interact(sh)
 	sh.remove_meta("act")
 	ok(Game.item_count("rope") == 1 and not Game.flag("shaft_rope"), "верёвку отвязал и забрал")
-	# ======== пост связи: дорогу находит кассета «Эфир» ========
-	WorldMap.reveal("tower")
+	# ======== пост связи: найти можно и так, но с кассетой «Эфир» — издалека ========
+	var twn: Dictionary = wm.nodes().tower
+	var near_r := float(twn.get("radius", wm.REVEAL_R))
+	var kn: Dictionary = Game.hero.flags.get("map_known", {})
+	kn.erase("tower")
+	Game.hero.flags["map_known"] = kn
 	var cas_n: int = Game.item_count("cas_ether")
 	Game.remove_item("cas_ether", cas_n)
 	var cas_in: Array = Game.hero.get("cassettes", []).duplicate()
 	Game.hero.cassettes = []
-	ok(not wm.can_go("tower"), "без кассеты «Эфир» пост связи не найти")
+	var keep_pos: Vector2 = wm.pos
+	wm.pos = wm.node_pos("tower") + Vector2(near_r * 1.2, 0)
+	wm._reveal_near()
+	ok(not wm.known("tower"), "без кассеты «Эфир» пост не заметить издалека")
 	Game.hero.cassettes = cas_in
 	Game.add_item("cas_ether", maxi(cas_n, 1))
-	ok(wm.can_go("tower"), "с кассетой «Эфир» — дорога к посту связи")
+	wm._reveal_near()
+	ok(wm.known("tower") and wm.can_go("tower"), "с кассетой «Эфир» пост виден издалека — можно идти")
+	wm.pos = keep_pos
 	wm.visible = false
 	await main.load_location("radio_post", "Road")
 	await frames(3)
@@ -2550,6 +2727,8 @@ func _ready() -> void:
 	await wm.travel("sungar")
 	await frames(3)
 	await sungar_tests()
+	await weather_tests()
+	await social_tests()
 	print("Уровень героя: ", Game.hero.level, ", опыт: ", Game.hero.xp)
 	print("=== ИТОГ: ошибок ", fails, " ===")
 	get_tree().quit(1 if fails else 0)

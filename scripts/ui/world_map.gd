@@ -105,6 +105,7 @@ func setup(m: Node) -> void:
 	_canvas = Control.new()
 	UITheme.full_rect(_canvas)
 	_canvas.mouse_filter = Control.MOUSE_FILTER_STOP
+	_canvas.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
 	_canvas.draw.connect(_draw_map)
 	_canvas.gui_input.connect(_on_canvas_input)
 	_canvas.mouse_exited.connect(func(): _hover = Vector2(-1, -1))
@@ -194,20 +195,77 @@ static func reveal(id: String) -> void:
 	Game.log_line("Новая точка на карте: " + str(all[id].get("name", id)), "", "hit")
 
 
-## Можно ли войти: точка известна и открыта
+## Можно ли войти: место найдено (на карте) и там есть куда входить.
+## Мир открыт: дойти можно куда угодно — точка появляется, когда подойдёшь
+## (или когда о ней расскажут). Только конец сборки ждёт сюжета.
 func can_go(id: String) -> bool:
 	var n: Dictionary = nodes().get(id, {})
 	if n.is_empty() or not known(id):
 		return false
-	# need: [задание, этап] — куда не дойти, пока не узнаешь дорогу
-	if n.has("need") and Game.quest_stage(str(n.need[0])) < int(n.need[1]):
-		return false
-	# need_item: без этой вещи (или вставленной кассеты) место не найти
-	if n.has("need_item") and Game.item_count(str(n.need_item)) == 0 and not Game.hero.get("cassettes", []).has(str(n.need_item)):
-		return false
 	if n.has("end"):
-		return true
+		return not n.has("need") or Game.quest_stage(str(n.need[0])) >= int(n.need[1])
 	return n.has("loc") and not n.get("burned", false)
+
+
+# ---------------- туман войны ----------------
+## Карта поделена на клетки FOG_CELL пикселей; пройденные — открыты (без серой пелены).
+## Хранится строкой из «0»/«1» в Game.world["_fog"].
+const FOG_CELL := 16.0
+const FOG_R := 95.0
+var _fog_img: Image
+var _fog_tex: ImageTexture
+
+
+func _fog_dims() -> Vector2i:
+	return Vector2i(int(ceil(img_size.x / FOG_CELL)), int(ceil(img_size.y / FOG_CELL)))
+
+
+func _fog_str() -> String:
+	var d := _fog_dims()
+	var s: String = Game.world.get("_fog", "")
+	if s.length() != d.x * d.y:
+		s = "0".repeat(d.x * d.y)
+		Game.world["_fog"] = s
+	return s
+
+
+func explored(p: Vector2) -> bool:
+	var d := _fog_dims()
+	var c := Vector2i(clampi(int(p.x / FOG_CELL), 0, d.x - 1), clampi(int(p.y / FOG_CELL), 0, d.y - 1))
+	return _fog_str()[c.y * d.x + c.x] == "1"
+
+
+## Открыть круг вокруг точки
+func explore(p: Vector2, r := FOG_R) -> void:
+	var d := _fog_dims()
+	var s := _fog_str()
+	var chars := s.to_utf8_buffer()
+	var changed := false
+	var c0 := Vector2i(int((p.x - r) / FOG_CELL), int((p.y - r) / FOG_CELL))
+	var c1 := Vector2i(int((p.x + r) / FOG_CELL), int((p.y + r) / FOG_CELL))
+	for y in range(maxi(0, c0.y), mini(d.y, c1.y + 1)):
+		for x in range(maxi(0, c0.x), mini(d.x, c1.x + 1)):
+			var cc := Vector2((x + 0.5) * FOG_CELL, (y + 0.5) * FOG_CELL)
+			if cc.distance_to(p) <= r and chars[y * d.x + x] != 49:
+				chars[y * d.x + x] = 49
+				changed = true
+				if _fog_img:
+					_fog_img.set_pixel(x, y, Color(0, 0, 0, 0))
+	if changed:
+		Game.world["_fog"] = chars.get_string_from_utf8()
+		if _fog_tex:
+			_fog_tex.update(_fog_img)
+
+
+func _build_fog() -> void:
+	var d := _fog_dims()
+	var s := _fog_str()
+	_fog_img = Image.create(d.x, d.y, false, Image.FORMAT_RGBA8)
+	var grey := Color(0.36, 0.36, 0.38, 0.78)
+	for y in d.y:
+		for x in d.x:
+			_fog_img.set_pixel(x, y, Color(0, 0, 0, 0) if s[y * d.x + x] == "1" else grey)
+	_fog_tex = ImageTexture.create_from_image(_fog_img)
 
 
 ## Тропы и старые дороги между местами (world.json → paths): видны, когда оба конца известны
@@ -249,7 +307,8 @@ func hours_to(p: Vector2) -> float:
 		prev = q
 	if r.is_empty():
 		L = pos.distance_to(p)
-	return L / 100.0 * float(data.get("hours_per_100px", 2.5))
+	# в непогоду идти дольше
+	return L / 100.0 * float(data.get("hours_per_100px", 2.5)) * Weather.travel_mult()
 
 
 # ---------------- реки и переправы ----------------
@@ -367,6 +426,7 @@ func open(from_id: String) -> void:
 	_trail.clear()
 	sel = at if at != "" else ""
 	_save_pos()
+	_build_fog()
 	_reveal_near()
 	zoom = ZOOM_START  # каждый раз открывается приближенной, вокруг героя
 	visible = true
@@ -438,6 +498,10 @@ func _process(delta: float) -> void:
 		if pos.distance_to(goal) < 0.5 and _route.size() > 1:
 			_route.pop_front()
 		Clock.advance(step / 100.0 * float(data.get("hours_per_100px", 2.5)))
+		# через места взрывов — доза
+		var bk := blast_k(pos)
+		if bk > 0.0:
+			Rad.add(step * 0.25 * bk)
 		if _trail.is_empty() or (_trail[-1] as Vector2).distance_to(pos) > 9.0:
 			_trail.append(pos)
 			if _trail.size() > 300:
@@ -478,12 +542,43 @@ func _arrive() -> void:
 
 
 func _reveal_near() -> void:
+	explore(pos)
 	for id in nodes():
 		var n: Dictionary = nodes()[id]
-		if not known(id) and pos.distance_to(node_pos(id)) < float(n.get("radius", REVEAL_R)):
+		var r := float(n.get("radius", REVEAL_R))
+		# спрятанное (пост связи) без подсказки видно только вплотную, с ней — издалека
+		if n.has("need_item"):
+			var has: bool = Game.item_count(str(n.need_item)) > 0 or Game.hero.get("cassettes", []).has(str(n.need_item))
+			r = r * 4.0 if has else r * 0.5
+		if not known(id) and pos.distance_to(node_pos(id)) < r:
 			reveal(id)
+			Game.log_line("Ты заметил вдали: %s — %s." % [str(n.get("name", id)), _dir_word(node_pos(id) - pos)], "", "hit")
 			sel = id
 			_refresh()
+
+
+## В какую сторону света (на карте север — вверх)
+func _dir_word(v: Vector2) -> String:
+	if v.length() < 8.0:
+		return "совсем рядом"
+	var names := ["на востоке", "на юго-востоке", "на юге", "на юго-западе", "на западе", "на северо-западе", "на севере", "на северо-востоке"]
+	var a := fposmod(atan2(v.y, v.x), TAU)
+	return names[int(round(a / (TAU / 8.0))) % 8]
+
+
+## Насколько близко к месту взрыва: 1 — в эпицентре, 0 — далеко
+func blast_k(p: Vector2) -> float:
+	var k := 0.0
+	for b in data.get("blasts", []):
+		var bp := Vector2(float(b.pos[0]), float(b.pos[1]))
+		k = maxf(k, clampf(1.0 - p.distance_to(bp) / (float(b.r) * 1.5), 0.0, 1.0))
+	return k
+
+
+## Почему сюда не войти (город следующих актов, сгоревшая деревня)
+func _locked_note(id: String) -> void:
+	var n: Dictionary = nodes().get(id, {})
+	main.hud.flash_tip(str(n.get("locked", "Сюда пока не попасть.")))
 
 
 ## Войти в точку: локация или экран конца сборки
@@ -665,6 +760,7 @@ func on_action(a: String) -> void:
 
 func start_encounter(id: String, mode := "fight") -> void:
 	Game.hero.flags["enc_mode"] = mode
+	Game.hero.flags["enc_rad"] = snappedf(3.0 * blast_k(pos), 0.1)
 	Game.hero.flags["enc_biome"] = biome_at(pos)
 	_entering = true
 	moving = false
@@ -752,6 +848,9 @@ func _smooth(raw: Array) -> PackedVector2Array:
 
 func _draw_map() -> void:
 	var c := _canvas
+	# туман войны: серая пелена там, где герой ещё не был
+	if _fog_tex:
+		c.draw_texture_rect(_fog_tex, Rect2(Vector2.ZERO, c.size), false)
 	# тропы (пунктир) и старые дороги (сплошная, светлее)
 	for pth in paths():
 		var pts := _smooth(pth.pts)
@@ -781,6 +880,9 @@ func _draw_map() -> void:
 		var p := _to_px(node_pos(id))
 		var open_ := can_go(id)
 		var col := UITheme.AMBER if open_ else Color("c9b48a")
+		if not explored(node_pos(id)):
+			# слышал о месте, но сам не был — пометка в темноте
+			col = Color(col, 0.55)
 		if n.get("burned", false):
 			col = UITheme.RED
 			c.draw_line(p + Vector2(-7, -7), p + Vector2(7, 7), col, 3.0)
@@ -839,13 +941,20 @@ func _on_canvas_input(e: InputEvent) -> void:
 		return
 	var id := _node_at(e.position)
 	if id != "":
-		if e.double_click or (id == sel and id == at):
-			if id == at and pos.distance_to(node_pos(id)) < NEAR:
+		# клик по месту — туда, даже если уже шёл в другую сторону; рядом — войти
+		if pos.distance_to(node_pos(id)) < NEAR:
+			if can_go(id):
 				enter(id)
 			else:
-				go_node(id)
+				select(id)
+				_locked_note(id)
+		elif can_go(id):
+			go_node(id)
 		else:
 			select(id)
+			sel = id
+			_enter_on_arrive = ""
+			_go_to(node_pos(id))
 		return
 	# пустое место — идти туда
 	sel = ""

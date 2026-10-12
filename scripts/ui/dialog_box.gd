@@ -74,11 +74,24 @@ func setup() -> void:
 	visible = false
 
 
+var _dlg_id := ""
+
+
 func open(dialog_id: String, start_node: String, who: Character) -> void:
+	_dlg_id = dialog_id
 	data = DB.dialog(dialog_id)
 	if data.is_empty():
 		push_warning("Диалог не найден: " + dialog_id)
 		return
+	speaker = who
+	visible = true
+	show_node(start_node if start_node != "" else "start")
+
+
+## Разговор, собранный на лету (переговоры, болтовня, подарки) — тот же формат, что в data/dialogs
+func open_data(d: Dictionary, start_node: String, who: Character) -> void:
+	_dlg_id = "gen"
+	data = d
 	speaker = who
 	visible = true
 	show_node(start_node if start_node != "" else "start")
@@ -161,6 +174,9 @@ func _build_options(opts: Array) -> void:
 		# ответить на старом языке может только тот, кто его понимает
 		if o.has("sakha") and not Game.knows_sakha():
 			continue
+		# проверка — одна попытка: провалил, и этот путь закрыт
+		if o.has("check") and _check_done(o) == "fail":
+			continue
 		_visible_opts.append(o)
 	if _visible_opts.is_empty():
 		_visible_opts.append({"text": "[Дальше]", "next": null})
@@ -170,6 +186,8 @@ func _build_options(opts: Array) -> void:
 		var ot := _subst(o.get("text", "…"))
 		if o.has("sakha"):
 			ot = "[Саха] «%s» (%s)" % [o.sakha, ot]
+		if o.has("check"):
+			ot = _with_chance(ot, o.check)
 		b.text = "%d. %s" % [i + 1, ot]
 		b.alignment = HORIZONTAL_ALIGNMENT_LEFT
 		b.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -212,6 +230,10 @@ func _choose(i: int) -> void:
 		if c.get("bonus_gun", 0) and DB.is_gun(Game.hero_wkey()):
 			bonus += int(c.bonus_gun)
 		var ok := Game.skill_check(c.get("label", c.get("skill", "")), c.get("stat", "CHA"), c.get("skill", ""), int(c.get("dc", 12)), bonus)
+		# уже удалось раньше — второй раз не бросаем
+		if _check_done(o) == "ok":
+			ok = true
+		_checks()[_check_key(o)] = "ok" if ok else "fail"
 		nxt = o.get("success") if ok else o.get("fail")
 		if ok and o.has("xp_success"):
 			var note := Game.grant_xp(int(o.xp_success))
@@ -224,6 +246,37 @@ func _choose(i: int) -> void:
 		close()
 	else:
 		show_node(str(nxt))
+
+
+# ---------- проверки: одна попытка, шанс в процентах ----------
+func _checks() -> Dictionary:
+	if not Game.world.has("_checks"):
+		Game.world["_checks"] = {}
+	return Game.world["_checks"]
+
+
+func _check_key(o: Dictionary) -> String:
+	var who := speaker.uid() if speaker else ""
+	var lid: String = Game.hero.get("location", "")
+	return "%s|%s|%s|%s|%s" % [lid, who, _dlg_id, node_id, str(o.get("text", "")).left(40)]
+
+
+func _check_done(o: Dictionary) -> String:
+	return str(_checks().get(_check_key(o), ""))
+
+
+## «[Убеждение] Текст» → «[Убеждение 65%] Текст»; без метки — метка спереди
+func _with_chance(t: String, c: Dictionary) -> String:
+	var bonus := int(c.get("bonus", 0))
+	if c.get("bonus_gun", 0) and DB.is_gun(Game.hero_wkey()):
+		bonus += int(c.bonus_gun)
+	var pct := Game.check_chance(c.get("stat", "CHA"), c.get("skill", ""), int(c.get("dc", 12)), bonus)
+	var lbl := Rules.norm_skill(str(c.get("label", c.get("skill", "Проверка"))))
+	var b := t.find("[")
+	var e := t.find("]")
+	if b >= 0 and e > b and b < 6:
+		return t.substr(0, e) + " %d%%" % pct + t.substr(e)
+	return "[%s %d%%] %s" % [lbl, pct, t]
 
 
 func _apply_effects(o: Dictionary) -> void:

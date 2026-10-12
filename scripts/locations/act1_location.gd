@@ -22,6 +22,23 @@ func _on_hero_changed() -> void:
 	pass
 
 
+## Что валяется по месту: [id, мин, макс]. Большие открытые места — посёлки, лагерь,
+## заимка, руины, встречи в пути; дома и подвалы (маленькие) — без разброса.
+func scatter_table() -> Array:
+	if map_rect.get_area() < 1500.0:
+		return []
+	var common := [["rusks", 1, 2], ["dried_fish", 1, 1], ["canned", 1, 1], ["matches", 1, 1], ["bandage", 1, 1],
+		["scrap_iron", 1, 2], ["rope", 1, 1], ["firewood", 1, 2], ["candle", 1, 1]]
+	if location_id.begins_with("sungar"):
+		return common + [["rubles", 2, 6], ["ammo9", 2, 5], ["copper_wire", 1, 2], ["tea", 1, 1], ["beer", 1, 1],
+			["t_coin", 1, 1], ["t_button", 1, 1], ["t_postcard", 1, 1], ["salt", 1, 1], ["antirad", 1, 1]]
+	if location_id == "encounter":
+		return common + [["ammo762", 2, 4], ["ammo9", 2, 4], ["herbs", 1, 2], ["mushroom", 1, 2], ["berries", 1, 2],
+			["t_badge", 1, 1], ["t_lighter", 1, 1], ["flask", 1, 1], ["rubles", 1, 4], ["antirad", 1, 1], ["bone_charm", 1, 1]]
+	return common + [["herbs", 1, 2], ["mushroom", 1, 2], ["berries", 1, 2], ["ammo762", 1, 3], ["t_beads", 1, 1],
+		["t_whistle", 1, 1], ["salt", 1, 1], ["rubles", 1, 3]]
+
+
 func status_line() -> String:
 	return "2062 · конец лета · за чертой"
 

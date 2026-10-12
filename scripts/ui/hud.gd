@@ -8,6 +8,8 @@ signal zone_chosen(zone: String)
 var main: Node
 var _log: RichTextLabel
 var _status: Label
+## Радиация: доза, фон, стадия (заполняет Rad)
+var _rad: Label
 var _name_lbl: Label
 var _hp_bar: ProgressBar
 var _hp_lbl: Label
@@ -229,6 +231,9 @@ func _build() -> void:
 	_status = UITheme.label("", 12, UITheme.GREEN_HI)
 	_status.clip_text = true
 	lv.add_child(_status)
+	_rad = UITheme.label("", 12, UITheme.AMBER)
+	_rad.visible = false
+	lv.add_child(_rad)
 	_log = RichTextLabel.new()
 	_log.bbcode_enabled = true
 	_log.scroll_following = true

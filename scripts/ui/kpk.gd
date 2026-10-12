@@ -239,6 +239,8 @@ func _render_inv() -> void:
 				label = "Снять" if Game.worn().has(_sel) else "Надеть"
 			"measure":
 				label = "Включить"
+			"antirad":
+				label = "Выпить"
 			"orient":
 				label = "Свериться"
 		if label != "":

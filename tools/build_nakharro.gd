@@ -605,7 +605,7 @@ func _items() -> void:
 			["Izba12", "chest", "dried_fish"], ["Izba13", "stove", "matches"], ["Izba15", "bed", "blanket"],
 			["Hall", "table", "bandage"], ["Hall", "table2", "rusks"], ["Hall", "chest", "canned"],
 			["Barn", "sacks", "rusks"], ["Barn", "chest", "canned"], ["Barn", "floor", "herbs"],
-			["Izba7", "bed", "hairpin"], ["Izba12", "table", "hairpin"]]:
+			["Izba7", "bed", "hairpin"], ["Izba12", "table", "hairpin"], ["Izba9", "chest", "screwdriver"]]:
 		var house: Node3D = root.get_node("Village/" + it[0])
 		var slot: Node3D = house.get_node("Slot_" + it[1])
 		var pos: Vector3 = house.transform * slot.position

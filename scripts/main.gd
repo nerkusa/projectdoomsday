@@ -41,6 +41,7 @@ var overlay: HexOverlay
 var ui: CanvasLayer
 var hud: HUD
 var dialog: DialogBox
+var social: Social
 var kpk: KPK
 var sheet: CharSheet
 var loot_win: LootWindow
@@ -53,6 +54,9 @@ var _act_list: Array = []
 var menu: GameMenu
 var slides: GameMenu.Slides
 var attack_mode := false
+## Катсцена: герой стоит и смотрит, клики не принимаются; камера — на cam_focus
+var cutscene := false
+var cam_focus = null
 ## Герой пристёгивает компьютер к браслету (3D-анимация на персонаже)
 var plugging := false
 ## Герой сидит в укрытии (кусты): враги не замечают его сами
@@ -130,6 +134,11 @@ func _build_ui() -> void:
 	dialog.setup()
 	dialog.action.connect(_on_dialog_action)
 	dialog.closed.connect(_on_dialog_closed)
+	social = Social.new()
+	add_child(social)
+	social.setup(self)
+	Weather.setup(self)
+	Rad.setup(self)
 	kpk = KPK.new()
 	root.add_child(kpk)
 	kpk.setup(self)
@@ -327,9 +336,12 @@ func load_location(id: String, spawn := "Start", pos = null) -> void:
 	hud.refresh()
 	hud.refresh_objective()
 	location.on_enter()
+	Weather.attach(location)
 	# жители — по расписанию, свет — по времени суток
 	Clock.update_schedules(true)
 	Clock.apply_light(location)
+	# после резни: ещё раз, поверх того, что место расставило само
+	social.apply_hostile(location)
 
 
 func autosave() -> void:
@@ -361,7 +373,7 @@ func show_end(mode := "end_prologue") -> void:
 func status_text() -> String:
 	if location == null:
 		return ""
-	return "%s · %s · %s" % [location.title, location.status_line() if location.has_method("status_line") else "", Clock.text().to_lower()]
+	return "%s · %s · %s · %s" % [location.title, location.status_line() if location.has_method("status_line") else "", Clock.text().to_lower(), Weather.title()]
 
 
 func objective_text() -> String:
@@ -467,16 +479,19 @@ func use_item(id: String) -> void:
 			Game.hero.flags["worn"] = w
 			Game.hero_changed.emit()
 			return
+		"antirad":
+			if Game.remove_item(id):
+				Rad.add(-200.0)
+				Game.log_line("Антирадин: горько, тошнит — но легчает. Доза: %d рад." % int(Rad.level()), "", "hit")
+			kpk.close()
+			return
 		"measure":
-			var lvl := 1
-			if location and location.location_id == "encounter":
-				lvl = {"dead": 4, "swamp": 2}.get(location.get("biome"), 1)
-			elif location and location.location_id in ["ruin", "ruin_bunker"]:
-				lvl = 3
+			var ex := Rad.exposure()
+			var lvl := 1 if ex <= 0.0 else (2 if ex < 1.0 else (3 if ex < 2.5 else 4))
 			var txt: String = ["", "Щелчки редкие, ленивые. Фон обычный.", "Щёлкает почаще. Воду отсюда лучше не пить.",
 				"Трещит! Тут что-то довоенное и «светится». Долго не стоять.", "Треск сплошной, стрелка в красном. Уходить. Сейчас."][lvl]
 			kpk.close()
-			think("Дозиметр: " + txt)
+			think("Дозиметр: " + txt + (" Набрано: %d рад." % int(Rad.level()) if Rad.level() >= 1.0 else ""))
 			return
 		"orient":
 			kpk.close()
@@ -532,6 +547,8 @@ func _move_speed(pts: Array) -> float:
 
 
 func _sneak_radius(base: float) -> float:
+	# в дождь, бурю и пепел видно хуже
+	base *= Weather.vis_mult()
 	if not Game.hero.get("sneak", false):
 		return base
 	var v := Game.hero_stat("REF") + int(Game.hero.skills.get("Скрытность", 0))
@@ -606,6 +623,10 @@ func talk_to(ch: Character, node := "") -> void:
 		ch.bark(["Хр-р…", "(Спит.)", "Мм… утром… утром приходи…"][randi() % 3])
 		Game.log_line("%s спит. Утром — поговорить." % ch.display_name, "", "look")
 		return
+	# после резни с героем никто не разговаривает
+	if location.ws().misc.get("hostile", false) and Social.talks(ch):
+		ch.bark(social.ambient_line(ch))
+		return
 	if is_filler(ch):
 		filler_bark(ch)
 		return
@@ -632,6 +653,8 @@ func say(dialog_id: String, node := "start", who: Character = null) -> void:
 
 
 func _on_dialog_action(a: String, sp: Character) -> void:
+	if social.on_action(a, sp):
+		return
 	if location and location.on_dialog_action(a, sp):
 		return
 	# встречи в пути (road.json)
@@ -681,6 +704,12 @@ func _on_dialog_closed() -> void:
 
 func start_fight(chars: Array, opts := {}) -> void:
 	var all := []
+	# герой первым напал на мирного — поднимается всё поселение
+	var peaceful := []
+	if opts.get("hero_attack", false):
+		for c in chars:
+			if not c.hostile:
+				peaceful.append(c)
 	for c in chars:
 		if not all.has(c):
 			all.append(c)
@@ -688,6 +717,8 @@ func start_fight(chars: Array, opts := {}) -> void:
 			for o in location.characters():
 				if o.squad == c.squad and not all.has(o) and o.pose != "dead" and o.visible:
 					all.append(o)
+	for c in peaceful:
+		social.provoke(c, all)
 	combat.start(all, opts)
 
 
@@ -702,6 +733,8 @@ func _unhandled_input(e: InputEvent) -> void:
 			MOUSE_BUTTON_WHEEL_DOWN:
 				zoom = clampf(zoom * 1.1, 7.0, 32.0)
 			MOUSE_BUTTON_LEFT:
+				if cutscene:
+					return
 				if not hud.mouse_over_ui():
 					_click(e.position)
 			MOUSE_BUTTON_RIGHT:
@@ -754,6 +787,20 @@ func _unhandled_input(e: InputEvent) -> void:
 ## Подождать: час, или (until_morning) до восьми утра. Нельзя в бою и когда рядом враги
 func wait_time(until_morning := false) -> void:
 	await wait_hours(Clock.until(8.0) if until_morning else 1.0, "до утра" if until_morning else "час")
+
+
+## Начать и закончить катсцену: герой замирает и смотрит на точку
+func begin_cutscene(focus: Vector3) -> void:
+	cutscene = true
+	cam_focus = focus
+	player.stop()
+	player.face_towards(focus)
+	_pending = {}
+
+
+func end_cutscene() -> void:
+	cutscene = false
+	cam_focus = null
 
 
 func _enemies_near() -> bool:
@@ -837,7 +884,9 @@ func _click(sp: Vector2) -> void:
 			return
 		if attack_mode or ch.hostile:
 			attack_mode = false
-			start_fight([ch], {"ambush": Game.hero.get("sneak", false)})
+			if not ch.hostile and not _may_attack(ch):
+				return
+			start_fight([ch], {"ambush": Game.hero.get("sneak", false), "hero_attack": true})
 			return
 		if ch.dialog != "":
 			_go_then(ch, "talk")
@@ -849,7 +898,39 @@ func _click(sp: Vector2) -> void:
 		_go_then(it, "use")
 		return
 	if p.has("hex"):
+		# клик у самого края — уйти с локации на карту мира (если отсюда вообще можно уйти)
+		var gp = p.get("ground", null)
+		if gp != null and _near_edge(gp) and _can_leave():
+			var lim: Rect2 = location.map_rect.grow(-1.5)
+			var to := Vector3(clampf(gp.x, lim.position.x, lim.end.x), 0, clampf(gp.z, lim.position.y, lim.end.y))
+			_walk_to_hex(location.grid.from_world(to), func(): world_map.open(location.location_id), to)
+			return
 		_walk_to_hex(p.hex, Callable(), p.get("ground", null))
+
+
+## Напасть на мирного можно почти везде; в родной деревне до налёта — рука не поднимается
+func _may_attack(ch: Character) -> bool:
+	if location.location_id == "nakharro":
+		hud.flash_tip("На своих рука не поднимается")
+		return false
+	if not Social.talks(ch) and not ch.hostile:
+		return true
+	return true
+
+
+## Точка у края карты (2,5 м)
+func _near_edge(gp: Vector3) -> bool:
+	return not location.map_rect.grow(-2.5).has_point(Vector2(gp.x, gp.z))
+
+
+## С локации можно уйти на карту мира, если в ней есть открытый выход
+func _can_leave() -> bool:
+	if not location.has_method("item_actions"):
+		return false
+	for it in location.items():
+		if String(it.name).ends_with("Exit") and it.visible:
+			return true
+	return false
 
 
 ## Вне боя герой ходит свободно: гексы нужны только чтобы найти обход препятствий,
@@ -974,6 +1055,10 @@ func _do_pending(target: Node3D, what: String) -> void:
 			examine(target)
 		"steal":
 			pickpocket(target as Character)
+		"chat":
+			social.chat(target as Character)
+		"gift":
+			social.gift(target as Character)
 		_:
 			# действие с вариантом: «use:key», «use:pick» — место само решает, что делать
 			if what.begins_with("use:") and target is Interactable:
@@ -1137,6 +1222,13 @@ func _open_actions(sp: Vector2) -> bool:
 				_act_list.append(["Говорить", ch, "talk"])
 			if not ch.is_in_group("range_targets"):
 				_act_list.append(["Обокрасть", ch, "steal"])
+				if social.can_chat(ch):
+					if not social.chatted_today(ch) or social.affinity(ch) >= Social.FRIEND:
+						_act_list.append(["Поболтать", ch, "chat"])
+					if not social.gifts_on_hand().is_empty():
+						_act_list.append(["Подарить…", ch, "gift"])
+				if Social.talks(ch):
+					_act_list.append(["Напасть", ch, "attack"])
 	else:
 		var it := target as Interactable
 		var acts: Array = location.item_actions(it) if location.has_method("item_actions") else []
@@ -1163,7 +1255,9 @@ func _on_action_picked(id: int) -> void:
 		return
 	match a[2]:
 		"attack":
-			start_fight([target], {"ambush": Game.hero.get("sneak", false)})
+			if not (target as Character).hostile and not _may_attack(target as Character):
+				return
+			start_fight([target], {"ambush": Game.hero.get("sneak", false), "hero_attack": true})
 		"look":
 			examine(target)
 		_:
@@ -1176,6 +1270,8 @@ func _process(delta: float) -> void:
 		return
 	# камера
 	var tgt := player.global_position
+	if cutscene and cam_focus != null:
+		tgt = cam_focus
 	cam_target = cam_target.lerp(tgt, minf(1.0, delta * 5.0))
 	camera.size = lerpf(camera.size, zoom, minf(1.0, delta * 8.0))
 	camera.global_position = cam_target + CAM_DIR.normalized() * CAM_DIST
@@ -1206,9 +1302,14 @@ func _process(delta: float) -> void:
 					t += " · атаковать"
 				elif ch.dialog != "":
 					t += " · поговорить"
+				if ch.pose != "dead" and not ch.hostile:
+					t += social.tier_text(ch)
 				hud.show_tip(t)
 			elif it:
 				hud.show_tip(it.title())
+			elif p.get("ground", null) != null and _near_edge(p.ground) and _can_leave():
+				hud.show_tip("Край · уйти (карта мира)")
+				_hover = location
 			elif _hover != null:
 				hud.hide_tip()
 			_hover = ch if ch else it
@@ -1318,7 +1419,11 @@ func _check_aggro() -> void:
 			if location.has_method("on_noticed") and location.on_noticed(ch):
 				return
 			Game.log_line("%s замечает тебя!" % ch.display_name, "", "miss")
-			start_fight([ch])
+			# с людьми можно попробовать договориться до выстрелов
+			if social.can_parley(ch):
+				social.parley(ch)
+			else:
+				start_fight([ch])
 			return
 
 

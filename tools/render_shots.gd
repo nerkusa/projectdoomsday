@@ -2,7 +2,7 @@ extends Node
 ## Скриншоты для проверки (нужен рендер, не --headless):
 ##   xvfb-run -a -s "-screen 0 1600x900x24" $G --rendering-driver opengl3 --resolution 1600x900 --path . \
 ##     res://tools/render_shots.tscn -- "кадр;кадр;…" /путь/префикс     → префикс_0.png, _1.png…
-## Кадр: loc|x|z|zoom|час|флаги — флаги через запятую, «квест=этап» ставит этап.
+## Кадр: loc|x|z|zoom|час|флаги — флаги через запятую, «квест=этап» ставит этап, «weather=rain» — погоду.
 ##       encounter|x|z|zoom|час|enc_id|ориентиры(plane,heli,…)
 ##       MAP — карта мира с тропами (MAP|all — все места);  WAIT|часов|через_сколько_сек — экран ожидания.
 var main: Node
@@ -26,10 +26,22 @@ func _ready() -> void:
 			var ids: Array = ["kresty", "camp", "zaimka", "convoy", "ruin"]
 			if p.size() > 1 and p[1] == "all":
 				ids = main.world_map.nodes().keys()
+			if p.size() > 1 and p[1] == "fresh":
+				# начало игры: туман, известны только Нахарро и Кресты; пройдена дорога от Нахарро
+				ids = []
+				Game.world.erase("_fog")
+				var wm0: WorldMap = main.world_map
+				var a: Vector2 = wm0.node_pos("nakharro")
+				var b: Vector2 = wm0.node_pos("kresty")
+				main.world_map.open("nakharro")
+				for k in 12:
+					wm0.explore(a.lerp(b, k / 22.0))
+				main.world_map._build_fog()
 			for id in ids:
 				WorldMap.reveal(id)
 			Game.set_flag("visited_kresty")
-			main.world_map.open("kresty")
+			if p.size() <= 1 or p[1] != "fresh":
+				main.world_map.open("kresty")
 			if p.size() > 2:
 				main.world_map.set_zoom(float(p[2]))
 			for k in 40:
@@ -56,7 +68,12 @@ func _ready() -> void:
 			Game.world.erase("encounter")
 		elif p.size() > 5 and p[5] != "":
 			for f in str(p[5]).split(","):
-				if f.contains("="):
+				if f.begins_with("rad="):
+					Game.hero["rad"] = float(f.trim_prefix("rad="))
+				elif f.begins_with("weather="):
+					Weather.frozen = true
+					Weather.set_kind(f.trim_prefix("weather="), 999.0)
+				elif f.contains("="):
 					var kv: PackedStringArray = f.split("=")
 					Game.set_quest(kv[0], int(kv[1]))
 				else:

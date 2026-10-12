@@ -264,20 +264,28 @@ func wstate(loc: String) -> Dictionary:
 var force_check := 0
 
 
+## Шанс проверки в процентах: характеристика + навык против сложности.
+## Каждое очко сверх сложности — +10%; всегда остаётся 5% на провал и 5% на удачу.
+func check_chance(stat: String, skill: String, dc: int, bonus := 0) -> int:
+	var sv := int(hero_stat(Rules.norm_stat(stat)))
+	var kv := int(effective_skills().get(Rules.norm_skill(skill), 0))
+	return clampi(10 * (11 - dc + sv + kv + bonus), 5, 95)
+
+
 func skill_check(label: String, stat: String, skill: String, dc: int, bonus := 0) -> bool:
 	stat = Rules.norm_stat(stat)
 	skill = Rules.norm_skill(skill)
 	label = Rules.norm_skill(label)
-	var r := Rules.roll_hit()
 	var sv := int(hero_stat(stat))
 	var kv := int(effective_skills().get(skill, 0))
-	var t: int = r.d + sv + kv + bonus
-	var ok: bool = t >= dc and not r.fumble
+	var chance := check_chance(stat, skill, dc, bonus)
+	var roll := randi_range(1, 100)
+	var ok: bool = roll <= chance
 	if force_check != 0:
 		ok = force_check > 0
 	log_line("[%s] %s" % [label, "успех" if ok else "провал"],
-		"d10(%d) + %s(%d) + %s(%d)%s = %d против %d" % [r.d, Rules.stat_name(stat), sv, skill, kv,
-		(" + бонус(%d)" % bonus) if bonus else "", t, dc], "hit" if ok else "miss")
+		"%s(%d) + %s(%d)%s против %d: шанс %d%%, выпало %d" % [Rules.stat_name(stat), sv, skill, kv,
+		(" + бонус(%d)" % bonus) if bonus else "", dc, chance, roll], "hit" if ok else "miss")
 	return ok
 
 

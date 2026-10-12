@@ -18,7 +18,7 @@ const FOREST_EDGE_Z := 26.0
 ## Где стоит дед во время налёта и откуда видна казнь
 const BARN_SCENE_R := 20.0
 ## С какого расстояния часовой у северных ворот замечает героя и зовёт на помощь
-const GATE_SCENE_R := 5.5
+const GATE_SCENE_R := 8.5
 
 var _kpk_busy := false
 var _volley_t := 2.0
@@ -114,9 +114,13 @@ func _apply_phase() -> void:
 		_set_on(n, not raid)
 	for n in get_tree().get_nodes_in_group("phase_raid"):
 		_set_on(n, raid)
-	# во время налёта все настороже — смотрят по сторонам, обзор круговой
+	# во время налёта все настороже — обзор шире обычного, но спиной не видят
 	for ch in characters():
-		ch.fov_deg = 360.0 if raid else 0.0
+		ch.fov_deg = 160.0 if raid else 0.0
+	# раненый у черты ждёт, привалившись к столбу, и озирается — к нему не подкрасться со спины
+	var eg := character("ExitRaider")
+	if eg and raid:
+		eg.fov_deg = 360.0
 	_apply_light()
 	_apply_fence()
 	# лесные жители, ушедшие домой к вечеру
@@ -379,6 +383,9 @@ func on_hero_moved(pos: Vector3) -> void:
 			if _alive_cleaner() == null:
 				_barn_t = -1.0
 				_ded_falls()
+			elif not Game.hero.get("sneak", false):
+				# бежал не таясь — нападавшие слышат топот и оборачиваются
+				_cleaners_hear()
 
 
 func can_pick(it: Interactable) -> bool:
@@ -501,7 +508,15 @@ func _start_ambush() -> void:
 	Game.set_flag("ambush_on")
 	Game.set_quest("forest", 2)
 	_prowl = "intro"
-	await get_tree().create_timer(1.0, false).timeout
+	main.player.stop()
+	# затемнение: прошло несколько часов, в темноте — выстрелы со стороны деревни
+	await main.wait_scr.blackout("Прошло несколько часов…", 1.6, func():
+		var hd := fmod(Clock.hours(), 24.0)
+		if hd < 21.0:
+			Clock.set_hours(Clock.hours() - hd + 21.5)
+		main.sfx("shot_far_2", -12.0)
+		get_tree().create_timer(0.6, false).timeout.connect(func(): main.sfx("shot_far_3", -10.0))
+		get_tree().create_timer(1.1, false).timeout.connect(func(): main.sfx("scream_far", -14.0)))
 	Game.set_flag("phase", "raid")
 	_apply_phase()
 	main.player.stop()
@@ -656,8 +671,9 @@ func _gate_enemies_left() -> bool:
 func _gate_scene() -> void:
 	Game.set_flag("gate_started")
 	Game.set_flag("gate_scene_running")
-	main.player.stop()
 	var gg := character("GateGuard")
+	# катсцена: герой замирает и видит, как убивают часового и пленных
+	main.begin_cutscene((gg.global_position + main.player.global_position) / 2.0)
 	var gr := character("GateRaider")
 	var ex := character("Executioner")
 	# часовой уже отстреливается — прибежал на помощь; кричит герою, не опуская винтовки
@@ -692,6 +708,7 @@ func _gate_scene() -> void:
 	main.say("thoughts", "execution_after")
 	await get_tree().create_timer(1.0, false).timeout
 	Game.set_flag("gate_scene_running", false)
+	main.end_cutscene()
 	for e in [ex, gr]:
 		if e and e.pose != "dead":
 			e.hostile = true
@@ -1176,6 +1193,17 @@ func _fighting_squad(sq: String) -> bool:
 	return false
 
 
+func _cleaners_hear() -> void:
+	await get_tree().create_timer(0.8, false).timeout
+	if main.combat.on or Game.flag("ded_shot") or Game.hero.get("sneak", false):
+		return
+	var c := _alive_cleaner()
+	if c:
+		c.face_towards(main.player.global_position)
+		Game.log_line("%s слышит тебя и оборачивается!" % c.display_name, "", "miss")
+		main.start_fight([c])
+
+
 func _alive_cleaner() -> Character:
 	for ch in characters():
 		if ch.squad == "cleaners" and ch.visible and ch.pose != "dead" and (ch.fighter == null or ch.fighter.active()):
@@ -1321,7 +1349,10 @@ func item_actions(it: Interactable) -> Array:
 	if n == "LockedBox":
 		if Game.flag("box_open"):
 			return [["Открыть", "use"]]
-		return [["Открыть ключом", "use:key"], ["Взломать (отвёртка + шпилька)", "use:pick"]]
+		var pct := Game.check_chance("REF", "Воровство", 11, 2)
+		var tools := Game.item_count("screwdriver") > 0 and Game.item_count("hairpin") > 0
+		return [["Открыть ключом" + ("" if Game.item_count("chest_key") > 0 else " (ключа нет)"), "use:key"],
+			["Взломать: %d%%%s" % [pct, "" if tools else " (нужны отвёртка и шпилька)"], "use:pick"]]
 	if n.begins_with("HideBush"):
 		return [["Спрятаться", "use"]]
 	if n == "FenceMend":

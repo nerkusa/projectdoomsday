@@ -138,6 +138,9 @@ func _build() -> void:
 		"dead":
 			_scatter_props(["dead_tree"], 70, 8, 40, 1.4, 0.8, 1.4)
 			_scatter_props(["stump", "stump", "log_fallen", "rock", "rock_big"], 30, 4, 40, 1.3)
+	# выжженная земля
+	var nb: int = {"dead": rng.randi_range(3, 5), "field": rng.randi_range(0, 2), "forest": rng.randi_range(0, 2), "swamp": 0}[biome]
+	_burns(nb)
 	# трава и мелочь
 	var tufts := []
 	var nt: int = {"field": 1100, "forest": 350, "swamp": 300, "dead": 160}[biome]
@@ -179,14 +182,19 @@ func _landmarks(t0: Vector2, t1: Vector2) -> void:
 	var n := 0
 	if rng.randf() < 0.85:
 		n = 1 if rng.randf() < 0.65 else 2
-	var kinds := ["plane", "heli", "vehicle", "ruin", "vehicle", "ruin", "tower", "wagon", "balagan", "camp", "serge"]
+	var kinds := ["plane", "heli", "vehicle", "khoton", "vehicle", "alas", "tower", "wagon", "balagan", "camp", "serge", "checkpoint",
+		"farm", "turbine", "bones", "khoton", "ruin"]
 	match biome:
 		"swamp":
-			kinds = ["plane", "heli", "vehicle", "ruin", "balagan", "camp"]
+			kinds = ["plane", "heli", "vehicle", "khoton", "balagan", "camp", "farm", "alas", "bones"]
 		"field":
-			kinds = ["plane", "heli", "vehicle", "ruin", "vehicle", "tower", "wagon", "serge", "camp"]
+			kinds = ["plane", "heli", "vehicle", "khoton", "vehicle", "tower", "wagon", "serge", "camp", "checkpoint", "farm", "turbine",
+				"alas", "alas", "bones"]
 		"dead":
-			kinds = ["plane", "heli", "ruin", "tower", "wagon", "camp", "serge"]
+			kinds = ["plane", "heli", "ruin", "tower", "wagon", "camp", "serge", "checkpoint", "turbine", "bones", "bones", "khoton"]
+	# чаще — несколько ориентиров: мир не пустой
+	if n > 0 and rng.randf() < 0.45:
+		n += 1
 	# автотест может заказать, что поставить: Game.hero.flags["enc_force_landmarks"]
 	var forced: Array = Game.hero.flags.get("enc_force_landmarks", [])
 	if not forced.is_empty():
@@ -195,7 +203,7 @@ func _landmarks(t0: Vector2, t1: Vector2) -> void:
 	for i in n:
 		var k: String = forced[i] if not forced.is_empty() else kinds[rng.randi() % kinds.size()]
 		var r: float = {"plane": 7.0, "heli": 7.0, "vehicle": 3.6, "ruin": 4.5, "tower": 3.0, "wagon": 4.8, "balagan": 3.6,
-			"camp": 3.2, "serge": 2.6}[k]
+			"camp": 3.2, "serge": 2.6, "checkpoint": 5.0, "farm": 6.0, "turbine": 4.0, "khoton": 5.0, "alas": 7.5, "bones": 2.6}[k]
 		for t in 40:
 			var a := rng.randf() * TAU
 			var p := _center + Vector2(cos(a), sin(a)) * rng.randf_range(9.0, 15.0)
@@ -216,12 +224,25 @@ func _landmarks(t0: Vector2, t1: Vector2) -> void:
 						prop = ["mi8_wreck", "vtol_wreck", "drone_wreck"][rng.randi() % 3]
 					var node := _put(prop, p, 1.0)
 					node.name = k.capitalize()
+				"checkpoint", "farm", "turbine":
+					_compound(k, p, rng.randf() * TAU)
+				"khoton":
+					_khoton(p, rng.randf() * TAU)
+				"alas":
+					_alas(p)
+				"bones":
+					_bones(p, rng.randi_range(1, 3))
 				"serge":
 					for j in 4:
 						var a2 := j * TAU / 4.0 + rng.randf_range(-0.2, 0.2)
 						_put("serge", p + Vector2(cos(a2), sin(a2)) * 1.6, rng.randf_range(0.9, 1.15))
 			_wreck_loot(p, k, i)
 			break
+
+
+## Фон: мёртвое пятно светит; рядом с воронкой (с карты мира) — сильнее
+func rad_level() -> float:
+	return (1.2 if biome == "dead" else 0.0) + float(Game.hero.flags.get("enc_rad", 0.0))
 
 
 func _m(n: String) -> Material:
@@ -493,7 +514,9 @@ func _wreck_loot(p: Vector2, kind: String, i: int) -> void:
 	it.name = "Wreck%d" % i
 	it.kind = "use"
 	it.label = {"plane": "Обломки самолёта", "vehicle": "Брошенная машина", "ruin": "Руины", "heli": "Обломки вертолёта",
-		"tower": "Пожарная вышка", "wagon": "Вагон-теплушка", "balagan": "Балаган", "camp": "Брошенная стоянка", "serge": "Круг сэргэ"}[kind]
+		"tower": "Пожарная вышка", "wagon": "Вагон-теплушка", "balagan": "Балаган", "camp": "Брошенная стоянка", "serge": "Круг сэргэ",
+		"checkpoint": "Брошенный блокпост", "farm": "Брошенный хутор", "turbine": "Ветряк", "khoton": "Хотон",
+		"alas": "Алас", "bones": "Кости"}[kind]
 	it.pick_size = Vector3(3.0, 1.6, 3.0)
 	it.reach = 2
 	it.position = Vector3(p.x, 0, p.y)
@@ -737,13 +760,19 @@ func leave_hide() -> void:
 
 const WRECK_LOOT := {
 	"plane": [["ammo9", 4], ["medkit", 1], ["rope", 1], ["t_badge", 1], ["canned", 2], ["t_postcard", 1], ["bandage", 2], ["scrap_iron", 1]],
-	"heli": [["medkit", 1], ["bandage", 2], ["ammo762", 4], ["canned", 2], ["scrap_iron", 1], ["t_photo", 1], ["flask", 1]],
+	"heli": [["medkit", 1], ["antirad", 1], ["bandage", 2], ["ammo762", 4], ["canned", 2], ["scrap_iron", 1], ["t_photo", 1], ["flask", 1]],
 	"vehicle": [["screwdriver", 1], ["ammo762", 3], ["canned", 1], ["t_lighter", 1], ["matches", 1], ["rope", 1], ["t_coin", 2], ["scrap_iron", 1]],
 	"ruin": [["t_photo", 1], ["t_cross", 1], ["herbs", 1], ["rusks", 1], ["t_coin", 1], ["bandage", 1], ["hairpin", 1]],
 	"tower": [["matches", 1], ["rusks", 1], ["scrap_iron", 1]],
 	"wagon": [["salt", 1], ["canned", 2], ["scrap_iron", 1], ["rope", 1], ["tea", 1]],
 	"balagan": [["fur", 1], ["dried_fish", 2], ["herbs", 1], ["t_elk", 1], ["matches", 1]],
 	"camp": [["canned", 1], ["rusks", 2], ["t_dice", 1], ["flask", 1], ["bandage", 1]],
+	"checkpoint": [["ammo9", 5], ["ammo762", 4], ["bandage", 2], ["canned", 1], ["t_badge", 1], ["rubles", 6], ["antirad", 1]],
+	"farm": [["salt", 1], ["jam", 1], ["dried_fish", 2], ["herbs", 1], ["t_photo", 1], ["candle", 1], ["rope", 1]],
+	"turbine": [["copper_wire", 2], ["scrap_iron", 2], ["screwdriver", 1], ["matches", 1], ["canned", 1]],
+	"khoton": [["fur", 1], ["salt", 1], ["dried_fish", 1], ["rope", 1], ["t_elk", 1], ["herbs", 1]],
+	"alas": [["berries", 2], ["herbs", 1], ["dried_fish", 1], ["t_ribbon", 1], ["mushroom", 2]],
+	"bones": [["bone_charm", 1], ["t_coin", 1], ["antirad", 1]],
 	"serge": [],
 }
 
@@ -756,7 +785,158 @@ const WRECK_LINES := {
 	"wagon": "В теплушке — нары, печка-буржуйка, мешки из-под соли.",
 	"balagan": "В балагане пахнет старым дымом. Лежанка, камелёк, мешки на крюках.",
 	"camp": "Палатка, кострище, котелок. Рюкзак брошен — хозяин уходил налегке.",
+	"checkpoint": "Будка блокпоста: журнал смен, пустые гильзы, ящик под столом.",
+	"farm": "Хутор брошен в спешке: на столе миски, в сенях — кадушки, под лавкой — узел.",
+	"turbine": "У ветряка — ящики с инструментом, мотки провода, ржавый трактор без колеса.",
+	"khoton": "В хотоне пахнет старым навозом. Ясли, вилы без зубьев, в углу — узел, забытый хозяевами.",
+	"alas": "У воды — кострище и тропа к копнам. В траве что-то блеснуло.",
+	"bones": "Кости обглоданы и выбелены. Рядом — что-то, что осталось от того, кто здесь погиб.",
 }
+
+
+## Хотон — якутский хлев: низкие наклонные стены из жердей, обмазанные глиной,
+## плоская крыша, засыпанная землёй и дёрном; рядом изгородь и навоз
+func _khoton(p: Vector2, rot: float) -> void:
+	var h := _holder(p, rot, "Khoton")
+	var clay := _cm(["6e5a44", "7a6650", "5e4e3c"][rng.randi() % 3], 1.0)
+	var logm := _m("log_weathered")
+	var w := rng.randf_range(4.5, 6.0)
+	var d := rng.randf_range(3.2, 4.2)
+	var hh := 1.9
+	for sx in [-1, 1]:
+		var wall := _bx(h, Vector3(0.25, hh, d), Vector3(sx * (w / 2.0 - 0.25), hh / 2.0, 0), clay, Vector3(0, 0, sx * 0.18))
+		wall.name = "Wall"
+	_bx(h, Vector3(w, hh, 0.25), Vector3(0, hh / 2.0, -d / 2.0 + 0.2), clay, Vector3(-0.15, 0, 0))
+	for sx in [-1, 1]:
+		_bx(h, Vector3(w / 2.0 - 0.6, hh, 0.25), Vector3(sx * (w / 4.0 + 0.3), hh / 2.0, d / 2.0 - 0.2), clay, Vector3(0.15, 0, 0))
+	# жерди торчат из-под обмазки
+	for k in 10:
+		var x := -w / 2.0 + 0.3 + k * (w - 0.6) / 9.0
+		if rng.randf() < 0.5:
+			_cy(h, 0.05, 0.05, hh + 0.3, Vector3(x, hh / 2.0, d / 2.0 - 0.05), logm, Vector3(0.15, 0, 0), 5)
+	# крыша: плаха + дёрн, где-то провалилась
+	_bx(h, Vector3(w + 0.4, 0.18, d + 0.4), Vector3(0, hh + 0.05, 0), logm)
+	_bx(h, Vector3(w + 0.3, 0.25, d + 0.3), Vector3(0, hh + 0.25, 0), _cm("3b3a26", 1.0), Vector3(0, 0, rng.randf_range(-0.04, 0.04)))
+	for k in 14:
+		_put("scatter_tuft" if ResourceLoader.exists("res://scenes/props/scatter_tuft.tscn") else "bush",
+			p + Vector2(rng.randf_range(-w / 2.0, w / 2.0), rng.randf_range(-d / 2.0, d / 2.0)).rotated(-rot), 0.5).position.y = hh + 0.37
+	if rng.randf() < 0.5:
+		_bx(h, Vector3(1.2, 0.3, 1.0), Vector3(rng.randf_range(-1.0, 1.0), hh + 0.2, 0), _cm("1c1a18"))
+	# дверь — тёмный проём; изгородь загона и навоз
+	_bx(h, Vector3(0.9, 1.5, 0.05), Vector3(0, 0.75, d / 2.0 - 0.06), _cm("1e1a14"))
+	for k in 7:
+		var a := -0.9 + k * 0.3
+		var q := Vector3(sin(a) * 4.2, 0.6, d / 2.0 + cos(a) * 2.6)
+		_cy(h, 0.06, 0.07, 1.2, q, logm, Vector3(rng.randf_range(-0.1, 0.1), 0, rng.randf_range(-0.1, 0.1)), 5)
+		if k < 6 and rng.randf() < 0.7:
+			var q2 := Vector3(sin(a + 0.3) * 4.2, 0.85, d / 2.0 + cos(a + 0.3) * 2.6)
+			var mid := (q + q2) / 2.0
+			_cy(h, 0.04, 0.04, q.distance_to(q2), Vector3(mid.x, 0.85, mid.z), logm, Vector3(PI / 2.0, atan2(q2.x - q.x, q2.z - q.z), 0), 5)
+	for k in 3:
+		_bx(h, Vector3(rng.randf_range(0.6, 1.2), 0.08, rng.randf_range(0.5, 1.0)), Vector3(rng.randf_range(-2.5, 2.5), 0.04, d / 2.0 + rng.randf_range(0.6, 2.2)), _cm("3a2c1c"))
+	_col(h, Vector3(w, 2.0, d), Vector3(0, 1.0, 0))
+
+
+## Алас — круглая поляна с озерцом посередине (термокарст), вокруг копны и коновязь
+func _alas(p: Vector2) -> void:
+	var h := _holder(p, 0.0, "Alas")
+	var r := rng.randf_range(2.6, 3.6)
+	_cy(h, r + 0.9, r + 0.9, 0.02, Vector3(0, 0.012, 0), _soft("4e5a2e", 0.85), Vector3.ZERO, 28)
+	_cy(h, r + 0.25, r + 0.25, 0.02, Vector3(0, 0.02, 0), _soft("3a3a24", 0.9), Vector3.ZERO, 28)
+	var water := _cy(h, r, r, 0.03, Vector3(0, 0.03, 0), _cm("22404a", 0.05, 0.4), Vector3.ZERO, 28)
+	water.scale = Vector3(1.0, 1.0, rng.randf_range(0.7, 1.0))
+	_col(h, Vector3(r * 1.5, 1.0, r * 1.5), Vector3(0, 0.5, 0))
+	for k in rng.randi_range(3, 5):
+		var a := rng.randf() * TAU
+		_put("hay_bale", p + Vector2(cos(a), sin(a)) * (r + 2.6), rng.randf_range(0.9, 1.2))
+	if rng.randf() < 0.6:
+		var a2 := rng.randf() * TAU
+		_put("serge", p + Vector2(cos(a2), sin(a2)) * (r + 1.6), 1.0)
+	for k in 10:
+		var a3 := rng.randf() * TAU
+		_put("reeds" if rng.randf() < 0.6 else "bush", p + Vector2(cos(a3), sin(a3)) * (r + rng.randf_range(0.0, 0.6)), rng.randf_range(0.7, 1.1))
+
+
+## Кости павшей скотины или лося: рёбра дугой, позвоночник, череп с рогами
+func _bones(p: Vector2, n: int) -> void:
+	var bone := _cm("d8cfb4", 0.9)
+	for i in n:
+		var q := p + Vector2(rng.randf_range(-1.6, 1.6), rng.randf_range(-1.6, 1.6))
+		var h := _holder(q, rng.randf() * TAU, "Bones")
+		var ln := rng.randf_range(1.4, 2.2)
+		_cy(h, 0.05, 0.05, ln, Vector3(0, 0.08, 0), bone, Vector3(PI / 2.0, 0, 0), 6)
+		for k in 7:
+			var z := -ln / 2.0 + 0.25 + k * (ln - 0.5) / 6.0
+			for sx in [-1, 1]:
+				if rng.randf() < 0.85:
+					_cy(h, 0.025, 0.03, 0.7, Vector3(sx * 0.22, 0.25, z), bone, Vector3(0, 0, sx * (0.9 + rng.randf_range(-0.2, 0.3))), 5)
+		_bx(h, Vector3(0.28, 0.22, 0.45), Vector3(0, 0.12, ln / 2.0 + 0.25), bone, Vector3(0.2, rng.randf_range(-0.4, 0.4), 0.1))
+		if rng.randf() < 0.6:
+			for sx in [-1, 1]:
+				_cy(h, 0.015, 0.04, 0.6, Vector3(sx * 0.25, 0.3, ln / 2.0 + 0.2), bone, Vector3(-0.6, 0, sx * 1.0), 5)
+		for k in 4:
+			_cy(h, 0.03, 0.03, rng.randf_range(0.4, 0.8), Vector3(rng.randf_range(-0.8, 0.8), 0.04, rng.randf_range(-1.0, 1.0)), bone,
+				Vector3(PI / 2.0, rng.randf() * TAU, 0), 5)
+
+
+## Полупрозрачная заливка для пятен на земле (гарь, трава у воды)
+func _soft(hex: String, a: float) -> Material:
+	var key := hex + "/" + str(a)
+	if not _cmats.has(key):
+		var m := StandardMaterial3D.new()
+		var c := Color(hex)
+		m.albedo_color = Color(c.r, c.g, c.b, a)
+		m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+		m.roughness = 1.0
+		_cmats[key] = m
+	return _cmats[key]
+
+
+## Выжженная земля: чёрные пятна гари, обугленные пни и стволы
+func _burns(n: int) -> void:
+	var soot := _soft("161412", 0.8)
+	var ash := _soft("2e2a26", 0.6)
+	for i in n:
+		var c := Vector2(rng.randf_range(6, SIZE - 6), rng.randf_range(6, SIZE - 6))
+		if c.distance_to(_center) < 6.0:
+			continue
+		var h := _holder(c, rng.randf() * TAU, "Burn")
+		for k in rng.randi_range(4, 8):
+			var o := Vector3(rng.randf_range(-3.5, 3.5), 0.015 + k * 0.001, rng.randf_range(-3.5, 3.5))
+			var rr := rng.randf_range(0.8, 2.4)
+			var m := _cy(h, rr, rr, 0.01, o, soot if k % 3 else ash, Vector3(0, rng.randf() * TAU, 0), 10)
+			m.scale = Vector3(1, 1, rng.randf_range(0.5, 1.1))
+		for k in rng.randi_range(2, 4):
+			var q := c + Vector2(rng.randf_range(-3, 3), rng.randf_range(-3, 3))
+			var st := _put(["stump", "dead_tree", "log_fallen"][rng.randi() % 3], q, rng.randf_range(0.8, 1.2))
+			for mi in st.find_children("*", "MeshInstance3D", true, false):
+				(mi as MeshInstance3D).material_overlay = _cm("0e0c0a", 1.0)
+				(mi as MeshInstance3D).transparency = 0.0
+
+
+## Сборные ориентиры: брошенный блокпост, хутор, ветряк с трактором
+func _compound(k: String, p: Vector2, rot: float) -> void:
+	var at := func(dx: float, dz: float) -> Vector2: return p + Vector2(dx, dz).rotated(-rot)
+	match k:
+		"checkpoint":
+			_put("checkpoint", p, 1.0).rotation.y = rot
+			_put("sandbags", at.call(2.6, 2.2), 1.0).rotation.y = rot
+			_put("sandbags", at.call(-2.6, 2.4), 1.0).rotation.y = rot + 0.3
+			_put("barricade", at.call(0.0, 4.2), 1.0).rotation.y = rot
+			_put("car_wreck", at.call(3.5, -2.5), 1.0)
+			_put("crates", at.call(-2.0, -2.0), 1.0)
+		"farm":
+			var hz := _put(["izba_small", "izba_lean", "shed"][rng.randi() % 3], p, 1.0)
+			hz.rotation.y = rot
+			for j in 4:
+				_put("fence_broken", at.call(-4.5 + j * 3.0, 4.6), 1.0).rotation.y = rot
+			_put("well", at.call(4.0, -3.0), 1.0)
+			_put("woodpile", at.call(-4.0, -2.5), 1.0)
+		"turbine":
+			_put("wind_turbine", p, 1.0)
+			_put("tractor", at.call(3.2, 1.5), 1.0)
+			_put("crates", at.call(-2.2, 2.0), 1.0)
+			_put("barrel", at.call(-1.5, -2.6), 1.0)
 
 
 ## Клочок лора: первый ещё не найденный из пула этого типа — в записи КПК
@@ -893,13 +1073,13 @@ func describe(it: Interactable) -> String:
 	if String(it.name).begins_with("Wreck"):
 		match str(it.get_meta("kind", "")):
 			"plane":
-				return "Ан-2, «кукурузник». Упал давно — крыло отломано, хвост в стороне. На борту ещё читается красная полоса."
+				return "Разбитый самолёт. Упал давно — крыло отломано, хвост в стороне, на борту ещё читается красная полоса."
 			"vehicle":
 				return "Брошенная довоенная техника. Ржавчина, выбитые стёкла, спущенные колёса."
 			"ruin":
 				return "Кирпичная коробка дома. Крыши нет, стены обломаны, внутри — березняк."
 			"heli":
-				return "Ми-8 на брюхе. Лопасти обвисли до земли, хвостовая балка переломлена, задние створки открыты."
+				return "Разбитая винтокрылая машина на брюхе. Лопасти обвисли до земли, корпус пробит, груз вывалился."
 			"tower":
 				return "Пожарная вышка — железная решётка метров двенадцать, наверху будка наблюдателя."
 			"wagon":
@@ -910,6 +1090,18 @@ func describe(it: Interactable) -> String:
 				return "Брошенная стоянка: палатка, кострище, рюкзак."
 			"serge":
 				return "Круг резных сэргэ — коновязей для духов. На столбах ленты."
+			"checkpoint":
+				return "Брошенный блокпост: будка, мешки с песком, баррикада поперёк дороги."
+			"farm":
+				return "Хутор: изба, поваленный забор, колодец. Дым из трубы не идёт давно."
+			"turbine":
+				return "Ветряк скрипит лопастями. Рядом — трактор, ящики, бочка."
+			"khoton":
+				return "Хотон — якутский хлев: низкие наклонные стены, обмазанные глиной, крыша засыпана дёрном."
+			"alas":
+				return "Алас: круглая поляна с озерцом посередине. Здесь веками косили сено."
+			"bones":
+				return "Выбеленные кости — скотина или лось. Хищники и время прибрали остальное."
 	return ""
 
 
