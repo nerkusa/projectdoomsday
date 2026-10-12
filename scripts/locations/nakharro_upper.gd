@@ -174,3 +174,8 @@ func describe(it: Interactable) -> String:
 	if String(it.name).begins_with("Down_"):
 		return "Люк вниз. Стремянка скрипит."
 	return ""
+
+
+## Помещение: клик у стены — не уход на карту мира, выйти можно только через дверь
+func can_leave_edge() -> bool:
+	return false

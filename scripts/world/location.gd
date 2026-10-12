@@ -178,6 +178,16 @@ func on_interact(_it: Interactable) -> bool:
 	return false
 
 
+## Можно ли уйти на карту мира кликом у края локации
+func can_leave_edge() -> bool:
+	return true
+
+
+## Подсказка, когда у края уйти нельзя («» — молча идём к краю)
+func edge_tip() -> String:
+	return ""
+
+
 ## Можно ли поднять предмет прямо сейчас
 func can_pick(_it: Interactable) -> bool:
 	return true

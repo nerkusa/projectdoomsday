@@ -107,3 +107,8 @@ func objective() -> String:
 	if Game.quest_stage("cellar") == 1:
 		return "Найти в подполе варенье." if _lit() else "Зажечь свечу (спички) и найти варенье."
 	return ""
+
+
+## Помещение: клик у стены — не уход на карту мира, выйти можно только через дверь
+func can_leave_edge() -> bool:
+	return false

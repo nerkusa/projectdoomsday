@@ -815,10 +815,11 @@ func weather_tests() -> void:
 	var hp1 := Game.hero_hp()
 	Rad.tick(4.5)
 	ok(Game.hero_hp() < hp1 and Rad.tier() == "лучевая болезнь", "лучевая болезнь жжёт и без фона")
+	var ar0 := Game.item_count("antirad")
 	Game.add_item("antirad", 2)
 	main.use_item("antirad")
 	main.use_item("antirad")
-	ok(Rad.level() < 1.0 and Game.item_count("antirad") == 0, "антирадин выводит дозу")
+	ok(Rad.level() < 1.0 and Game.item_count("antirad") == ar0, "антирадин выводит дозу (доза %.0f, осталось %d из %d)" % [Rad.level(), Game.item_count("antirad"), ar0])
 	Game.set_hero_hp(Game.hero_max())
 	# карта мира: туман войны и находки
 	var wm: WorldMap = main.world_map
@@ -1204,6 +1205,7 @@ func _ready() -> void:
 	main.interact(main.location.item("Planks"))
 	await wait(1.0)
 	ok(Game.item_count("planks") == 1, "доски подобраны")
+	ok(not main.location.can_leave_edge(), "из деревни не уйти кликом у края — только через черту")
 	# житель встал над вещью — клик всё равно попадает в вещь, а по самому жителю — разговор
 	var bsk: Interactable = main.location.item("Basket")
 	var stp0: Character = main.location.character("Stepan")
@@ -1340,6 +1342,7 @@ func _ready() -> void:
 	await frames(3)
 	var cel: Node = main.location
 	ok(cel.location_id == "nakharro_cellar", "спустился в подпол")
+	ok(not cel.can_leave_edge() and not main.location.can_leave_edge(), "из подпола у стены не выкидывает на карту мира")
 	Game.remove_item("matches", Game.item_count("matches"))
 	cel.on_interact(cel.item("Candle"))
 	await frames(2)
@@ -1580,7 +1583,15 @@ func _ready() -> void:
 	Game.force_check = 1 if stealth else -1
 	var hp0 := Game.hero_hp()
 	await tp(foods[4].global_position + Vector3(0.9, 0, 0))
-	main.interact(foods[4])
+	if stealth:
+		# как будто сохранились посреди затемнения (засада начата, налёта ещё нет) и загрузились
+		Game.set_flag("ambush_on")
+		main.interact(foods[4])
+		await wait(0.8)
+		ok(Game.flag_value("phase") == "morning", "сохранение «между»: засада начата, налёта нет")
+		main.location.on_enter()
+	else:
+		main.interact(foods[4])
 	await wait(1.5)
 	ok(main.wait_scr.visible, "затемнение: «прошло несколько часов», выстрелы")
 	while main.wait_scr.visible:
@@ -1661,11 +1672,20 @@ func _ready() -> void:
 		await tp(Vector3(60, 0, 66))
 		await wait(0.5)
 		ok(Game.flag("barn_started"), "увидел деда у амбара")
+		# как после загрузки посреди сцены: таймер сцены пропал — on_enter его возвращает
+		main.location._barn_t = -1.0
+		main.location.on_enter()
+		ok(main.location._barn_t > 0.0, "после загрузки перестрелка у амбара идёт дальше")
 		var tb := 0.0
-		while not Game.flag("cleaners_left") and tb < 40.0 and not main.combat.on:
+		while not Game.flag("ded_shot") and tb < 40.0 and not main.combat.on:
 			await wait(0.5)
 			tb += 0.5
 		ok(Game.flag("ded_shot"), "деда ранили")
+		await wait(3.5)
+		# загрузка, пока ударившие уходят: после неё их уже нет, дед лежит и зовёт
+		if not Game.flag("cleaners_left"):
+			main.location.on_enter()
+			ok(Game.flag("cleaners_left") and Game.quest_stage("fire") == 3, "после загрузки ударившие ушли, дед ранен и ждёт внука")
 		ok(Game.flag("cleaners_left") and not main.combat.on, "нападавшие ушли, не заметив героя")
 		Game.hero.sneak = false
 		main.talk_to(main.location.character("DedRaid"))

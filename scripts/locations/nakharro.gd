@@ -104,8 +104,40 @@ func _apply_sacred() -> void:
 func on_enter() -> void:
 	# сцена у ворот идёт на таймерах; после загрузки её уже нет — бой начнётся у ворот сам
 	Game.set_flag("gate_scene_running", false)
+	# сохранились в самом начале засады (затемнение ещё шло) — запускаем её заново
+	if Game.flag("ambush_on") and phase() == "morning":
+		Game.set_flag("ambush_on", false)
+		_start_ambush.call_deferred()
 	_apply_phase()
 	_apply_sacred()
+	_restore_barn()
+
+
+## Сохранились посреди сцены у амбара — её таймеры после загрузки пропали:
+## перестрелка деда с нападавшими идёт заново, а ударившие деда уже ушли.
+func _restore_barn() -> void:
+	if not Game.flag("barn_started") or Game.flag("ded_dead"):
+		return
+	if not Game.flag("ded_shot"):
+		if _alive_cleaner() != null:
+			_barn_t = 10.0
+		else:
+			_ded_falls()
+	elif not Game.flag("cleaners_left"):
+		for ch in characters():
+			if ch.squad == "cleaners" and ch.visible and ch.pose != "dead":
+				_cleaner_gone(ch)
+		if _alive_cleaner() == null:
+			_ded_falls()
+
+
+## До пролога-конца из деревни уходят только через черту (там проверки и финал)
+func can_leave_edge() -> bool:
+	return int(Game.flag_value("act", 0)) >= 1
+
+
+func edge_tip() -> String:
+	return "Отсюда не уйти — только через старую черту"
 
 
 func _apply_phase() -> void:

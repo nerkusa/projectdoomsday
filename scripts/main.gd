@@ -932,7 +932,11 @@ func _click(sp: Vector2) -> void:
 	if p.has("hex"):
 		# клик у самого края — уйти с локации на карту мира (если отсюда вообще можно уйти)
 		var gp = p.get("ground", null)
-		if gp != null and _near_edge(gp) and _can_leave():
+		if gp != null and _near_edge(gp) and _can_leave() and not location.can_leave_edge():
+			# уйти нельзя — просто идём к краю (в Нахарро ещё и подсказка про черту)
+			if location.edge_tip() != "":
+				hud.flash_tip(location.edge_tip())
+		elif gp != null and _near_edge(gp) and _can_leave():
 			var lim: Rect2 = location.map_rect.grow(-1.5)
 			var to := Vector3(clampf(gp.x, lim.position.x, lim.end.x), 0, clampf(gp.z, lim.position.y, lim.end.y))
 			_walk_to_hex(location.grid.from_world(to), func(): world_map.open(location.location_id), to)
@@ -1338,7 +1342,7 @@ func _process(delta: float) -> void:
 				hud.show_tip(t)
 			elif it:
 				hud.show_tip(it.title())
-			elif p.get("ground", null) != null and _near_edge(p.ground) and _can_leave():
+			elif p.get("ground", null) != null and _near_edge(p.ground) and _can_leave() and location.can_leave_edge():
 				hud.show_tip("Край · уйти (карта мира)")
 				_hover = location
 			elif _hover != null:

@@ -110,3 +110,8 @@ func describe(it: Interactable) -> String:
 	if n.begins_with("Down"):
 		return "Лестница вниз. Пахнет кошками и сыростью."
 	return super.describe(it)
+
+
+## Помещение: клик у стены — не уход на карту мира, выйти можно только через дверь
+func can_leave_edge() -> bool:
+	return false

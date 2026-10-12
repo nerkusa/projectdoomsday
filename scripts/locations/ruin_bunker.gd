@@ -262,3 +262,8 @@ func objective() -> String:
 ## Фон: довоенная база «светится»
 func rad_level() -> float:
 	return 0.9
+
+
+## Помещение: клик у стены — не уход на карту мира, выйти можно только через дверь
+func can_leave_edge() -> bool:
+	return false
