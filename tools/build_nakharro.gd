@@ -613,7 +613,9 @@ func _items() -> void:
 		item(items, ps, "Take_%s_%s" % [it[0], it[1]], pos)
 	# отвёртка у мастерской — вместе со шпилькой станет отмычкой для сундука
 	var ws_: Node3D = root.get_node("Village/Workshop")
-	item(items, P.item_screwdriver, "Take_Workshop", ws_.transform * Vector3(1.2, 0, 3.4))
+	# лежит на колоде у входа в мастерскую — на виду, подойти можно
+	put(P.stump, items, ws_.transform * Vector3(-1.0, 0, -4.6), 0.0, "WorkStump")
+	item(items, P.item_screwdriver, "Take_Workshop", ws_.transform * Vector3(-1.0, 0.55, -4.6))
 	# амбар: три кучи хлама и запертый сундук
 	var barn: Node3D = root.get_node("Village/Barn")
 	var ji := 0

@@ -169,13 +169,18 @@ func _render_inv() -> void:
 	cols.add_child(right)
 	left.add_child(_g("ОРУЖИЕ", 11, UITheme.GREEN_DIM))
 	var any := false
+	var listed := {}
 	for k in h.owned:
+		if listed.has(k):
+			continue
+		listed[k] = true
 		var hand := ""
 		if h.hands[0] == k:
 			hand = " [П]"
 		elif h.hands[1] == k:
 			hand = " [Л]"
-		left.add_child(_item_btn(DB.item_name(k) + hand, k))
+		var cnt: int = h.owned.count(k)
+		left.add_child(_item_btn(DB.item_name(k) + ((" ×%d" % cnt) if cnt > 1 else "") + hand, k))
 		any = true
 	if not any:
 		left.add_child(_g("— только кулаки", 13, UITheme.GREEN_DIM))
@@ -241,6 +246,8 @@ func _render_inv() -> void:
 				label = "Включить"
 			"antirad":
 				label = "Выпить"
+			"plug":
+				label = "Вставить в браслет"
 			"orient":
 				label = "Свериться"
 		if label != "":

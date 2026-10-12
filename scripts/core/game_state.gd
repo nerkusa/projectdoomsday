@@ -187,8 +187,11 @@ func item_count(id: String) -> int:
 
 func add_item(id: String, n := 1) -> void:
 	if DB.weapons.has(id):
-		if not hero.owned.has(id):
+		# запасной ствол того же вида тоже берётся — на обмен или продажу
+		var first: bool = not hero.owned.has(id)
+		for i in maxi(1, n):
 			hero.owned.append(id)
+		if first:
 			if hero.hands[hero.active] == "fists":
 				hero.hands[hero.active] = id
 			elif hero.hands[1 - int(hero.active)] == "fists":
@@ -205,12 +208,15 @@ func add_item(id: String, n := 1) -> void:
 
 func remove_item(id: String, n := 1) -> bool:
 	if DB.weapons.has(id):
-		if not hero.owned.has(id):
+		if hero.owned.count(id) < n:
 			return false
-		hero.owned.erase(id)
-		for i in 2:
-			if hero.hands[i] == id:
-				hero.hands[i] = "fists"
+		for i in n:
+			hero.owned.erase(id)
+		# в руках остаётся, пока есть хоть один такой ствол
+		if not hero.owned.has(id):
+			for i in 2:
+				if hero.hands[i] == id:
+					hero.hands[i] = "fists"
 		hero_changed.emit()
 		return true
 	var have := item_count(id)
@@ -238,9 +244,11 @@ func hero_weapon() -> Dictionary:
 
 ## Вне боя магазины добиваются патронами сами (как в прототипе)
 func auto_reload() -> void:
+	var seen := {}
 	for k in hero.owned:
-		if not DB.is_gun(k):
+		if not DB.is_gun(k) or seen.has(k):
 			continue
+		seen[k] = true
 		var w := DB.weapon(k)
 		var have := int(hero.ammo.get(w.ammo, 0))
 		var need := int(w.mag) - int(hero.mag.get(k, 0))

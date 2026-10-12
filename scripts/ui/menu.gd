@@ -106,8 +106,16 @@ func open(m: String) -> void:
 			var names := {"slow": "медленно", "normal": "обычно", "fast": "быстро", "instant": "сразу"}
 			items.append(["speed", "Скорость текста: " + names.get(sp, sp), "клик — сменить"])
 			items.append(["rolls", "Показывать броски в журнале: " + ("да" if Game.settings.get("show_rolls", false) else "нет"), "клик — сменить"])
+			items.append(["sound", "Звук", ""])
 			items.append(["graphics", "Графика", ""])
 			items.append(["back", "Назад", ""])
+			_foot.text = ""
+		"sound":
+			_title.text = "ЗВУК"
+			_sub.text = "Ползунки — мышью или стрелками."
+			for b in Audio.BUSES:
+				_list.add_child(_slider(b[0], b[2]))
+			items.append(["gfx_back", "Назад", ""])
 			_foot.text = ""
 		"graphics":
 			_title.text = "ГРАФИКА"
@@ -118,6 +126,31 @@ func open(m: String) -> void:
 			_foot.text = ""
 	for it in items:
 		_list.add_child(_item(it[0], it[1], it[2]))
+
+
+## Ползунок громкости: подпись, полоса 0–100, число
+func _slider(id: String, text: String) -> Control:
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 14)
+	var l := UITheme.label("  " + text, 19, UITheme.AMBER)
+	l.custom_minimum_size = Vector2(300, 0)
+	row.add_child(l)
+	var s := HSlider.new()
+	s.min_value = 0
+	s.max_value = 100
+	s.step = 5
+	s.value = Audio.level(id)
+	s.custom_minimum_size = Vector2(320, 28)
+	s.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	row.add_child(s)
+	var n := UITheme.label("%d" % Audio.level(id), 19, UITheme.AMBER_HOT)
+	n.custom_minimum_size = Vector2(50, 0)
+	row.add_child(n)
+	s.value_changed.connect(func(v: float):
+		Audio.set_level(id, int(v))
+		n.text = "%d" % int(v))
+	s.drag_ended.connect(func(_c: bool): Game.save_settings())
+	return row
 
 
 func _item(id: String, text: String, hint: String) -> Button:
@@ -168,7 +201,11 @@ func _on(id: String) -> void:
 		"graphics":
 			open("graphics")
 			return
+		"sound":
+			open("sound")
+			return
 		"gfx_back":
+			Game.save_settings()
 			open("settings")
 			return
 	if id.begins_with("gfx:"):

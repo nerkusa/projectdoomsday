@@ -137,6 +137,7 @@ func _build_ui() -> void:
 	social = Social.new()
 	add_child(social)
 	social.setup(self)
+	Audio.apply()
 	Weather.setup(self)
 	Rad.setup(self)
 	kpk = KPK.new()
@@ -191,7 +192,7 @@ func ui_blocked() -> bool:
 
 
 ## Звук из assets/sounds/<name>.wav; громкость в децибелах
-func sfx(name: String, vol_db := 0.0, pitch := 1.0) -> void:
+func sfx(name: String, vol_db := 0.0, pitch := 1.0, bus := "SFX") -> void:
 	var path := "res://assets/sounds/%s.wav" % name
 	if not ResourceLoader.exists(path):
 		return
@@ -204,10 +205,12 @@ func sfx(name: String, vol_db := 0.0, pitch := 1.0) -> void:
 		if _sfx.size() >= 12:
 			return
 		pl = AudioStreamPlayer.new()
+		pl.bus = "SFX"
 		pl.process_mode = Node.PROCESS_MODE_ALWAYS
 		add_child(pl)
 		_sfx.append(pl)
 	pl.stream = load(path)
+	pl.bus = bus
 	pl.volume_db = vol_db
 	pl.pitch_scale = pitch
 	pl.play()
@@ -478,6 +481,26 @@ func use_item(id: String) -> void:
 				Game.log_line("Надел: " + str(it.get("name", id)), "", "hit")
 			Game.hero.flags["worn"] = w
 			Game.hero_changed.emit()
+			return
+		"plug":
+			# модуль «Связь»: вставить в браслет и прослушать запись
+			if not Game.flag("kpk"):
+				think("Вставить некуда — браслет ещё не собран.")
+				return
+			if Game.remove_item(id):
+				var mods: Dictionary = Game.hero.flags.get("modules", {})
+				mods["radio"] = true
+				Game.hero.flags["modules"] = mods
+				sfx("plug", -6.0)
+				Game.log_line("Модуль вставлен: %s" % DB.item_name(id), "", "hit")
+				Game.add_note("Обрывок переговоров (модуль «Связь»): «…Кирк — второму: проводник сказал, их там человек сорок. Старшего взять живым, остальных — по списку. Всё довоенное — в контейнер…» Кирк. Так зовут того, кто командовал.")
+				Game.set_flag("knows_kirk")
+				if Game.quest_stage("who") == 1:
+					Game.set_quest("who", 2)
+				Game.hero_changed.emit()
+				kpk.close()
+				think("Щелчок — браслет ожил шипением. «…Кирк — второму: проводник сказал, их там человек сорок. Старшего взять живым, остальных — по списку…» Кирк. Вот как его зовут.")
+				hud.refresh_objective()
 			return
 		"antirad":
 			if Game.remove_item(id):
@@ -856,11 +879,20 @@ func _pick(screen_pos: Vector2) -> Dictionary:
 		excl.append(hit.rid)
 		if col.has_meta("character"):
 			var ch: Character = col.get_meta("character")
-			if ch != player and ch.visible:
+			if ch != player and ch.visible and not res.has("character"):
 				res.character = ch
-				break
+				# мирный житель стоит над вещью — смотрим, нет ли под ним чего подобрать
+				if combat.on or ch.hostile or ch.pose == "dead":
+					break
 		elif col.has_meta("interactable"):
-			res.item = col.get_meta("interactable")
+			var it: Interactable = col.get_meta("interactable")
+			if not res.has("character"):
+				res.item = it
+				break
+			# вещь за спиной мирного: подбираемое важнее разговора
+			if it.kind == "item":
+				res.erase("character")
+				res.item = it
 			break
 	var plane := Plane(Vector3.UP, 0.0)
 	var g = plane.intersects_ray(from, dir)
@@ -1122,8 +1154,7 @@ func _body_entries(ch: Character) -> Array:
 			if n > 0:
 				out.append({"id": "ammo9" if w.ammo == "9мм" else "ammo762", "n": n, "ok": true})
 		if tpl.get("drop_weapon", true) and wk != "fists" and not w.get("natural", false):
-			var have: bool = Game.hero.owned.has(wk)
-			out.append({"id": wk, "n": 1, "ok": not have, "why": "такое уже есть"})
+			out.append({"id": wk, "n": 1, "ok": true})
 	for src in [tpl.get("loot", {}), tpl.get("pockets", {})]:
 		for k in src:
 			out.append({"id": k, "n": int(src[k]), "ok": true})

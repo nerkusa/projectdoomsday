@@ -168,6 +168,7 @@ func setup(m: Node) -> void:
 
 func _player(n: String) -> AudioStreamPlayer:
 	var p := AudioStreamPlayer.new()
+	p.bus = "Ambient"
 	var path := "res://assets/sounds/%s.wav" % n
 	if ResourceLoader.exists(path):
 		p.stream = load(path)
@@ -326,7 +327,7 @@ func _process(delta: float) -> void:
 			_flash_t = randf_range(6.0, 16.0)
 			_flash = 1.0
 			var d := randf_range(0.3, 2.0)
-			get_tree().create_timer(d, false).timeout.connect(func(): main.sfx("thunder", -4.0 - d * 3.0, randf_range(0.85, 1.1)))
+			get_tree().create_timer(d, false).timeout.connect(func(): main.sfx("thunder", -4.0 - d * 3.0, randf_range(0.85, 1.1), "Ambient"))
 			Clock.apply_light(main.location)
 	if _flash > 0.0:
 		_flash = maxf(0.0, _flash - delta * 6.0)

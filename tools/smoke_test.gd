@@ -1099,6 +1099,15 @@ func _ready() -> void:
 	Weather.frozen = true
 	Weather.set_kind("clear", 999.0)
 	ok(main.menu.visible, "главное меню открыто")
+	ok(AudioServer.get_bus_index("SFX") >= 0 and AudioServer.get_bus_index("Ambient") >= 0, "шины звука: общая, эффекты, окружение")
+	main.menu.open("sound")
+	await frames(2)
+	var sliders: Array = main.menu.find_children("*", "HSlider", true, false)
+	ok(sliders.size() == 3, "в настройках звука три ползунка")
+	(sliders[1] as HSlider).value = 40
+	ok(Audio.level("vol_sfx") == 40 and is_equal_approx(AudioServer.get_bus_volume_db(AudioServer.get_bus_index("SFX")), linear_to_db(0.4)), "ползунок «Эффекты» меняет громкость")
+	Audio.set_level("vol_sfx", 80)
+	main.menu.open("main")
 	main._on_menu("new")
 	await frames(2)
 	ok(main.sheet.visible, "лист персонажа открыт")
@@ -1195,6 +1204,22 @@ func _ready() -> void:
 	main.interact(main.location.item("Planks"))
 	await wait(1.0)
 	ok(Game.item_count("planks") == 1, "доски подобраны")
+	# житель встал над вещью — клик всё равно попадает в вещь, а по самому жителю — разговор
+	var bsk: Interactable = main.location.item("Basket")
+	var stp0: Character = main.location.character("Stepan")
+	var stp_at: Vector3 = stp0.global_position
+	stp0.global_position = bsk.global_position
+	await wait(0.2)
+	var bsp: Vector2 = main.camera.unproject_position(bsk.global_position + Vector3(0, 0.2, 0))
+	var pk: Dictionary = main._pick(bsp)
+	ok(pk.get("item", null) == bsk and not pk.has("character"), "вещь под ногами жителя кликается (%s)" % str(pk.keys()))
+	var hsp: Vector2 = main.camera.unproject_position(stp0.global_position + Vector3(0, 1.6, 0))
+	var pk2: Dictionary = main._pick(hsp)
+	ok(pk2.get("character", null) == stp0, "по голове жителя — сам житель (%s)" % str(pk2.keys()))
+	stp0.global_position = stp_at
+	await wait(0.2)
+	var sdu := unreachable(main.location, main.location.spawn_point("Start"), func(nd): return String(nd.name) in ["Take_Workshop", "Take_Izba9_chest"])
+	ok(sdu.is_empty(), "до обеих отвёрток можно дойти (%s)" % str(sdu))
 	main.talk_to(main.location.character("Stepan"))
 	await frames(2)
 	await choose(find_opt("Вот доски"))
@@ -1727,7 +1752,11 @@ func _ready() -> void:
 	await wait(0.4)
 	main.loot_win.take_all()
 	var mods: Dictionary = Game.hero.flags.get("modules", {})
-	ok(mods.get("radio", false), "модуль «Связь» с раненого")
+	ok(not mods.get("radio", false) and Game.item_count("module_radio") == 1, "модуль «Связь» с раненого — в кармане, сам не встаёт")
+	main.use_item("module_radio")
+	await frames(2)
+	mods = Game.hero.flags.get("modules", {})
+	ok(mods.get("radio", false) and Game.item_count("module_radio") == 0, "модуль «Связь» вставлен в браслет вручную")
 	ok(Game.flag("knows_kirk") and Game.quest_stage("who") == 2, "из модуля «Связь» герой узнаёт про Кирка")
 	for tb in ["inv", "stat", "cas", "map", "quests", "notes"]:
 		main.kpk.open(tb)
@@ -1908,7 +1937,9 @@ func _ready() -> void:
 	ok(tw.can_exchange() and tw.exchange() and Game.item_count("salt") == salt0 + 1 and Game.item_count("fur") == fur0, "шкурку (и патроны: %d) — на соль" % extra)
 	Game.add_item("knife")
 	tw.offer("knife", "take")
-	ok(tw.take_value() == 0, "второй такой же нож не купить")
+	var kn_ok: bool = not tw.stock().has("knife") or tw.take_value() > 0
+	ok(kn_ok, "второй такой же нож теперь можно купить")
+	tw.withdraw("knife", "take")
 	Game.remove_item("knife")
 	tw.offer("father_pistol", "give")
 	ok(not tw.mine().has("father_pistol") and not tw.mine().has("oyun"), "отцовский пистолет и «Ойун» не меняются")
@@ -2456,6 +2487,9 @@ func _ready() -> void:
 	ok(Game.flag("bunker_tape") and Game.flag("bunker_contour") and "Сытыган-14" in str(Game.hero.notes), "плёнка «Сытыган-14» и табло «Контур» — в записях")
 	bk.on_interact(bk.item("DoorLock"))
 	await wait(0.3)
+	var ad := bk.get_node_or_null("Village/ArchiveDoor") as Node3D
+	ok(ad != null and ad.position.z > 0.05, "дверь архива уезжает в стену")
+	await wait(1.2)
 	ok(Game.flag("archive_open") and bk.get_node_or_null("Village/ArchiveDoor") == null, "архив открыт картой")
 	bk.on_interact(bk.item("Lockers"))
 	await frames(2)
@@ -2477,6 +2511,8 @@ func _ready() -> void:
 	bk.on_interact(bk.item("GateDoor"))
 	main.dialog.close()
 	ok(Game.flag("bunker_gate_open"), "гермоворота открыты изнутри — током")
+	await wait(3.6)
+	ok(absf((bk.get_node("Village/Gate") as Node3D).position.z - bk.GATE_SLIDE) < 0.05, "диск гермоворот откатился в сторону")
 	bk.on_interact(bk.item("GateDoor"))
 	while main._loading:
 		await frames(2)

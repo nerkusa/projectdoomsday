@@ -18,6 +18,28 @@ func _ready() -> void:
 
 func on_world_state_applied() -> void:
 	_apply_power()
+	# гермоворота уже открыты — диск откачен в сторону
+	var g := get_node_or_null("Village/Gate") as Node3D
+	if g and Game.flag("bunker_gate_open"):
+		g.position.z = GATE_SLIDE
+
+
+## На сколько метров диск гермоворот откатывается вбок
+const GATE_SLIDE := 3.3
+
+
+## Гермоворота: штурвал проворачивается, диск чуть отходит от проёма и катится в сторону
+func _animate_gate() -> void:
+	var g := get_node_or_null("Village/Gate") as Node3D
+	if g == null:
+		return
+	var tw := create_tween()
+	tw.tween_property(g, "position:x", 0.25, 0.6).set_trans(Tween.TRANS_SINE)
+	tw.tween_property(g, "position:z", GATE_SLIDE, 2.2).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN_OUT)
+	tw.tween_property(g, "position:x", 0.0, 0.4)
+	main.sfx("hit_blunt", -10.0, 0.5)
+	get_tree().create_timer(0.7, false).timeout.connect(func(): main.sfx("plug", -6.0, 0.6))
+	get_tree().create_timer(2.8, false).timeout.connect(func(): main.sfx("hit_blunt", -6.0, 0.4))
 
 
 func _apply_power() -> void:
@@ -46,10 +68,14 @@ func status_line() -> String:
 
 func _open_door() -> void:
 	Game.set_flag("archive_open")
-	var d := get_node_or_null("Village/ArchiveDoor")
-	if d:
-		d.queue_free()
+	var d := get_node_or_null("Village/ArchiveDoor") as Node3D
 	main.sfx("plug", -4.0)
+	if d:
+		# дверь архива уезжает в стену, потом освобождает проход
+		var tw := create_tween()
+		tw.tween_property(d, "position:z", 2.1, 0.9).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN_OUT)
+		await tw.finished
+		d.queue_free()
 	await get_tree().physics_frame
 	await get_tree().physics_frame
 	grid.build(get_world_3d().direct_space_state, map_rect, 1)
@@ -66,7 +92,7 @@ func on_interact(it: Interactable) -> bool:
 			elif Game.flag("bunker_power"):
 				Game.set_flag("bunker_gate_open")
 				Game.grant_xp(20)
-				main.sfx("plug", -4.0)
+				_animate_gate()
 				main.think("Нажал зелёную кнопку у ворот. Гидравлика вздохнула, штурвал провернулся сам — и диск пополз в сторону. Снаружи — серый свет и пандус наверх.")
 			else:
 				main.think("Гермоворота. Без тока гидравлика мертва — не сдвинуть. Генератор бы запустить.")

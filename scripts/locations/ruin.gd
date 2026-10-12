@@ -41,7 +41,7 @@ func on_interact(it: Interactable) -> bool:
 			elif Game.item_count("crowbar") > 0 and (Game.skill_check("Атлетика", "BODY", "Атлетика", 12) or Game.flag("gate_pry_try")):
 				Game.set_flag("bunker_gate_open")
 				Game.grant_xp(30)
-				_apply_gate()
+				_animate_gate()
 				main.think("Вогнал монтировку в щель, навалился всем весом. Диск скрежетнул — и пополз в сторону. Из темноты пахнуло холодом и машинным маслом.")
 			elif Game.item_count("crowbar") > 0:
 				Game.set_flag("gate_pry_try")
@@ -88,6 +88,23 @@ func on_world_state_applied() -> void:
 
 func on_enter() -> void:
 	super.on_enter()
+	_apply_gate()
+
+
+## Монтировкой: диск со скрежетом откатывается вбок, потом за ним — темнота проёма
+func _animate_gate() -> void:
+	var g := get_node_or_null("Village/BunkerPortal")
+	if g == null:
+		_apply_gate()
+		return
+	var d := g.get_node("GateClosed") as Node3D
+	main.sfx("hit_blunt", -6.0, 0.5)
+	var tw := create_tween()
+	tw.tween_property(d, "position:x", 0.25, 0.5).set_trans(Tween.TRANS_SINE)
+	tw.tween_property(d, "position:x", 1.7, 1.8).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	await tw.finished
+	main.sfx("hit_blunt", -8.0, 0.4)
+	d.position.x = 0.0
 	_apply_gate()
 
 

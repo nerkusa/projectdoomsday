@@ -133,8 +133,13 @@ func mine() -> Dictionary:
 		if Game.item_count(k) > 0:
 			out[k] = Game.item_count(k)
 	for k in Game.hero.owned:
-		if not KEEP.has(k) and DB.item_value(k) > 0:
-			out[k] = 1
+		if DB.item_value(k) <= 0:
+			continue
+		# отцовский пистолет и нож не продаются; лишние такие же — можно
+		var cnt: int = Game.hero.owned.count(k)
+		out[k] = cnt - 1 if KEEP.has(k) else cnt
+		if int(out[k]) <= 0:
+			out.erase(k)
 	return out
 
 
@@ -159,11 +164,10 @@ func _sum_of(d: Dictionary) -> float:
 
 ## Положить одну штуку на обмен: side = "give" (твоё) или "take" (его)
 func offer(id: String, side: String, n := 1) -> void:
-	# второе такое же оружие не нужно: в руках и так есть
-	if side == "take" and DB.weapons.has(id) and Game.hero.owned.has(id):
-		_sum.text = "%s у тебя уже есть." % DB.item_name(id)
-		return
 	var src: Dictionary = mine() if side == "give" else _stock
+	# Shift — всё сразу (вся стопка одинаковых)
+	if Input.is_key_pressed(KEY_SHIFT):
+		n = 9999
 	var dst: Dictionary = _give if side == "give" else _take
 	var left := int(src.get(id, 0)) - int(dst.get(id, 0))
 	n = mini(n, left)
@@ -177,7 +181,7 @@ func withdraw(id: String, side: String) -> void:
 	var dst: Dictionary = _give if side == "give" else _take
 	if not dst.has(id):
 		return
-	dst[id] = int(dst[id]) - 1
+	dst[id] = 0 if Input.is_key_pressed(KEY_SHIFT) else int(dst[id]) - 1
 	if int(dst[id]) <= 0:
 		dst.erase(id)
 	_render()
@@ -227,7 +231,7 @@ func _render() -> void:
 	var t := take_value()
 	var txt := "Отдаёшь на %d · берёшь на %d" % [g, t]
 	if _take.is_empty():
-		txt += "\nВыбери, что хочешь взять."
+		txt += "\nВыбери, что хочешь взять. Shift+клик — всю стопку."
 	elif g < t:
 		txt += "\nНе хватает %d — добавь что-нибудь." % (t - g)
 	elif g > t + 2:

@@ -242,6 +242,8 @@ func objective() -> String:
 			return "Нахарро горит. Найти деда."
 		return "Дед ранен — подойти к нему." if Game.flag("ded_shot") else "Дед у амбара!"
 	var pack := pack_line()
+	if Game.item_count("module_radio") > 0:
+		return "Модуль «Связь» в кармане — вставить в браслет (КПК → вещи) и послушать." + pack
 	return "Идти на запад по старой просеке, к старой черте." + pack
 
 
@@ -1332,7 +1334,7 @@ func _chest(it: Interactable, act: String) -> void:
 
 func _open_chest(it: Interactable) -> void:
 	var gen := func() -> Array:
-		return [{"id": "buran", "n": 1, "ok": not Game.hero.owned.has("buran"), "why": "уже есть"},
+		return [{"id": "buran", "n": 1, "ok": true},
 			{"id": "ammo762", "n": 30, "ok": true}, {"id": "canned", "n": 1, "ok": true}, {"id": "cas_body", "n": 1, "ok": true}]
 	main.open_loot("LockedBox", "Сундук в амбаре", gen)
 
@@ -1507,7 +1509,8 @@ func _assemble_kpk() -> void:
 
 func _absorb_modules() -> void:
 	var mods: Dictionary = Game.hero.flags.get("modules", {})
-	var names := {"module_carrier": "carrier", "module_inventory": "inventory", "module_map": "map", "module_radio": "radio"}
+	# «Связь» сама не встаёт — её вставляют вручную (КПК → вещи → «Вставить в браслет»)
+	var names := {"module_carrier": "carrier", "module_inventory": "inventory", "module_map": "map"}
 	var changed := false
 	for k in names:
 		if Game.item_count(k) > 0:
@@ -1516,11 +1519,6 @@ func _absorb_modules() -> void:
 			changed = true
 			Game.log_line("Модуль вставлен: %s" % DB.item_name(k), "", "hit")
 			main.sfx("plug", -6.0)
-			if k == "module_radio":
-				Game.add_note("Обрывок переговоров (модуль «Связь»): «…Кирк — второму: проводник сказал, их там человек сорок. Старшего взять живым, остальных — по списку. Всё довоенное — в контейнер…» Кирк. Так зовут того, кто командовал.")
-				Game.set_flag("knows_kirk")
-				if Game.quest_stage("who") == 1:
-					Game.set_quest("who", 2)
 	if changed:
 		Game.hero.flags["modules"] = mods
 		Game.hero_changed.emit()
