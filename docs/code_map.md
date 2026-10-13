@@ -447,9 +447,9 @@ Project Doomsday — 1–4
 ### scripts/world/target_body.gd (41) · class TargetBody
 Мишень для стрельбы: столб и соломенный щит с кругами.
 
-### scripts/world/tutor.gd (213) · class Tutor
+### scripts/world/tutor.gd (216) · class Tutor
 Утро в Нахарро: друг детства водит героя и учит — ходить, говорить, брать вещи,
-`setup:32` `active:37` `step:42` `friend:46` `start:50` `skip:56` `_process:63` `_done:111` `_pick_target:141` `_dat:156` `_stalked:169` `_follow:188` `_finish:206`
+`setup:32` `active:37` `step:42` `friend:46` `start:50` `skip:56` `_process:63` `_done:111` `_pick_target:141` `_dat:156` `_stalked:171` `_follow:190` `_finish:208`
 
 ### tools/audit_interact.gd (84)
 Проверка: у каждого места в каждой локации каждое действие из меню даёт отклик

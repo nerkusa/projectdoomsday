@@ -697,8 +697,8 @@ func house(n: String, opts: Dictionary) -> void:
 		var lx := -0.15
 		for k in 2:
 			var rx: float = lx + (k * 2 - 1) * 0.3
-			box("planks_old", Vector3(0.07, 1.0, 0.07), Vector3(rx, 0.5, lz + 0.18), Vector3(0.35, 0, 0))
-			box("planks_old", Vector3(0.07, 1.6, 0.07), Vector3(rx, 1.75, lz - 0.2), Vector3(0.35, 0, 0))
+			box("planks_old", Vector3(0.07, 1.0, 0.07), Vector3(rx, 0.5, lz + 0.18), Vector3(-0.35, 0, 0))
+			box("planks_old", Vector3(0.07, 1.6, 0.07), Vector3(rx, 1.75, lz - 0.2), Vector3(-0.35, 0, 0))
 		for k in 9:
 			var ry := 0.22 + k * 0.3
 			box("planks_old", Vector3(0.6, 0.05, 0.09), Vector3(lx, ry, lz + 0.35 - ry * 0.36))
