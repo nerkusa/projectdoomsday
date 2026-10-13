@@ -77,6 +77,8 @@ func _ready() -> void:
 					talk = f.trim_prefix("talk=")
 				elif f.begins_with("opt="):
 					pick = f.trim_prefix("opt=")
+				elif f.begins_with("int="):
+					Game.hero.stats["INT"] = int(f.trim_prefix("int="))
 				elif f.begins_with("rad="):
 					Game.hero["rad"] = float(f.trim_prefix("rad="))
 				elif f.begins_with("weather="):

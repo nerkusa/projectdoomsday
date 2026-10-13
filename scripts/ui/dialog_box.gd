@@ -90,6 +90,7 @@ var _dlg_id := ""
 
 func open(dialog_id: String, start_node: String, who: Character) -> void:
 	_dlg_id = dialog_id
+	_dumb_greeted = false
 	data = DB.dialog(dialog_id)
 	if data.is_empty():
 		push_warning("Диалог не найден: " + dialog_id)
@@ -102,6 +103,7 @@ func open(dialog_id: String, start_node: String, who: Character) -> void:
 ## Разговор, собранный на лету (переговоры, болтовня, подарки) — тот же формат, что в data/dialogs
 func open_data(d: Dictionary, start_node: String, who: Character) -> void:
 	_dlg_id = "gen"
+	_dumb_greeted = false
 	data = d
 	speaker = who
 	visible = true
@@ -123,6 +125,9 @@ func show_node(id: String) -> void:
 	if id == "start" and _avoids():
 		id = "__avoid"
 		n = _avoid_node()
+	elif id == "__dumb":
+		# тугодум спросил про мир, а собеседник не понял
+		n = {"text": _dumb_line("no"), "options": [{"text": "[Кивнуть]", "next": "start"}]}
 	elif id == "__avoid_no":
 		n = {"text": _greet_line("avoid_no", AVOID_NO), "options": [{"text": "[Уйти]", "next": null}]}
 	elif nodes.has(id):
@@ -140,6 +145,9 @@ func show_node(id: String) -> void:
 	_who.text = title.to_upper()
 	_face.text = who.left(1).to_upper() if who != "" else "…"
 	_full = _subst(_rep_greet(id, n) + _node_text(n))
+	if id == "start" and _dumb() and not _dumb_greeted:
+		_dumb_greeted = true
+		_full = _dumb_line("greet") + "\n" + _full
 	_chars = 0.0
 	var d: float = DELAY.get(Game.settings.get("text_speed", "normal"), 0.028)
 	_typing = d > 0.0
@@ -152,6 +160,74 @@ func show_node(id: String) -> void:
 
 ## Текст узла. "sakha" — реплика на старом языке: с Разумом герой понимает
 ## и видит перевод (text), без него — только звучание и text_nosakha.
+# ---------- тугодум (Разум 1–3): бормочет, и понимают его не все ----------
+const DUMB_INT := 3
+const DUMB_HIDE := ["Убеждение", "Обман", "Знания"]
+const MUMBLE_PRE := ["Э-э…", "Ну… это…", "Мгм…", "А-а…", "Это… ну…", "Ы-ы…"]
+const MUMBLE_SKIP := ["это", "этот", "эта", "того", "тебе", "тебя", "меня", "мне", "есть", "было", "будет",
+	"чтобы", "когда", "почему", "что", "как", "где", "куда", "откуда", "кто", "ещё", "уже", "тоже", "только",
+	"очень", "такое", "такой", "нибудь", "вообще", "правда", "ладно", "давай", "можно", "могу", "знаешь"]
+var _dumb_greeted := false
+
+
+func _dumb() -> bool:
+	return speaker != null and _dlg_id != "thoughts" and Game.hero_stat("INT") <= DUMB_INT
+
+
+## Понимает ли собеседник мычание: книжный, добрый, простой, весёлый — да; и такой же тугодум
+func _understands() -> bool:
+	if speaker == null:
+		return true
+	if int(speaker.tpl.get("stats", {}).get("INT", 5)) <= DUMB_INT:
+		return true
+	return Social.temper(speaker) in ["intel", "kind", "simple", "cheerful"]
+
+
+func _dumb_line(kind: String) -> String:
+	var b: Dictionary = DB._load("res://data/barks.json").get("dumb", {}).get(kind, {})
+	var t := Social.temper(speaker)
+	var arr: Array = b.get(t, b.get("_", []))
+	if arr.is_empty():
+		arr = b.get("_", ["(Не понимает.)"])
+	return str(arr[randi() % arr.size()])
+
+
+## Реплика героя в устах тугодума: пара главных слов и мычание.
+## Действия в квадратных скобках ([Отдать…]) не трогаем — это не речь.
+static func mumble(t: String) -> String:
+	var s := t.strip_edges()
+	if s.begins_with("[") or s == "":
+		return t
+	var re := RegEx.new()
+	re.compile("[А-Яа-яЁё«»A-Za-z\\-]+")
+	var names := []
+	var words := []
+	var first := true
+	for m in re.search_all(s):
+		var w: String = m.get_string().replace("«", "").replace("»", "")
+		if w.length() < 3:
+			first = false
+			continue
+		var cap := w.left(1) != w.left(1).to_lower()
+		if cap and not first:
+			names.append(w)
+		elif not w.to_lower() in MUMBLE_SKIP and w.length() >= 4:
+			words.append(w.to_lower())
+		first = false
+	var pick := []
+	for w in names:
+		if pick.size() < 2 and not w in pick:
+			pick.append(w)
+	words.sort_custom(func(a, b): return a.length() > b.length())
+	for w in words:
+		if pick.size() < 2 and not w in pick:
+			pick.append(w)
+	var pre: String = MUMBLE_PRE[abs(s.hash()) % MUMBLE_PRE.size()]
+	if pick.is_empty():
+		return pre + " Ага."
+	return pre + " " + "… ".join(pick) + ("?" if "?" in s else "…")
+
+
 func _node_text(n: Dictionary) -> String:
 	var t := _pick_text(n)
 	if not n.has("sakha"):
@@ -188,6 +264,9 @@ func _build_options(opts: Array) -> void:
 		# проверка — одна попытка: провалил, и этот путь закрыт
 		if o.has("check") and _check_done(o) == "fail":
 			continue
+		# тугодуму не уговорить и не обмануть: язык не поворачивается
+		if o.has("check") and _dumb() and Rules.norm_skill(str(o.check.get("skill", ""))) in DUMB_HIDE:
+			continue
 		_visible_opts.append(o)
 	if _visible_opts.is_empty():
 		_visible_opts.append({"text": "[Дальше]", "next": null})
@@ -195,6 +274,8 @@ func _build_options(opts: Array) -> void:
 		var o: Dictionary = _visible_opts[i]
 		var b := Button.new()
 		var ot := _subst(o.get("text", "…"))
+		if _dumb() and not o.has("sakha"):
+			ot = str(o.get("dumb", mumble(ot)))
 		if o.has("sakha"):
 			ot = "[Саха] «%s» (%s)" % [o.sakha, ot]
 		if o.has("check"):
@@ -247,6 +328,10 @@ func _choose(i: int) -> void:
 			Game.remove_item(tk)
 			Game.log_line("Отдано: %s" % DB.item_name(tk))
 	var nxt = o.get("next", null)
+	# про мир тугодума понимают не все: грубый, надменный, жадный, пугливый — только руками разводят
+	if _dumb() and node_id == "about" and not o.get("back", false) and not _understands():
+		show_node("__dumb")
+		return
 	if o.has("check"):
 		var c: Dictionary = o.check
 		var bonus := int(c.get("bonus", 0))

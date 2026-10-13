@@ -179,8 +179,21 @@ func ambient_line(ch: Character) -> String:
 			return _pick(b.get("morning", []))
 		if h >= 18.0:
 			return _pick(b.get("evening", []))
+	var tl: Array = b.get("temper", {}).get(temper(ch), [])
+	if not tl.is_empty() and randf() < 0.3:
+		return _pick(tl)
 	var amb: Dictionary = b.get("ambient", {})
 	return _pick(amb.get(archetype(ch), amb.get("man", [])))
+
+
+## Характер жителя (characters.json → temper). В Нахарро все свои — книжные внуки учёных.
+static func temper(ch: Character) -> String:
+	if ch == null:
+		return "simple"
+	var loc = ch.get_tree().get_first_node_in_group("location") if ch.is_inside_tree() else null
+	if loc and str(loc.location_id).begins_with("nakharro") and not ch.hostile:
+		return "intel"
+	return str(ch.tpl.get("temper", "simple"))
 
 
 static func archetype(ch: Character) -> String:

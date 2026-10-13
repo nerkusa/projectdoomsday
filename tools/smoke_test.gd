@@ -1928,6 +1928,24 @@ func _ready() -> void:
 	ok(Clock.hours() - h_before > 20.0, "до Крестов — больше суток пути (%.0f ч)" % (Clock.hours() - h_before))
 	main.dialog.close()
 	var loc = main.location
+	# тугодум (Разум 2): бормочет, грубый часовой про мир его не понимает
+	ok("Боотура" in DialogBox.mumble("Я ищу человека. Боотура, из нашей деревни.") and DialogBox.mumble("[Отдать хмель]") == "[Отдать хмель]",
+		"бормотание: «%s»" % DialogBox.mumble("Я ищу человека. Боотура, из нашей деревни."))
+	var int_k: int = int(Game.hero.stats.get("INT", 5))
+	Game.hero.stats["INT"] = 2
+	var kg: Character = loc.character("KrGuard")
+	main.talk_to(kg)
+	await frames(2)
+	var mt := ""
+	for bt in main.dialog._opts.get_children():
+		if not bt.is_queued_for_deletion():
+			mt += (bt as Button).text + " | "
+	ok(not "Расскажи мне про" in mt and "расскажи" in mt, "тугодум бормочет: %s" % mt)
+	await choose(find_opt("Расскажи мне про"))
+	await choose(0)
+	ok(main.dialog.node_id == "__dumb", "грубый часовой не понял вопроса: «%s»" % main.dialog._full)
+	await shut()
+	Game.hero.stats["INT"] = int_k
 	var head: Character = loc.character("KrHead")
 	await tp(head.global_position + Vector3(0, 0, 1.5))
 	main.talk_to(head)

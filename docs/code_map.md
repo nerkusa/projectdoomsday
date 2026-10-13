@@ -361,9 +361,9 @@ Project Doomsday — 1–4
 «Дело» — лист персонажа. Новая игра начинается с выбора одного из четырёх готовых
 `setup:24` `_build_pick:131` `presets:176` `pick:181` `_show_pick:198` `_show_main:205` `open:214` `close:223` `_randomize:235` `can_s:244` `can_k:256` `ch_stat:268` `ch_skill:277` `_pm:286` `render:307` `_fixed:359` `_unhandled_key_input:364`
 
-### scripts/ui/dialog_box.gd (538) · class DialogBox
+### scripts/ui/dialog_box.gd (623) · class DialogBox
 Окно разговора. Реплики берутся из data/dialogs/<файл>.json.
-`setup:29` `open:91` `open_data:103` `close:111` `show_node:117` `_node_text:155` `_sakha_noticed:165` `_pick_text:171` `_build_options:178` `_fit_opts:227` `_choose:237` `_checks:275` `_check_key:281` `_check_done:287` `_with_chance:292` `_apply_effects:305` `_cond_ok:340` `_node_has_options:392` `_subst:407` `rep_tier:412` `addr:427` `_greet_line:435` `_avoids:452` `_avoid_node:462` `_a_trinket:470` `_rep_greet:479` `_finish_typing:504` `_on_text_click:509` `_process:514` `_unhandled_key_input:524`
+`setup:29` `open:91` `open_data:104` `close:113` `show_node:119` `_dumb:173` `_understands:178` `_dumb_line:186` `mumble:197` `_node_text:231` `_sakha_noticed:241` `_pick_text:247` `_build_options:254` `_fit_opts:308` `_choose:318` `_checks:360` `_check_key:366` `_check_done:372` `_with_chance:377` `_apply_effects:390` `_cond_ok:425` `_node_has_options:477` `_subst:492` `rep_tier:497` `addr:512` `_greet_line:520` `_avoids:537` `_avoid_node:547` `_a_trinket:555` `_rep_greet:564` `_finish_typing:589` `_on_text_click:594` `_process:599` `_unhandled_key_input:609`
 
 ### scripts/ui/hud.gd (644) · class HUD
 Приборная панель внизу экрана (как в прототипе): журнал, герой, оружие, кнопки.
@@ -440,9 +440,9 @@ Project Doomsday — 1–4
 ### scripts/world/scatter.gd (38) · class Scatter
 Россыпь одинаковых мелочей (трава, камыш, кочки, лужи) — одна отрисовка на всех.
 
-### scripts/world/social.gd (444) · class Social
+### scripts/world/social.gd (457) · class Social
 Жизнь вокруг героя: жители сами бросают реплики, с ними можно поболтать
-`setup:24` `_st:29` `key:35` `affinity:39` `tier_text:44` `talks:54` `can_fight:64` `_pick:72` `_barks:76` `_peaceful:85` `_process:91` `_idle_step:122` `ambient_line:162` `archetype:186` `can_parley:207` `_squad:218` `parley:228` `_calm:255` `gifts_on_hand:270` `can_chat:278` `chatted_today:282` `chat:286` `_tier_note:316` `gift:325` `_add_aff:334` `provoke:357` `flee:382` `apply_hostile:396` `on_action:411`
+`setup:24` `_st:29` `key:35` `affinity:39` `tier_text:44` `talks:54` `can_fight:64` `_pick:72` `_barks:76` `_peaceful:85` `_process:91` `_idle_step:122` `ambient_line:162` `temper:190` `archetype:199` `can_parley:220` `_squad:231` `parley:241` `_calm:268` `gifts_on_hand:283` `can_chat:291` `chatted_today:295` `chat:299` `_tier_note:329` `gift:338` `_add_aff:347` `provoke:370` `flee:395` `apply_hostile:409` `on_action:424`
 
 ### scripts/world/target_body.gd (41) · class TargetBody
 Мишень для стрельбы: столб и соломенный щит с кругами.
@@ -494,19 +494,19 @@ Project Doomsday — 1–4
 ### tools/preview_prop.gd (26)
 Превью одного пропа: тот же свет, что в деревне, изометрическая камера.
 
-### tools/render_shots.gd (143)
+### tools/render_shots.gd (145)
 Скриншоты для проверки (нужен рендер, не --headless):
 
 ### tools/screenshots.gd (107)
 Снимки экрана для проверки интерфейса (нужен рендер, не --headless).
 
-### tools/smoke_test.gd (2825)
+### tools/smoke_test.gd (2843)
 Автотест пролога: проходит всю цепочку без участия человека и печатает, что сломалось.
 `new_enc:12` `ok:17` `wait:25` `frames:29` `close_dialogs:34` `shut:43` `choose:48` `opt_texts:54` `find_opt:61` `tp:79` `fight:86` `wait_loading:128` `unreachable:137` `go_upstairs:166` `go_downstairs:176` `nakharro_life_tests:187` `kresty_life_tests:365` `encounter_lore_tests:444` `city_tests:512` `admin_tests:705` `weather_tests:783` `social_tests:850` `sungar_tests:940` `_ready:1097`
 
 ## Данные (data/)
 
-- data/barks.json (583 строк)
+- data/barks.json (686 строк)
 - data/characters.json (129 строк)
 - data/dialogs/camp_boss.json (385 строк)
 - data/dialogs/camp_nyurgun.json (194 строк)
