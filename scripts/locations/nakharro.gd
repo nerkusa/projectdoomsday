@@ -947,8 +947,8 @@ func _on_hour(_h: int) -> void:
 func _on_quest(id: String) -> void:
 	if id in ["hide_seek", "radio"] and main:
 		_apply_life()
-	# в лес — друг напоминает про огонь
-	if id == "forest" and Game.quest_stage("forest") == 1 and main and not Game.flag("friend_fire_said"):
+	# в подпол — друг напоминает про огонь: там темно, свечу зажечь
+	if id == "cellar" and Game.quest_stage("cellar") == 1 and main and not Game.flag("friend_fire_said"):
 		Game.set_flag("friend_fire_said")
 		_friend_remind_fire.call_deferred()
 
@@ -958,11 +958,11 @@ func _friend_remind_fire() -> void:
 	var fr := friend()
 	if fr == null or not fr.visible:
 		return
-	var line: String = main.dialog._subst("В лес? Не забудь зажигалку — дедова, у печи! К вечеру там темень, без огня ничего не разглядишь.")
+	var line: String = main.dialog._subst("В подпол? Не забудь зажигалку — дедова, у печи! Там темень, свечу без огня не зажжёшь.")
 	var say := func():
 		fr.face_towards(main.player.global_position)
 		fr.bark(line)
-		main.hud.flash_tip("Зажигалка — в избе деда, у печи. Со спичками или зажигалкой в тёмном лесу видно лучше.")
+		main.hud.flash_tip("Зажигалка — в избе деда, у печи. В подполе ею зажигают свечу.")
 	if fr.global_position.distance_to(main.player.global_position) > 4.0:
 		var to: Vector3 = main.player.global_position + (fr.global_position - main.player.global_position).normalized() * 1.8
 		fr.move_along(Clock._route(self, fr.global_position, to), say, 4.2)

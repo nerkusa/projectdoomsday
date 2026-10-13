@@ -1213,7 +1213,7 @@ func _ready() -> void:
 	# урок «подкрасться»: крадучись встать у жителя за спиной
 	Game.world["_tut"] = 5
 	await wait(0.6)
-	var swho: Character = main.location.tutor._swho
+	var swho: Character = main.location.tutor._who
 	ok(swho != null and swho.display_name.left(4) in main.hud.tutor_text(), "урок скрытности: подкрасться к %s (%s)" % [swho.display_name if swho else "—", main.hud.tutor_text()])
 	Game.hero.sneak = true
 	swho.stop()
@@ -1335,6 +1335,8 @@ func _ready() -> void:
 	await choose(find_opt("Схожу"))
 	await close_dialogs()
 	ok(Game.quest_stage("cellar") == 1 and Game.quest_stage("forest") == 0, "сначала — варенье из подпола")
+	await wait(2.5)
+	ok(Game.flag("friend_fire_said"), "друг напомнил: в подпол — не забудь зажигалку")
 
 	# --- побочные задания утром ---
 	# хлам в амбаре и запертый сундук
@@ -1448,15 +1450,13 @@ func _ready() -> void:
 	await choose(find_opt("пропуск"))
 	ok(main.dialog.node_id == "pass", "дед рассказывает про пропуск")
 	await close_dialogs()
-	# варенье принесено — теперь лес; друг догоняет: «не забудь зажигалку»
+	# варенье принесено — теперь лес
 	main.talk_to(nak.character("Ded"))
 	await frames(2)
 	await choose(find_opt("Варенье принёс"))
 	await choose(0)
 	await close_dialogs()
 	ok(Game.quest_stage("chores") == 3 and Game.quest_stage("forest") == 1, "после подпола дед отправил в лес")
-	await wait(2.5)
-	ok(Game.flag("friend_fire_said"), "друг напомнил про зажигалку")
 	ok(nak.item("Take_IzbaDed_lighter") != null and not nak._is_theft(nak.item("Take_IzbaDed_lighter")), "дедова зажигалка у печи — своя")
 	# пропуск можно прочитать в КПК
 	var notes0: int = Game.hero.notes.size()

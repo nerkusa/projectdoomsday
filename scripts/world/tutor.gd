@@ -142,8 +142,10 @@ func _pick_target() -> Character:
 	var p: Vector3 = main.player.global_position
 	var best: Character = null
 	for ch in loc.characters():
+		# стоит на месте, со своим именем (не прохожий в обходе)
 		if ch == main.player or not ch.visible or ch.hostile or ch.pose != "" or ch.char_id.begins_with("friend") \
-				or ch.char_id in ["ded", "target", "sick"] or ch.is_in_group("range_targets"):
+				or ch.char_id in ["ded", "target", "sick", "villager", "villager_f"] or ch.is_in_group("range_targets") \
+				or not ch.patrol.is_empty() or ch.dialog == "":
 			continue
 		if best == null or ch.global_position.distance_to(p) < best.global_position.distance_to(p):
 			best = ch
@@ -153,6 +155,10 @@ func _pick_target() -> Character:
 ## «Стёпе» — дательный падеж для подсказки (простое правило: а/я → е, иначе +у)
 static func _dat(n: String) -> String:
 	var w := n.split(" ")[0]
+	if w.ends_with("ий") or w.ends_with("ый"):
+		return w.left(w.length() - 2) + "ему"
+	if w.ends_with("ой"):
+		return w.left(w.length() - 2) + "ому"
 	if w.ends_with("а") or w.ends_with("я"):
 		return w.left(w.length() - 1) + "е"
 	if w.ends_with("й") or w.ends_with("ь"):
