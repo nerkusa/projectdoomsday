@@ -274,9 +274,9 @@ Project Doomsday — 1–4
 ### scripts/core/radiation.gd (118)
 Радиация (автозагрузка Rad). Накопленная доза — Game.hero.rad (рады).
 
-### scripts/core/rules.gd (405) · class Rules
+### scripts/core/rules.gd (415) · class Rules
 Правила игры: характеристики, навыки, броски, бой — по дизайн-документу (docs/design.md):
-`rep_label:68` `rep_title:76` `trade_mults:86` `all_skills:122` `stat_name:130` `norm_stat:137` `norm_skill:141` `normalize_stats:147` `normalize_skills:162` `weapon_stat:171` `empty_stats:175` `empty_skills:182` `sum_stats:189` `sum_skill_points:196` `r1:204` `roll_dice:208` `sum_arr:219` `roll_hit:227` `max_hp:244` `ap_for:249` `wound_dmg_penalty:254` `calc_ae:262` `level_reward:279` `xp_for_level:283` `earned:290` `random_core:301` `_build_hit_dist:335` `hit_chance:356` `atk_mods:368` `def_mods:391` `zone_by_name:400`
+`rep_label:78` `rep_title:86` `trade_mults:96` `all_skills:132` `stat_name:140` `norm_stat:147` `norm_skill:151` `normalize_stats:157` `normalize_skills:172` `weapon_stat:181` `empty_stats:185` `empty_skills:192` `sum_stats:199` `sum_skill_points:206` `r1:214` `roll_dice:218` `sum_arr:229` `roll_hit:237` `max_hp:254` `ap_for:259` `wound_dmg_penalty:264` `calc_ae:272` `level_reward:289` `xp_for_level:293` `earned:300` `random_core:311` `_build_hit_dist:345` `hit_chance:366` `atk_mods:378` `def_mods:401` `zone_by_name:410`
 
 ### scripts/core/weather.gd (341)
 Погода (автозагрузка Weather): ясно, пасмурно, дождь, ливень, гроза, буря,
@@ -299,9 +299,9 @@ Project Doomsday — 1–4
 Кресты — первое живое поселение за чертой.
 `_ready:10` `on_world_state_applied:17` `on_enter:21` `_kid_home:28` `_apply_dogs:40` `_dogs_left:56` `on_dialog_action:65` `on_combat_end:78` `on_interact:85` `_woodpile:132` `_steam:147` `on_interact_extra:158` `_tracks:165` `item_actions:186` `describe:205` `dialog_cond:233` `objective:248`
 
-### scripts/locations/nakharro.gd (1584)
+### scripts/locations/nakharro.gd (1598)
 Пролог: деревня Нахарро.
-`_ready:35` `_exit_tree:43` `phase:52` `on_new_game:66` `on_world_state_applied:91` `_apply_sacred:97` `on_enter:104` `_restore_barn:118` `can_leave_edge:135` `edge_tip:139` `_apply_phase:143` `_apply_light:203` `uses_clock_light:224` `schedule_active:229` `_set_on:233` `status_line:249` `food_count:255` `objective:259` `food_portions:288` `has_travel:296` `pack_ready:303` `pack_line:311` `_check_pack:321` `_process:332` `on_hero_moved:373` `can_pick:425` `_is_theft:446` `_witness:453` `_steal:468` `on_picked:487` `_dusk:508` `_gone_home:531` `_start_ambush:541` `_behind:579` `_ambush_hit:585` `_ambush_heard:608` `_prowl_arrived:619` `_prowl_tick:640` `_prowl_leave:667` `_prowl_gone:677` `leave_hide:690` `_gate_enemies_left:697` `_gate_scene:705` `_gate_fight:755` `_nobody_left:767` `_kill_npc:777` `_gate_round:789` `_doomed_alive:810` `_barn_tick:826` `_cleaners_leave:854` `_cleaner_gone:868` `on_looted:881` `_on_hour:891` `_on_quest:895` `bonfire_lit:901` `_apply_life:907` `_bonfire:925` `_tower:940` `on_interact:955` `on_dialog_action:1042` `on_combat_round:1111` `_ded_shoot:1126` `on_fighter_down:1145` `on_combat_end:1151` `_ded_falls:1184` `_ded_near:1207` `_fighting_cleaners:1217` `_fighting_squad:1221` `_cleaners_hear:1230` `_alive_cleaner:1241` `_shoot_ded:1248` `_quest_item:1273` `_update_quest_marks:1289` `_mark_label:1311` `_chest:1329` `_open_chest:1367` `item_actions:1375` `describe:1418` `_mend_fence:1451` `_apply_fence:1475` `_set_solid:1497` `_on_hero_changed:1504` `_assemble_kpk:1519` `_absorb_modules:1542` `_update_exit_guard:1563` `_exit_guard_alive:1581`
+`_ready:35` `_exit_tree:43` `phase:52` `on_new_game:66` `on_world_state_applied:91` `_apply_sacred:97` `on_enter:104` `_restore_barn:118` `can_leave_edge:135` `edge_tip:139` `_apply_phase:143` `_apply_light:203` `uses_clock_light:224` `schedule_active:229` `_set_on:233` `status_line:249` `food_count:255` `objective:259` `food_portions:288` `has_travel:296` `pack_ready:303` `pack_line:311` `_check_pack:321` `_process:332` `on_hero_moved:373` `can_pick:425` `is_theft:446` `theft_watch_radius:450` `_is_theft:454` `_witness:462` `_steal:482` `on_picked:501` `_dusk:522` `_gone_home:545` `_start_ambush:555` `_behind:593` `_ambush_hit:599` `_ambush_heard:622` `_prowl_arrived:633` `_prowl_tick:654` `_prowl_leave:681` `_prowl_gone:691` `leave_hide:704` `_gate_enemies_left:711` `_gate_scene:719` `_gate_fight:769` `_nobody_left:781` `_kill_npc:791` `_gate_round:803` `_doomed_alive:824` `_barn_tick:840` `_cleaners_leave:868` `_cleaner_gone:882` `on_looted:895` `_on_hour:905` `_on_quest:909` `bonfire_lit:915` `_apply_life:921` `_bonfire:939` `_tower:954` `on_interact:969` `on_dialog_action:1056` `on_combat_round:1125` `_ded_shoot:1140` `on_fighter_down:1159` `on_combat_end:1165` `_ded_falls:1198` `_ded_near:1221` `_fighting_cleaners:1231` `_fighting_squad:1235` `_cleaners_hear:1244` `_alive_cleaner:1255` `_shoot_ded:1262` `_quest_item:1287` `_update_quest_marks:1303` `_mark_label:1325` `_chest:1343` `_open_chest:1381` `item_actions:1389` `describe:1432` `_mend_fence:1465` `_apply_fence:1489` `_set_solid:1511` `_on_hero_changed:1518` `_assemble_kpk:1533` `_absorb_modules:1556` `_update_exit_guard:1577` `_exit_guard_alive:1595`
 
 ### scripts/locations/nakharro_cellar.gd (115)
 Подпол избы деда — второй уровень Нахарро. Темно: свечу надо зажечь спичками.
@@ -353,17 +353,17 @@ Project Doomsday — 1–4
 ### scripts/locations/zaimka.gd (140)
 Заимка охотника Дьаакыпа. Задание «Капканы»: на севере что-то ломает капканы —
 
-### scripts/main.gd (1518)
+### scripts/main.gd (1532)
 Главный узел игры: камера, загрузка локаций, ввод мышью, окна интерфейса.
-`_ready:81` `_on_level_up:102` `_build_ui:113` `space:186` `ui_blocked:190` `sfx:195` `think:220` `_on_menu:225` `_load_slot:253` `_on_sheet_closed:268` `_on_slides_done:277` `_unload:287` `load_location:305` `autosave:350` `quicksave:357` `show_game_over:366` `show_end:370` `status_text:376` `objective_text:382` `_on_hud_action:395` `open_kpk:440` `use_item:466` `_swap_hands:541` `_open_pause:553` `_move_speed:561` `_sneak_radius:572` `on_combat_start:581` `is_filler:597` `filler_bark:602` `talk_to:643` `say:668` `_on_dialog_action:678` `open_trade:717` `_on_dialog_closed:723` `start_fight:728` `_unhandled_input:749` `wait_time:811` `begin_cutscene:816` `end_cutscene:824` `_enemies_near:829` `open_wait:837` `wait_hours:847` `_pick:864` `_click:905` `_may_attack:948` `_near_edge:958` `_can_leave:963` `_walk_to_hex:975` `_walk_clear:1018` `_smooth_path:1033` `_go_then:1047` `_do_pending:1079` `interact:1107` `loot:1131` `_body_entries:1149` `open_loot:1170` `pickpocket:1191` `examine:1222` `_open_actions:1238` `_on_action_picked:1284` `_process:1303` `_update_xray:1365` `_set_alpha:1430` `_check_aggro:1437` `_look_around:1467` `_look_text:1489`
+`_ready:81` `_on_level_up:102` `_build_ui:113` `space:186` `ui_blocked:190` `sfx:195` `think:220` `_on_menu:225` `_load_slot:253` `_on_sheet_closed:268` `_on_slides_done:277` `_unload:287` `load_location:305` `autosave:350` `quicksave:357` `show_game_over:366` `show_end:370` `status_text:376` `objective_text:382` `_on_hud_action:395` `open_kpk:440` `use_item:466` `_swap_hands:541` `_open_pause:553` `_move_speed:561` `_sneak_radius:572` `on_combat_start:581` `is_filler:597` `filler_bark:602` `talk_to:643` `say:668` `_on_dialog_action:678` `open_trade:717` `_on_dialog_closed:723` `start_fight:728` `_unhandled_input:749` `wait_time:811` `begin_cutscene:816` `end_cutscene:824` `_enemies_near:829` `open_wait:837` `wait_hours:847` `_pick:864` `_click:905` `_may_attack:948` `_near_edge:958` `_can_leave:963` `_walk_to_hex:975` `_walk_clear:1018` `_smooth_path:1033` `_go_then:1047` `_do_pending:1079` `interact:1107` `loot:1131` `_body_entries:1149` `open_loot:1170` `pickpocket:1191` `examine:1222` `_open_actions:1238` `_on_action_picked:1284` `_process:1303` `_update_xray:1365` `_set_alpha:1430` `_update_glow:1438` `_check_aggro:1446` `_look_around:1481` `_look_text:1503`
 
 ### scripts/ui/char_sheet.gd (368) · class CharSheet
 «Дело» — лист персонажа. Новая игра начинается с выбора одного из четырёх готовых
 `setup:24` `_build_pick:131` `presets:176` `pick:181` `_show_pick:198` `_show_main:205` `open:214` `close:223` `_randomize:235` `can_s:244` `can_k:256` `ch_stat:268` `ch_skill:277` `_pm:286` `render:307` `_fixed:359` `_unhandled_key_input:364`
 
-### scripts/ui/dialog_box.gd (494) · class DialogBox
+### scripts/ui/dialog_box.gd (538) · class DialogBox
 Окно разговора. Реплики берутся из data/dialogs/<файл>.json.
-`setup:25` `open:80` `open_data:92` `close:100` `show_node:106` `_node_text:144` `_sakha_noticed:154` `_pick_text:160` `_build_options:167` `_choose:214` `_checks:252` `_check_key:258` `_check_done:264` `_with_chance:269` `_apply_effects:282` `_cond_ok:317` `_subst:363` `rep_tier:368` `addr:383` `_greet_line:391` `_avoids:408` `_avoid_node:418` `_a_trinket:426` `_rep_greet:435` `_finish_typing:460` `_on_text_click:465` `_process:470` `_unhandled_key_input:480`
+`setup:29` `open:91` `open_data:103` `close:111` `show_node:117` `_node_text:155` `_sakha_noticed:165` `_pick_text:171` `_build_options:178` `_fit_opts:227` `_choose:237` `_checks:275` `_check_key:281` `_check_done:287` `_with_chance:292` `_apply_effects:305` `_cond_ok:340` `_node_has_options:392` `_subst:407` `rep_tier:412` `addr:427` `_greet_line:435` `_avoids:452` `_avoid_node:462` `_a_trinket:470` `_rep_greet:479` `_finish_typing:504` `_on_text_click:509` `_process:514` `_unhandled_key_input:524`
 
 ### scripts/ui/hud.gd (644) · class HUD
 Приборная панель внизу экрана (как в прототипе): журнал, герой, оружие, кнопки.
@@ -410,9 +410,9 @@ Project Doomsday — 1–4
 ### scripts/world/arm_length.gd (23) · class ArmLength
 Укорачивает (или удлиняет) руки скелета UAL для модели с другими пропорциями:
 
-### scripts/world/character.gd (1247) · class Character
+### scripts/world/character.gd (1249) · class Character
 Персонаж на локации: герой, жители, враги, звери.
-`_ready:108` `uid:147` `_rebuild_preview:151` `_build_visual:183` `move_along:223` `stop:241` `bark:253` `barking:273` `apply_hero_skin:278` `fov:295` `in_view:305` `show_cone:321` `face_towards:355` `_process:361` `_patrol:405` `act:420` `set_held:428` `_chest_attach:472` `_low_ready:493` `_two_handed:500` `_setup_two_hands:504` `_update_two_hands:546` `_make_weapon_mesh:598` `muzzle_flash:637` `_animate:649` `_animate_clips:786` `_act_clip:831` `_clip_act:848` `_fire_cb_once:894` `_end_act:903` `show_bracelet:917` `_plain:951` `_plug_tick:961` `_sound:988` `_plug_build:994` `_plug_update:1043` `_seg:1065` `_plug_clear:1074` `_collect_meshes:1090` `_mark_kind:1097` `_update_marks:1119` `_set_ghost:1162` `_stencil_write:1187` `_stencil_mat:1207` `_sil_mat:1222` `_ring_mat:1233` `_sound_bolt:1245`
+`_ready:108` `uid:147` `_rebuild_preview:151` `_build_visual:183` `move_along:223` `stop:241` `bark:253` `barking:273` `apply_hero_skin:278` `fov:295` `in_view:305` `show_cone:321` `face_towards:357` `_process:363` `_patrol:407` `act:422` `set_held:430` `_chest_attach:474` `_low_ready:495` `_two_handed:502` `_setup_two_hands:506` `_update_two_hands:548` `_make_weapon_mesh:600` `muzzle_flash:639` `_animate:651` `_animate_clips:788` `_act_clip:833` `_clip_act:850` `_fire_cb_once:896` `_end_act:905` `show_bracelet:919` `_plain:953` `_plug_tick:963` `_sound:990` `_plug_build:996` `_plug_update:1045` `_seg:1067` `_plug_clear:1076` `_collect_meshes:1092` `_mark_kind:1099` `_update_marks:1121` `_set_ghost:1164` `_stencil_write:1189` `_stencil_mat:1209` `_sil_mat:1224` `_ring_mat:1235` `_sound_bolt:1247`
 
 ### scripts/world/fire_fx.gd (98) · class FireFX
 Огонь: мерцающий свет, языки пламени и столб дыма.
@@ -430,19 +430,19 @@ Project Doomsday — 1–4
 ### scripts/world/human_body.gd (108) · class HumanBody
 Процедурный человечек из брусков (как makeHuman в прототипе).
 
-### scripts/world/interactable.gd (53) · class Interactable
+### scripts/world/interactable.gd (112) · class Interactable
 Предмет или место, по которому можно кликнуть: подобрать, обыскать, выйти.
 
-### scripts/world/location.gd (219) · class Location
+### scripts/world/location.gd (229) · class Location
 Корневой скрипт любой локации.
-`setup:22` `spawn_point:31` `characters:38` `character:48` `items:52` `item:62` `ws:66` `_apply_world_state:70` `scatter_table:94` `scatter_count:98` `_scatter_loot:109` `on_world_state_applied:159` `on_enter:163` `on_hero_moved:167` `on_dialog_action:172` `on_interact:177` `can_leave_edge:182` `edge_tip:187` `can_pick:192` `on_picked:196` `on_looted:200` `on_combat_round:204` `on_fighter_down:208` `on_combat_end:212` `dialog_cond:217`
+`setup:22` `spawn_point:31` `characters:38` `character:48` `items:52` `item:62` `ws:66` `_apply_world_state:70` `scatter_table:94` `scatter_count:98` `_scatter_loot:109` `on_world_state_applied:159` `on_enter:163` `on_hero_moved:167` `on_dialog_action:172` `on_interact:177` `is_theft:182` `theft_watch_radius:187` `can_leave_edge:192` `edge_tip:197` `can_pick:202` `on_picked:206` `on_looted:210` `on_combat_round:214` `on_fighter_down:218` `on_combat_end:222` `dialog_cond:227`
 
 ### scripts/world/scatter.gd (38) · class Scatter
 Россыпь одинаковых мелочей (трава, камыш, кочки, лужи) — одна отрисовка на всех.
 
-### scripts/world/social.gd (439) · class Social
+### scripts/world/social.gd (444) · class Social
 Жизнь вокруг героя: жители сами бросают реплики, с ними можно поболтать
-`setup:24` `_st:29` `key:35` `affinity:39` `tier_text:44` `talks:54` `can_fight:64` `_pick:72` `_barks:76` `_peaceful:80` `_process:86` `_idle_step:117` `ambient_line:157` `archetype:181` `can_parley:202` `_squad:213` `parley:223` `_calm:250` `gifts_on_hand:265` `can_chat:273` `chatted_today:277` `chat:281` `_tier_note:311` `gift:320` `_add_aff:329` `provoke:352` `flee:377` `apply_hostile:391` `on_action:406`
+`setup:24` `_st:29` `key:35` `affinity:39` `tier_text:44` `talks:54` `can_fight:64` `_pick:72` `_barks:76` `_peaceful:85` `_process:91` `_idle_step:122` `ambient_line:162` `archetype:186` `can_parley:207` `_squad:218` `parley:228` `_calm:255` `gifts_on_hand:270` `can_chat:278` `chatted_today:282` `chat:286` `_tier_note:316` `gift:325` `_add_aff:334` `provoke:357` `flee:382` `apply_hostile:396` `on_action:411`
 
 ### scripts/world/target_body.gd (41) · class TargetBody
 Мишень для стрельбы: столб и соломенный щит с кругами.
@@ -494,27 +494,27 @@ Project Doomsday — 1–4
 ### tools/preview_prop.gd (26)
 Превью одного пропа: тот же свет, что в деревне, изометрическая камера.
 
-### tools/render_shots.gd (110)
+### tools/render_shots.gd (143)
 Скриншоты для проверки (нужен рендер, не --headless):
 
 ### tools/screenshots.gd (107)
 Снимки экрана для проверки интерфейса (нужен рендер, не --headless).
 
-### tools/smoke_test.gd (2791)
+### tools/smoke_test.gd (2825)
 Автотест пролога: проходит всю цепочку без участия человека и печатает, что сломалось.
-`new_enc:12` `ok:17` `wait:25` `frames:29` `close_dialogs:34` `shut:43` `choose:48` `opt_texts:54` `find_opt:61` `tp:69` `fight:76` `wait_loading:118` `unreachable:127` `go_upstairs:156` `go_downstairs:166` `nakharro_life_tests:177` `kresty_life_tests:355` `encounter_lore_tests:434` `city_tests:502` `admin_tests:695` `weather_tests:773` `social_tests:840` `sungar_tests:930` `_ready:1087`
+`new_enc:12` `ok:17` `wait:25` `frames:29` `close_dialogs:34` `shut:43` `choose:48` `opt_texts:54` `find_opt:61` `tp:79` `fight:86` `wait_loading:128` `unreachable:137` `go_upstairs:166` `go_downstairs:176` `nakharro_life_tests:187` `kresty_life_tests:365` `encounter_lore_tests:444` `city_tests:512` `admin_tests:705` `weather_tests:783` `social_tests:850` `sungar_tests:940` `_ready:1097`
 
 ## Данные (data/)
 
-- data/barks.json (459 строк)
+- data/barks.json (583 строк)
 - data/characters.json (129 строк)
-- data/dialogs/camp_boss.json (368 строк)
+- data/dialogs/camp_boss.json (385 строк)
 - data/dialogs/camp_nyurgun.json (194 строк)
-- data/dialogs/camp_rumors.json (109 строк)
+- data/dialogs/camp_rumors.json (127 строк)
 - data/dialogs/camp_thug.json (210 строк)
 - data/dialogs/camp_trader.json (198 строк)
 - data/dialogs/camp_wounded.json (230 строк)
-- data/dialogs/ded.json (390 строк)
+- data/dialogs/ded.json (408 строк)
 - data/dialogs/defender.json (14 строк)
 - data/dialogs/ebee.json (228 строк)
 - data/dialogs/elder.json (255 строк)
@@ -524,53 +524,53 @@ Project Doomsday — 1–4
 - data/dialogs/enc_jaeger.json (118 строк)
 - data/dialogs/enc_lost_kid.json (104 строк)
 - data/dialogs/enc_pilgrim.json (68 строк)
-- data/dialogs/enc_postman.json (83 строк)
-- data/dialogs/enc_refugee.json (70 строк)
-- data/dialogs/enc_road_trader.json (135 строк)
-- data/dialogs/enc_shaman.json (152 строк)
+- data/dialogs/enc_postman.json (101 строк)
+- data/dialogs/enc_refugee.json (88 строк)
+- data/dialogs/enc_road_trader.json (153 строк)
+- data/dialogs/enc_shaman.json (170 строк)
 - data/dialogs/enc_trapped_hunter.json (117 строк)
 - data/dialogs/enc_trial.json (118 строк)
 - data/dialogs/gambler.json (176 строк)
 - data/dialogs/girl.json (212 строк)
 - data/dialogs/guard.json (119 строк)
 - data/dialogs/hay_quarrel.json (151 строк)
-- data/dialogs/hermit.json (457 строк)
+- data/dialogs/hermit.json (474 строк)
 - data/dialogs/hs_kid1.json (28 строк)
 - data/dialogs/hs_kid2.json (28 строк)
 - data/dialogs/hs_kid3.json (28 строк)
 - data/dialogs/hunter.json (180 строк)
-- data/dialogs/kid.json (239 строк)
+- data/dialogs/kid.json (257 строк)
 - data/dialogs/kr_banya.json (99 строк)
-- data/dialogs/kr_brewer.json (587 строк)
-- data/dialogs/kr_drunk.json (372 строк)
+- data/dialogs/kr_brewer.json (605 строк)
+- data/dialogs/kr_drunk.json (389 строк)
 - data/dialogs/kr_fisher.json (259 строк)
-- data/dialogs/kr_guard.json (168 строк)
-- data/dialogs/kr_head.json (429 строк)
-- data/dialogs/kr_herder.json (83 строк)
+- data/dialogs/kr_guard.json (186 строк)
+- data/dialogs/kr_head.json (446 строк)
+- data/dialogs/kr_herder.json (101 строк)
 - data/dialogs/kr_kid.json (95 строк)
 - data/dialogs/kr_motryona.json (104 строк)
 - data/dialogs/kr_old.json (271 строк)
-- data/dialogs/kr_rumors.json (140 строк)
-- data/dialogs/kr_smith.json (117 строк)
-- data/dialogs/kr_trader.json (367 строк)
+- data/dialogs/kr_rumors.json (158 строк)
+- data/dialogs/kr_smith.json (135 строк)
+- data/dialogs/kr_trader.json (385 строк)
 - data/dialogs/radio_kid.json (106 строк)
 - data/dialogs/road.json (1268 строк)
-- data/dialogs/rumors.json (54 строк)
+- data/dialogs/rumors.json (72 строк)
 - data/dialogs/sg_archylan.json (88 строк)
 - data/dialogs/sg_barman.json (164 строк)
 - data/dialogs/sg_brawler.json (47 строк)
 - data/dialogs/sg_butcher.json (117 строк)
-- data/dialogs/sg_chief.json (239 строк)
+- data/dialogs/sg_chief.json (256 строк)
 - data/dialogs/sg_clerk.json (204 строк)
 - data/dialogs/sg_collector.json (76 строк)
-- data/dialogs/sg_cop.json (244 строк)
+- data/dialogs/sg_cop.json (262 строк)
 - data/dialogs/sg_dealer.json (125 строк)
 - data/dialogs/sg_fishwife.json (58 строк)
 - data/dialogs/sg_granny.json (64 строк)
 - data/dialogs/sg_guard.json (347 строк)
 - data/dialogs/sg_guest.json (143 строк)
 - data/dialogs/sg_gunsmith.json (122 строк)
-- data/dialogs/sg_head.json (136 строк)
+- data/dialogs/sg_head.json (154 строк)
 - data/dialogs/sg_hostess.json (229 строк)
 - data/dialogs/sg_innkeeper.json (180 строк)
 - data/dialogs/sg_market_boss.json (198 строк)
@@ -578,19 +578,19 @@ Project Doomsday — 1–4
 - data/dialogs/sg_mother.json (150 строк)
 - data/dialogs/sg_operator.json (81 строк)
 - data/dialogs/sg_passport.json (149 строк)
-- data/dialogs/sg_radio.json (104 строк)
+- data/dialogs/sg_radio.json (122 строк)
 - data/dialogs/sg_rival.json (64 строк)
 - data/dialogs/sg_runaway.json (117 строк)
 - data/dialogs/sg_stoker.json (172 строк)
-- data/dialogs/sg_storekeeper.json (46 строк)
+- data/dialogs/sg_storekeeper.json (64 строк)
 - data/dialogs/sg_teacher.json (112 строк)
 - data/dialogs/sg_thief.json (145 строк)
 - data/dialogs/sg_watchwoman.json (46 строк)
 - data/dialogs/shooter.json (179 строк)
 - data/dialogs/sick.json (138 строк)
-- data/dialogs/smith.json (302 строк)
+- data/dialogs/smith.json (320 строк)
 - data/dialogs/stepan.json (132 строк)
-- data/dialogs/teacher.json (107 строк)
+- data/dialogs/teacher.json (125 строк)
 - data/dialogs/thoughts.json (442 строк)
 - data/dialogs/varvara.json (250 строк)
 - data/dialogs/water.json (113 строк)

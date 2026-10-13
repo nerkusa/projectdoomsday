@@ -318,12 +318,12 @@ var _cone_key := ""
 
 
 ## Конус зрения на земле — когда герой крадётся, видно, куда смотрит враг
-func show_cone(on: bool, radius: float) -> void:
+func show_cone(on: bool, radius: float, watch := false) -> void:
 	if not on:
 		if _cone:
 			_cone.visible = false
 		return
-	var key := "%.1f/%.0f" % [radius, fov()]
+	var key := "%.1f/%.0f/%s" % [radius, fov(), watch]
 	if _cone == null:
 		_cone = MeshInstance3D.new()
 		_cone.name = "ViewCone"
@@ -349,6 +349,8 @@ func show_cone(on: bool, radius: float) -> void:
 			st.add_vertex(Vector3(sin(a0), 0.0, cos(a0)) * radius + Vector3(0, 0.06, 0))
 			st.add_vertex(Vector3(sin(a1), 0.0, cos(a1)) * radius + Vector3(0, 0.06, 0))
 		_cone.mesh = st.commit()
+		# мирный житель (заметит воровство) — жёлтый, враг — красный
+		(_cone.material_override as StandardMaterial3D).albedo_color = Color(1.0, 0.85, 0.3, 0.14) if watch else Color(1.0, 0.35, 0.2, 0.16)
 	_cone.visible = true
 
 

@@ -49,12 +49,11 @@
           "next": "bootur"
         },
         {
-          "text": "Почему нам нельзя уходить из деревни?",
-          "next": "law"
-        },
-        {
-          "text": "Откуда мы вообще тут взялись?",
-          "next": "origin"
+          "text": "Расскажи мне про…",
+          "next": "about",
+          "if": {
+            "has_options": "about"
+          }
         },
         {
           "text": "Чем ещё помочь, дед?",
@@ -197,7 +196,7 @@
         },
         {
           "text": "Понял.",
-          "next": "start"
+          "next": "about"
         }
       ]
     },
@@ -206,7 +205,7 @@
       "options": [
         {
           "text": "Ладно.",
-          "next": "start"
+          "next": "about"
         }
       ]
     },
@@ -215,7 +214,7 @@
       "options": [
         {
           "text": "Ясно.",
-          "next": "start"
+          "next": "about"
         }
       ]
     },
@@ -378,6 +377,24 @@
         {
           "text": "…",
           "next": "start"
+        }
+      ]
+    },
+    "about": {
+      "text": "Спрашивай.",
+      "options": [
+        {
+          "text": "Почему нам нельзя уходить из деревни?",
+          "next": "law"
+        },
+        {
+          "text": "Откуда мы вообще тут взялись?",
+          "next": "origin"
+        },
+        {
+          "text": "Ладно, о другом.",
+          "next": "start",
+          "back": true
         }
       ]
     }

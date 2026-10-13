@@ -6,16 +6,11 @@
       "text": "Утро доброе. Чего тебе?",
       "options": [
         {
-          "text": "Что нового?",
-          "next": "news"
-        },
-        {
-          "text": "Про абаасы что говорят?",
-          "next": "abaasy"
-        },
-        {
-          "text": "А правда про железных птиц?",
-          "next": "birds"
+          "text": "Расскажи мне про…",
+          "next": "about",
+          "if": {
+            "has_options": "about"
+          }
         },
         {
           "text": "[Уйти]",
@@ -28,7 +23,7 @@
       "options": [
         {
           "text": "Ясно.",
-          "next": "start"
+          "next": "about"
         }
       ]
     },
@@ -37,7 +32,7 @@
       "options": [
         {
           "text": "Ясно.",
-          "next": "start"
+          "next": "about"
         }
       ]
     },
@@ -46,7 +41,29 @@
       "options": [
         {
           "text": "Ясно.",
-          "next": "start"
+          "next": "about"
+        }
+      ]
+    },
+    "about": {
+      "text": "Спрашивай.",
+      "options": [
+        {
+          "text": "Что нового?",
+          "next": "news"
+        },
+        {
+          "text": "Про абаасы что говорят?",
+          "next": "abaasy"
+        },
+        {
+          "text": "А правда про железных птиц?",
+          "next": "birds"
+        },
+        {
+          "text": "Ладно, о другом.",
+          "next": "start",
+          "back": true
         }
       ]
     }

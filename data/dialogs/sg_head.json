@@ -40,12 +40,11 @@
           }
         },
         {
-          "text": "Что за ЭВМ на третьем этаже?",
-          "next": "evm"
-        },
-        {
-          "text": "Почему «город будущего»?",
-          "next": "future"
+          "text": "Расскажи мне про…",
+          "next": "about",
+          "if": {
+            "has_options": "about"
+          }
         },
         {
           "text": "[Уйти]",
@@ -119,7 +118,7 @@
       "options": [
         {
           "text": "…",
-          "next": "start"
+          "next": "about"
         }
       ]
     },
@@ -128,7 +127,25 @@
       "options": [
         {
           "text": "…",
-          "next": "start"
+          "next": "about"
+        }
+      ]
+    },
+    "about": {
+      "text": "Спрашивай.",
+      "options": [
+        {
+          "text": "Что за ЭВМ на третьем этаже?",
+          "next": "evm"
+        },
+        {
+          "text": "Почему «город будущего»?",
+          "next": "future"
+        },
+        {
+          "text": "Ладно, о другом.",
+          "next": "start",
+          "back": true
         }
       ]
     }

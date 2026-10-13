@@ -22,6 +22,10 @@ var _chars := 0.0
 var _visible_opts: Array = []
 
 
+var _opts_scroll: ScrollContainer
+const OPTS_MAX_H := 330.0
+
+
 func setup() -> void:
 	UITheme.full_rect(self)
 	mouse_filter = Control.MOUSE_FILTER_STOP
@@ -35,6 +39,8 @@ func setup() -> void:
 	_panel.offset_right = 470
 	_panel.offset_top = -470
 	_panel.offset_bottom = -175
+	# много ответов — окно растёт вверх, а не уезжает за нижний край экрана
+	_panel.grow_vertical = Control.GROW_DIRECTION_BEGIN
 	add_child(_panel)
 	var v := VBoxContainer.new()
 	v.add_theme_constant_override("separation", 10)
@@ -68,9 +74,14 @@ func setup() -> void:
 	rv.add_child(_text)
 	var op := UITheme.panel(UITheme.screen(false, 8))
 	v.add_child(op)
+	# ответы — в прокрутке: если их совсем много, листаются колесом
+	_opts_scroll = ScrollContainer.new()
+	_opts_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	op.add_child(_opts_scroll)
 	_opts = VBoxContainer.new()
 	_opts.add_theme_constant_override("separation", 2)
-	op.add_child(_opts)
+	_opts.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_opts_scroll.add_child(_opts)
 	visible = false
 
 
@@ -209,6 +220,18 @@ func _build_options(opts: Array) -> void:
 		b.add_theme_color_override("font_pressed_color", UITheme.AMBER_HOT)
 		b.pressed.connect(_choose.bind(i))
 		_opts.add_child(b)
+	_fit_opts.call_deferred()
+
+
+## Высота списка ответов — по содержимому, но не выше OPTS_MAX_H (дальше — прокрутка)
+func _fit_opts() -> void:
+	if _opts_scroll == null:
+		return
+	# перенос строк в кнопках считается после раскладки — ждём кадр
+	await get_tree().process_frame
+	var h := _opts.get_combined_minimum_size().y
+	_opts_scroll.custom_minimum_size.y = minf(h, OPTS_MAX_H)
+	_opts_scroll.scroll_vertical = 0
 
 
 func _choose(i: int) -> void:
@@ -335,6 +358,9 @@ func _cond_ok(c: Dictionary) -> bool:
 			return false
 		if c.has("stage") and st != int(c.stage):
 			return false
+	# «по очереди»: следующее задание у того же человека — только когда прошлое закрыто
+	if c.has("after_quest") and Game.quest_stage(c.after_quest) < int(DB.quests.get(c.after_quest, {}).get("done_stage", 1)):
+		return false
 	if c.has("item") and Game.item_count(c.item) <= 0:
 		return false
 	if c.has("no_item") and Game.item_count(c.no_item) > 0:
@@ -349,6 +375,9 @@ func _cond_ok(c: Dictionary) -> bool:
 		return false
 	if c.has("rep_max") and Game.rep() > int(c.rep_max):
 		return false
+	# подменю («Расскажи мне про…») показываем, только если в нём есть что спросить
+	if c.has("has_options") and not _node_has_options(str(c.has_options)):
+		return false
 	if c.has("cond"):
 		var loc = get_tree().get_first_node_in_group("location")
 		if loc and loc.has_method("dialog_cond") and not loc.dialog_cond(c.cond):
@@ -358,6 +387,21 @@ func _cond_ok(c: Dictionary) -> bool:
 		if loc2 and loc2.has_method("dialog_cond") and loc2.dialog_cond(c.not_cond):
 			return false
 	return true
+
+
+func _node_has_options(id: String) -> bool:
+	var n: Dictionary = data.get("nodes", {}).get(id, {})
+	for o in n.get("options", []):
+		if o.get("back", false) or o.get("if", {}).has("has_options"):
+			continue
+		if not _cond_ok(o.get("if", {})):
+			continue
+		if o.has("sakha") and not Game.knows_sakha():
+			continue
+		if o.has("check") and _check_done(o) == "fail":
+			continue
+		return true
+	return false
 
 
 func _subst(s: String) -> String:

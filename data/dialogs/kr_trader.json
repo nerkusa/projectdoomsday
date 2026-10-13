@@ -19,8 +19,11 @@
           "action": "trade"
         },
         {
-          "text": "Откуда у тебя довоенное?",
-          "next": "where"
+          "text": "Расскажи мне про…",
+          "next": "about",
+          "if": {
+            "has_options": "about"
+          }
         },
         {
           "text": "Что про Сунгар знаешь?",
@@ -31,7 +34,8 @@
           "next": "caravan",
           "if": {
             "quest": "caravan",
-            "stage_max": 0
+            "stage_max": 0,
+            "after_quest": "debt"
           }
         },
         {
@@ -42,10 +46,6 @@
             "stage": 2,
             "item": "waybill"
           }
-        },
-        {
-          "text": "Почему у вас денег нет?",
-          "next": "money"
         },
         {
           "text": "Тебе помочь чем-нибудь?",
@@ -121,7 +121,7 @@
       "options": [
         {
           "text": "Ясно.",
-          "next": "start"
+          "next": "about"
         }
       ]
     },
@@ -181,7 +181,7 @@
       "options": [
         {
           "text": "Ха.",
-          "next": "start"
+          "next": "about"
         }
       ]
     },
@@ -354,6 +354,24 @@
         {
           "text": "[Дальше]",
           "next": "start"
+        }
+      ]
+    },
+    "about": {
+      "text": "Спрашивай.",
+      "options": [
+        {
+          "text": "Откуда у тебя довоенное?",
+          "next": "where"
+        },
+        {
+          "text": "Почему у вас денег нет?",
+          "next": "money"
+        },
+        {
+          "text": "Ладно, о другом.",
+          "next": "start",
+          "back": true
         }
       ]
     }

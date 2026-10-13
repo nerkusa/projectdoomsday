@@ -178,6 +178,16 @@ func on_interact(_it: Interactable) -> bool:
 	return false
 
 
+## Чужая ли вещь: взять её — воровство (подсветка красным, «· чужое» в подсказке)
+func is_theft(_it: Interactable) -> bool:
+	return false
+
+
+## На каком расстоянии мирные жители замечают воровство (0 — тут не следят)
+func theft_watch_radius() -> float:
+	return 0.0
+
+
 ## Можно ли уйти на карту мира кликом у края локации
 func can_leave_edge() -> bool:
 	return true

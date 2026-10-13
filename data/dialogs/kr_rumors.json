@@ -20,8 +20,11 @@
       ],
       "options": [
         {
-          "text": "Что нового?",
-          "next": "news"
+          "text": "Расскажи мне про…",
+          "next": "about",
+          "if": {
+            "has_options": "about"
+          }
         },
         {
           "text": "Про оборванцев что скажешь?",
@@ -30,18 +33,6 @@
         {
           "text": "Что про Сунгар слышно?",
           "next": "sungar"
-        },
-        {
-          "text": "Что за Нью-Рба?",
-          "next": "nyurba"
-        },
-        {
-          "text": "Йегеря у вас бывают?",
-          "next": "jaeger"
-        },
-        {
-          "text": "А как было до войны?",
-          "next": "old"
         },
         {
           "text": "Мальчишка Мичээр нашёлся — он дома?",
@@ -62,7 +53,7 @@
       "options": [
         {
           "text": "Ясно.",
-          "next": "start"
+          "next": "about"
         }
       ]
     },
@@ -94,7 +85,7 @@
       "options": [
         {
           "text": "Ясно.",
-          "next": "start"
+          "next": "about"
         }
       ]
     },
@@ -103,7 +94,7 @@
       "options": [
         {
           "text": "Ясно.",
-          "next": "start"
+          "next": "about"
         }
       ]
     },
@@ -112,7 +103,7 @@
       "options": [
         {
           "text": "Ха.",
-          "next": "start"
+          "next": "about"
         }
       ]
     },
@@ -133,6 +124,32 @@
         {
           "text": "…",
           "next": "start"
+        }
+      ]
+    },
+    "about": {
+      "text": "Спрашивай.",
+      "options": [
+        {
+          "text": "Что нового?",
+          "next": "news"
+        },
+        {
+          "text": "Что за Нью-Рба?",
+          "next": "nyurba"
+        },
+        {
+          "text": "Йегеря у вас бывают?",
+          "next": "jaeger"
+        },
+        {
+          "text": "А как было до войны?",
+          "next": "old"
+        },
+        {
+          "text": "Ладно, о другом.",
+          "next": "start",
+          "back": true
         }
       ]
     }

@@ -74,7 +74,12 @@ func _pick(arr: Array) -> String:
 
 
 func _barks() -> Dictionary:
-	return DB._load("res://data/barks.json")
+	var b: Dictionary = DB._load("res://data/barks.json")
+	# в Нахарро все свои: свои реплики вместо «чужак», «ходок» и «ты не местный»
+	if main and main.location and str(main.location.location_id).begins_with("nakharro") and b.has("nakharro"):
+		b = b.duplicate()
+		b.merge(b.nakharro, true)
+	return b
 
 
 func _peaceful(ch: Character) -> bool:

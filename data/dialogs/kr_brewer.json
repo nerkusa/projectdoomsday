@@ -64,33 +64,16 @@
           }
         },
         {
-          "text": "А что ещё Боотур рассказывал?",
-          "next": "bootur3",
+          "text": "Расскажи мне про…",
+          "next": "about",
           "if": {
-            "flag": "kr_brewer_bootur",
-            "not_flag": "kr_brewer_bootur2"
+            "has_options": "about"
           }
         },
         {
           "text": "Меняешься?",
           "next": null,
           "action": "trade"
-        },
-        {
-          "text": "Боотур пел у вас?",
-          "next": "olonkho",
-          "if": {
-            "flag": "kr_brewer_bootur",
-            "not_flag": "kr_brewer_olonkho"
-          }
-        },
-        {
-          "text": "Что ты думаешь про наши законы?",
-          "next": "laws",
-          "if": {
-            "flag": "kr_beer_refused",
-            "not_flag": "kr_brewer_laws"
-          }
         },
         {
           "text": "Тебе помочь чем-нибудь?",
@@ -118,7 +101,8 @@
             "quest": "barrel",
             "stage_max": 0,
             "flag": "kr_brewer_met",
-            "rep_min": -29
+            "rep_min": -29,
+            "after_quest": "hops"
           }
         },
         {
@@ -342,7 +326,7 @@
       "options": [
         {
           "text": "…",
-          "next": "start"
+          "next": "about"
         }
       ]
     },
@@ -354,7 +338,7 @@
       "options": [
         {
           "text": "Мы много чего берегли.",
-          "next": "start"
+          "next": "about"
         }
       ]
     },
@@ -367,7 +351,7 @@
       "options": [
         {
           "text": "…Может, ты и прав.",
-          "next": "start"
+          "next": "about"
         }
       ]
     },
@@ -576,6 +560,40 @@
         {
           "text": "Понял.",
           "next": "start"
+        }
+      ]
+    },
+    "about": {
+      "text": "Спрашивай.",
+      "options": [
+        {
+          "text": "А что ещё Боотур рассказывал?",
+          "next": "bootur3",
+          "if": {
+            "flag": "kr_brewer_bootur",
+            "not_flag": "kr_brewer_bootur2"
+          }
+        },
+        {
+          "text": "Боотур пел у вас?",
+          "next": "olonkho",
+          "if": {
+            "flag": "kr_brewer_bootur",
+            "not_flag": "kr_brewer_olonkho"
+          }
+        },
+        {
+          "text": "Что ты думаешь про наши законы?",
+          "next": "laws",
+          "if": {
+            "flag": "kr_beer_refused",
+            "not_flag": "kr_brewer_laws"
+          }
+        },
+        {
+          "text": "Ладно, о другом.",
+          "next": "start",
+          "back": true
         }
       ]
     }

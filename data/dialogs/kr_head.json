@@ -98,26 +98,10 @@
           }
         },
         {
-          "text": "Что ты знаешь о «Горизонте»?",
-          "next": "horizon",
+          "text": "Расскажи мне про…",
+          "next": "about",
           "if": {
-            "flag": "kr_head_met",
-            "not_flag": "kr_head_hor"
-          }
-        },
-        {
-          "text": "Мой отец погиб от чучуны. Здесь про них слышали?",
-          "next": "chuchuna",
-          "if": {
-            "flag": "kr_head_met",
-            "not_flag": "kr_head_chu"
-          }
-        },
-        {
-          "text": "Кто такие йегеря?",
-          "next": "polis",
-          "if": {
-            "flag": "kr_head_met"
+            "has_options": "about"
           }
         },
         {
@@ -315,7 +299,7 @@
         },
         {
           "text": "Понятно.",
-          "next": "start"
+          "next": "about"
         }
       ]
     },
@@ -328,7 +312,7 @@
       "options": [
         {
           "text": "…",
-          "next": "start"
+          "next": "about"
         }
       ]
     },
@@ -341,7 +325,7 @@
       "options": [
         {
           "text": "Спасибо.",
-          "next": "start"
+          "next": "about"
         }
       ]
     },
@@ -350,7 +334,7 @@
       "options": [
         {
           "text": "Ха.",
-          "next": "start"
+          "next": "about"
         }
       ]
     },
@@ -418,6 +402,39 @@
         {
           "text": "Спасибо.",
           "next": "start"
+        }
+      ]
+    },
+    "about": {
+      "text": "Спрашивай.",
+      "options": [
+        {
+          "text": "Что ты знаешь о «Горизонте»?",
+          "next": "horizon",
+          "if": {
+            "flag": "kr_head_met",
+            "not_flag": "kr_head_hor"
+          }
+        },
+        {
+          "text": "Мой отец погиб от чучуны. Здесь про них слышали?",
+          "next": "chuchuna",
+          "if": {
+            "flag": "kr_head_met",
+            "not_flag": "kr_head_chu"
+          }
+        },
+        {
+          "text": "Кто такие йегеря?",
+          "next": "polis",
+          "if": {
+            "flag": "kr_head_met"
+          }
+        },
+        {
+          "text": "Ладно, о другом.",
+          "next": "start",
+          "back": true
         }
       ]
     }

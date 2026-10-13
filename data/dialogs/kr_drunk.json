@@ -6,10 +6,10 @@
       "text": "О-о! Садись, друг! Выпьем за… за что-нибудь выпьем!",
       "options": [
         {
-          "text": "Ты знал Боотура?",
-          "next": "bootur",
+          "text": "Расскажи мне про…",
+          "next": "about",
           "if": {
-            "not_flag": "kr_drunk_bootur"
+            "has_options": "about"
           }
         },
         {
@@ -38,17 +38,6 @@
           "fail": "sober_no"
         },
         {
-          "text": "Кто такие «Кимберлит»?",
-          "next": "nation"
-        },
-        {
-          "text": "Что в Сунгаре?",
-          "next": "casino",
-          "if": {
-            "not_flag": "kr_drunk_casino"
-          }
-        },
-        {
           "text": "Ты должен Аграфене соль.",
           "next": "debt",
           "if": {
@@ -71,7 +60,7 @@
       "options": [
         {
           "text": "Ясно.",
-          "next": "start"
+          "next": "about"
         }
       ]
     },
@@ -249,7 +238,7 @@
       "options": [
         {
           "text": "Ха.",
-          "next": "start"
+          "next": "about"
         }
       ]
     },
@@ -261,7 +250,7 @@
       "options": [
         {
           "text": "…",
-          "next": "start"
+          "next": "about"
         }
       ]
     },
@@ -359,6 +348,34 @@
         {
           "text": "Спасибо.",
           "next": "start"
+        }
+      ]
+    },
+    "about": {
+      "text": "Спрашивай.",
+      "options": [
+        {
+          "text": "Ты знал Боотура?",
+          "next": "bootur",
+          "if": {
+            "not_flag": "kr_drunk_bootur"
+          }
+        },
+        {
+          "text": "Кто такие «Кимберлит»?",
+          "next": "nation"
+        },
+        {
+          "text": "Что в Сунгаре?",
+          "next": "casino",
+          "if": {
+            "not_flag": "kr_drunk_casino"
+          }
+        },
+        {
+          "text": "Ладно, о другом.",
+          "next": "start",
+          "back": true
         }
       ]
     }

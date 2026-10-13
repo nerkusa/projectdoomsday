@@ -6,17 +6,10 @@
       "text": "Старик бросает в огонь щепоть травы. Дым пахнет полынью. «Ты носишь на руке железную песню. Я слышу её с той стороны реки. Плохая песня. Чужая. И очень старая».",
       "options": [
         {
-          "text": "Откуда ты знаешь, кто я?",
-          "next": "who",
+          "text": "Расскажи мне про…",
+          "next": "about",
           "if": {
-            "not_flag": "sham_who"
-          }
-        },
-        {
-          "text": "Что за песня?",
-          "next": "song",
-          "if": {
-            "not_flag": "sham_song"
+            "has_options": "about"
           }
         },
         {
@@ -68,7 +61,7 @@
       "options": [
         {
           "text": "…",
-          "next": "start"
+          "next": "about"
         }
       ]
     },
@@ -83,7 +76,7 @@
       "options": [
         {
           "text": "…",
-          "next": "start"
+          "next": "about"
         }
       ]
     },
@@ -140,6 +133,30 @@
         {
           "text": "…",
           "next": "start"
+        }
+      ]
+    },
+    "about": {
+      "text": "Спрашивай.",
+      "options": [
+        {
+          "text": "Откуда ты знаешь, кто я?",
+          "next": "who",
+          "if": {
+            "not_flag": "sham_who"
+          }
+        },
+        {
+          "text": "Что за песня?",
+          "next": "song",
+          "if": {
+            "not_flag": "sham_song"
+          }
+        },
+        {
+          "text": "Ладно, о другом.",
+          "next": "start",
+          "back": true
         }
       ]
     }

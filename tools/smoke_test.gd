@@ -63,6 +63,16 @@ func find_opt(sub: String) -> int:
 	for i in t.size():
 		if sub in t[i]:
 			return i
+	# вопросы про мир спрятаны в «Расскажи мне про…» — заходим туда и ищем снова
+	for i in t.size():
+		if "Расскажи мне про" in t[i] and not "Расскажи мне про" in sub:
+			main.dialog._finish_typing()
+			main.dialog._choose(i)
+			var t2 := opt_texts()
+			for k in t2.size():
+				if sub in t2[k]:
+					return k
+			return -1
 	return -1
 
 
@@ -1240,6 +1250,29 @@ func _ready() -> void:
 	ok(main.location._is_theft(loot) and not main.location.can_pick(loot) and Game.rep() == hum0 - 6,
 		"воровство на глазах: вещь не взята, молва %d → %d" % [hum0, Game.rep()])
 	ok(not main.location._is_theft(main.location.item("Basket")), "корзину брать можно")
+	main._check_aggro()
+	ok(loot._glow_mode == "theft" and main.location.item("Basket")._glow_mode == "free", "чужое подсвечено красным, своё — зелёным")
+	# воровство: видит только тот, кто смотрит в твою сторону; со спины — лишь вплотную
+	Game.hero.sneak = true
+	await tp(stp.global_position + Vector3(0, 0, -2.4))
+	stp.rotation.y = 0.0
+	var wr: float = main._sneak_radius(main.location.WITNESS_R)
+	ok(not stp.in_view(main.player.global_position, wr, 1.2), "Степан стоит спиной в 2,4 м — крадучись не заметит")
+	stp.face_towards(main.player.global_position)
+	ok(stp.in_view(main.player.global_position, wr, 1.2) and main.location._witness() != null,
+		"повернулся лицом — видит (радиус %.1f, до него %.1f)" % [wr, stp.global_position.distance_to(main.player.global_position)])
+	main._check_aggro()
+	ok(stp._cone != null and stp._cone.visible, "крадучись видно, куда смотрят жители (жёлтый конус)")
+	Game.hero.sneak = false
+	main._check_aggro()
+	ok(stp._cone == null or not stp._cone.visible, "не крадёшься — конусов нет")
+	var odd := ""
+	for k in 60:
+		var bl: String = main.social.ambient_line(stp)
+		for w in ["чужак", "ходок", "не местный", "Сунгар", "за чертой"]:
+			if w in bl:
+				odd = bl
+	ok(odd == "", "в Нахарро жители не зовут героя чужаком (%s)" % odd)
 	Game.change_rep(hum0 - Game.rep())
 	await wait(1.0)
 	main.interact(main.location.item("Basket"))
@@ -2635,6 +2668,7 @@ func _ready() -> void:
 	# хмель — Дьулусу: он вспоминает про Нью-Рбу
 	main.talk_to(loc.character("Brewer"))
 	await frames(2)
+	ok(not "Чем помочь, Дьулус" in str(opt_texts()), "второе задание Дьулуса — только после хмеля")
 	await choose(find_opt("Отдать хмель"))
 	ok(Game.quest_stage("hops") == 3 and "Нью-Рбе" in str(Game.hero.notes), "Дьулус: Боотур говорил про Нью-Рбу")
 	await shut()

@@ -339,10 +339,10 @@ func render() -> void:
 	_derived.text = "Здоровье: %d\nОчки действия в бою: %d\nМолва: %+d — %s" % [mx, Rules.ap_for(Game.effective_stats(), mx, mx), Game.rep(), Rules.rep_label(Game.rep())]
 	for c in _skills_box.get_children():
 		c.queue_free()
-	for s in Rules.STATS:
-		var hdr := UITheme.label(s.full.to_upper(), 11, UITheme.AMBER_DIM, true)
+	for g in Rules.SKILL_GROUPS:
+		var hdr := UITheme.label(str(g[0]).to_upper(), 11, UITheme.AMBER_DIM, true)
 		_skills_box.add_child(hdr)
-		for sk in Rules.SKILLS[s.key]:
+		for sk in g[1]:
 			var n: String = sk
 			var row := HBoxContainer.new()
 			var nm := UITheme.label("  " + n, 13)

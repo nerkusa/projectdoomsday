@@ -43,11 +43,10 @@
           }
         },
         {
-          "text": "Говорят, вас тоже пожгли. Кто?",
-          "next": "burned",
+          "text": "Расскажи мне про…",
+          "next": "about",
           "if": {
-            "flag": "camp_boss_nakh",
-            "not_flag": "camp_boss_told"
+            "has_options": "about"
           }
         },
         {
@@ -61,21 +60,6 @@
         {
           "text": "Что вам нужно, чтобы выжить?",
           "next": "need",
-          "if": {
-            "flag": "camp_boss_nakh"
-          }
-        },
-        {
-          "text": "Где вас сожгли? Та база.",
-          "next": "sytygan",
-          "if": {
-            "flag": "camp_boss_told",
-            "not_flag": "camp_boss_syt"
-          }
-        },
-        {
-          "text": "Какой у вас тут закон?",
-          "next": "law",
           "if": {
             "flag": "camp_boss_nakh"
           }
@@ -232,7 +216,7 @@
       "options": [
         {
           "text": "Схожу.",
-          "next": "start"
+          "next": "about"
         }
       ]
     },
@@ -241,7 +225,7 @@
       "options": [
         {
           "text": "Понятно.",
-          "next": "start"
+          "next": "about"
         }
       ]
     },
@@ -357,6 +341,39 @@
         {
           "text": "[Дальше]",
           "next": "start"
+        }
+      ]
+    },
+    "about": {
+      "text": "Спрашивай.",
+      "options": [
+        {
+          "text": "Говорят, вас тоже пожгли. Кто?",
+          "next": "burned",
+          "if": {
+            "flag": "camp_boss_nakh",
+            "not_flag": "camp_boss_told"
+          }
+        },
+        {
+          "text": "Где вас сожгли? Та база.",
+          "next": "sytygan",
+          "if": {
+            "flag": "camp_boss_told",
+            "not_flag": "camp_boss_syt"
+          }
+        },
+        {
+          "text": "Какой у вас тут закон?",
+          "next": "law",
+          "if": {
+            "flag": "camp_boss_nakh"
+          }
+        },
+        {
+          "text": "Ладно, о другом.",
+          "next": "start",
+          "back": true
         }
       ]
     }

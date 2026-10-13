@@ -15,12 +15,11 @@
           "action": "pay_food"
         },
         {
-          "text": "Что в Мар-Куне?",
-          "next": "markun"
-        },
-        {
-          "text": "Куда идёте?",
-          "next": "where"
+          "text": "Расскажи мне про…",
+          "next": "about",
+          "if": {
+            "has_options": "about"
+          }
         },
         {
           "text": "[Уйти]",
@@ -50,7 +49,7 @@
       "options": [
         {
           "text": "…",
-          "next": "start"
+          "next": "about"
         }
       ]
     },
@@ -59,7 +58,25 @@
       "options": [
         {
           "text": "Удачи.",
-          "next": "start"
+          "next": "about"
+        }
+      ]
+    },
+    "about": {
+      "text": "Спрашивай.",
+      "options": [
+        {
+          "text": "Что в Мар-Куне?",
+          "next": "markun"
+        },
+        {
+          "text": "Куда идёте?",
+          "next": "where"
+        },
+        {
+          "text": "Ладно, о другом.",
+          "next": "start",
+          "back": true
         }
       ]
     }

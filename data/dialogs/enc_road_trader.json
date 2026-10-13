@@ -11,8 +11,11 @@
           "action": "trade"
         },
         {
-          "text": "Что в Сунгаре слышно?",
-          "next": "sungar"
+          "text": "Расскажи мне про…",
+          "next": "about",
+          "if": {
+            "has_options": "about"
+          }
         },
         {
           "text": "Про Боотура слышал? Здоровый такой, из тайги.",
@@ -30,10 +33,6 @@
             "stage_min": 1,
             "stage_max": 4
           }
-        },
-        {
-          "text": "Что за купюры с мужиком в беретке?",
-          "next": "money"
         },
         {
           "text": "[Уйти]",
@@ -103,7 +102,7 @@
       "options": [
         {
           "text": "Ясно.",
-          "next": "start"
+          "next": "about"
         }
       ]
     },
@@ -123,7 +122,25 @@
       "options": [
         {
           "text": "Ха.",
-          "next": "start"
+          "next": "about"
+        }
+      ]
+    },
+    "about": {
+      "text": "Спрашивай.",
+      "options": [
+        {
+          "text": "Что в Сунгаре слышно?",
+          "next": "sungar"
+        },
+        {
+          "text": "Что за купюры с мужиком в беретке?",
+          "next": "money"
+        },
+        {
+          "text": "Ладно, о другом.",
+          "next": "start",
+          "back": true
         }
       ]
     }

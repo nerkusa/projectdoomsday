@@ -443,19 +443,33 @@ const SCOLD := ["Эй! Положи, где взял!", "Ты что твори�
 	"Вот деду-то расскажу, чем внук занимается!"]
 
 
+func is_theft(it: Interactable) -> bool:
+	return _is_theft(it)
+
+
+func theft_watch_radius() -> float:
+	return WITNESS_R if phase() == "morning" else 0.0
+
+
 func _is_theft(it: Interactable) -> bool:
 	if phase() != "morning" or it.item_id in FREE_PICK:
 		return false
 	return not String(it.name).begins_with("Take_IzbaDed")
 
 
-## Кто из жителей видит героя: рядом, в сознании, не враг и ничто не заслоняет
+## Кто из жителей видит героя: смотрит в его сторону (конус обзора), не спит, не враг
+## и ничто не заслоняет. Вплотную — слышит и со спины. Крадучись — видят ближе.
 func _witness() -> Character:
 	var p: Vector3 = main.player.global_position
+	var sneak: bool = Game.hero.get("sneak", false)
+	var r: float = main._sneak_radius(WITNESS_R)
+	var hear := 1.2 if sneak else 2.5
 	var best: Character = null
-	var bd := WITNESS_R
+	var bd := r + 0.01
 	for ch in characters():
-		if ch == main.player or not ch.visible or ch.pose in ["dead", "down"] or ch.hostile:
+		if ch == main.player or not ch.visible or ch.pose in ["dead", "down", "sleep"] or ch.hostile:
+			continue
+		if not ch.in_view(p, r, hear):
 			continue
 		var d: float = ch.global_position.distance_to(p)
 		if d < bd and grid.line_clear(ch.global_position, p, get_world_3d().direct_space_state):

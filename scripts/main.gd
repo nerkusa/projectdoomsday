@@ -1341,7 +1341,7 @@ func _process(delta: float) -> void:
 					t += social.tier_text(ch)
 				hud.show_tip(t)
 			elif it:
-				hud.show_tip(it.title())
+				hud.show_tip(it.title() + (" · чужое" if it.kind == "item" and location.is_theft(it) else ""))
 			elif p.get("ground", null) != null and _near_edge(p.ground) and _can_leave() and location.can_leave_edge():
 				hud.show_tip("Край · уйти (карта мира)")
 				_hover = location
@@ -1434,14 +1434,28 @@ func _set_alpha(n: Node, a: float) -> void:
 		_set_alpha(c, a)
 
 
+## Слабая подсветка вещей: зелёная — можно взять, красная — чужое (воровство)
+func _update_glow() -> void:
+	for it in location.items():
+		if it.kind != "item" or not it.visible:
+			it.set_glow("")
+		else:
+			it.set_glow("theft" if location.is_theft(it) else "free")
+
+
 func _check_aggro() -> void:
 	# конусы зрения врагов видны, пока герой крадётся
+	# а там, где воровство замечают, — и конусы мирных жителей (жёлтые)
 	var cones: bool = Game.hero.get("sneak", false) and not combat.on
+	var watch: float = location.theft_watch_radius()
 	for ch in location.characters():
 		if ch.hostile and ch.aggro_radius > 0 and ch.visible and ch.pose != "dead":
 			ch.show_cone(cones, _sneak_radius(ch.aggro_radius))
+		elif watch > 0.0 and cones and ch != player and ch.visible and not ch.hostile and not (ch.pose in ["dead", "down", "sleep"]):
+			ch.show_cone(true, _sneak_radius(watch), true)
 		elif ch._cone:
 			ch.show_cone(false, 0.0)
+	_update_glow()
 	if hidden:
 		return
 	for ch in location.characters():

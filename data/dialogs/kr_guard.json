@@ -36,27 +36,15 @@
           }
         },
         {
-          "text": "Что это за место?",
-          "next": "place"
-        },
-        {
-          "text": "Кресты на въезде — зачем?",
-          "next": "crosses"
+          "text": "Расскажи мне про…",
+          "next": "about",
+          "if": {
+            "has_options": "about"
+          }
         },
         {
           "text": "Что слышно про чужих солдат?",
           "next": "soldiers"
-        },
-        {
-          "text": "Что по радио слышно?",
-          "next": "radio",
-          "if": {
-            "not_flag": "kr_guard_radio"
-          }
-        },
-        {
-          "text": "Какие у вас законы?",
-          "next": "law"
         },
         {
           "text": "[Уйти]",
@@ -103,7 +91,7 @@
       "options": [
         {
           "text": "Ясно.",
-          "next": "start"
+          "next": "about"
         }
       ]
     },
@@ -112,7 +100,7 @@
       "options": [
         {
           "text": "Ясно.",
-          "next": "start"
+          "next": "about"
         }
       ]
     },
@@ -150,7 +138,7 @@
       "options": [
         {
           "text": "Ха.",
-          "next": "start"
+          "next": "about"
         }
       ]
     },
@@ -159,7 +147,36 @@
       "options": [
         {
           "text": "Понятно.",
-          "next": "start"
+          "next": "about"
+        }
+      ]
+    },
+    "about": {
+      "text": "Спрашивай.",
+      "options": [
+        {
+          "text": "Что это за место?",
+          "next": "place"
+        },
+        {
+          "text": "Кресты на въезде — зачем?",
+          "next": "crosses"
+        },
+        {
+          "text": "Что по радио слышно?",
+          "next": "radio",
+          "if": {
+            "not_flag": "kr_guard_radio"
+          }
+        },
+        {
+          "text": "Какие у вас законы?",
+          "next": "law"
+        },
+        {
+          "text": "Ладно, о другом.",
+          "next": "start",
+          "back": true
         }
       ]
     }

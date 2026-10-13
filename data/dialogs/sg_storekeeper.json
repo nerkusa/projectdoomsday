@@ -11,12 +11,11 @@
           "action": "trade"
         },
         {
-          "text": "Откуда товар?",
-          "next": "where"
-        },
-        {
-          "text": "Почему «универмаг»? Тут же одна комната.",
-          "next": "name"
+          "text": "Расскажи мне про…",
+          "next": "about",
+          "if": {
+            "has_options": "about"
+          }
         },
         {
           "text": "[Уйти]",
@@ -29,7 +28,7 @@
       "options": [
         {
           "text": "…",
-          "next": "start"
+          "next": "about"
         }
       ]
     },
@@ -38,7 +37,25 @@
       "options": [
         {
           "text": "…",
-          "next": "start"
+          "next": "about"
+        }
+      ]
+    },
+    "about": {
+      "text": "Спрашивай.",
+      "options": [
+        {
+          "text": "Откуда товар?",
+          "next": "where"
+        },
+        {
+          "text": "Почему «универмаг»? Тут же одна комната.",
+          "next": "name"
+        },
+        {
+          "text": "Ладно, о другом.",
+          "next": "start",
+          "back": true
         }
       ]
     }

@@ -21,8 +21,11 @@
       ],
       "options": [
         {
-          "text": "Как козы?",
-          "next": "goats"
+          "text": "Расскажи мне про…",
+          "next": "about",
+          "if": {
+            "has_options": "about"
+          }
         },
         {
           "text": "Это ты в дороге с телегой застрял?",
@@ -31,10 +34,6 @@
             "flag": "carter_helped",
             "not_flag": "carter_thanked"
           }
-        },
-        {
-          "text": "Что за выгоном?",
-          "next": "beyond"
         },
         {
           "text": "[Уйти]",
@@ -47,7 +46,7 @@
       "options": [
         {
           "text": "…",
-          "next": "start"
+          "next": "about"
         }
       ]
     },
@@ -75,7 +74,25 @@
       "options": [
         {
           "text": "…",
-          "next": "start"
+          "next": "about"
+        }
+      ]
+    },
+    "about": {
+      "text": "Спрашивай.",
+      "options": [
+        {
+          "text": "Как козы?",
+          "next": "goats"
+        },
+        {
+          "text": "Что за выгоном?",
+          "next": "beyond"
+        },
+        {
+          "text": "Ладно, о другом.",
+          "next": "start",
+          "back": true
         }
       ]
     }

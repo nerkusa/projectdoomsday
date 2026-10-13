@@ -42,17 +42,10 @@
       },
       "options": [
         {
-          "text": "Кто ты? Живёшь тут один?",
-          "next": "who",
+          "text": "Расскажи мне про…",
+          "next": "about",
           "if": {
-            "not_flag": "hermit_who"
-          }
-        },
-        {
-          "text": "Ты видел чучуну?",
-          "next": "chuchuna",
-          "if": {
-            "not_flag": "hermit_chu"
+            "has_options": "about"
           }
         },
         {
@@ -60,13 +53,6 @@
           "next": "jaeger",
           "if": {
             "not_flag": "hermit_jaeger"
-          }
-        },
-        {
-          "text": "Что ты знаешь про «Горизонт»?",
-          "next": "horizon",
-          "if": {
-            "not_flag": "hermit_hor"
           }
         },
         {
@@ -148,7 +134,7 @@
         },
         {
           "text": "Понятно.",
-          "next": "start"
+          "next": "about"
         }
       ]
     },
@@ -157,7 +143,7 @@
       "options": [
         {
           "text": "Понятно.",
-          "next": "start"
+          "next": "about"
         }
       ]
     },
@@ -192,7 +178,7 @@
       "options": [
         {
           "text": "…",
-          "next": "start"
+          "next": "about"
         }
       ]
     },
@@ -235,7 +221,7 @@
       "options": [
         {
           "text": "…",
-          "next": "start"
+          "next": "about"
         }
       ]
     },
@@ -446,6 +432,37 @@
         {
           "text": "[Дальше]",
           "next": "start"
+        }
+      ]
+    },
+    "about": {
+      "text": "Спрашивай.",
+      "options": [
+        {
+          "text": "Кто ты? Живёшь тут один?",
+          "next": "who",
+          "if": {
+            "not_flag": "hermit_who"
+          }
+        },
+        {
+          "text": "Ты видел чучуну?",
+          "next": "chuchuna",
+          "if": {
+            "not_flag": "hermit_chu"
+          }
+        },
+        {
+          "text": "Что ты знаешь про «Горизонт»?",
+          "next": "horizon",
+          "if": {
+            "not_flag": "hermit_hor"
+          }
+        },
+        {
+          "text": "Ладно, о другом.",
+          "next": "start",
+          "back": true
         }
       ]
     }

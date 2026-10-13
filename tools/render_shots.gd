@@ -66,9 +66,18 @@ func _ready() -> void:
 			# каждый кадр — новая встреча (зерно местности иначе сохраняется)
 			Game.hero.flags["enc_seed"] = randi()
 			Game.world.erase("encounter")
-		elif p.size() > 5 and p[5] != "":
+		var talk := ""
+		var pick := ""
+		Game.hero.sneak = false
+		if p.size() > 5 and p[5] != "" and p[0] != "encounter":
 			for f in str(p[5]).split(","):
-				if f.begins_with("rad="):
+				if f == "sneak":
+					Game.hero.sneak = true
+				elif f.begins_with("talk="):
+					talk = f.trim_prefix("talk=")
+				elif f.begins_with("opt="):
+					pick = f.trim_prefix("opt=")
+				elif f.begins_with("rad="):
 					Game.hero["rad"] = float(f.trim_prefix("rad="))
 				elif f.begins_with("weather="):
 					Weather.frozen = true
@@ -101,9 +110,33 @@ func _ready() -> void:
 		for k in 50:
 			await get_tree().process_frame
 		main.dialog.close()
-		main.hud.visible = false
+		if talk == "SHEET":
+			# кадр с листом героя (как при создании)
+			Game.hero.locked = false
+			main.sheet.open()
+			main.sheet.pick(str(main.sheet.presets()[0].id))
+			await get_tree().process_frame
+		elif talk != "":
+			# кадр с диалогом: говорим с человеком и, если надо, выбираем ответ
+			main.talk_to(main.location.character(talk))
+			for k in 5:
+				await get_tree().process_frame
+			main.dialog._finish_typing()
+			if pick != "":
+				for k2 in main.dialog._visible_opts.size():
+					if pick in str(main.dialog._visible_opts[k2].get("text", "")):
+						main.dialog._choose(k2)
+						break
+				for k in 5:
+					await get_tree().process_frame
+				main.dialog._finish_typing()
+			await get_tree().process_frame
+		else:
+			main._check_aggro()
+			main.hud.visible = false
 		await get_tree().process_frame
 		get_viewport().get_texture().get_image().save_png("%s_%d.png" % [out, i])
 		main.hud.visible = true
+		main.dialog.close()
 		i += 1
 	get_tree().quit()

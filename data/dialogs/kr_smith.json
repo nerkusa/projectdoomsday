@@ -43,12 +43,11 @@
           }
         },
         {
-          "text": "Откуда у вас железо?",
-          "next": "where"
-        },
-        {
-          "text": "Ты видел «железную птицу»?",
-          "next": "bird"
+          "text": "Расскажи мне про…",
+          "next": "about",
+          "if": {
+            "has_options": "about"
+          }
         },
         {
           "text": "[Уйти]",
@@ -61,7 +60,7 @@
       "options": [
         {
           "text": "…",
-          "next": "start"
+          "next": "about"
         }
       ]
     },
@@ -109,7 +108,25 @@
       "options": [
         {
           "text": "…",
-          "next": "start"
+          "next": "about"
+        }
+      ]
+    },
+    "about": {
+      "text": "Спрашивай.",
+      "options": [
+        {
+          "text": "Откуда у вас железо?",
+          "next": "where"
+        },
+        {
+          "text": "Ты видел «железную птицу»?",
+          "next": "bird"
+        },
+        {
+          "text": "Ладно, о другом.",
+          "next": "start",
+          "back": true
         }
       ]
     }

@@ -14,12 +14,11 @@
       ],
       "options": [
         {
-          "text": "Как служба?",
-          "next": "service"
-        },
-        {
-          "text": "Кто тут главный?",
-          "next": "boss"
+          "text": "Расскажи мне про…",
+          "next": "about",
+          "if": {
+            "has_options": "about"
+          }
         },
         {
           "text": "[Уйти]",
@@ -32,7 +31,7 @@
       "options": [
         {
           "text": "…",
-          "next": "start"
+          "next": "about"
         }
       ]
     },
@@ -41,7 +40,7 @@
       "options": [
         {
           "text": "…",
-          "next": "start"
+          "next": "about"
         }
       ]
     },
@@ -237,6 +236,24 @@
         {
           "text": "…",
           "next": null
+        }
+      ]
+    },
+    "about": {
+      "text": "Спрашивай.",
+      "options": [
+        {
+          "text": "Как служба?",
+          "next": "service"
+        },
+        {
+          "text": "Кто тут главный?",
+          "next": "boss"
+        },
+        {
+          "text": "Ладно, о другом.",
+          "next": "start",
+          "back": true
         }
       ]
     }

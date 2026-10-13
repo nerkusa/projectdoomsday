@@ -50,3 +50,62 @@ func title() -> String:
 func set_active(v: bool) -> void:
 	visible = v
 	_area.collision_layer = 4 if v else 0
+
+
+var _glow: MeshInstance3D
+var _glow_mode := ""
+
+
+## Слабая подсветка вещи на земле: «free» — можно взять, «theft» — чужое, «» — нет
+func set_glow(mode: String) -> void:
+	if mode == _glow_mode:
+		return
+	_glow_mode = mode
+	if mode == "":
+		if _glow:
+			_glow.visible = false
+		return
+	if _glow == null:
+		_glow = MeshInstance3D.new()
+		_glow.name = "Glow"
+		_glow.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		var r := maxf(0.5, maxf(pick_size.x, pick_size.z) * 0.8)
+		var st := SurfaceTool.new()
+		st.begin(Mesh.PRIMITIVE_TRIANGLES)
+		var n := 28
+		for i in n:
+			var a0 := TAU * i / n
+			var a1 := TAU * (i + 1) / n
+			var o0 := Vector3(sin(a0), 0, cos(a0))
+			var o1 := Vector3(sin(a1), 0, cos(a1))
+			# кольцо: снаружи прозрачное, ближе к центру ярче — мягкое пятно
+			st.set_color(Color(1, 1, 1, 0.0))
+			st.add_vertex(o0 * r)
+			st.set_color(Color(1, 1, 1, 0.0))
+			st.add_vertex(o1 * r)
+			st.set_color(Color(1, 1, 1, 1.0))
+			st.add_vertex(o1 * r * 0.55)
+			st.set_color(Color(1, 1, 1, 0.0))
+			st.add_vertex(o0 * r)
+			st.set_color(Color(1, 1, 1, 1.0))
+			st.add_vertex(o1 * r * 0.55)
+			st.set_color(Color(1, 1, 1, 1.0))
+			st.add_vertex(o0 * r * 0.55)
+			st.set_color(Color(1, 1, 1, 0.35))
+			st.add_vertex(Vector3.ZERO)
+			st.set_color(Color(1, 1, 1, 1.0))
+			st.add_vertex(o0 * r * 0.55)
+			st.set_color(Color(1, 1, 1, 1.0))
+			st.add_vertex(o1 * r * 0.55)
+		_glow.mesh = st.commit()
+		_glow.position = Vector3(0, 0.04, 0)
+		var m := StandardMaterial3D.new()
+		m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+		m.vertex_color_use_as_albedo = true
+		m.cull_mode = BaseMaterial3D.CULL_DISABLED
+		_glow.material_override = m
+		add_child(_glow)
+	var mat := _glow.material_override as StandardMaterial3D
+	mat.albedo_color = Color(1.0, 0.3, 0.2, 0.6) if mode == "theft" else Color(0.7, 1.0, 0.55, 0.5)
+	_glow.visible = true

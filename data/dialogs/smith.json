@@ -33,21 +33,17 @@
           }
         },
         {
-          "text": "Что слышно?",
-          "next": "rumor"
+          "text": "Расскажи мне про…",
+          "next": "about",
+          "if": {
+            "has_options": "about"
+          }
         },
         {
           "text": "Что ты прячешь под рогожей?",
           "next": "hide",
           "if": {
             "not_flag": "smith_gun_seen"
-          }
-        },
-        {
-          "text": "Как твоё ружьё?",
-          "next": "trust",
-          "if": {
-            "flag": "smith_trust"
           }
         },
         {
@@ -150,7 +146,7 @@
       "options": [
         {
           "text": "Ясно.",
-          "next": "start"
+          "next": "about"
         }
       ]
     },
@@ -274,7 +270,7 @@
       "options": [
         {
           "text": "…",
-          "next": "start"
+          "next": "about"
         }
       ]
     },
@@ -290,6 +286,27 @@
         {
           "text": "Спасибо, Тимир.",
           "next": "start"
+        }
+      ]
+    },
+    "about": {
+      "text": "Спрашивай.",
+      "options": [
+        {
+          "text": "Что слышно?",
+          "next": "rumor"
+        },
+        {
+          "text": "Как твоё ружьё?",
+          "next": "trust",
+          "if": {
+            "flag": "smith_trust"
+          }
+        },
+        {
+          "text": "Ладно, о другом.",
+          "next": "start",
+          "back": true
         }
       ]
     }
