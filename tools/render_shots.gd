@@ -68,15 +68,23 @@ func _ready() -> void:
 			Game.world.erase("encounter")
 		var talk := ""
 		var pick := ""
+		var keep_hud := false
 		Game.hero.sneak = false
 		if p.size() > 5 and p[5] != "" and p[0] != "encounter":
 			for f in str(p[5]).split(","):
 				if f == "sneak":
 					Game.hero.sneak = true
+				elif f == "hud":
+					keep_hud = true
+				elif f.begins_with("tut="):
+					Game.set_flag("tut_on")
+					Game.world["_tut"] = int(f.trim_prefix("tut="))
 				elif f.begins_with("talk="):
 					talk = f.trim_prefix("talk=")
 				elif f.begins_with("opt="):
 					pick = f.trim_prefix("opt=")
+				elif f.begins_with("phase="):
+					Game.set_flag("phase", f.trim_prefix("phase="))
 				elif f.begins_with("int="):
 					Game.hero.stats["INT"] = int(f.trim_prefix("int="))
 				elif f.begins_with("rad="):
@@ -135,7 +143,7 @@ func _ready() -> void:
 			await get_tree().process_frame
 		else:
 			main._check_aggro()
-			main.hud.visible = false
+			main.hud.visible = keep_hud
 		await get_tree().process_frame
 		get_viewport().get_texture().get_image().save_png("%s_%d.png" % [out, i])
 		main.hud.visible = true

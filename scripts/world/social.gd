@@ -105,6 +105,9 @@ func _process(delta: float) -> void:
 	for ch in main.location.characters():
 		if not _peaceful(ch) or ch.pose == "sleep" or ch.barking():
 			continue
+		# друг детства говорит своё (обучение), фоновые реплики ему ни к чему
+		if ch.char_id.begins_with("friend"):
+			continue
 		if ch.global_position.distance_to(main.player.global_position) > BARK_DIST:
 			continue
 		if now - float(_said.get(ch.get_instance_id(), -999.0)) < BARK_COOLDOWN:
@@ -122,7 +125,7 @@ func _process(delta: float) -> void:
 func _idle_step() -> void:
 	var now := Time.get_ticks_msec() / 1000.0
 	for ch in main.location.characters():
-		if not _peaceful(ch) or ch.moving or ch.pose != "" or not ch.patrol.is_empty() or ch.barking():
+		if not _peaceful(ch) or ch.moving or ch.pose != "" or not ch.patrol.is_empty() or ch.barking() or ch.char_id.begins_with("friend"):
 			continue
 		if ch.global_position.distance_to(main.player.global_position) > 24.0:
 			continue

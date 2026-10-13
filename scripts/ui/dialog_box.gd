@@ -145,7 +145,7 @@ func show_node(id: String) -> void:
 	_who.text = title.to_upper()
 	_face.text = who.left(1).to_upper() if who != "" else "…"
 	_full = _subst(_rep_greet(id, n) + _node_text(n))
-	if id == "start" and _dumb() and not _dumb_greeted:
+	if id == "start" and _dumb() and not _dumb_greeted and not data.get("must_talk", false):
 		_dumb_greeted = true
 		_full = _dumb_line("greet") + "\n" + _full
 	_chars = 0.0
@@ -490,7 +490,15 @@ func _node_has_options(id: String) -> bool:
 
 
 func _subst(s: String) -> String:
-	return s.replace("{hero}", str(Game.hero.name)).replace("{addr}", addr())
+	s = s.replace("{hero}", str(Game.hero.name)).replace("{addr}", addr())
+	# {g:проснулся|проснулась} — по полу героя
+	if s.contains("{g:"):
+		var re := RegEx.new()
+		re.compile("\\{g:([^|}]*)\\|([^}]*)\\}")
+		var fem: bool = Game.hero.get("female", false)
+		for m in re.search_all(s):
+			s = s.replace(m.get_string(), m.get_string(2) if fem else m.get_string(1))
+	return s
 
 
 ## Ступень молвы: hero / good / plain / bad / monster

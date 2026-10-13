@@ -577,6 +577,35 @@ func toast(t: String, dur := 2.5) -> void:
 	tw.tween_property(_toast, "modulate:a", 0.0, 0.6)
 
 
+# ---------------- обучение: карточка с клавишей ----------------
+var _tutor: PanelContainer
+var _tutor_lbl: Label
+
+
+## Карточка внизу по центру: что сделать и какой клавишей. «» — убрать.
+func tutor_card(t: String) -> void:
+	if _tutor == null:
+		_tutor = UITheme.panel(UITheme.screen(false, 10))
+		_tutor.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_tutor_lbl = UITheme.label("", 16, UITheme.AMBER_HOT)
+		_tutor_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		_tutor_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_tutor.add_child(_tutor_lbl)
+		add_child(_tutor)
+	_tutor.visible = t != ""
+	if t == "":
+		return
+	_tutor_lbl.text = t
+	_tutor.reset_size()
+	var sz := _tutor.get_combined_minimum_size()
+	_tutor.size = sz
+	_tutor.position = Vector2((size.x - sz.x) / 2.0, size.y - 150.0 - sz.y)
+
+
+func tutor_text() -> String:
+	return _tutor_lbl.text if _tutor and _tutor.visible else ""
+
+
 func hurt_flash() -> void:
 	_hurt.color.a = 0.28
 	var tw := create_tween()

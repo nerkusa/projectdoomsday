@@ -471,6 +471,9 @@ func _characters() -> void:
 	# сюжетные — утро
 	character(chars, "Ded", "ded", Vector3(46.8, 0, 46.4), PI, {"dialog": "ded", "groups": M_})
 	character(chars, "Stepan", "stepan", Vector3(74.5, 0, 46.2), PI * 0.9, {"dialog": "stepan", "groups": M_})
+	# друг детства — учит ходить, говорить, драться (видно одного: того же пола, что герой)
+	character(chars, "Friend", "friend", Vector3(46.6, 0, 50.0), PI * 0.8, {"dialog": "friend", "groups": M_})
+	character(chars, "FriendF", "friend_f", Vector3(46.6, 0, 50.0), PI * 0.8, {"dialog": "friend", "groups": M_})
 	character(chars, "Varvara", "varvara", Vector3(75.5, 0, 59.5), -PI / 2.0, {"dialog": "varvara", "groups": M_})
 	character(chars, "Kid", "kid", Vector3(66.5, 0, 58.2), -0.8, {"dialog": "kid", "groups": M_,
 		"patrol": PackedVector3Array([Vector3(66.5, 0, 58.2), Vector3(60.5, 0, 62.5), Vector3(58.5, 0, 60), Vector3(64, 0, 55.5)])})
@@ -532,6 +535,9 @@ func _characters() -> void:
 	for c in [["DefenderW1", "defender", Vector3(29.6, 0, W_GATE_Z - 2.4), -PI / 2.0], ["DefenderW2", "defender", Vector3(29.1, 0, W_GATE_Z + 2.0), -PI / 2.0 - 0.2]]:
 		var ch := character(chars, c[0], c[1], c[2], c[3], {"dialog": "defender", "armed": true, "groups": R_})
 		ch.add_to_group("defenders", true)
+	# друг детства в налёт: лежит у плетня, смертельно ранен
+	character(chars, "FriendRaid", "friend", Vector3(57.5, 0, 51.0), 0.6, {"dialog": "friend_dying", "start_pose": "down", "groups": R_})
+	character(chars, "FriendRaidF", "friend_f", Vector3(57.5, 0, 51.0), 0.6, {"dialog": "friend_dying", "start_pose": "down", "groups": R_})
 	character(chars, "WoundedDefender", "villager", Vector3(60.5, 0, 57.8), 1.0, {"display_name": "Раненый", "start_pose": "down", "groups": R_})
 	# у северных ворот: часовой зовёт на помощь, пленные на коленях, двое нападавших
 	var gg := character(chars, "GateGuard", "defender", Vector3(62.0, 0, 36.4), 0.45, {"display_name": "Часовой Эрчим", "armed": true, "groups": R_})
@@ -611,6 +617,11 @@ func _items() -> void:
 		var pos: Vector3 = house.transform * slot.position
 		var ps: PackedScene = P.bandage if it[2] == "bandage" else P["item_" + it[2]]
 		item(items, ps, "Take_%s_%s" % [it[0], it[1]], pos)
+	# дедова зажигалка из гильзы — у печи, рядом со спичками
+	var izd: Node3D = root.get_node("Village/IzbaDed")
+	var lt := item(items, P.item_matches, "Take_IzbaDed_lighter", izd.transform * (izd.get_node("Slot_stove").position + Vector3(0.35, 0, 0.25)))
+	lt.set("item_id", "lighter")
+	lt.set("label", "Зажигалка из гильзы")
 	# отвёртка у мастерской — вместе со шпилькой станет отмычкой для сундука
 	var ws_: Node3D = root.get_node("Village/Workshop")
 	# лежит на колоде у входа в мастерскую — на виду, подойти можно

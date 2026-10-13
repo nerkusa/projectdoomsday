@@ -38,6 +38,27 @@ func _ready() -> void:
 	Game.hero_changed.connect(_on_hero_changed)
 	Clock.hour_changed.connect(_on_hour)
 	Game.quest_changed.connect(_on_quest)
+	tutor = Tutor.new()
+	tutor.name = "Tutor"
+	add_child(tutor)
+
+
+## Друг детства водит героя по деревне и учит (утро)
+var tutor: Tutor
+
+
+## Друг детства — того же пола, что герой; в налёт — лежит у плетня
+func friend(raid := false) -> Character:
+	var f: bool = Game.hero.get("female", false)
+	return character(("FriendRaid" if raid else "Friend") + ("F" if f else ""))
+
+
+func _apply_friend() -> void:
+	var f: bool = Game.hero.get("female", false)
+	for n in ["Friend", "FriendRaid"]:
+		var other := character(n + ("" if f else "F"))
+		if other:
+			_set_on(other, false)
 
 
 func _exit_tree() -> void:
@@ -155,6 +176,7 @@ func _apply_phase() -> void:
 		eg.fov_deg = 360.0
 	_apply_light()
 	_apply_fence()
+	_apply_friend()
 	# лесные жители, ушедшие домой к вечеру
 	if Game.flag("dusk"):
 		for n in get_tree().get_nodes_in_group("forest_folk"):
@@ -265,7 +287,13 @@ func objective() -> String:
 			return "%s Степан: принести доски от поленницы\n%s Варвара: отнести корзину из избы деда в амбар" % [
 				"[x]" if Game.flag("fence_done") else "[ ]", "[x]" if Game.flag("basket_done") else "[ ]"]
 		if Game.quest_stage("chores") == 2:
-			return "Вернуться к деду."
+			match Game.quest_stage("cellar"):
+				0:
+					return "Вернуться к деду."
+				1, 2:
+					return "Подпол деда: люк в избе, у печи. Принести банку брусники (свечу зажечь спичками или зажигалкой)."
+				_:
+					return "Вернуться к деду с вареньем — что дальше?"
 		if Game.quest_stage("forest") == 1:
 			return "Набрать грибов и ягод в лесу к северу, за полем."
 		return ""
@@ -281,7 +309,7 @@ func objective() -> String:
 
 # ---------------- сборы в дорогу ----------------
 ## Что нужно взять за черту: категория -> подпись. Еды — FOOD_NEED порций.
-const PACK := {"water": "вода", "fire": "спички", "sleep": "одеяло", "rope": "верёвка"}
+const PACK := {"water": "вода", "fire": "спички или зажигалка", "sleep": "одеяло", "rope": "верёвка"}
 const FOOD_NEED := 2
 
 
@@ -371,6 +399,13 @@ func _process(delta: float) -> void:
 
 # ---------------- события ----------------
 func on_hero_moved(pos: Vector3) -> void:
+	# друг детства у плетня (в налёт и после): подошёл — последний разговор
+	if phase() != "morning" and not Game.flag("friend_dead") and not Game.flag("friend_found") and not main.combat.on and not main.dialog.visible:
+		var fr := friend(true)
+		if fr and fr.visible and fr.global_position.distance_to(pos) < 3.0:
+			Game.set_flag("friend_found")
+			main.player.stop()
+			main.talk_to(fr)
 	if phase() != "raid":
 		return
 	_ded_near(pos)
@@ -490,8 +525,10 @@ func _steal(_it: Interactable) -> bool:
 		Game.log_line("%s: «%s»" % [w.display_name if w.display_name != "" else "Житель", line], "", "miss")
 		Game.change_rep(-THEFT_H * 2, "поймали на воровстве")
 		main.think("Заметили... Стыдно-то как.")
+		Game.set_flag("tut_caught")
 		return false
 	Game.change_rep(-THEFT_H, "взял чужое", false)
+	Game.set_flag("tut_stole")
 	if not Game.flag("theft_thought"):
 		Game.set_flag("theft_thought")
 		main.think("Никто не видел. Только на душе всё равно гадко.")
@@ -583,7 +620,8 @@ func _start_ambush() -> void:
 	pr.set_held("crowbar")
 	pr.hostile = true
 	pr.aggro_radius = 0.0
-	if Game.skill_check("Внимательность", "PRC", "Внимательность", 13):
+	# с огнём в тёмном лесу видно лучше — легче заметить, кто подкрадывается
+	if Game.skill_check("Внимательность", "PRC", "Внимательность", 13, 2 if has_fire() else 0):
 		_ambush_heard(pr)
 	else:
 		_ambush_hit(pr)
@@ -909,6 +947,32 @@ func _on_hour(_h: int) -> void:
 func _on_quest(id: String) -> void:
 	if id in ["hide_seek", "radio"] and main:
 		_apply_life()
+	# в лес — друг напоминает про огонь
+	if id == "forest" and Game.quest_stage("forest") == 1 and main and not Game.flag("friend_fire_said"):
+		Game.set_flag("friend_fire_said")
+		_friend_remind_fire.call_deferred()
+
+
+## Друг догоняет героя: «Не забудь зажигалку!»
+func _friend_remind_fire() -> void:
+	var fr := friend()
+	if fr == null or not fr.visible:
+		return
+	var line: String = main.dialog._subst("В лес? Не забудь зажигалку — дедова, у печи! К вечеру там темень, без огня ничего не разглядишь.")
+	var say := func():
+		fr.face_towards(main.player.global_position)
+		fr.bark(line)
+		main.hud.flash_tip("Зажигалка — в избе деда, у печи. Со спичками или зажигалкой в тёмном лесу видно лучше.")
+	if fr.global_position.distance_to(main.player.global_position) > 4.0:
+		var to: Vector3 = main.player.global_position + (fr.global_position - main.player.global_position).normalized() * 1.8
+		fr.move_along(Clock._route(self, fr.global_position, to), say, 4.2)
+	else:
+		say.call()
+
+
+## Есть чем посветить: спички или зажигалка
+func has_fire() -> bool:
+	return Game.item_count("lighter") > 0 or Game.item_count("matches") > 0
 
 
 ## Вечер ли у костра: огонь горит с 19 до 23, пока в деревне мирно
@@ -1054,6 +1118,29 @@ func on_interact(it: Interactable) -> bool:
 
 
 func on_dialog_action(a: String, _sp: Character) -> bool:
+	match a:
+		"tut_start":
+			tutor.setup(self)
+			tutor.start()
+			return true
+		"tut_skip":
+			tutor.setup(self)
+			tutor.skip()
+			return true
+		"spar_friend":
+			main.dialog.close()
+			Game.set_flag("tut_sparring")
+			main.combat.start([friend()], {"kind": "spar"})
+			return true
+		"friend_dies":
+			var fr := friend(true)
+			if fr:
+				fr.pose = "dead"
+				ws().dead[fr.uid()] = true
+			Game.set_flag("friend_dead")
+			Game.log_line("%s умер%s." % [fr.display_name if fr else "Друг", "ла" if Game.hero.get("female", false) else ""], "", "miss")
+			main.think("Я держу руку, пока она не становится чужой. За черту — за двоих. Обещаю.")
+			return true
 	if a == "hs_leave" and _sp:
 		ws().misc["gone_" + _sp.uid()] = true
 		_sp.start_pose = ""
@@ -1163,6 +1250,13 @@ func on_fighter_down(f: Fighter) -> void:
 
 
 func on_combat_end(res: String, kind: String) -> void:
+	if kind == "spar" and Game.flag("tut_sparring"):
+		Game.set_flag("tut_sparring", false)
+		Game.set_flag("tut_spar_done")
+		var fr := friend()
+		if fr:
+			fr.bark(main.dialog._subst("Ох… Рука у тебя тяжёлая! Ладно, сдаюсь." if res == "win" else "Ха! Лежишь? Ничего, ещё научишься."))
+		return
 	if kind == "spar" and Game.flag("hunter_spar") and not Game.flag("hunter_done"):
 		await get_tree().create_timer(0.6, false).timeout
 		main.talk_to(character("Hunter"), "won" if res == "win" else "lost")
@@ -1522,6 +1616,7 @@ func _on_hero_changed() -> void:
 		_apply_fence()
 	if phase() == "morning" and Game.quest_stage("chores") == 1 and Game.flag("fence_done") and Game.flag("basket_done"):
 		Game.set_quest("chores", 2)
+		Game.set_flag("chores_done")
 		main.hud.refresh_objective()
 	if Game.flag("kpk"):
 		_kpk_busy = true

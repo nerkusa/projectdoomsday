@@ -1196,6 +1196,56 @@ func _ready() -> void:
 	await wait(4.0)
 	ok(not izba.inside and izba.get_node("Upper").visible, "вышел — крыша на месте")
 
+	# --- друг детства: зовёт, ведёт к деду, учит ---
+	var fr: Character = main.location.friend()
+	ok(fr != null and fr.visible and not main.location.character("FriendF").visible, "друг детства того же пола, что герой: %s" % (fr.display_name if fr else "—"))
+	await wait(0.6)
+	ok("поговорить" in main.hud.tutor_text(), "карточка: кликни по другу")
+	main.talk_to(fr)
+	await frames(2)
+	await choose(find_opt("Пошли"))
+	await wait(0.6)
+	# дед стоит рядом со стартом — шаг «идти» засчитывается сразу
+	ok(Game.flag("tut_on") and main.location.tutor.step() <= 1 and main.hud.tutor_text() != "", "обучение началось (%s)" % main.hud.tutor_text())
+	await tp(main.location.character("Ded").global_position + Vector3(1.5, 0, 1.5))
+	await wait(0.8)
+	ok(main.location.tutor.step() == 1 and "поговорить" in main.hud.tutor_text(), "дошёл до деда — шаг «поговорить»")
+	# урок «подкрасться»: крадучись встать у жителя за спиной
+	Game.world["_tut"] = 5
+	await wait(0.6)
+	var swho: Character = main.location.tutor._swho
+	ok(swho != null and swho.display_name.left(4) in main.hud.tutor_text(), "урок скрытности: подкрасться к %s (%s)" % [swho.display_name if swho else "—", main.hud.tutor_text()])
+	Game.hero.sneak = true
+	swho.stop()
+	await tp(swho.global_position - Vector3(sin(swho.rotation.y), 0, cos(swho.rotation.y)) * 1.4)
+	await wait(0.8)
+	ok(main.location.tutor.step() == 6, "подкрался со спины — не заметили")
+	Game.hero.sneak = false
+	# урок воровства: можно и отказаться
+	ok("чужая" in main.hud.tutor_text(), "урок воровства: красное пятно — чужое")
+	main.talk_to(fr)
+	await frames(2)
+	await choose(find_opt("Воровать не буду"))
+	await close_dialogs()
+	await wait(0.6)
+	ok(main.location.tutor.step() == 7, "отказался воровать — друг не настаивает")
+	# спарринг с другом — урок боя
+	await wait(0.6)
+	main.talk_to(fr)
+	await frames(2)
+	await choose(find_opt("на кулаках"))
+	await frames(3)
+	ok(main.combat.on and main.combat.kind == "spar", "спарринг с другом начался")
+	await wait(0.6)
+	ok("ОД" in main.hud.tutor_text(), "в бою — карточка про ОД и ход")
+	await fight()
+	await wait(1.0)
+	ok(Game.flag("tut_spar_done") and main.location.tutor.step() >= 9, "после спарринга — шаг про проверки навыков")
+	# дальше тест идёт своим путём — друг больше не водит
+	Game.set_flag("tut_skip")
+	await close_dialogs()
+	await tp(start)
+
 	# --- дед: утренние дела ---
 	main.talk_to(main.location.character("Ded"))
 	await frames(2)
@@ -1281,10 +1331,10 @@ func _ready() -> void:
 	main.talk_to(main.location.character("Ded"))
 	await frames(2)
 	await choose(find_opt("Всё сделал"))
-	await choose(0)
+	ok(main.dialog.node_id == "cellar", "после Степана и Варвары дед шлёт в подпол, а не в лес")
+	await choose(find_opt("Схожу"))
 	await close_dialogs()
-	ok(Game.quest_stage("chores") == 3, "дед отправил в лес")
-	ok(Game.quest_stage("forest") == 1, "задание «Лес» взято")
+	ok(Game.quest_stage("cellar") == 1 and Game.quest_stage("forest") == 0, "сначала — варенье из подпола")
 
 	# --- побочные задания утром ---
 	# хлам в амбаре и запертый сундук
@@ -1356,11 +1406,6 @@ func _ready() -> void:
 	await close_dialogs()
 	ok(Game.quest_stage("lunch") == 2 and Game.item_count("lunch") == 0, "обед отнесён часовому")
 	# дед: подпол
-	main.talk_to(nak.character("Ded"))
-	await frames(2)
-	await choose(find_opt("Чем ещё помочь"))
-	await choose(find_opt("Схожу"))
-	await close_dialogs()
 	ok(Game.quest_stage("cellar") == 1, "дед просит варенья из подпола")
 	var hatch: Interactable = nak.item("CellarHatch")
 	ok(hatch != null, "люк в подпол есть")
@@ -1394,7 +1439,7 @@ func _ready() -> void:
 		await frames(2)
 	await frames(3)
 	nak = main.location
-	ok(nak.location_id == "nakharro" and Game.quest_stage("forest") == 1, "поднялся обратно в избу, утро продолжается")
+	ok(nak.location_id == "nakharro" and nak.phase() == "morning", "поднялся обратно в избу, утро продолжается")
 	main.dialog.close()
 	main.talk_to(nak.character("Ded"))
 	await frames(2)
@@ -1403,6 +1448,16 @@ func _ready() -> void:
 	await choose(find_opt("пропуск"))
 	ok(main.dialog.node_id == "pass", "дед рассказывает про пропуск")
 	await close_dialogs()
+	# варенье принесено — теперь лес; друг догоняет: «не забудь зажигалку»
+	main.talk_to(nak.character("Ded"))
+	await frames(2)
+	await choose(find_opt("Варенье принёс"))
+	await choose(0)
+	await close_dialogs()
+	ok(Game.quest_stage("chores") == 3 and Game.quest_stage("forest") == 1, "после подпола дед отправил в лес")
+	await wait(2.5)
+	ok(Game.flag("friend_fire_said"), "друг напомнил про зажигалку")
+	ok(nak.item("Take_IzbaDed_lighter") != null and not nak._is_theft(nak.item("Take_IzbaDed_lighter")), "дедова зажигалка у печи — своя")
 	# пропуск можно прочитать в КПК
 	var notes0: int = Game.hero.notes.size()
 	main.use_item("pass_elley")
@@ -1770,6 +1825,20 @@ func _ready() -> void:
 		tk += 0.25
 	ok(main.kpk.visible, "КПК открыт повторно")
 	main.kpk.close()
+
+	# --- друг детства у плетня: подошёл — последние слова ---
+	var frd: Character = main.location.friend(true)
+	ok(frd != null and frd.visible and frd.pose == "down" and not main.location.character("FriendRaidF").visible, "друг детства лежит у плетня")
+	await tp(frd.global_position + Vector3(1.6, 0, 0.6))
+	await wait(0.5)
+	ok(main.dialog.visible and main.dialog.speaker == frd, "подошёл — друг заговорил")
+	var gfr := 0
+	while main.dialog.visible and gfr < 6:
+		await choose(0)
+		await frames(3)
+		gfr += 1
+	await close_dialogs()
+	ok(Game.flag("friend_dead") and frd.pose == "dead", "друг детства умер на руках")
 
 	# --- тела нападавших ---
 	for n in ["Raider2", "Raider3", "Raider4"]:

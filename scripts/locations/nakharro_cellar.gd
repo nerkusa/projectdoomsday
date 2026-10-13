@@ -40,13 +40,14 @@ func on_interact(it: Interactable) -> bool:
 		"Candle":
 			if _lit():
 				main.think("Свеча коптит, но светит. Тени пляшут по банкам.")
-			elif Game.item_count("matches") > 0:
+			elif Game.item_count("lighter") > 0 or Game.item_count("matches") > 0:
 				Game.set_flag("cellar_lit")
 				_apply_light()
-				Game.log_line("Зажёг свечу спичками.", "", "hit")
-				main.think("Чиркнул спичкой — с третьего раза. Свеча занялась. Полки, банки, бочки… и сундук, которого я раньше не видел.")
+				var lt := Game.item_count("lighter") > 0
+				Game.log_line("Зажёг свечу %s." % ("зажигалкой" if lt else "спичками"), "", "hit")
+				main.think(("Щёлкнул дедовой зажигалкой — фитиль занялся сразу." if lt else "Чиркнул спичкой — с третьего раза.") + " Свеча загорелась. Полки, банки, бочки… и сундук, которого я раньше не видел.")
 			else:
-				main.think("Нечем зажечь. Спички — на печи у деда.")
+				main.think("Нечем зажечь. Спички и зажигалка — у деда, у печи.")
 			return true
 		"Jam":
 			if not _lit():
