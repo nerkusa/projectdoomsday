@@ -1,7 +1,7 @@
 extends SungarDistrict
 ## Сунгар, центр: торговые ряды (купчиха Дария и её соперник Хоточчу),
-## «Счастливая лодка» (хозяйка Сардаана, банкомёт Валера), контора «отдела ф. м.».
-## Долговую книгу можно выведать у конторщика — или ночью залезть в окно.
+## клуб в Доме культуры, бюро Полиса — йегеря взяли город «под защиту».
+## «Список Б», снятый с убитого чистильщика, можно выведать у писаря — или ночью залезть в окно.
 
 
 func _ready() -> void:
@@ -23,21 +23,22 @@ func on_interact(it: Interactable) -> bool:
 		"HonorBoard":
 			main.think("«Доска почёта». Под стеклом — выцветшие лица: доярки, бурильщики, учитель года. Одно фото кто-то заменил вырезкой из журнала: человек в пальто. Подпись: «Отдел ф. м. — лучший работник».")
 			return true
-		"Wheel":
-			_wheel()
+		"Projector":
+			main.think(["Киноаппарат «Украина». Бобины пустые, лента давно ушла на заплатки. Киномеханик всё равно протирает его каждый день.",
+				"Киномеханик шепчет: «Раньше тут „Чапаева“ крутили. Весь Сунгар приходил». Теперь в зале — домино и шашки."][randi() % 2])
 			return true
 	return super.on_interact(it)
 
 
-## Окно конторы: ночью, пока конторщика нет, — Воровство
+## Окно бюро: ночью, пока писаря нет, — Воровство
 func _window() -> void:
-	if Game.quest_stage("bootur") >= 8:
-		main.think("Окно конторы. Всё, что мне было нужно, я уже знаю.")
+	if Game.item_count("ledger_page") > 0 or Game.quest_stage("sg_power") >= 2:
+		main.think("Окно бюро. Всё, что мне было нужно, я уже знаю.")
 		return
 	var clerk := character("Clerk")
 	var closed: bool = clerk == null or not clerk.visible or Clock.is_night()
 	if not closed:
-		main.think("Днём? Конторщик за столом, охранник в трёх шагах. Ночью — другое дело.")
+		main.think("Днём? Писарь за столом, йегерь в трёх шагах. Ночью — другое дело.")
 		return
 	if Game.skill_check("Воровство", "REF", "Воровство", 12, 2 if Game.hero.get("sneak", false) else 0) or Game.flag("window_try"):
 		Game.add_item("ledger_page")
@@ -46,7 +47,8 @@ func _window() -> void:
 		WorldMap.reveal("mir")
 		Game.add_note(str(DB.items.get("ledger_page", {}).get("read", "")))
 		Game.grant_xp(150)
-		main.think("Ножом поддел шпингалет. Внутри — тихо, пахнет чернилами. Книга должников на столе. Нашёл «Боотур» — и вырвал лист.")
+		Game.set_flag("cl_list_got")
+		main.think("Ножом поддел шпингалет. Внутри — тихо, пахнет чернилами и оружейным маслом. Реестр на столе, а в нём — мятый «список Б». Вырвал лист вместе с ним.")
 		main.hud.refresh_objective()
 	else:
 		Game.set_flag("window_try")
@@ -59,45 +61,26 @@ func item_actions(it: Interactable) -> Array:
 			return [["Влезть в окно", "use"]]
 		"Monument", "HonorBoard":
 			return [["Рассмотреть", "use"]]
-		"Wheel":
-			return [["Поставить 2 рубля", "use"]]
+		"Projector":
+			return [["Рассмотреть", "use"]]
 	return super.item_actions(it)
 
 
 func describe(it: Interactable) -> String:
 	match String(it.name):
 		"OfficeWindow":
-			return "Окно конторы, выходит в проулок. Шпингалет хлипкий."
+			return "Окно бюро Полиса, выходит в проулок. Шпингалет хлипкий."
 		"Monument":
 			return "Памятник на площади: толстый мужик в беретке."
 		"HonorBoard":
 			return "Доска почёта у площади. Стекло в трещинах."
-		"Wheel":
-			return "Колесо фортуны с облупленными секторами. Ставка — два рубля, выигрыш — восемь. Если повезёт."
+		"Projector":
+			return "Довоенный киноаппарат на тумбе. Две пустые бобины."
 	return super.describe(it)
 
 
 func objective() -> String:
 	return bootur_objective()
-
-
-## Колесо фортуны в ДК: рубль — ставка, крутит крупье
-func _wheel() -> void:
-	if Game.item_count("rubles") < 2:
-		main.think("Колесо фортуны. Ставка — два рубля. У меня столько нет.")
-		return
-	Game.remove_item("rubles", 2)
-	var r := randi() % 6
-	var c := character("Croupier")
-	if r == 0:
-		Game.add_item("rubles", 8)
-		Game.log_line("Колесо: выигрыш 8 рублей", "", "hit")
-		if c:
-			c.bark("Повезло! Восемь рублей!")
-	else:
-		Game.log_line("Колесо: ставка 2 рубля проиграна", "", "miss")
-		if c:
-			c.bark(["Не судьба.", "Ещё разок?", "Колесо любит смелых.", "Почти! Почти…"][r % 4])
 
 
 ## Наверх в администрацию — только с пропиской (или если охранник «не видел»)

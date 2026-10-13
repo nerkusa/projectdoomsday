@@ -1,6 +1,6 @@
 extends SungarDistrict
 ## Сунгар, жилой квартал: бараки, бар «Шалман» (кулачные бои за домом), оружейная,
-## беглый подёнщик Аркадий и сборщики долгов, комната проводника.
+## беглый подёнщик Аркадий и приставы бюро Полиса, комната проводника.
 
 
 func _ready() -> void:
@@ -24,7 +24,7 @@ func on_enter() -> void:
 	_apply_people()
 
 
-## Сборщики ходят по кварталу, пока ищут Аркадия; сам Аркадий — пока не ушёл
+## Приставы бюро ходят по кварталу, пока ищут Аркадия; сам Аркадий — пока не ушёл
 func _apply_people() -> void:
 	var rq := Game.quest_stage("sg_runaway")
 	var hunting := rq <= 1 and not Game.flag("collectors_left")
@@ -54,12 +54,12 @@ func on_dialog_action(a: String, sp: Character) -> bool:
 			main.dialog.close()
 			Game.set_quest("sg_runaway", 4)
 			Game.add_item("rubles", 30)
-			Game.change_rep(-8, "сдал беглого подёнщика сборщикам")
+			Game.change_rep(-8, "сдал беглого подёнщика приставам")
 			Game.set_flag("collectors_left")
 			var r := character("Runaway")
 			if r:
 				r.bark("Будь ты проклят!..")
-			main.think("Сборщики заломили Аркадию руки и увели. Тридцать рублей. Мятых, с мужиком в беретке.")
+			main.think("Приставы заломили Аркадию руки и увели. Тридцать рублей. Мятых, с мужиком в беретке.")
 			_people_later(1.2)
 			return true
 		"collectors_leave":
@@ -88,8 +88,8 @@ func on_combat_end(res: String, kind: String) -> void:
 	if res == "win" and squad_cleared("collectors") and Game.quest_stage("sg_runaway") == 1:
 		Game.set_flag("collectors_left")
 		Game.set_quest("sg_runaway", 3)
-		Game.change_rep(-2, "драка со сборщиками конторы")
-		main.think("Сборщики лежат. Контора этого не забудет. Но Аркадий — пока свободен.")
+		Game.change_rep(-2, "драка с приставами бюро")
+		main.think("Приставы лежат. Йегеря этого не забудут. Но Аркадий — пока свободен.")
 
 
 func on_interact(it: Interactable) -> bool:

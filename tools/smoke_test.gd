@@ -740,14 +740,14 @@ func admin_tests() -> void:
 	await frames(2)
 	await choose(find_opt("Кто правит"))
 	await choose(find_opt("Попробую"))
-	ok(Game.quest_stage("sg_power") == 1, "глава посёлка: нужен лист из долговой книги конторы")
-	# лист из книги в игре крадут ночью из окна конторы; здесь — сразу в сумку
+	ok(Game.quest_stage("sg_power") == 1, "глава посёлка: нужен лист из реестра бюро")
+	# лист из реестра в игре крадут ночью из окна бюро; здесь — сразу в сумку
 	await shut()
 	Game.add_item("ledger_page")
 	rb = Game.item_count("rubles")
 	main.talk_to(loc.character("Head"))
 	await frames(2)
-	await choose(find_opt("лист из долговой"))
+	await choose(find_opt("лист из реестра"))
 	await shut()
 	ok(Game.quest_stage("sg_power") == 2 and Game.item_count("rubles") == rb + 50 and Game.flag("sg_head_order"), "глава получила лист: пятьдесят рублей и распоряжение")
 	loc.go_floor(3, "F3Below")
@@ -882,6 +882,7 @@ func social_tests() -> void:
 	ok(soc.chatted_today(folk) and soc.affinity(folk) == 2, "поболтали — стал теплее (%d)" % soc.affinity(folk))
 	Game.add_item("t_harmonica", 2)
 	var items_before: Dictionary = Game.hero.items.duplicate(true)
+	var ammo_before: Dictionary = Game.hero.ammo.duplicate(true)
 	soc.on_action("gift:t_harmonica", folk)
 	ok(soc.affinity(folk) == 7 and soc.tier_text(folk) == " · приятель", "подарок — приятель")
 	soc.on_action("gift:t_harmonica", folk)
@@ -889,6 +890,10 @@ func social_tests() -> void:
 	var got_gift := false
 	for k in Game.hero.items:
 		if int(Game.hero.items[k]) > int(items_before.get(k, 0)):
+			got_gift = true
+	# патроны лежат не в вещах, а в подсумке (hero.ammo)
+	for k in Game.hero.ammo:
+		if int(Game.hero.ammo[k]) > int(ammo_before.get(k, 0)):
 			got_gift = true
 	ok(got_gift, "друг подарил что-то в ответ")
 	# переговоры: враг заметил — можно договориться, договорённость помнится
@@ -978,21 +983,8 @@ func sungar_tests() -> void:
 	await wait_loading()
 	loc = main.location
 	ok(loc.location_id == "sungar_center", "перешёл в центр города")
-	var hs: Character = loc.character("Hostess")
-	await tp(hs.global_position + Vector3(1.0, 0, -1.2))
-	main.talk_to(hs)
-	await frames(2)
-	await choose(find_opt("Ищу Боотура"))
-	await choose(find_opt("Куда увели"))
-	await shut()
-	ok(Game.quest_stage("bootur") == 7, "«Счастливая лодка»: долг Боотура выкупила контора")
-	var dl: Character = loc.character("Dealer")
-	rb = Game.item_count("rubles")
-	main.talk_to(dl)
-	await frames(2)
-	await choose(find_opt("Бросай"))
-	ok(Game.item_count("rubles") == rb + 10, "кости у «Лодки»: выиграл десятку")
-	await shut()
+	ok(loc.character("Hostess") == null and loc.character("Dealer") == null and loc.item("Wheel") == null,
+		"в Сунгаре нет ни баржи-казино, ни банкомёта, ни колеса фортуны")
 	var mr: Character = loc.character("Merchant")
 	main.talk_to(mr)
 	await frames(2)
@@ -1008,11 +1000,14 @@ func sungar_tests() -> void:
 	await tp(cl.global_position + Vector3(0, 0, 1.4))
 	main.talk_to(cl)
 	await frames(2)
-	await choose(find_opt("должник"))
+	await choose(find_opt("Боотур"))
+	ok(main.dialog.node_id == "bootur" and Game.quest_stage("bootur") == 6, "писарь бюро: Боотур не судим, искать в «Вилюе»")
+	await choose(0)
+	await choose(find_opt("серой броне"))
 	await choose(find_opt("Отдать 40 рублей"))
-	await choose(find_opt("Какие сведения"))
 	await shut()
-	ok(Game.quest_stage("bootur") == 8 and wm.known("markun") and wm.known("mir") and "МИР" in str(Game.hero.notes), "контора: Боотур продал сведения о Нахарро, угнан в МИР; дальше — Мар-Кун")
+	ok(Game.quest_stage("bootur") == 8 and wm.known("markun") and wm.known("mir") and "список Б" in str(Game.hero.notes),
+		"бюро Полиса: «список Б» с убитого чистильщика — дальше Мар-Кун")
 	# жилой квартал
 	loc.on_interact(loc.item("ToQuarter"))
 	await wait_loading()
@@ -2193,7 +2188,7 @@ func _ready() -> void:
 	main.talk_to(rt)
 	await frames(2)
 	await choose(find_opt("Боотура"))
-	ok(Game.hero.notes.size() > 0 and "Счастливой лодке" in str(Game.hero.notes), "торговец рассказал про Боотура в Сунгаре")
+	ok(Game.hero.notes.size() > 0 and "Вилюй" in str(Game.hero.notes), "торговец рассказал про Боотура в Сунгаре")
 	await shut()
 	loc.on_interact(loc.item("EastExit"))
 	await frames(2)

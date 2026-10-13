@@ -87,8 +87,8 @@ Project Doomsday — 1–4
 - **hunter** «Проверка тайгой»: data/dialogs/hunter.json
 - **range** «Уроки стрельбы»: data/dialogs/shooter.json, data/weapons.json
 - **pack** «Собраться в дорогу»: scripts/locations/nakharro.gd, tools/smoke_test.gd
-- **bootur** «Найти Боотура»: scripts/locations/kresty.gd, scripts/locations/nakharro.gd, scripts/locations/sungar_center.gd, scripts/locations/sungar_district.gd, tools/smoke_test.gd, data/dialogs/enc_road_trader.json, data/dialogs/kr_brewer.json, data/dialogs/kr_drunk.json, data/dialogs/kr_head.json, data/dialogs/sg_archylan.json, data/dialogs/sg_barman.json, data/dialogs/sg_clerk.json, data/dialogs/sg_gunsmith.json, data/dialogs/sg_hostess.json, data/dialogs/sg_innkeeper.json, data/dialogs/sg_market_boss.json
-- **who** «Кто сжёг Нахарро»: scripts/locations/nakharro.gd, scripts/locations/ruin.gd, scripts/locations/ruin_bunker.gd, scripts/main.gd, scripts/ui/world_map.gd, tools/smoke_test.gd, data/dialogs/camp_boss.json
+- **bootur** «Найти Боотура»: scripts/locations/kresty.gd, scripts/locations/nakharro.gd, scripts/locations/sungar_center.gd, scripts/locations/sungar_district.gd, scripts/locations/sungar_hotel.gd, tools/smoke_test.gd, data/dialogs/enc_road_trader.json, data/dialogs/kr_brewer.json, data/dialogs/kr_drunk.json, data/dialogs/kr_head.json, data/dialogs/sg_archylan.json, data/dialogs/sg_barman.json, data/dialogs/sg_clerk.json, data/dialogs/sg_gunsmith.json, data/dialogs/sg_innkeeper.json, data/dialogs/sg_market_boss.json
+- **who** «Кто сжёг Нахарро»: scripts/locations/nakharro.gd, scripts/locations/ruin.gd, scripts/locations/ruin_bunker.gd, scripts/main.gd, scripts/ui/world_map.gd, tools/smoke_test.gd, data/dialogs/camp_boss.json, data/dialogs/sg_clerk.json
 - **kr_dogs** «Псы у выгона»: scripts/locations/kresty.gd, tools/smoke_test.gd, data/dialogs/kr_head.json, data/dialogs/kr_herder.json
 - **kr_nets** «Порванные сети»: scripts/locations/camp.gd, scripts/locations/kresty.gd, tools/smoke_test.gd, data/dialogs/camp_nyurgun.json, data/dialogs/kr_fisher.json
 - **camp_wounded** «Пуля в бедре»: tools/smoke_test.gd, data/dialogs/camp_boss.json, data/dialogs/camp_wounded.json
@@ -120,7 +120,7 @@ Project Doomsday — 1–4
 - **sg_lessons** «Саха тыла»: scripts/locations/sungar_dom.gd, tools/smoke_test.gd, data/dialogs/sg_teacher.json
 - **sg_arson** «Поджигатель»: scripts/locations/sungar.gd, tools/smoke_test.gd, data/dialogs/sg_chief.json, data/dialogs/sg_stoker.json
 - **sg_permit** «Прописка»: tools/smoke_test.gd, data/dialogs/sg_cop.json, data/dialogs/sg_passport.json
-- **sg_power** «Двоевластие»: scripts/locations/sungar_admin.gd, tools/smoke_test.gd, data/dialogs/sg_head.json
+- **sg_power** «Двоевластие»: scripts/locations/sungar_admin.gd, scripts/locations/sungar_center.gd, tools/smoke_test.gd, data/dialogs/sg_head.json
 - **sg_archive** ««Искра-1030»»: scripts/locations/sungar_admin.gd, tools/smoke_test.gd, data/dialogs/sg_operator.json
 - **kr_banya** «Баня по-чёрному»: scripts/locations/kresty.gd, tools/smoke_test.gd, data/dialogs/kr_banya.json
 - **kr_iron** «Железо для кузни»: scripts/locations/kresty.gd, tools/smoke_test.gd, data/dialogs/kr_smith.json
@@ -201,36 +201,34 @@ Project Doomsday — 1–4
 - radio_kid: tools/build_act1.gd:1407
 - road: —
 - rumors: tools/build_nakharro.gd:492, tools/build_nakharro.gd:494, tools/build_nakharro.gd:496, tools/build_nakharro.gd:507, tools/build_nakharro.gd:509, tools/build_nakharro.gd:511, tools/build_nakharro.gd:513
-- sg_archylan: tools/build_sungar.gd:1316
-- sg_barman: tools/build_sungar.gd:957
-- sg_brawler: tools/build_sungar.gd:958
-- sg_butcher: tools/build_sungar.gd:608
-- sg_chief: tools/build_sungar.gd:636
-- sg_clerk: tools/build_sungar.gd:819
-- sg_collector: tools/build_sungar.gd:961, tools/build_sungar.gd:962
-- sg_cop: tools/build_sungar.gd:471
-- sg_dealer: tools/build_sungar.gd:818
-- sg_fishwife: tools/build_sungar.gd:609
-- sg_granny: tools/build_sungar.gd:963
-- sg_guard: tools/build_sungar.gd:604
-- sg_guest: tools/build_sungar.gd:1302
-- sg_gunsmith: tools/build_sungar.gd:959
-- sg_head: tools/build_sungar.gd:1415
-- sg_hostess: tools/build_sungar.gd:817
-- sg_innkeeper: tools/build_sungar.gd:621
-- sg_market_boss: tools/build_sungar.gd:606
-- sg_merchant: tools/build_sungar.gd:813
-- sg_mother: tools/build_sungar.gd:1346
-- sg_operator: tools/build_sungar.gd:1421
-- sg_passport: tools/build_sungar.gd:844
-- sg_radio: tools/build_sungar.gd:1353
-- sg_rival: tools/build_sungar.gd:814
-- sg_runaway: tools/build_sungar.gd:960
-- sg_stoker: tools/build_sungar.gd:976
-- sg_storekeeper: tools/build_sungar.gd:624
-- sg_teacher: tools/build_sungar.gd:1339
-- sg_thief: tools/build_sungar.gd:1394
-- sg_watchwoman: tools/build_sungar.gd:973
+- sg_archylan: tools/build_sungar.gd:1286
+- sg_barman: tools/build_sungar.gd:927
+- sg_brawler: tools/build_sungar.gd:928
+- sg_butcher: tools/build_sungar.gd:617
+- sg_chief: tools/build_sungar.gd:645
+- sg_clerk: tools/build_sungar.gd:789
+- sg_collector: tools/build_sungar.gd:931, tools/build_sungar.gd:932
+- sg_cop: tools/build_sungar.gd:478
+- sg_fishwife: tools/build_sungar.gd:618
+- sg_granny: tools/build_sungar.gd:933
+- sg_guard: tools/build_sungar.gd:613
+- sg_guest: tools/build_sungar.gd:1272
+- sg_gunsmith: tools/build_sungar.gd:929
+- sg_head: tools/build_sungar.gd:1385
+- sg_innkeeper: tools/build_sungar.gd:630
+- sg_market_boss: tools/build_sungar.gd:615
+- sg_merchant: tools/build_sungar.gd:785
+- sg_mother: tools/build_sungar.gd:1316
+- sg_operator: tools/build_sungar.gd:1391
+- sg_passport: tools/build_sungar.gd:814
+- sg_radio: tools/build_sungar.gd:1323
+- sg_rival: tools/build_sungar.gd:786
+- sg_runaway: tools/build_sungar.gd:930
+- sg_stoker: tools/build_sungar.gd:946
+- sg_storekeeper: tools/build_sungar.gd:633
+- sg_teacher: tools/build_sungar.gd:1309
+- sg_thief: tools/build_sungar.gd:1364
+- sg_watchwoman: tools/build_sungar.gd:943
 - shooter: tools/build_nakharro.gd:504
 - sick: tools/build_nakharro.gd:521
 - smith: tools/build_nakharro.gd:483
@@ -328,7 +326,7 @@ Project Doomsday — 1–4
 ### scripts/locations/sungar_admin.gd (86)
 Администрация ПГТ Сунгар, 2–3 этажи. Глава посёлка Аграфена Семёновна воюет
 
-### scripts/locations/sungar_center.gd (112)
+### scripts/locations/sungar_center.gd (95)
 Сунгар, центр: торговые ряды (купчиха Дария и её соперник Хоточчу),
 
 ### scripts/locations/sungar_district.gd (99) · class SungarDistrict
@@ -337,7 +335,7 @@ Project Doomsday — 1–4
 ### scripts/locations/sungar_dom.gd (53)
 Дом на площади (ул. Ленина, 3), 2–4 этажи. Учительница Сахая учит старому языку;
 
-### scripts/locations/sungar_hotel.gd (83)
+### scripts/locations/sungar_hotel.gd (87)
 Гостиница «Вилюй», 2–3 этажи. Номер 6 — герою, если заплатил дежурной (выспаться
 
 ### scripts/locations/sungar_house.gd (118) · class SungarHouse
@@ -454,9 +452,9 @@ Project Doomsday — 1–4
 Генератор локаций первого акта: Кресты (живое поселение у реки) и
 `_build:17` `_begin:40` `_finish:59` `_water_mats:71` `_river_plane:83` `_slot_of:99` `_homely:105` `_ground_for:124` `_paint:160` `_woods:190` `_blocked:228` `_free2:239` `_boxes_of:248` `_dress:272` `_cross:307` `_mound:324` `_net_rack:331` `_tent:351` `_lean_to:366` `_boat:381` `_exit:390` `_use:401` `_spawn:412` `_kresty:427` `_camp:637` `_encounter:713` `_spawn_mark:722` `_zaimka:734` `_truck:824` `_convoy:846` `_block:884` `_ruin:901` `_bunker_portal:991` `_radio_post:1053` `_dark_env:1186` `_lamp:1204` `_room_walls:1219` `_floor:1258` `_cellar:1263` `_glow:1321` `_upper:1330` `_bunker:1479` `_bunker_mats:1565` `_bk_panels:1592` `_hazard:1624` `_collapse:1636` `_bk_shaft:1651` `_bk_gate:1666` `_bk_corridor:1708` `_console:1741` `_reel_unit:1764` `_bk_control:1776` `_bk_barracks:1825` `_bk_generator:1856` `_bk_archive:1877` `_river_south:1904` `_stall:1914` `_signboard:1934` `_lamp_post:1954` `_laundry:1968`
 
-### tools/build_city.gd (1227)
+### tools/build_city.gd (1230)
 Каменный Сунгар (бывший посёлок городского типа): дома в 2–4 этажа из штукатурки
-`_ready:18` `_city_materials:81` `_glow_mat:146` `swin:161` `balcony:202` `entry:237` `open_door:252` `roof:262` `stone_block:297` `_wkind:396` `_wear:415` `_shop_window:473` `_portico:485` `_shell:501` `_lining:525` `stair_flight:540` `partition_z:554` `_table:566` `_bed:583` `_wardrobe:594` `_counter:600` `_shelf_goods:606` `_stove:620` `_rug:626` `_plant:630` `_interior:638` `heat_pipes:823` `boiler_house:861` `water_tower:887` `garages:900` `kiosk:915` `bus_stop:931` `conc_fence:951` `paz_wreck:962` `bins:979` `furniture:991` `_stair_piece:1055` `_crt:1068` `cassette_props:1077` `ruin_props:1163`
+`_ready:18` `_city_materials:81` `_glow_mat:146` `swin:161` `balcony:202` `entry:237` `open_door:252` `roof:262` `stone_block:297` `_wkind:396` `_wear:415` `_shop_window:473` `_portico:485` `_shell:501` `_lining:525` `stair_flight:540` `partition_z:554` `_table:566` `_bed:583` `_wardrobe:594` `_counter:600` `_shelf_goods:606` `_stove:620` `_rug:626` `_plant:630` `_interior:638` `heat_pipes:826` `boiler_house:864` `water_tower:890` `garages:903` `kiosk:918` `bus_stop:934` `conc_fence:954` `paz_wreck:965` `bins:982` `furniture:994` `_stair_piece:1058` `_crt:1071` `cassette_props:1080` `ruin_props:1166`
 
 ### tools/build_hero_skin.gd (78)
 Собирает сетку героя с новой развёрткой из assets/models/hero_skin_mesh.bin
@@ -477,13 +475,16 @@ Project Doomsday — 1–4
 Генератор стартовых сцен: материалы, пропсы (избы, амбар, деревья…),
 `_ready:17` `_mat:30` `_materials:44` `_own:74` `box:80` `cyl:94` `sphere:110` `prism:125` `collider:137` `save_prop:153` `_props:167` `_izba:193` `_barn:214` `_shed:231` `_fence:244` `_well:261` `_woodpile:274` `_birch:285` `_larch:295` `_dead_tree:305` `_bush:315` `_border_post:323` `_sign:332` `_tractor:361` `_table:375` `_garden:387` `_fire:397` `_item_base:404` `_mushroom:411` `_berries:421` `_planks_item:432` `_basket:441` `_bandage:451` `_rock:458` `_main_scene:467` `fit_label:484` `_label_fits:504` `put:513` `group:526` `character:534` `item:552` `marker:559` `strip:569` `_nakharro:575`
 
-### tools/build_sungar.gd (1427)
+### tools/build_sungar.gd (1397)
 Сунгар — бывший посёлок городского типа: три района (ворота и рынок, центр,
-`_build:20` `_edges:54` `_junk_fence:139` `_place_sentries:202` `_ep:210` `_bld:223` `_slot:228` `_face:237` `_pipes:242` `_pavement:251` `_stele:257` `_honor_board:283` `_sign_on:312` `_clear_town:323` `_clutter:340` `_broken_road:351` `_power_line:392` `_neon:423` `_graffiti:439` `_info_screen:453` `_cop:470` `_stairs_item:479` `_sungar:488` `_barge:676` `_sungar_center:715` `_sungar_quarter:881` `_house_begin:1010` `_house_finish:1038` `_finish:1043` `_lw:1053` `_lw_gaps:1073` `_bulb:1099` `_door_no:1110` `_corridor_floor:1126` `_furnish:1202` `_rp:1277` `_to_door:1284` `_hotel_floors:1291` `_dom_floors:1326` `_obshaga_floors:1366` `_admin_floors:1403`
+`_build:20` `_street_out:56` `_edges:61` `_junk_fence:146` `_place_sentries:209` `_ep:217` `_bld:230` `_slot:235` `_face:244` `_pipes:249` `_pavement:258` `_stele:264` `_honor_board:290` `_sign_on:319` `_clear_town:330` `_clutter:347` `_broken_road:358` `_power_line:399` `_neon:430` `_graffiti:446` `_info_screen:460` `_cop:477` `_stairs_item:486` `_sungar:495` `_sungar_center:687` `_sungar_quarter:850` `_house_begin:980` `_house_finish:1008` `_finish:1013` `_lw:1023` `_lw_gaps:1043` `_bulb:1069` `_door_no:1080` `_corridor_floor:1096` `_furnish:1172` `_rp:1247` `_to_door:1254` `_hotel_floors:1261` `_dom_floors:1296` `_obshaga_floors:1336` `_admin_floors:1373`
 
 ### tools/build_weapons.gd (260)
 Собирает модели оружия из загруженных файлов в assets/models/weapons/<ключ>/
 `_init:48` `_cfg:56` `_source_meshes:70` `_material:90` `_build_proc:125` `_build:178` `_painted:244`
+
+### tools/check_overlap.gd (75)
+Проверка расстановки: какие постройки и крупные пропсы залезают друг в друга.
 
 ### tools/check_scripts.gd (115)
 Проверка: загружает все скрипты проекта и сообщает об ошибках.
@@ -500,14 +501,14 @@ Project Doomsday — 1–4
 ### tools/screenshots.gd (107)
 Снимки экрана для проверки интерфейса (нужен рендер, не --headless).
 
-### tools/smoke_test.gd (2843)
+### tools/smoke_test.gd (2838)
 Автотест пролога: проходит всю цепочку без участия человека и печатает, что сломалось.
-`new_enc:12` `ok:17` `wait:25` `frames:29` `close_dialogs:34` `shut:43` `choose:48` `opt_texts:54` `find_opt:61` `tp:79` `fight:86` `wait_loading:128` `unreachable:137` `go_upstairs:166` `go_downstairs:176` `nakharro_life_tests:187` `kresty_life_tests:365` `encounter_lore_tests:444` `city_tests:512` `admin_tests:705` `weather_tests:783` `social_tests:850` `sungar_tests:940` `_ready:1097`
+`new_enc:12` `ok:17` `wait:25` `frames:29` `close_dialogs:34` `shut:43` `choose:48` `opt_texts:54` `find_opt:61` `tp:79` `fight:86` `wait_loading:128` `unreachable:137` `go_upstairs:166` `go_downstairs:176` `nakharro_life_tests:187` `kresty_life_tests:365` `encounter_lore_tests:444` `city_tests:512` `admin_tests:705` `weather_tests:783` `social_tests:850` `sungar_tests:945` `_ready:1092`
 
 ## Данные (data/)
 
 - data/barks.json (686 строк)
-- data/characters.json (129 строк)
+- data/characters.json (127 строк)
 - data/dialogs/camp_boss.json (385 строк)
 - data/dialogs/camp_nyurgun.json (194 строк)
 - data/dialogs/camp_rumors.json (127 строк)
@@ -561,30 +562,28 @@ Project Doomsday — 1–4
 - data/dialogs/sg_brawler.json (47 строк)
 - data/dialogs/sg_butcher.json (117 строк)
 - data/dialogs/sg_chief.json (256 строк)
-- data/dialogs/sg_clerk.json (204 строк)
-- data/dialogs/sg_collector.json (76 строк)
+- data/dialogs/sg_clerk.json (219 строк)
+- data/dialogs/sg_collector.json (77 строк)
 - data/dialogs/sg_cop.json (262 строк)
-- data/dialogs/sg_dealer.json (125 строк)
 - data/dialogs/sg_fishwife.json (58 строк)
 - data/dialogs/sg_granny.json (64 строк)
 - data/dialogs/sg_guard.json (347 строк)
 - data/dialogs/sg_guest.json (143 строк)
 - data/dialogs/sg_gunsmith.json (122 строк)
 - data/dialogs/sg_head.json (154 строк)
-- data/dialogs/sg_hostess.json (229 строк)
-- data/dialogs/sg_innkeeper.json (180 строк)
+- data/dialogs/sg_innkeeper.json (186 строк)
 - data/dialogs/sg_market_boss.json (198 строк)
 - data/dialogs/sg_merchant.json (122 строк)
 - data/dialogs/sg_mother.json (150 строк)
-- data/dialogs/sg_operator.json (81 строк)
-- data/dialogs/sg_passport.json (149 строк)
+- data/dialogs/sg_operator.json (82 строк)
+- data/dialogs/sg_passport.json (150 строк)
 - data/dialogs/sg_radio.json (122 строк)
 - data/dialogs/sg_rival.json (64 строк)
-- data/dialogs/sg_runaway.json (117 строк)
-- data/dialogs/sg_stoker.json (172 строк)
+- data/dialogs/sg_runaway.json (118 строк)
+- data/dialogs/sg_stoker.json (173 строк)
 - data/dialogs/sg_storekeeper.json (64 строк)
-- data/dialogs/sg_teacher.json (112 строк)
-- data/dialogs/sg_thief.json (145 строк)
+- data/dialogs/sg_teacher.json (113 строк)
+- data/dialogs/sg_thief.json (146 строк)
 - data/dialogs/sg_watchwoman.json (46 строк)
 - data/dialogs/shooter.json (179 строк)
 - data/dialogs/sick.json (138 строк)
@@ -602,6 +601,6 @@ Project Doomsday — 1–4
 - data/presets.json (22 строк)
 - data/quests.json (562 строк)
 - data/rep_greet.json (34 строк)
-- data/schedules.json (451 строк)
+- data/schedules.json (439 строк)
 - data/weapons.json (20 строк)
 - data/world.json (2967 строк)

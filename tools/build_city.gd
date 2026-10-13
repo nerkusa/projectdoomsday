@@ -42,7 +42,7 @@ func _ready() -> void:
 		"st_canteen": {"w": 12.0, "d": 8.0, "floors": 2, "mat": "plaster_green", "enter": "canteen", "roof": "pitch", "shopfront": true},
 		# Дом культуры: колонны, игорный зал внизу
 		"st_dk": {"w": 16.0, "d": 10.0, "floors": 2, "mat": "plaster_yellow", "enter": "hall", "roof": "flat", "portico": true, "fh": 3.4},
-		# контора: кирпич, три этажа, флагшток
+		# бюро Полиса (бывшая контора): кирпич, три этажа, флагшток
 		"st_office": {"w": 11.0, "d": 7.0, "floors": 3, "mat": "brick", "roof": "flat", "flag": true, "bars": true},
 		# глухие жилые дома (в них не войти): разные цвета, этажность, на сваях
 		"st_block3a": {"w": 14.0, "d": 8.0, "floors": 3, "mat": "plaster_blue", "roof": "pitch", "balconies": true, "entries": [-3.5, 3.5]},
@@ -711,15 +711,18 @@ func _interior(kind: String, w: float, d: float, door_x: float) -> void:
 			box("planks_old", Vector3(w - 2.0, 0.35, 2.0), Vector3(0, 0.18, -hz + 1.0))
 			box("cloth_red", Vector3(w - 2.4, 1.0, 0.08), Vector3(0, 0.85, -hz + 0.1))
 			solid(Vector3(w - 2.0, 0.5, 2.0), Vector3(0, 0.25, -hz + 1.0))
-			# столы с зелёным сукном
+			# клубные столы: домино, шашки
 			var k := 1
 			for tp in [Vector2(-4.5, 0.2), Vector2(0.0, 1.0), Vector2(4.5, 0.2)]:
-				_table(tp.x, tp.y, "planks_old", 4, "felt")
+				_table(tp.x, tp.y, "planks_old", 4)
 				slots["t%d" % k] = Vector3(tp.x, 0, tp.y - 0.75)
 				k += 1
-			# колесо фортуны на стойке
-			cyl("paint_red", 0.6, 0.6, 0.06, Vector3(hx - 0.7, 1.0, -0.5), Vector3(0, 0, PI / 2.0), 16)
-			box("planks_old", Vector3(0.3, 0.7, 0.3), Vector3(hx - 0.7, 0.35, -0.5))
+			# старый киноаппарат на тумбе: две бобины, объектив к сцене
+			box("planks_old", Vector3(0.5, 0.8, 0.5), Vector3(hx - 0.7, 0.4, -0.5))
+			box("metal_dark", Vector3(0.5, 0.3, 0.7), Vector3(hx - 0.7, 0.95, -0.5))
+			cyl("metal_dark", 0.22, 0.22, 0.05, Vector3(hx - 0.7, 1.32, -0.75), Vector3(0, PI / 2.0, PI / 2.0), 12)
+			cyl("metal_dark", 0.22, 0.22, 0.05, Vector3(hx - 0.7, 1.32, -0.25), Vector3(0, PI / 2.0, PI / 2.0), 12)
+			cyl("glass", 0.07, 0.07, 0.25, Vector3(hx - 1.05, 0.95, -0.5), Vector3(0, 0, PI / 2.0), 8)
 			solid(Vector3(0.5, 1.4, 1.3), Vector3(hx - 0.7, 0.7, -0.5))
 			slots["croupier"] = Vector3(hx - 1.4, 0, -0.5)
 			_rug(0, hz - 1.2, 2.0, 1.2)
