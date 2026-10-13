@@ -950,19 +950,49 @@ func _on_quest(id: String) -> void:
 	# в подпол — друг напоминает про огонь: там темно, свечу зажечь
 	if id == "cellar" and Game.quest_stage("cellar") == 1 and main and not Game.flag("friend_fire_said"):
 		Game.set_flag("friend_fire_said")
-		_friend_remind_fire.call_deferred()
+		_friend_say.call_deferred("В подпол? Не забудь зажигалку — дедова, у печи! Там темень, свечу без огня не зажжёшь.",
+			"Зажигалка — в избе деда, у печи. В подполе ею зажигают свечу.")
+	# закрыл побочное дело в деревне — друг прибегает и говорит своё
+	if main and phase() == "morning" and FRIEND_SIDE.has(id) and not Game.flag("fc_" + id):
+		var q: Dictionary = DB.quests.get(id, {})
+		var st := Game.quest_stage(id)
+		var fail: bool = str(st) in (q.get("no_rep", []) as Array).map(func(x): return str(x))
+		if st >= int(q.get("done_stage", 99)) or fail:
+			Game.set_flag("fc_" + id)
+			var lines: Array = FRIEND_SIDE[id]
+			_friend_say.call_deferred(str(lines[1] if fail and lines.size() > 1 else lines[0]), "")
 
 
-## Друг догоняет героя: «Не забудь зажигалку!»
-func _friend_remind_fire() -> void:
+## Что друг детства говорит, когда герой закрыл дело в деревне ([удача, провал])
+const FRIEND_SIDE := {
+	"well": ["Слыхал{g:|а}? Мэнкэ своё ведро из колодца получил — ты достал{g:|а}! Теперь он тебе воду таскать будет, вот увидишь."],
+	"lunch": ["Эрчим сытый — значит, и деревня спит спокойно. Ты гляди, у тебя прям талант: всех кормить!"],
+	"comb": ["Нюргуяна гребень обратно получила — весь день улыбается. Это ты? Ну ты даёшь!"],
+	"hide_seek": ["Всех мелких нашёл{g:|ла}? Даже Кюннэй в светёлке? Меня вот никто никогда не находил… потому что я на крыше сидел{g:|а}!"],
+	"radio": ["Туйгун говорит, ты с ним антенну поднял{g:|а}. Чего слышно? Голоса? Из-за черты?! (Глаза горят.) Я ж говорил{g:|а} — там люди!"],
+	"hay": ["Хабырыыс с Уйбааном помирились? Чудеса! Ты прям как старейшина.", "Слыхал{g:|а}, сено так и делят — теперь не здороваются. Ну, бывает…"],
+	"book": ["Айыына светится: четвёртый том вернулся! Дашь потом почитать? Там про города, я знаю."],
+	"barn_junk": ["Амбар разгрёб{g:|ла}? Варвара довольная ходит — небось пирогом угостит. Поделишься?"],
+	"hunter": ["Сам Кэскил тебя похвалил? Он же никого не хвалит! Научишь потом, как?"],
+	"range": ["Бэргэн говорит, рука у тебя твёрдая. Я в шишку с десяти шагов не попадаю, а ты…"],
+	"dosimeter": ["Тимир тебе щёлкающую коробку показал? Старики говорят, она чует невидимый огонь. Жуть!"],
+	"elder": ["Мэхээлэ с тобой про черту говорил? Он со мной вообще не разговаривает. Завидую!"],
+	"salama": ["Сэлэ на лиственнице — новая, с лентами! Эбээ Кэтириис говорит, духи теперь за нас.", "Сэлэ так и висит старая… Эбээ Кэтириис расстроится."],
+}
+
+
+## Друг детства подбегает к герою и говорит (если жив и рядом в деревне)
+func _friend_say(text: String, tip := "") -> void:
 	var fr := friend()
-	if fr == null or not fr.visible:
+	if fr == null or not fr.visible or Game.flag("friend_dead"):
 		return
-	var line: String = main.dialog._subst("В подпол? Не забудь зажигалку — дедова, у печи! Там темень, свечу без огня не зажжёшь.")
+	var line: String = main.dialog._subst(text)
 	var say := func():
 		fr.face_towards(main.player.global_position)
 		fr.bark(line)
-		main.hud.flash_tip("Зажигалка — в избе деда, у печи. В подполе ею зажигают свечу.")
+		Game.log_line("%s: «%s»" % [fr.display_name, line], "", "miss")
+		if tip != "":
+			main.hud.flash_tip(tip)
 	if fr.global_position.distance_to(main.player.global_position) > 4.0:
 		var to: Vector3 = main.player.global_position + (fr.global_position - main.player.global_position).normalized() * 1.8
 		fr.move_along(Clock._route(self, fr.global_position, to), say, 4.2)

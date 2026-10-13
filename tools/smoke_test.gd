@@ -1358,6 +1358,8 @@ func _ready() -> void:
 	await choose(find_opt("Хлам разобрал"))
 	await close_dialogs()
 	ok(Game.quest_stage("barn_junk") == 3, "награда за хлам")
+	await wait(0.3)
+	ok(Game.flag("fc_barn_junk"), "друг прибежал похвалить за амбар")
 	# разговоры с проверками навыков
 	main.talk_to(main.location.character("Elder1"))
 	await frames(2)
