@@ -537,8 +537,8 @@ func _characters() -> void:
 		ch.add_to_group("defenders", true)
 	# друг детства в налёт: лежит у плетня, смертельно ранен
 	# друг детства после налёта держит центральные (западные) ворота — отстреливается от отставшего чужака
-	character(chars, "FriendRaid", "friend", Vector3(31.4, 0, W_GATE_Z - 0.9), -PI / 2.0, {"dialog": "friend_dying", "groups": R_})
-	character(chars, "FriendRaidF", "friend_f", Vector3(31.4, 0, W_GATE_Z - 0.9), -PI / 2.0, {"dialog": "friend_dying", "groups": R_})
+	character(chars, "FriendRaid", "friend", Vector3(28.0, 0, W_GATE_Z - 0.4), -PI / 2.0, {"dialog": "friend_dying", "groups": R_})
+	character(chars, "FriendRaidF", "friend_f", Vector3(28.0, 0, W_GATE_Z - 0.4), -PI / 2.0, {"dialog": "friend_dying", "groups": R_})
 	character(chars, "WoundedDefender", "villager", Vector3(60.5, 0, 57.8), 1.0, {"display_name": "Раненый", "start_pose": "down", "groups": R_})
 	# у северных ворот: часовой зовёт на помощь, пленные на коленях, двое нападавших
 	var gg := character(chars, "GateGuard", "defender", Vector3(62.0, 0, 36.4), 0.45, {"display_name": "Часовой Эрчим", "armed": true, "groups": R_})

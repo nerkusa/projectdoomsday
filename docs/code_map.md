@@ -502,9 +502,9 @@ Project Doomsday — 1–4
 ### tools/preview_prop.gd (26)
 Превью одного пропа: тот же свет, что в деревне, изометрическая камера.
 
-### tools/render_shots.gd (153)
+### tools/render_shots.gd (167)
 Скриншоты для проверки (нужен рендер, не --headless):
-`_ready:10`
+`_ready:11`
 
 ### tools/screenshots.gd (107)
 Снимки экрана для проверки интерфейса (нужен рендер, не --headless).

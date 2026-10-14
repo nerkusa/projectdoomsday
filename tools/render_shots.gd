@@ -4,6 +4,7 @@ extends Node
 ##     res://tools/render_shots.tscn -- "кадр;кадр;…" /путь/префикс     → префикс_0.png, _1.png…
 ## Кадр: loc|x|z|zoom|час|флаги — флаги через запятую, «квест=этап» ставит этап, «weather=rain» — погоду.
 ##       encounter|x|z|zoom|час|enc_id|ориентиры(plane,heli,…)
+##       Флаги кадра: alt — зажат Alt (подсветка); call=метод — вызвать метод локации (сцену) и подождать.
 ##       MAP — карта мира с тропами (MAP|all — все места);  WAIT|часов|через_сколько_сек — экран ожидания.
 var main: Node
 
@@ -68,6 +69,8 @@ func _ready() -> void:
 			Game.world.erase("encounter")
 		var talk := ""
 		var pick := ""
+		var call_m := ""
+		Input.action_release("highlight")
 		var keep_hud := false
 		Game.hero.sneak = false
 		if p.size() > 5 and p[5] != "" and p[0] != "encounter":
@@ -76,6 +79,14 @@ func _ready() -> void:
 					Game.hero.sneak = true
 				elif f == "hud":
 					keep_hud = true
+				elif f == "mods":
+					Game.hero.flags["modules"] = {"carrier": true, "inventory": true, "map": true}
+				elif f == "alt":
+					# зажат Alt — подсветка вещей
+					Input.action_press("highlight")
+				elif f.begins_with("call="):
+					# вызвать метод локации (например, сцену) и дать ей отыграть
+					call_m = f.trim_prefix("call=")
 				elif f.begins_with("tut="):
 					Game.set_flag("tut_on")
 					Game.world["_tut"] = int(f.trim_prefix("tut="))
@@ -119,6 +130,9 @@ func _ready() -> void:
 			main.location._show(main.location.room_at(pos))
 		for k in 50:
 			await get_tree().process_frame
+		if call_m != "":
+			main.location.call(call_m)
+			await get_tree().create_timer(2.6).timeout
 		main.dialog.close()
 		if talk == "SHEET":
 			# кадр с листом героя (как при создании)
