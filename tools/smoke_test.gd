@@ -2433,7 +2433,7 @@ func _ready() -> void:
 	main.talk_to(acc)
 	await frames(2)
 	await choose(0)
-	ok(Game.flag("trial_truth"), "подсудимый рассказал про долг «Горизонту»")
+	ok(Game.flag("trial_truth"), "подсудимый рассказал про долг чужакам")
 	main.talk_to(jg)
 	await frames(2)
 	var rep_t := Game.rep()
