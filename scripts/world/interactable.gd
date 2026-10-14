@@ -107,5 +107,6 @@ func set_glow(mode: String) -> void:
 		_glow.material_override = m
 		add_child(_glow)
 	var mat := _glow.material_override as StandardMaterial3D
-	mat.albedo_color = Color(1.0, 0.3, 0.2, 0.6) if mode == "theft" else Color(0.7, 1.0, 0.55, 0.5)
+	# слабое зелёное пятно; чужое — чуть тусклее (подсказка «· чужое» — при наведении)
+	mat.albedo_color = Color(0.55, 1.0, 0.45, 0.22) if mode == "theft" else Color(0.6, 1.0, 0.5, 0.3)
 	_glow.visible = true

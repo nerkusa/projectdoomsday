@@ -338,7 +338,7 @@ func objective() -> String:
 	# идёт урок друга — он и есть «здесь и сейчас»
 	if ph == "morning" and tutor and tutor.active():
 		var ls := Game.quest_stage("lessons")
-		if ls >= 1 and ls <= 10:
+		if ls >= 1 and ls <= 11:
 			return "Урок: " + str(DB.quests.get("lessons", {}).get("stages", {}).get(str(ls), ""))
 	if ph == "morning":
 		if Game.quest_stage("chores") == 0:
@@ -1355,6 +1355,8 @@ func on_dialog_action(a: String, _sp: Character) -> bool:
 			Game.set_flag("ded_dead")
 			Game.set_flag("phase", "after")
 			_nobody_left()
+			# друг детства — у центральных ворот, отстреливается
+			_apply_friend()
 			Game.set_quest("bootur", 1)
 			Game.set_quest("who", 1)
 			Game.set_quest("pack", 1)

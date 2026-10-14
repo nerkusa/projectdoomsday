@@ -1222,6 +1222,18 @@ func _ready() -> void:
 	await wait(0.8)
 	ok(main.location.tutor.step() == 6, "подкрался со спины — не заметили")
 	Game.hero.sneak = false
+	# урок про Alt: отвёртка у Тимира — подсветка вещей, «чужое»
+	await wait(0.6)
+	ok("Alt" in main.hud.tutor_text(), "урок: Alt подсвечивает вещи (%s)" % main.hud.tutor_text())
+	var sdr: Interactable = main.location.item("Take_Workshop")
+	ok(sdr._glow_mode == "", "без Alt вещи не подсвечены")
+	Input.action_press("highlight")
+	await wait(1.2)
+	ok(sdr._glow_mode != "" and sdr._glow.visible, "с Alt отвёртка подсвечена (%s)" % sdr._glow_mode)
+	ok(main.location.tutor.step() == 7, "подержал Alt — урок пройден")
+	Input.action_release("highlight")
+	await wait(0.3)
+	ok(sdr._glow_mode == "", "Alt отпущен — подсветка погасла")
 	# урок воровства: можно и отказаться
 	ok("Варвар" in main.hud.tutor_text(), "урок воровства: ключ у Варвары (%s)" % main.hud.tutor_text())
 	main.talk_to(fr)
@@ -1229,7 +1241,7 @@ func _ready() -> void:
 	await choose(find_opt("Воровать не буду"))
 	await close_dialogs()
 	await wait(0.6)
-	ok(main.location.tutor.step() == 7, "отказался воровать — друг не настаивает")
+	ok(main.location.tutor.step() == 8, "отказался воровать — друг не настаивает")
 	# спарринг с другом — урок боя
 	await wait(0.6)
 	main.talk_to(fr)
@@ -1241,7 +1253,7 @@ func _ready() -> void:
 	ok("ОД" in main.hud.tutor_text(), "в бою — карточка про ОД и ход")
 	await fight()
 	await wait(1.0)
-	ok(Game.flag("tut_spar_done") and main.location.tutor.step() >= 9, "после спарринга — шаг про проверки навыков")
+	ok(Game.flag("tut_spar_done") and main.location.tutor.step() >= 10, "после спарринга — шаг про проверки навыков")
 	# дальше тест идёт своим путём — друг больше не водит
 	Game.set_flag("tut_skip")
 	await close_dialogs()
@@ -1296,8 +1308,11 @@ func _ready() -> void:
 	ok(main.location._is_theft(loot) and not main.location.can_pick(loot) and Game.rep() == hum0 - 6,
 		"воровство на глазах: вещь не взята, молва %d → %d" % [hum0, Game.rep()])
 	ok(not main.location._is_theft(main.location.item("Basket")), "корзину брать можно")
-	main._check_aggro()
-	ok(loot._glow_mode == "theft" and main.location.item("Basket")._glow_mode == "free", "чужое подсвечено красным, своё — зелёным")
+	Input.action_press("highlight")
+	await wait(0.3)
+	ok(loot._glow_mode == "theft" and main.location.item("Basket")._glow_mode == "free", "с Alt: чужое и своё подсвечены (по-разному)")
+	Input.action_release("highlight")
+	await wait(0.3)
 	# воровство: видит только тот, кто смотрит в твою сторону; со спины — лишь вплотную
 	Game.hero.sneak = true
 	await tp(stp.global_position + Vector3(0, 0, -2.4))

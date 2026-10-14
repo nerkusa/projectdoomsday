@@ -300,9 +300,9 @@ Project Doomsday — 1–4
 Кресты — первое живое поселение за чертой.
 `_ready:10` `on_world_state_applied:17` `on_enter:21` `_kid_home:28` `_apply_dogs:40` `_dogs_left:56` `on_dialog_action:65` `on_combat_end:78` `on_interact:85` `_woodpile:132` `_steam:147` `on_interact_extra:158` `_tracks:165` `item_actions:186` `describe:205` `dialog_cond:233` `objective:248`
 
-### scripts/locations/nakharro.gd (1892)
+### scripts/locations/nakharro.gd (1894)
 Пролог: деревня Нахарро.
-`_ready:35` `friend:51` `_apply_friend:56` `_exit_tree:82` `phase:91` `on_new_game:105` `on_world_state_applied:130` `_apply_sacred:136` `on_enter:143` `_on_dialog_closed:158` `translator:177` `on_pocket:187` `_restore_barn:194` `can_leave_edge:211` `edge_tip:215` `_apply_phase:219` `_apply_light:280` `uses_clock_light:301` `schedule_active:306` `_set_on:310` `status_line:326` `food_count:332` `objective:336` `food_portions:382` `has_travel:390` `pack_ready:397` `pack_line:405` `_check_pack:415` `_process:426` `on_hero_moved:467` `can_pick:530` `is_theft:551` `theft_watch_radius:555` `_is_theft:559` `_witness:567` `_steal:587` `on_picked:612` `_dusk:635` `_gone_home:658` `_start_ambush:668` `_behind:707` `_ambush_hit:713` `_ambush_heard:736` `_prowl_arrived:747` `_prowl_tick:768` `_prowl_leave:795` `_prowl_gone:805` `leave_hide:818` `_gate_enemies_left:825` `_friend_gate_scene:837` `_gate_scene:870` `_gate_fight:920` `_nobody_left:932` `_close_village_quests:952` `_kill_npc:961` `_gate_round:973` `_doomed_alive:994` `_barn_tick:1010` `_cleaners_leave:1038` `_cleaner_gone:1052` `on_looted:1065` `_on_hour:1075` `_on_quest:1079` `_friend_say:1117` `has_fire:1136` `bonfire_lit:1141` `_apply_life:1147` `_friend_to_fire:1167` `dialog_cond:1185` `_bonfire:1193` `_tower:1208` `on_interact:1223` `on_dialog_action:1310` `on_combat_round:1402` `_ded_shoot:1417` `on_fighter_down:1436` `on_combat_end:1442` `_ded_falls:1490` `_ded_near:1513` `_fighting_cleaners:1523` `_fighting_squad:1527` `_cleaners_hear:1536` `_alive_cleaner:1547` `_shoot_ded:1554` `_quest_item:1579` `_update_quest_marks:1595` `_mark_label:1617` `_chest:1635` `_open_chest:1673` `item_actions:1681` `describe:1724` `_mend_fence:1757` `_apply_fence:1781` `_set_solid:1803` `_on_hero_changed:1810` `_assemble_kpk:1826` `_absorb_modules:1849` `_update_exit_guard:1870` `_exit_guard_alive:1889`
+`_ready:35` `friend:51` `_apply_friend:56` `_exit_tree:82` `phase:91` `on_new_game:105` `on_world_state_applied:130` `_apply_sacred:136` `on_enter:143` `_on_dialog_closed:158` `translator:177` `on_pocket:187` `_restore_barn:194` `can_leave_edge:211` `edge_tip:215` `_apply_phase:219` `_apply_light:280` `uses_clock_light:301` `schedule_active:306` `_set_on:310` `status_line:326` `food_count:332` `objective:336` `food_portions:382` `has_travel:390` `pack_ready:397` `pack_line:405` `_check_pack:415` `_process:426` `on_hero_moved:467` `can_pick:530` `is_theft:551` `theft_watch_radius:555` `_is_theft:559` `_witness:567` `_steal:587` `on_picked:612` `_dusk:635` `_gone_home:658` `_start_ambush:668` `_behind:707` `_ambush_hit:713` `_ambush_heard:736` `_prowl_arrived:747` `_prowl_tick:768` `_prowl_leave:795` `_prowl_gone:805` `leave_hide:818` `_gate_enemies_left:825` `_friend_gate_scene:837` `_gate_scene:870` `_gate_fight:920` `_nobody_left:932` `_close_village_quests:952` `_kill_npc:961` `_gate_round:973` `_doomed_alive:994` `_barn_tick:1010` `_cleaners_leave:1038` `_cleaner_gone:1052` `on_looted:1065` `_on_hour:1075` `_on_quest:1079` `_friend_say:1117` `has_fire:1136` `bonfire_lit:1141` `_apply_life:1147` `_friend_to_fire:1167` `dialog_cond:1185` `_bonfire:1193` `_tower:1208` `on_interact:1223` `on_dialog_action:1310` `on_combat_round:1404` `_ded_shoot:1419` `on_fighter_down:1438` `on_combat_end:1444` `_ded_falls:1492` `_ded_near:1515` `_fighting_cleaners:1525` `_fighting_squad:1529` `_cleaners_hear:1538` `_alive_cleaner:1549` `_shoot_ded:1556` `_quest_item:1581` `_update_quest_marks:1597` `_mark_label:1619` `_chest:1637` `_open_chest:1675` `item_actions:1683` `describe:1726` `_mend_fence:1759` `_apply_fence:1783` `_set_solid:1805` `_on_hero_changed:1812` `_assemble_kpk:1828` `_absorb_modules:1851` `_update_exit_guard:1872` `_exit_guard_alive:1891`
 
 ### scripts/locations/nakharro_cellar.gd (116)
 Подпол избы деда — второй уровень Нахарро. Темно: свечу надо зажечь спичками.
@@ -354,9 +354,9 @@ Project Doomsday — 1–4
 ### scripts/locations/zaimka.gd (140)
 Заимка охотника Дьаакыпа. Задание «Капканы»: на севере что-то ломает капканы —
 
-### scripts/main.gd (1538)
+### scripts/main.gd (1552)
 Главный узел игры: камера, загрузка локаций, ввод мышью, окна интерфейса.
-`_ready:81` `_on_level_up:102` `_build_ui:113` `space:186` `ui_blocked:190` `sfx:195` `think:220` `_on_menu:225` `_load_slot:253` `_on_sheet_closed:268` `_on_slides_done:279` `_unload:289` `load_location:307` `autosave:352` `quicksave:359` `show_game_over:368` `show_end:372` `status_text:378` `objective_text:384` `_on_hud_action:397` `open_kpk:442` `use_item:468` `_swap_hands:543` `_open_pause:555` `_move_speed:563` `_sneak_radius:574` `on_combat_start:583` `is_filler:599` `filler_bark:604` `talk_to:645` `say:670` `_on_dialog_action:680` `open_trade:719` `_on_dialog_closed:725` `start_fight:730` `_unhandled_input:751` `wait_time:813` `begin_cutscene:818` `end_cutscene:826` `_enemies_near:831` `open_wait:839` `wait_hours:849` `_pick:866` `_click:907` `_may_attack:950` `_near_edge:960` `_can_leave:965` `_walk_to_hex:977` `_walk_clear:1020` `_smooth_path:1035` `_go_then:1049` `_do_pending:1081` `interact:1109` `loot:1133` `_body_entries:1151` `open_loot:1172` `pickpocket:1193` `examine:1228` `_open_actions:1244` `_on_action_picked:1290` `_process:1309` `_update_xray:1371` `_set_alpha:1436` `_update_glow:1444` `_check_aggro:1452` `_look_around:1487` `_look_text:1509`
+`_ready:81` `_on_level_up:108` `_build_ui:119` `space:192` `ui_blocked:196` `sfx:201` `think:226` `_on_menu:231` `_load_slot:259` `_on_sheet_closed:274` `_on_slides_done:285` `_unload:295` `load_location:313` `autosave:358` `quicksave:365` `show_game_over:374` `show_end:378` `status_text:384` `objective_text:390` `_on_hud_action:403` `open_kpk:448` `use_item:474` `_swap_hands:549` `_open_pause:561` `_move_speed:569` `_sneak_radius:580` `on_combat_start:589` `is_filler:605` `filler_bark:610` `talk_to:651` `say:676` `_on_dialog_action:686` `open_trade:725` `_on_dialog_closed:731` `start_fight:736` `_unhandled_input:757` `wait_time:819` `begin_cutscene:824` `end_cutscene:832` `_enemies_near:837` `open_wait:845` `wait_hours:855` `_pick:872` `_click:913` `_may_attack:956` `_near_edge:966` `_can_leave:971` `_walk_to_hex:983` `_walk_clear:1026` `_smooth_path:1041` `_go_then:1055` `_do_pending:1087` `interact:1115` `loot:1139` `_body_entries:1157` `open_loot:1178` `pickpocket:1199` `examine:1234` `_open_actions:1250` `_on_action_picked:1296` `_process:1315` `_update_xray:1381` `_set_alpha:1446` `_update_glow:1458` `_check_aggro:1466` `_look_around:1501` `_look_text:1523`
 
 ### scripts/ui/char_sheet.gd (376) · class CharSheet
 «Дело» — лист персонажа. Новая игра начинается с выбора одного из четырёх готовых
@@ -431,7 +431,7 @@ Project Doomsday — 1–4
 ### scripts/world/human_body.gd (108) · class HumanBody
 Процедурный человечек из брусков (как makeHuman в прототипе).
 
-### scripts/world/interactable.gd (112) · class Interactable
+### scripts/world/interactable.gd (113) · class Interactable
 Предмет или место, по которому можно кликнуть: подобрать, обыскать, выйти.
 
 ### scripts/world/location.gd (229) · class Location
@@ -448,9 +448,9 @@ Project Doomsday — 1–4
 ### scripts/world/target_body.gd (41) · class TargetBody
 Мишень для стрельбы: столб и соломенный щит с кругами.
 
-### scripts/world/tutor.gd (290) · class Tutor
+### scripts/world/tutor.gd (299) · class Tutor
 Утро в Нахарро: друг детства водит героя и учит — ходить, говорить, брать вещи,
-`setup:37` `active:42` `step:47` `friend:51` `start:55` `skip:61` `_process:69` `_done:125` `_pick_target:157` `_dat:172` `_stalked:187` `_follow:206` `_lead:232` `_card:248` `comment:268` `_finish:281`
+`setup:38` `active:43` `step:48` `friend:52` `start:56` `skip:62` `_process:70` `_done:126` `_pick_target:163` `_dat:178` `_stalked:193` `_follow:212` `_lead:238` `_card:257` `comment:277` `_finish:290`
 
 ### tools/audit_interact.gd (84)
 Проверка: у каждого места в каждой локации каждое действие из меню даёт отклик
@@ -509,7 +509,7 @@ Project Doomsday — 1–4
 ### tools/screenshots.gd (107)
 Снимки экрана для проверки интерфейса (нужен рендер, не --headless).
 
-### tools/smoke_test.gd (2924)
+### tools/smoke_test.gd (2939)
 Автотест пролога: проходит всю цепочку без участия человека и печатает, что сломалось.
 `new_enc:12` `ok:17` `wait:25` `frames:29` `close_dialogs:34` `shut:43` `choose:48` `opt_texts:54` `find_opt:61` `tp:79` `fight:86` `wait_loading:128` `unreachable:137` `go_upstairs:166` `go_downstairs:176` `nakharro_life_tests:187` `kresty_life_tests:365` `encounter_lore_tests:444` `city_tests:512` `admin_tests:705` `weather_tests:783` `social_tests:850` `sungar_tests:945` `_ready:1092`
 
@@ -609,7 +609,7 @@ Project Doomsday — 1–4
 - data/lore.json (115 строк)
 - data/observations.json (81 строк)
 - data/presets.json (22 строк)
-- data/quests.json (580 строк)
+- data/quests.json (581 строк)
 - data/rep_greet.json (34 строк)
 - data/schedules.json (439 строк)
 - data/weapons.json (20 строк)

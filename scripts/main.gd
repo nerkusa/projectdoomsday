@@ -80,6 +80,12 @@ var _plants: Array = []
 
 func _ready() -> void:
 	Clock.main = self
+	# Alt (зажать) — подсветить вещи, которые можно взять
+	if not InputMap.has_action("highlight"):
+		InputMap.add_action("highlight")
+		var ka := InputEventKey.new()
+		ka.keycode = KEY_ALT
+		InputMap.action_add_event("highlight", ka)
 	camera = Camera3D.new()
 	camera.projection = Camera3D.PROJECTION_ORTHOGONAL
 	camera.size = zoom
@@ -1321,6 +1327,10 @@ func _process(delta: float) -> void:
 	if _xray_t <= 0.0:
 		_xray_t = 0.1
 		_update_xray()
+	# подсветка вещей — пока зажат Alt
+	if Input.is_action_pressed("highlight") != _alt_glow:
+		_alt_glow = not _alt_glow
+		_update_glow()
 	if ui_blocked():
 		return
 	# наведение
@@ -1441,9 +1451,13 @@ func _set_alpha(n: Node, a: float) -> void:
 
 
 ## Слабая подсветка вещей: зелёная — можно взять, красная — чужое (воровство)
+## Зажат ли Alt (подсветка вещей)
+var _alt_glow := false
+
+
 func _update_glow() -> void:
 	for it in location.items():
-		if it.kind != "item" or not it.visible:
+		if not _alt_glow or it.kind != "item" or not it.visible:
 			it.set_glow("")
 		else:
 			it.set_glow("theft" if location.is_theft(it) else "free")
