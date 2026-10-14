@@ -70,6 +70,22 @@ func show_skin(skin: String) -> void:
 	body.play("Idle", 0.0)
 
 
+## Обычная фигура (героиня): шаблон hero_f в цветах заготовки
+func show_look(look: Dictionary) -> void:
+	var key := "look:" + str(look)
+	if key == _skin and body != null:
+		return
+	_skin = key
+	if body:
+		body.queue_free()
+	body = AnimBody.new()
+	_holder.add_child(body)
+	var lk: Dictionary = DB.characters.get("hero_f", {}).get("look", {}).duplicate()
+	lk.merge(look, true)
+	body.build(lk)
+	body.play("Idle", 0.0)
+
+
 func _process(delta: float) -> void:
 	if turn and is_visible_in_tree() and _holder:
 		_holder.rotation.y += delta * 0.6

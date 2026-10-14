@@ -112,10 +112,8 @@ func _ready() -> void:
 	if not decor:
 		add_to_group("characters")
 	tpl = DB.characters.get(char_id, {})
-	# герой — в той одежде, что выбрали при создании
-	if char_id == "hero" and str(Game.hero.get("skin", "")) != "":
-		tpl = tpl.duplicate(true)
-		tpl.look["skin_tex"] = str(Game.hero.skin)
+	if char_id == "hero":
+		tpl = _hero_tpl()
 	if display_name == "":
 		display_name = tpl.get("name", char_id)
 	_build_visual()
@@ -251,6 +249,7 @@ var _bark_t := 0.0
 
 ## Короткая реплика над головой — без окна разговора (жители, прохожие)
 func bark(text: String, sec := 0.0) -> void:
+	text = Game.gtext(text)
 	if _bark == null:
 		_bark = Label3D.new()
 		_bark.billboard = BaseMaterial3D.BILLBOARD_ENABLED
@@ -275,8 +274,46 @@ func barking() -> bool:
 
 
 ## Сменить одежду героя (новая игра другим персонажем)
+## Шаблон героя: парень — своя модель с текстурой одежды; девушка — пока обычная
+## женская фигура (hero_f) в цветах выбранной заготовки
+func _hero_tpl() -> Dictionary:
+	var fem: bool = Game.hero.get("female", false)
+	var t: Dictionary = DB.characters.get("hero_f" if fem else "hero", {}).duplicate(true)
+	if fem:
+		var lk: Dictionary = t.get("look", {})
+		lk.merge(Game.hero.get("look", {}), true)
+		t["look"] = lk
+	elif str(Game.hero.get("skin", "")) != "":
+		t.look["skin_tex"] = str(Game.hero.skin)
+	return t
+
+
+## Пересобрать фигуру героя (сменили заготовку: парень ↔ девушка)
+func rebuild_hero_body() -> void:
+	if char_id != "hero":
+		return
+	tpl = _hero_tpl()
+	if rig:
+		rig.queue_free()
+	rig = null
+	body = null
+	_body_meshes = []
+	_bracelet = null
+	_mark = ""
+	if _flash:
+		_flash.queue_free()
+	_build_visual()
+	set_held(Game.hero_wkey())
+	show_bracelet(Game.flag("kpk"))
+
+
 func apply_hero_skin() -> void:
-	if char_id != "hero" or not (body is AnimBody):
+	if char_id != "hero":
+		return
+	if bool(tpl.get("female", false)) != bool(Game.hero.get("female", false)):
+		rebuild_hero_body()
+		return
+	if not (body is AnimBody) or Game.hero.get("female", false):
 		return
 	var skin := str(Game.hero.get("skin", "res://assets/models/hero_model.png"))
 	if skin == "":

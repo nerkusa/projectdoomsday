@@ -494,6 +494,7 @@ func _mini_line(text: String, col: String) -> void:
 # ---------------- мысли героя ----------------
 ## Мысль всплывает над головой и остаётся в журнале
 func think(text: String) -> void:
+	text = Game.gtext(text)
 	Game.log_line(text, "", "thought")
 	_thought.text = text
 	_thought.visible = true

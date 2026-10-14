@@ -235,6 +235,15 @@ func _node_text(n: Dictionary) -> String:
 	if Game.knows_sakha():
 		_sakha_noticed()
 		return "«%s»\n— %s" % [n.sakha, t]
+	# рядом друг детства — шепчет перевод и объясняет, почему герой не понимает
+	var loc = get_tree().get_first_node_in_group("location")
+	var tr: Character = loc.translator() if loc and loc.has_method("translator") else null
+	if tr:
+		var why := ""
+		if not Game.flag("sakha_why"):
+			Game.set_flag("sakha_why")
+			why = "\n(%s, шёпотом: «Старики говорят по-старому, на саха тыла. Чтобы понимать их самому, голова нужна посветлее — Разум 6 и больше. Или учись у стариков. А пока — я переведу».)" % tr.display_name
+		return "«%s»\n(%s шепчет: «%s»)%s" % [n.sakha, tr.display_name, t, why]
 	return "«%s»\n%s" % [n.sakha, n.get("text_nosakha", "(Говорит на старом языке — саха тыла. Ты ловишь отдельные слова, но смысл ускользает.)")]
 
 
@@ -492,13 +501,7 @@ func _node_has_options(id: String) -> bool:
 func _subst(s: String) -> String:
 	s = s.replace("{hero}", str(Game.hero.name)).replace("{addr}", addr())
 	# {g:проснулся|проснулась} — по полу героя
-	if s.contains("{g:"):
-		var re := RegEx.new()
-		re.compile("\\{g:([^|}]*)\\|([^}]*)\\}")
-		var fem: bool = Game.hero.get("female", false)
-		for m in re.search_all(s):
-			s = s.replace(m.get_string(), m.get_string(2) if fem else m.get_string(1))
-	return s
+	return Game.gtext(s)
 
 
 ## Ступень молвы: hero / good / plain / bad / monster
@@ -518,7 +521,7 @@ static func rep_tier() -> String:
 ## Как к герою обращаются. Прозвищ по молве нет: добрая слава — «парень»,
 ## дурная — «чужак», даже если свой.
 static func addr() -> String:
-	return str(DB._load("res://data/rep_greet.json").get("addr", {}).get(rep_tier(), "парень"))
+	return Game.gtext(str(DB._load("res://data/rep_greet.json").get("addr", {}).get(rep_tier(), "{g:парень|девка}")))
 
 
 const AVOID_NO := "(Отворачивается.) Не о чем нам говорить."

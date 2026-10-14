@@ -28,6 +28,7 @@ func new_hero() -> void:
 	var c := Rules.random_core()
 	hero = {
 		"name": "Безымянный",
+		"female": false, "look": {},
 		"level": 1, "xp": 0,
 		"stats": c.stats, "skills": c.skills,
 		"hp_roll": Rules.r1(10), "cur_hp": -1,
@@ -44,6 +45,18 @@ func new_hero() -> void:
 	}
 	world = {}
 	hero_changed.emit()
+
+
+## Текст по полу героя: «{g:проснулся|проснулась}» → первое для парня, второе для девушки
+func gtext(s: String) -> String:
+	if not s.contains("{g:"):
+		return s
+	var re := RegEx.new()
+	re.compile("\\{g:([^|}]*)\\|([^}]*)\\}")
+	var fem: bool = hero.get("female", false)
+	for m in re.search_all(s):
+		s = s.replace(m.get_string(), m.get_string(2) if fem else m.get_string(1))
+	return s
 
 
 func hero_max() -> int:

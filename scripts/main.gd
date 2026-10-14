@@ -266,6 +266,8 @@ func _load_slot(slot: String) -> void:
 
 
 func _on_sheet_closed() -> void:
+	if player:
+		player.apply_hero_skin()
 	if _intro_pending:
 		_intro_pending = false
 		var lines: Array = DB.intro.get("prologue", ["Прошло пятьдесят лет."])
@@ -870,7 +872,7 @@ func _pick(screen_pos: Vector2) -> Dictionary:
 	var res := {}
 	# герой и невидимые не мешают кликнуть по тому, что за ними
 	var excl: Array[RID] = []
-	for i in 4:
+	for i in 6:
 		q.exclude = excl
 		var hit := space().intersect_ray(q)
 		if hit.is_empty():
@@ -1207,6 +1209,8 @@ func pickpocket(ch: Character) -> void:
 				out.append({"id": k, "n": int(pk[k]), "ok": true})
 			return out
 		open_loot("pocket_" + ch.uid(), "Карманы: " + ch.display_name, gen)
+		if location.has_method("on_pocket"):
+			location.on_pocket(ch, true)
 		return
 	st.misc["caught_" + ch.uid()] = true
 	if ch.pose == "":
@@ -1216,6 +1220,8 @@ func pickpocket(ch: Character) -> void:
 	Game.log_line("%s: «%s»" % [ch.display_name, line], "", "miss")
 	Game.change_rep(-6, "поймали за руку")
 	think("Попался. Теперь вся деревня узнает.")
+	if location.has_method("on_pocket"):
+		location.on_pocket(ch, false)
 
 
 ## «Осмотреть»: описание в журнал

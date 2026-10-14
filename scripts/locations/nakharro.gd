@@ -132,6 +132,43 @@ func on_enter() -> void:
 	_apply_phase()
 	_apply_sacred()
 	_restore_barn()
+	if main and not main.dialog.closed.is_connected(_on_dialog_closed):
+		main.dialog.closed.connect(_on_dialog_closed)
+
+
+## Друг комментирует разговор, который только что закончился
+func _on_dialog_closed() -> void:
+	var spv = main.dialog.speaker
+	if spv == null or not is_instance_valid(spv) or tutor == null:
+		return
+	var sp: Character = spv
+	if sp.char_id.begins_with("friend"):
+		return
+	match sp.char_id:
+		"ded":
+			tutor.comment("talk_ded")
+		"varvara":
+			tutor.comment("talk_varvara")
+		"stepan":
+			tutor.comment("talk_stepan")
+		_:
+			tutor.comment("talk")
+
+
+## Кто переведёт старый язык: друг детства, если он рядом (утро, жив)
+func translator() -> Character:
+	if phase() != "morning":
+		return null
+	var fr := friend()
+	if fr and fr.visible and fr.global_position.distance_to(main.player.global_position) < 10.0:
+		return fr
+	return null
+
+
+## Залез в чужой карман (main.pickpocket): друг — шёпотом
+func on_pocket(_ch: Character, ok: bool) -> void:
+	if tutor:
+		tutor.comment("steal" if ok else "caught")
 
 
 ## Сохранились посреди сцены у амбара — её таймеры после загрузки пропали:
@@ -280,6 +317,11 @@ func food_count() -> int:
 
 func objective() -> String:
 	var ph := phase()
+	# идёт урок друга — он и есть «здесь и сейчас»
+	if ph == "morning" and tutor and tutor.active():
+		var ls := Game.quest_stage("lessons")
+		if ls >= 1 and ls <= 10:
+			return "Урок: " + str(DB.quests.get("lessons", {}).get("stages", {}).get(str(ls), ""))
 	if ph == "morning":
 		if Game.quest_stage("chores") == 0:
 			return "Найти деда — он у своей избы."
@@ -526,9 +568,13 @@ func _steal(_it: Interactable) -> bool:
 		Game.change_rep(-THEFT_H * 2, "поймали на воровстве")
 		main.think("Заметили... Стыдно-то как.")
 		Game.set_flag("tut_caught")
+		if tutor:
+			tutor.comment("caught")
 		return false
 	Game.change_rep(-THEFT_H, "взял чужое", false)
 	Game.set_flag("tut_stole")
+	if tutor:
+		tutor.comment("steal")
 	if not Game.flag("theft_thought"):
 		Game.set_flag("theft_thought")
 		main.think("Никто не видел. Только на душе всё равно гадко.")
@@ -536,6 +582,8 @@ func _steal(_it: Interactable) -> bool:
 
 
 func on_picked(it: Interactable) -> void:
+	if tutor and not _is_theft(it):
+		tutor.comment("pick")
 	if it.item_id in ["mushroom", "berries"]:
 		var n := food_count()
 		if n >= NEED_FOOD and phase() == "morning" and not Game.flag("ambush_on"):
@@ -1028,6 +1076,34 @@ func _apply_life() -> void:
 	var bf := get_node_or_null("Items/Bonfire/Flame") as Node3D
 	if bf:
 		bf.visible = bonfire_lit()
+	_friend_to_fire()
+
+
+## Вечером (костёр горит, уроки позади) друг сидит у огня — с ним можно поговорить о прошлом
+func _friend_to_fire() -> void:
+	var fr := friend()
+	if fr == null or not fr.visible or not (Game.flag("tut_done") or Game.flag("tut_skip")):
+		return
+	if bonfire_lit():
+		if fr.global_position.distance_to(FIRE_SEAT) > 1.0:
+			fr.stop()
+			fr.global_position = FIRE_SEAT
+		fr.face_towards(FIRE_SPOT)
+		fr.pose = "sit"
+	elif fr.pose == "sit":
+		fr.pose = ""
+
+
+const FIRE_SPOT := Vector3(67.5, 0, 60.5)
+const FIRE_SEAT := Vector3(69.4, 0, 61.9)
+
+
+func dialog_cond(id: String) -> bool:
+	match id:
+		"fire":
+			# у костра, вечером
+			return bonfire_lit() and main.player.global_position.distance_to(FIRE_SPOT) < 9.0
+	return super.dialog_cond(id)
 
 
 func _bonfire() -> void:
@@ -1298,6 +1374,8 @@ func on_combat_end(res: String, kind: String) -> void:
 		return
 	if res != "win":
 		return
+	if tutor and kind != "spar":
+		tutor.comment("fight")
 	var pr := character("Prowler")
 	if pr and pr.pose == "dead" and Game.flag("ambush_on") and not Game.flag("ambush_done"):
 		Game.set_flag("ambush_done")

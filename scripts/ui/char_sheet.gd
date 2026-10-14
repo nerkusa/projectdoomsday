@@ -145,7 +145,7 @@ func _build_pick() -> void:
 	var hv := VBoxContainer.new()
 	paper.add_child(hv)
 	hv.add_child(UITheme.label("КТО ТЫ?", 22, UITheme.INK_2, true))
-	hv.add_child(UITheme.label("Четверо внуков деда Уйбаана. Выбери, кем начнёшь, — потом очки можно перераскидать.", 13, UITheme.INK))
+	hv.add_child(UITheme.label("Внуки и внучки деда Уйбаана. Выбери, кем начнёшь, — потом очки можно перераскидать.", 13, UITheme.INK))
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 12)
 	row.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -161,7 +161,10 @@ func _build_pick() -> void:
 		mv.setup(Vector2i(300, 300), true, false)
 		mv.name = "Portrait_" + str(p.id)
 		cv.add_child(mv)
-		mv.show_skin(str(p.skin))
+		if p.get("female", false):
+			mv.show_look(p.get("look", {}))
+		else:
+			mv.show_skin(str(p.skin))
 		cv.add_child(UITheme.label(str(p.name).to_upper(), 20, UITheme.AMBER_HOT, true))
 		cv.add_child(UITheme.label(str(p.title), 13, UITheme.AMBER_DIM, true))
 		var d := UITheme.label(str(p.desc), 12, UITheme.AMBER)
@@ -186,6 +189,8 @@ func pick(id: String) -> void:
 		h.name = str(p.name)
 		h.preset = id
 		h.skin = str(p.skin)
+		h.female = bool(p.get("female", false))
+		h.look = (p.get("look", {}) as Dictionary).duplicate()
 		h.stats = (p.stats as Dictionary).duplicate()
 		var sk := {}
 		for k in Rules.all_skills():
@@ -207,7 +212,10 @@ func _show_main() -> void:
 	_main.visible = true
 	_name.text = Game.hero.name
 	_name.editable = not Game.hero.locked
-	_view.show_skin(str(Game.hero.get("skin", "res://assets/models/hero_model.png")))
+	if Game.hero.get("female", false):
+		_view.show_look(Game.hero.get("look", {}))
+	else:
+		_view.show_skin(str(Game.hero.get("skin", "res://assets/models/hero_model.png")))
 	render()
 
 

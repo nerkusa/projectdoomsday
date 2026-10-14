@@ -54,7 +54,7 @@ func choose(i: int) -> void:
 func opt_texts() -> Array:
 	var out := []
 	for o in main.dialog._visible_opts:
-		out.append(o.get("text", ""))
+		out.append(main.dialog._subst(str(o.get("text", ""))))
 	return out
 
 
@@ -1119,7 +1119,8 @@ func _ready() -> void:
 	ok(main.sheet.visible, "лист персонажа открыт")
 	ok(main.sheet._pick.visible and not main.sheet._main.visible, "сначала — выбор из четырёх героев")
 	main.sheet.pick("aiaal")
-	ok(Game.hero.name == "Айаал" and int(Game.hero.stats.INT) == 8 and main.sheet._main.visible and str(Game.hero.skin).ends_with("hero_skin_c.jpg"), "выбран Айаал-книжник: Разум 8, своя одежда")
+	ok(Game.hero.name == "Сайаара" and int(Game.hero.stats.INT) == 8 and main.sheet._main.visible and Game.hero.get("female", false)
+		and Game.gtext("{g:внучок|внучка}") == "внучка", "выбрана Сайаара-книжница: Разум 8, героиня, обращения в женском роде")
 	main.sheet.pick("erkhaan")
 	ok(Game.hero.name == "Эрхаан" and int(Game.hero.skills.get("Огнестрел", 0)) == 5, "передумал — Эрхаан-охотник")
 	Game.hero.name = "Тестер"
@@ -1196,20 +1197,20 @@ func _ready() -> void:
 	await wait(4.0)
 	ok(not izba.inside and izba.get_node("Upper").visible, "вышел — крыша на месте")
 
-	# --- друг детства: зовёт, ведёт к деду, учит ---
+	# --- тест играет за Эрхаана: друг детства — Кэнчээри; героиня проверена при создании ---
+	ok(not Game.hero.get("female", false) and not main.player.tpl.get("female", false) and Game.gtext("{g:внучок|внучка}") == "внучок",
+		"внук: своя модель и обращения в мужском роде")
 	var fr: Character = main.location.friend()
-	ok(fr != null and fr.visible and not main.location.character("FriendF").visible, "друг детства того же пола, что герой: %s" % (fr.display_name if fr else "—"))
+	ok(fr != null and fr.visible and fr.display_name == "Кэнчээри" and not main.location.character("FriendF").visible, "у внука друг детства — Кэнчээри")
+	# --- обучение начинается само: подруга ведёт к деду, урок — в цели на экране ---
 	await wait(0.6)
-	ok("поговорить" in main.hud.tutor_text(), "карточка: кликни по другу")
-	main.talk_to(fr)
-	await frames(2)
-	await choose(find_opt("Пошли"))
-	await wait(0.6)
-	# дед стоит рядом со стартом — шаг «идти» засчитывается сразу
-	ok(Game.flag("tut_on") and main.location.tutor.step() <= 1 and main.hud.tutor_text() != "", "обучение началось (%s)" % main.hud.tutor_text())
+	ok(Game.flag("tut_on") and main.location.tutor.step() <= 1 and Game.quest_stage("lessons") >= 1, "обучение началось само (урок %d)" % Game.quest_stage("lessons"))
+	ok(main.objective_text().begins_with("Урок"), "урок — в цели на экране: %s" % main.objective_text())
 	await tp(main.location.character("Ded").global_position + Vector3(1.5, 0, 1.5))
 	await wait(0.8)
-	ok(main.location.tutor.step() == 1 and "поговорить" in main.hud.tutor_text(), "дошёл до деда — шаг «поговорить»")
+	ok(main.location.tutor.step() == 1 and Game.quest_stage("lessons") == 2, "дошёл до деда — шаг «поговорить» (урок %d)" % Game.quest_stage("lessons"))
+	await wait(10.5)
+	ok(main.hud.tutor_text() == "", "подсказка сама гаснет через 10 секунд")
 	# урок «подкрасться»: крадучись встать у жителя за спиной
 	Game.world["_tut"] = 5
 	await wait(0.6)
@@ -1222,7 +1223,7 @@ func _ready() -> void:
 	ok(main.location.tutor.step() == 6, "подкрался со спины — не заметили")
 	Game.hero.sneak = false
 	# урок воровства: можно и отказаться
-	ok("чужая" in main.hud.tutor_text(), "урок воровства: красное пятно — чужое")
+	ok("Варвар" in main.hud.tutor_text(), "урок воровства: ключ у Варвары (%s)" % main.hud.tutor_text())
 	main.talk_to(fr)
 	await frames(2)
 	await choose(find_opt("Воровать не буду"))
@@ -1390,9 +1391,9 @@ func _ready() -> void:
 	# молва: как обращаются
 	var rep_save := Game.rep()
 	Game.change_rep(40 - Game.rep())
-	ok(DialogBox.rep_tier() == "hero" and DialogBox.addr() == "парень", "добрая молва прозвищ не даёт")
+	ok(DialogBox.rep_tier() == "hero" and DialogBox.addr() == Game.gtext("{g:парень|девка}"), "добрая молва прозвищ не даёт")
 	Game.change_rep(-40 - Game.rep())
-	ok(DialogBox.addr() == "чужак", "при дурной молве — чужак")
+	ok(DialogBox.addr() == Game.gtext("{g:чужак|чужачка}"), "при дурной молве — чужак")
 	Game.change_rep(15 - Game.rep())
 	main.talk_to(nak.character("Varvara"))
 	await frames(2)
@@ -1561,7 +1562,8 @@ func _ready() -> void:
 	for vo in main.dialog._visible_opts:
 		if vo.has("sakha"):
 			sk_opts += 1
-	ok(sk_opts == 0 and find_opt("Не понимаю") >= 0 and "Дорообо" in main.dialog._full and not "присядь" in main.dialog._full, "без Разума — только звучание, без перевода")
+	ok(sk_opts == 0 and find_opt("Не понимаю") >= 0 and "Дорообо" in main.dialog._full and (not "присядь" in main.dialog._full or "шепчет" in main.dialog._full),
+		"без Разума — только звучание; перевести может лишь друг шёпотом")
 	await shut()
 	Game.hero.stats["INT"] = 7
 	main.talk_to(ebee)
