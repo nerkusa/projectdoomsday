@@ -1242,8 +1242,12 @@ func _ready() -> void:
 	await close_dialogs()
 	await wait(0.6)
 	ok(main.location.tutor.step() == 8, "отказался воровать — друг не настаивает")
-	# спарринг с другом — урок боя
+	# спарринг с другом — урок боя (на открытом месте, чтобы между ними не оказался забор)
 	await wait(0.6)
+	await tp(start)
+	fr.stop()
+	fr.global_position = start + Vector3(1.6, 0, 0)
+	await wait(0.3)
 	main.talk_to(fr)
 	await frames(2)
 	await choose(find_opt("на кулаках"))
