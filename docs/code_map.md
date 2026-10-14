@@ -86,7 +86,7 @@ Project Doomsday — 1–4
 - **dosimeter** «Щёлкающая коробка»: data/dialogs/smith.json
 - **hunter** «Проверка тайгой»: data/dialogs/hunter.json
 - **range** «Уроки стрельбы»: data/dialogs/shooter.json, data/weapons.json
-- **pack** «Собраться в дорогу»: scripts/locations/nakharro.gd, tools/smoke_test.gd
+- **pack** «Собраться в дорогу (по желанию)»: scripts/locations/nakharro.gd, tools/smoke_test.gd
 - **bootur** «Найти Боотура»: scripts/locations/kresty.gd, scripts/locations/nakharro.gd, scripts/locations/sungar_center.gd, scripts/locations/sungar_district.gd, scripts/locations/sungar_hotel.gd, tools/smoke_test.gd, data/dialogs/enc_road_trader.json, data/dialogs/kr_brewer.json, data/dialogs/kr_drunk.json, data/dialogs/kr_head.json, data/dialogs/sg_archylan.json, data/dialogs/sg_barman.json, data/dialogs/sg_clerk.json, data/dialogs/sg_gunsmith.json, data/dialogs/sg_innkeeper.json, data/dialogs/sg_market_boss.json
 - **who** «Кто сжёг Нахарро»: scripts/locations/nakharro.gd, scripts/locations/ruin.gd, scripts/locations/ruin_bunker.gd, scripts/main.gd, scripts/ui/world_map.gd, tools/smoke_test.gd, data/dialogs/camp_boss.json, data/dialogs/sg_clerk.json
 - **kr_dogs** «Псы у выгона»: scripts/locations/kresty.gd, tools/smoke_test.gd, data/dialogs/kr_head.json, data/dialogs/kr_herder.json
@@ -162,7 +162,7 @@ Project Doomsday — 1–4
 - camp_wounded: tools/build_act1.gd:691
 - ded: tools/build_nakharro.gd:472, tools/build_nakharro.gd:530, tools/build_scenes.gd:717, tools/build_scenes.gd:722
 - defender: tools/build_nakharro.gd:536
-- ebee: tools/build_nakharro.gd:1049
+- ebee: tools/build_nakharro.gd:1050
 - elder: tools/build_nakharro.gd:492
 - enc_accused: —
 - enc_carter: —
@@ -177,14 +177,14 @@ Project Doomsday — 1–4
 - enc_trapped_hunter: —
 - enc_trial: —
 - friend: tools/build_nakharro.gd:475, tools/build_nakharro.gd:476
-- friend_dying: tools/build_nakharro.gd:539, tools/build_nakharro.gd:540
+- friend_dying: tools/build_nakharro.gd:540, tools/build_nakharro.gd:541
 - gambler: tools/build_nakharro.gd:504
 - girl: tools/build_nakharro.gd:503
 - guard: tools/build_nakharro.gd:482
-- hay_quarrel: tools/build_nakharro.gd:1196, tools/build_nakharro.gd:1197
+- hay_quarrel: tools/build_nakharro.gd:1197, tools/build_nakharro.gd:1198
 - hermit: tools/build_act1.gd:796
-- hs_kid1: tools/build_nakharro.gd:1193
-- hs_kid2: tools/build_nakharro.gd:1194
+- hs_kid1: tools/build_nakharro.gd:1194
+- hs_kid2: tools/build_nakharro.gd:1195
 - hs_kid3: tools/build_act1.gd:1433
 - hunter: tools/build_nakharro.gd:506
 - kid: tools/build_nakharro.gd:478, tools/build_scenes.gd:720
@@ -300,9 +300,9 @@ Project Doomsday — 1–4
 Кресты — первое живое поселение за чертой.
 `_ready:10` `on_world_state_applied:17` `on_enter:21` `_kid_home:28` `_apply_dogs:40` `_dogs_left:56` `on_dialog_action:65` `on_combat_end:78` `on_interact:85` `_woodpile:132` `_steam:147` `on_interact_extra:158` `_tracks:165` `item_actions:186` `describe:205` `dialog_cond:233` `objective:248`
 
-### scripts/locations/nakharro.gd (1801)
+### scripts/locations/nakharro.gd (1892)
 Пролог: деревня Нахарро.
-`_ready:35` `friend:51` `_apply_friend:56` `_exit_tree:64` `phase:73` `on_new_game:87` `on_world_state_applied:112` `_apply_sacred:118` `on_enter:125` `_on_dialog_closed:140` `translator:159` `on_pocket:169` `_restore_barn:176` `can_leave_edge:193` `edge_tip:197` `_apply_phase:201` `_apply_light:262` `uses_clock_light:283` `schedule_active:288` `_set_on:292` `status_line:308` `food_count:314` `objective:318` `food_portions:358` `has_travel:366` `pack_ready:373` `pack_line:381` `_check_pack:391` `_process:402` `on_hero_moved:443` `can_pick:502` `is_theft:523` `theft_watch_radius:527` `_is_theft:531` `_witness:539` `_steal:559` `on_picked:584` `_dusk:607` `_gone_home:630` `_start_ambush:640` `_behind:679` `_ambush_hit:685` `_ambush_heard:708` `_prowl_arrived:719` `_prowl_tick:740` `_prowl_leave:767` `_prowl_gone:777` `leave_hide:790` `_gate_enemies_left:797` `_gate_scene:805` `_gate_fight:855` `_nobody_left:867` `_kill_npc:877` `_gate_round:889` `_doomed_alive:910` `_barn_tick:926` `_cleaners_leave:954` `_cleaner_gone:968` `on_looted:981` `_on_hour:991` `_on_quest:995` `_friend_say:1033` `has_fire:1052` `bonfire_lit:1057` `_apply_life:1063` `_friend_to_fire:1083` `dialog_cond:1101` `_bonfire:1109` `_tower:1124` `on_interact:1139` `on_dialog_action:1226` `on_combat_round:1318` `_ded_shoot:1333` `on_fighter_down:1352` `on_combat_end:1358` `_ded_falls:1400` `_ded_near:1423` `_fighting_cleaners:1433` `_fighting_squad:1437` `_cleaners_hear:1446` `_alive_cleaner:1457` `_shoot_ded:1464` `_quest_item:1489` `_update_quest_marks:1505` `_mark_label:1527` `_chest:1545` `_open_chest:1583` `item_actions:1591` `describe:1634` `_mend_fence:1667` `_apply_fence:1691` `_set_solid:1713` `_on_hero_changed:1720` `_assemble_kpk:1736` `_absorb_modules:1759` `_update_exit_guard:1780` `_exit_guard_alive:1798`
+`_ready:35` `friend:51` `_apply_friend:56` `_exit_tree:82` `phase:91` `on_new_game:105` `on_world_state_applied:130` `_apply_sacred:136` `on_enter:143` `_on_dialog_closed:158` `translator:177` `on_pocket:187` `_restore_barn:194` `can_leave_edge:211` `edge_tip:215` `_apply_phase:219` `_apply_light:280` `uses_clock_light:301` `schedule_active:306` `_set_on:310` `status_line:326` `food_count:332` `objective:336` `food_portions:382` `has_travel:390` `pack_ready:397` `pack_line:405` `_check_pack:415` `_process:426` `on_hero_moved:467` `can_pick:530` `is_theft:551` `theft_watch_radius:555` `_is_theft:559` `_witness:567` `_steal:587` `on_picked:612` `_dusk:635` `_gone_home:658` `_start_ambush:668` `_behind:707` `_ambush_hit:713` `_ambush_heard:736` `_prowl_arrived:747` `_prowl_tick:768` `_prowl_leave:795` `_prowl_gone:805` `leave_hide:818` `_gate_enemies_left:825` `_friend_gate_scene:837` `_gate_scene:870` `_gate_fight:920` `_nobody_left:932` `_close_village_quests:952` `_kill_npc:961` `_gate_round:973` `_doomed_alive:994` `_barn_tick:1010` `_cleaners_leave:1038` `_cleaner_gone:1052` `on_looted:1065` `_on_hour:1075` `_on_quest:1079` `_friend_say:1117` `has_fire:1136` `bonfire_lit:1141` `_apply_life:1147` `_friend_to_fire:1167` `dialog_cond:1185` `_bonfire:1193` `_tower:1208` `on_interact:1223` `on_dialog_action:1310` `on_combat_round:1402` `_ded_shoot:1417` `on_fighter_down:1436` `on_combat_end:1442` `_ded_falls:1490` `_ded_near:1513` `_fighting_cleaners:1523` `_fighting_squad:1527` `_cleaners_hear:1536` `_alive_cleaner:1547` `_shoot_ded:1554` `_quest_item:1579` `_update_quest_marks:1595` `_mark_label:1617` `_chest:1635` `_open_chest:1673` `item_actions:1681` `describe:1724` `_mend_fence:1757` `_apply_fence:1781` `_set_solid:1803` `_on_hero_changed:1810` `_assemble_kpk:1826` `_absorb_modules:1849` `_update_exit_guard:1870` `_exit_guard_alive:1889`
 
 ### scripts/locations/nakharro_cellar.gd (116)
 Подпол избы деда — второй уровень Нахарро. Темно: свечу надо зажечь спичками.
@@ -370,9 +370,9 @@ Project Doomsday — 1–4
 Приборная панель внизу экрана (как в прототипе): журнал, герой, оружие, кнопки.
 `setup:52` `_build:65` `_make_slot:346` `refresh:370` `_slot_text:434` `refresh_objective:443` `_on_log:449` `_esc:465` `clear_log:469` `_mini_line:476` `think:496` `thought_visible:506` `_place_thought:510` `_draw_marks:528` `show_tip:553` `hide_tip:559` `flash_tip:565` `toast:571` `tutor_card:587` `tutor_text:606` `hurt_flash:610` `float_text:616` `show_zones:634` `hide_zones:648` `_process:653` `mouse_over_ui:669`
 
-### scripts/ui/kpk.gd (440) · class KPK
+### scripts/ui/kpk.gd (442) · class KPK
 Карманный компьютер на браслете. Пока браслета нет — просто «Сумка».
-`setup:19` `open:76` `close:83` `has_tab:88` `render:94` `_g:128` `_item_btn:134` `_render_inv:158` `_equip:261` `_render_stat:274` `_open_sheet:342` `_render_cas:351` `_render_map:400` `_render_quests:410` `_render_notes:427` `_unhandled_key_input:436`
+`setup:19` `open:76` `close:83` `has_tab:88` `render:94` `_g:128` `_item_btn:134` `_render_inv:158` `_equip:261` `_render_stat:274` `_open_sheet:342` `_render_cas:351` `_render_map:400` `_render_quests:410` `_render_notes:429` `_unhandled_key_input:438`
 
 ### scripts/ui/loot_window.gd (150) · class LootWindow
 Окно обыска: что лежит в теле, сундуке или чужом кармане. Каждую вещь можно
@@ -466,9 +466,9 @@ Project Doomsday — 1–4
 ### tools/build_hero_skin.gd (78)
 Собирает сетку героя с новой развёрткой из assets/models/hero_skin_mesh.bin
 
-### tools/build_nakharro.gd (1208)
+### tools/build_nakharro.gd (1209)
 Генератор большой деревни Нахарро (по референсу «Нахарра», ~40 человек):
-`_ready:43` `_build:63` `_env:93` `_ground:134` `strip:186` `_ground_material:195` `_paint_splat:212` `_sd_rect:246` `_seg_dist:254` `_ring_dist:261` `_ditch_h:268` `_village:282` `_forest:368` `_forest_edge:421` `_raid:449` `_characters:467` `_seat:578` `_items:585` `_fence_mend:662` `_clear_overlaps:679` `_is_plant:747` `_inside:754` `_pal:763` `_moat:771` `_ditch_mesh:826` `_bridge:852` `_multi:869` `_xf:883` `_free_spot:887` `_details:896` `_building_boxes:986` `_tutorial_extras:1014` `_sacred_tree:1054` `_village_life:1128`
+`_ready:43` `_build:63` `_env:93` `_ground:134` `strip:186` `_ground_material:195` `_paint_splat:212` `_sd_rect:246` `_seg_dist:254` `_ring_dist:261` `_ditch_h:268` `_village:282` `_forest:368` `_forest_edge:421` `_raid:449` `_characters:467` `_seat:579` `_items:586` `_fence_mend:663` `_clear_overlaps:680` `_is_plant:748` `_inside:755` `_pal:764` `_moat:772` `_ditch_mesh:827` `_bridge:853` `_multi:870` `_xf:884` `_free_spot:888` `_details:897` `_building_boxes:987` `_tutorial_extras:1015` `_sacred_tree:1055` `_village_life:1129`
 
 ### tools/build_props.gd (1531)
 Генератор построек и растительности в стиле референса «Нахарра».
@@ -509,7 +509,7 @@ Project Doomsday — 1–4
 ### tools/screenshots.gd (107)
 Снимки экрана для проверки интерфейса (нужен рендер, не --headless).
 
-### tools/smoke_test.gd (2911)
+### tools/smoke_test.gd (2924)
 Автотест пролога: проходит всю цепочку без участия человека и печатает, что сломалось.
 `new_enc:12` `ok:17` `wait:25` `frames:29` `close_dialogs:34` `shut:43` `choose:48` `opt_texts:54` `find_opt:61` `tp:79` `fight:86` `wait_loading:128` `unreachable:137` `go_upstairs:166` `go_downstairs:176` `nakharro_life_tests:187` `kresty_life_tests:365` `encounter_lore_tests:444` `city_tests:512` `admin_tests:705` `weather_tests:783` `social_tests:850` `sungar_tests:945` `_ready:1092`
 

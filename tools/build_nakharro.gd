@@ -536,8 +536,9 @@ func _characters() -> void:
 		var ch := character(chars, c[0], c[1], c[2], c[3], {"dialog": "defender", "armed": true, "groups": R_})
 		ch.add_to_group("defenders", true)
 	# друг детства в налёт: лежит у плетня, смертельно ранен
-	character(chars, "FriendRaid", "friend", Vector3(57.5, 0, 51.0), 0.6, {"dialog": "friend_dying", "start_pose": "down", "groups": R_})
-	character(chars, "FriendRaidF", "friend_f", Vector3(57.5, 0, 51.0), 0.6, {"dialog": "friend_dying", "start_pose": "down", "groups": R_})
+	# друг детства после налёта держит центральные (западные) ворота — отстреливается от отставшего чужака
+	character(chars, "FriendRaid", "friend", Vector3(31.4, 0, W_GATE_Z - 0.9), -PI / 2.0, {"dialog": "friend_dying", "groups": R_})
+	character(chars, "FriendRaidF", "friend_f", Vector3(31.4, 0, W_GATE_Z - 0.9), -PI / 2.0, {"dialog": "friend_dying", "groups": R_})
 	character(chars, "WoundedDefender", "villager", Vector3(60.5, 0, 57.8), 1.0, {"display_name": "Раненый", "start_pose": "down", "groups": R_})
 	# у северных ворот: часовой зовёт на помощь, пленные на коленях, двое нападавших
 	var gg := character(chars, "GateGuard", "defender", Vector3(62.0, 0, 36.4), 0.45, {"display_name": "Часовой Эрчим", "armed": true, "groups": R_})
@@ -547,7 +548,7 @@ func _characters() -> void:
 	character(chars, "Executioner", "executioner", Vector3(62.1, 0, 45.6), PI, {"squad": "gate", "armed": true, "groups": R_})
 	character(chars, "GateRaider", "raider_gun", Vector3(64.2, 0, 40.8), PI * 1.15, {"display_name": "Нападавший", "squad": "gate", "armed": true, "groups": R_})
 	# у старой черты — раненый нападавший (появится, когда тела обысканы)
-	character(chars, "ExitRaider", "exit_raider", Vector3(11.5, 0, W_GATE_Z + 2.2), -PI / 2.0, {"groups": ["exit_guard"]})
+	character(chars, "ExitRaider", "exit_raider", Vector3(17.5, 0, W_GATE_Z + 1.6), PI / 2.0, {"groups": ["exit_guard"]})
 	# мародёры, которые ещё шарят по дворам (можно обойти крадучись или напасть первым)
 	character(chars, "LooterA", "raider", Vector3(44.0, 0, 76.8), 0.8, {"hostile": true, "aggro_radius": 6.0, "squad": "looters", "groups": R_})
 	character(chars, "LooterB", "raider", Vector3(47.2, 0, 77.4), -0.6, {"hostile": true, "aggro_radius": 6.0, "squad": "looters", "groups": R_})

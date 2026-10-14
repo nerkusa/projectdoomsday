@@ -416,8 +416,10 @@ func _render_quests() -> void:
 			continue
 		any = true
 		var done := st >= int(q.get("done_stage", 999))
-		_screen.add_child(_g(("[x] " if done else "> ") + q.get("title", id), 15, UITheme.GREEN_DIM if done else UITheme.GREEN_HI))
-		var txt: String = q.get("stages", {}).get(str(st), "")
+		# брошенные дела (например, деревенские — после налёта на Нахарро)
+		var lost: bool = not done and Game.hero.flags.get("lost_q", {}).has(id)
+		_screen.add_child(_g(("[x] " if done else ("[-] " if lost else "> ")) + q.get("title", id), 15, UITheme.GREEN_DIM if done or lost else UITheme.GREEN_HI))
+		var txt: String = "Неактуально: той деревни, где это было нужно, больше нет." if lost else q.get("stages", {}).get(str(st), "")
 		if txt != "":
 			_screen.add_child(_g("   " + txt, 13, UITheme.GREEN_DIM if done else UITheme.GREEN))
 	if not any:

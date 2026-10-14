@@ -47,7 +47,7 @@ func _ready() -> void:
 var tutor: Tutor
 
 
-## Друг детства — того же пола, что герой; в налёт — лежит у плетня
+## Друг детства — того же пола, что герой; после налёта — держит центральные ворота
 func friend(raid := false) -> Character:
 	var f: bool = Game.hero.get("female", false)
 	return character(("FriendRaid" if raid else "Friend") + ("F" if f else ""))
@@ -59,6 +59,24 @@ func _apply_friend() -> void:
 		var other := character(n + ("" if f else "F"))
 		if other:
 			_set_on(other, false)
+	# у ворот друг появляется, только когда деда уже нет: стоит и отстреливается, после сцены — лежит
+	var fr := friend(true)
+	if fr == null:
+		return
+	var dead: bool = ws().dead.has(fr.uid())
+	_set_on(fr, phase() == "after" or dead)
+	if dead:
+		fr.pose = "dead"
+	elif Game.flag("friend_scene"):
+		fr.pose = "down"
+		fr.aim_pose = false
+		fr.set_held("")
+	elif phase() == "after":
+		fr.set_held("rifle")
+		fr.aim_pose = true
+		var eg := character("ExitRaider")
+		if eg:
+			fr.face_towards(eg.global_position)
 
 
 func _exit_tree() -> void:
@@ -344,6 +362,12 @@ func objective() -> String:
 			return "Нахарро горит. Найти деда."
 		return "Дед ранен — подойти к нему." if Game.flag("ded_shot") else "Дед у амбара!"
 	var pack := pack_line()
+	if Game.flag("kpk") and _exit_guard_alive():
+		if not Game.flag("friend_scene"):
+			return "Выстрелы у центральных (западных) ворот — бежать туда." + pack
+		return "Убить чужака у центральных ворот." + pack
+	if Game.flag("friend_scene") and not Game.flag("friend_dead"):
+		return "%s у ворот — подойти." % friend(true).display_name + pack
 	if Game.item_count("module_radio") > 0:
 		return "Модуль «Связь» в кармане — вставить в браслет (КПК → вещи) и послушать." + pack
 	return "Идти на запад по старой просеке, к старой черте." + pack
@@ -385,7 +409,7 @@ func pack_line() -> String:
 	for c in PACK:
 		parts.append("%s %s" % ["[x]" if has_travel(c) else "[ ]", PACK[c]])
 	parts.append("%s еда %d/%d" % ["[x]" if food_portions() >= FOOD_NEED else "[ ]", mini(food_portions(), FOOD_NEED), FOOD_NEED])
-	return "\nВ дорогу: " + " · ".join(parts)
+	return "\nВ дорогу (по желанию): " + " · ".join(parts)
 
 
 func _check_pack() -> void:
@@ -441,10 +465,14 @@ func _process(delta: float) -> void:
 
 # ---------------- события ----------------
 func on_hero_moved(pos: Vector3) -> void:
-	# друг детства у плетня (в налёт и после): подошёл — последний разговор
-	if phase() != "morning" and not Game.flag("friend_dead") and not Game.flag("friend_found") and not main.combat.on and not main.dialog.visible:
+	# друг у центральных ворот: подошёл — перестрелка; убийца убит — последний разговор
+	if phase() == "after" and not Game.flag("friend_dead") and not main.combat.on and not main.dialog.visible:
 		var fr := friend(true)
-		if fr and fr.visible and fr.global_position.distance_to(pos) < 3.0:
+		var eg := character("ExitRaider")
+		if fr and fr.visible and not Game.flag("friend_scene") and _exit_guard_alive():
+			if fr.global_position.distance_to(pos) < FRIEND_SCENE_R or eg.global_position.distance_to(pos) < 10.0:
+				_friend_gate_scene()
+		elif fr and fr.visible and Game.flag("friend_scene") and not _exit_guard_alive() and not Game.flag("friend_found") and fr.global_position.distance_to(pos) < 3.0:
 			Game.set_flag("friend_found")
 			main.player.stop()
 			main.talk_to(fr)
@@ -802,6 +830,43 @@ func _gate_enemies_left() -> bool:
 	return false
 
 
+## Сцена у центральных ворот: друг перестреливается с отставшим чужаком и падает
+const FRIEND_SCENE_R := 12.0
+
+
+func _friend_gate_scene() -> void:
+	Game.set_flag("friend_scene")
+	var fr := friend(true)
+	var eg := character("ExitRaider")
+	main.player.stop()
+	main.begin_cutscene((fr.global_position + eg.global_position) / 2.0)
+	var nm := fr.display_name
+	fr.face_towards(eg.global_position)
+	fr.aim_pose = true
+	fr.act("fire", Callable(), {"n": 1})
+	main.hud.float_text(fr.global_position + Vector3(0, 2.3, 0), Game.gtext("{hero}! Не высовывайся, он за воротами!").replace("{hero}", str(Game.hero.name)), "")
+	Game.log_line("%s: «Не высовывайся, он за воротами!»" % nm, "", "miss")
+	await get_tree().create_timer(1.1, false).timeout
+	if not is_instance_valid(eg):
+		return
+	eg.face_towards(fr.global_position)
+	eg.aim_pose = true
+	eg.act("fire", Callable(), {"n": 2})
+	await get_tree().create_timer(0.7, false).timeout
+	fr.aim_pose = false
+	fr.set_held("")
+	fr.pose = "down"
+	main.hud.float_text(fr.global_position + Vector3(0, 1.6, 0), nm + "!", "hit")
+	Game.log_line("%s падает." % nm, "", "hit")
+	await get_tree().create_timer(1.0, false).timeout
+	main.end_cutscene()
+	main.think("%s упал%s. Тот, за воротами, ещё жив. Сначала — он." % [nm, "а" if Game.hero.get("female", false) else ""])
+	eg.hostile = true
+	eg.aggro_radius = 9.0
+	if not main.combat.on:
+		main.start_fight([eg])
+
+
 func _gate_scene() -> void:
 	Game.set_flag("gate_started")
 	Game.set_flag("gate_scene_running")
@@ -872,6 +937,25 @@ func _nobody_left() -> void:
 		ch.stop()
 		ch.patrol = PackedVector3Array()
 		_kill_npc(ch, false)
+	# раненый житель не дожил — подпись «Житель · мёртв», а не «Раненый · мёртв»
+	var wd := character("WoundedDefender")
+	if wd and wd.pose == "dead":
+		wd.display_name = "Житель"
+	_close_village_quests()
+
+
+## Деревенские дела, взятые утром и не доделанные, после налёта теряют смысл
+const VILLAGE_Q := ["chores", "forest", "barn_junk", "elder", "dosimeter", "hunter", "range", "cellar", "well",
+	"lunch", "comb", "barrel", "salama", "son_gun", "arangas", "radio", "hide_seek", "hay", "book", "lessons"]
+
+
+func _close_village_quests() -> void:
+	var lost: Dictionary = Game.hero.flags.get("lost_q", {})
+	for id in VILLAGE_Q:
+		var st := Game.quest_stage(id)
+		if st > 0 and st < int(DB.quests.get(id, {}).get("done_stage", 999)):
+			lost[id] = true
+	Game.hero.flags["lost_q"] = lost
 
 
 func _kill_npc(ch: Character, looted := true) -> void:
@@ -1376,6 +1460,12 @@ func on_combat_end(res: String, kind: String) -> void:
 		return
 	if tutor and kind != "spar":
 		tutor.comment("fight")
+	# убийца друга убит — друг ещё дышит, последние слова
+	if Game.flag("friend_scene") and not Game.flag("friend_dead") and not _exit_guard_alive() and not Game.flag("friend_found"):
+		Game.set_flag("friend_found")
+		await get_tree().create_timer(0.8, false).timeout
+		main.talk_to(friend(true))
+		return
 	var pr := character("Prowler")
 	if pr and pr.pose == "dead" and Game.flag("ambush_on") and not Game.flag("ambush_done"):
 		Game.set_flag("ambush_done")
@@ -1788,7 +1878,8 @@ func _update_exit_guard() -> void:
 	g.process_mode = Node.PROCESS_MODE_INHERIT if g.visible else Node.PROCESS_MODE_DISABLED
 	if on and not dead:
 		g.hostile = true
-		g.aggro_radius = 7.0
+		# пока он перестреливается с другом — на героя не бросается; после сцены — бой
+		g.aggro_radius = 9.0 if Game.flag("friend_scene") else 0.0
 		g.set_held("pistol")
 		if not Game.flag("exit_guard_seen") and main:
 			Game.set_flag("exit_guard_seen")

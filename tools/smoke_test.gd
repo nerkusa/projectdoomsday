@@ -1830,12 +1830,39 @@ func _ready() -> void:
 	ok(main.kpk.visible, "КПК открыт повторно")
 	main.kpk.close()
 
-	# --- друг детства у плетня: подошёл — последние слова ---
+	# --- после налёта: деревенские дела неактуальны, сборы — по желанию ---
+	var lostq: Dictionary = Game.hero.flags.get("lost_q", {})
+	var lost_ok := true
+	for qid in lostq:
+		if Game.quest_stage(qid) >= int(DB.quests.get(qid, {}).get("done_stage", 999)):
+			lost_ok = false
+	ok(lost_ok and DB.quests.pack.title.contains("по желанию"), "недоделанные дела Нахарро помечены неактуальными (%d), сборы — по желанию" % lostq.size())
+	var wdf: Character = main.location.character("WoundedDefender")
+	ok(wdf.pose == "dead" and wdf.display_name == "Житель", "погибший раненый подписан «Житель»")
+
+	# --- друг детства у центральных ворот: перестрелка, убийца, последние слова ---
 	var frd: Character = main.location.friend(true)
-	ok(frd != null and frd.visible and frd.pose == "down" and not main.location.character("FriendRaidF").visible, "друг детства лежит у плетня")
-	await tp(frd.global_position + Vector3(1.6, 0, 0.6))
-	await wait(0.5)
-	ok(main.dialog.visible and main.dialog.speaker == frd, "подошёл — друг заговорил")
+	var eg: Character = main.location.character("ExitRaider")
+	ok(frd != null and frd.visible and frd.pose == "" and not main.location.character("FriendRaidF").visible, "друг детства отстреливается у центральных ворот")
+	ok(eg.visible and eg.hostile and eg.pose != "dead", "за воротами — чужак")
+	ok(main.location.objective().contains("центральных"), "цель: к центральным воротам")
+	main.interact(main.location.item("BorderExit"))
+	await frames(2)
+	ok(not main.dialog.visible and main.hud.thought_visible(), "к черте не пройти, пока чужак жив")
+	await tp(frd.global_position + Vector3(6.0, 0, 0.5))
+	tk = 0.0
+	while not main.combat.on and tk < 8.0:
+		await wait(0.25)
+		tk += 0.25
+	ok(Game.flag("friend_scene") and frd.pose == "down", "сцена у ворот: друг упал")
+	ok(main.combat.on, "бой с убийцей друга")
+	await fight()
+	ok(eg.pose == "dead", "убийца друга убит")
+	tk = 0.0
+	while not main.dialog.visible and tk < 4.0:
+		await wait(0.25)
+		tk += 0.25
+	ok(main.dialog.visible and main.dialog.speaker == frd, "после боя друг заговорил")
 	var gfr := 0
 	while main.dialog.visible and gfr < 6:
 		await choose(0)
@@ -1854,20 +1881,6 @@ func _ready() -> void:
 		if main.combat.on:
 			await fight()
 		await close_dialogs()
-	var eg: Character = main.location.character("ExitRaider")
-	ok(eg.visible and (eg.hostile or eg.pose == "dead"), "у черты появился раненый нападавший")
-	if eg.pose != "dead":
-		main.interact(main.location.item("BorderExit"))
-		await frames(2)
-		ok(not main.dialog.visible and main.hud.thought_visible(), "к черте не пройти, пока он жив")
-		await tp(eg.global_position + Vector3(3.5, 0, 0))
-		await wait(1.0)
-		ok(main.combat.on, "бой с раненым у черты")
-		await fight()
-	else:
-		print("  раненый напал сам, пока обыскивал соседнее тело")
-	await close_dialogs()
-	ok(eg.pose == "dead", "раненый у черты побеждён")
 	await tp(eg.global_position + Vector3(1.2, 0, 0))
 	main.loot(eg)
 	await wait(0.4)
