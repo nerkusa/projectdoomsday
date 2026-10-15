@@ -137,6 +137,8 @@ Project Doomsday — 1–4
 - **act3** «Ток»: scripts/locations/ges.gd, scripts/locations/mirny.gd, tools/smoke_test.gd, data/dialogs/ges_chief.json, data/dialogs/ges_watch.json, data/dialogs/mr_belsky.json, data/dialogs/mr_ivanov.json, data/dialogs/mr_scar.json, data/dialogs/mr_slepcova.json
 - **mr_trial** «Суд йегерей»: scripts/locations/mirny.gd, tools/smoke_test.gd, data/dialogs/mr_denouncer.json, data/dialogs/mr_judge.json
 - **mr_quarry** «Спуститься первым»: scripts/locations/mirny.gd, scripts/locations/mirny_quarry.gd, tools/smoke_test.gd, data/dialogs/mr_belsky.json, data/dialogs/mr_ivanov.json, data/dialogs/mr_scar.json, data/dialogs/mr_slepcova.json
+- **act4** «Мерзлота»: scripts/locations/complex.gd, scripts/locations/gorny.gd, scripts/locations/rubikon.gd, scripts/locations/yakutsk.gd, tools/smoke_test.gd
+- **gr_feeder** «Кто кормит мутантов»: scripts/locations/gorny.gd, tools/smoke_test.gd, data/dialogs/gr_elder.json, data/dialogs/gr_mother.json
 
 ## Места карты мира (data/world.json → сцена → скрипт)
 
@@ -153,9 +155,9 @@ Project Doomsday — 1–4
 - mirny «Мирный»: scenes/locations/mirny.tscn → scripts/locations/mirny.gd
 - mir «Промзона МИР»: — 
 - ges «Вилюйская ГЭС»: scenes/locations/ges.tscn → scripts/locations/ges.gd
-- vilyuysk «Вилюйск»: — 
-- gorny «Горный»: — 
-- yakutsk «Якутск»: — 
+- vilyuysk «Вилюйск»: scenes/locations/rubikon.tscn → scripts/locations/rubikon.gd
+- gorny «Горный»: scenes/locations/gorny.tscn → scripts/locations/gorny.gd
+- yakutsk «Якутск»: scenes/locations/yakutsk.tscn → scripts/locations/yakutsk.gd
 
 ## Жители: файл диалога → где поставлен (сборщик:строка)
 
@@ -184,10 +186,12 @@ Project Doomsday — 1–4
 - friend: tools/build_nakharro.gd:475, tools/build_nakharro.gd:476
 - friend_dying: tools/build_nakharro.gd:540, tools/build_nakharro.gd:541
 - gambler: tools/build_nakharro.gd:504
-- ges_announcer: tools/build_east.gd:609
-- ges_chief: tools/build_east.gd:608
-- ges_watch: tools/build_east.gd:607
+- ges_announcer: tools/build_east.gd:616
+- ges_chief: tools/build_east.gd:615
+- ges_watch: tools/build_east.gd:614
 - girl: tools/build_nakharro.gd:503
+- gr_elder: tools/build_east.gd:801
+- gr_mother: tools/build_east.gd:802
 - guard: tools/build_nakharro.gd:482
 - hay_quarrel: tools/build_nakharro.gd:1197, tools/build_nakharro.gd:1198
 - hermit: tools/build_act1.gd:796
@@ -195,6 +199,9 @@ Project Doomsday — 1–4
 - hs_kid2: tools/build_nakharro.gd:1195
 - hs_kid3: tools/build_act1.gd:1433
 - hunter: tools/build_nakharro.gd:506
+- hz_kirk: tools/build_east.gd:971
+- hz_kirsh: tools/build_east.gd:973
+- hz_viktor: tools/build_east.gd:972
 - kid: tools/build_nakharro.gd:478, tools/build_scenes.gd:720
 - kr_banya: tools/build_act1.gd:582
 - kr_brewer: tools/build_act1.gd:565
@@ -209,15 +216,15 @@ Project Doomsday — 1–4
 - kr_rumors: tools/build_act1.gd:574, tools/build_act1.gd:576, tools/build_act1.gd:585, tools/build_act1.gd:587, tools/build_act1.gd:588, tools/build_act1.gd:589, tools/build_act1.gd:590, tools/build_act1.gd:592
 - kr_smith: tools/build_act1.gd:581
 - kr_trader: tools/build_act1.gd:566
-- mk_chief: tools/build_east.gd:170
-- mk_instructor: tools/build_east.gd:171
-- mr_belsky: tools/build_east.gd:371
-- mr_buyer: tools/build_east.gd:372
-- mr_denouncer: tools/build_east.gd:376
-- mr_ivanov: tools/build_east.gd:386
-- mr_judge: tools/build_east.gd:379
-- mr_scar: tools/build_east.gd:391
-- mr_slepcova: tools/build_east.gd:377
+- mk_chief: tools/build_east.gd:177
+- mk_instructor: tools/build_east.gd:178
+- mr_belsky: tools/build_east.gd:378
+- mr_buyer: tools/build_east.gd:379
+- mr_denouncer: tools/build_east.gd:383
+- mr_ivanov: tools/build_east.gd:393
+- mr_judge: tools/build_east.gd:386
+- mr_scar: tools/build_east.gd:398
+- mr_slepcova: tools/build_east.gd:384
 - nr_apovich: tools/build_nyurba.gd:608
 - nr_artur: tools/build_nyurba.gd:606
 - nr_bootur: tools/build_nyurba.gd:626, tools/build_nyurba.gd:844
@@ -312,6 +319,10 @@ Project Doomsday — 1–4
 ### scripts/locations/camp.gd (100)
 Лагерь оборванцев у старой лесопилки: беженцы после налётов.
 
+### scripts/locations/complex.gd (251)
+Комплекс «Возрождение» под ГРЭС-2 — финал игры. Офис отдела, где пятьдесят лет «работают»:
+`_ready:11` `status_line:22` `on_enter:26` `_hide:54` `objective:60` `on_combat_round:68` `on_combat_end:80` `on_dialog_action:90` `_kirk_fight:105` `_kirk_spared:113` `_open_door:122` `on_interact:138` `_archive:156` `_finale:177` `final_lines:186` `item_actions:229` `describe:240`
+
 ### scripts/locations/convoy.gd (88)
 Ржавый конвой: разграбленный караван из Сунгара на старой дороге и засада.
 
@@ -322,6 +333,9 @@ Project Doomsday — 1–4
 ### scripts/locations/ges.gd (211)
 Вилюйская ГЭС (Акт III). Подступы заминированы всеми фракциями: в минное поле лучше не
 `_ready:14` `status_line:25` `on_enter:29` `objective:36` `on_hero_moved:45` `on_dialog_action:76` `_open_turnstile:95` `_act3_end:108` `on_interact:119` `_terminal:155` `_overload:176` `item_actions:185` `describe:198`
+
+### scripts/locations/gorny.gd (96)
+Горный (Акт IV) — спокойный посёлок под «Горизонтом»: свет круглые сутки, талоны, порядок.
 
 ### scripts/locations/kresty.gd (293)
 Кресты — первое живое поселение за чертой.
@@ -369,6 +383,10 @@ Project Doomsday — 1–4
 ### scripts/locations/radio_post.gd (124)
 Пост связи наёмников на сопке — источник сигнала из модуля «Связь».
 
+### scripts/locations/rubikon.gd (165)
+Рубикон — мёртвый Вилюйск (Акт IV). Проспект кишит мутантами: вурды стаей, рогачи,
+`_ready:20` `status_line:28` `on_enter:32` `_hide:47` `objective:53` `_process:64` `on_combat_round:98` `on_interact:110` `_pass:135` `item_actions:145` `describe:154`
+
 ### scripts/locations/ruin.gd (183)
 База на Сытыгане — довоенный объект. Весной здесь сожгли стоянку оборванцев,
 `_ready:7` `on_interact:14` `on_world_state_applied:84` `on_enter:89` `_animate_gate:95` `_apply_gate:112` `_descend_later:120` `on_combat_end:126` `item_actions:132` `describe:151` `objective:172` `rad_level:181`
@@ -406,12 +424,15 @@ Project Doomsday — 1–4
 Сунгар, жилой квартал: бараки, бар «Шалман» (кулачные бои за домом), оружейная,
 `_ready:6` `on_world_state_applied:13` `on_enter:22` `_apply_people:28` `_people_later:41` `_show:46` `on_dialog_action:51` `on_combat_end:78` `on_interact:95` `_scrap:110` `_guide_room:130` `item_actions:144` `describe:155` `objective:166`
 
+### scripts/locations/yakutsk.gd (69)
+ГРЭС-2 у Якутска (Акт IV): кратер, мёртвые трубы, пост «Горизонта» и будка лифта.
+
 ### scripts/locations/zaimka.gd (140)
 Заимка охотника Дьаакыпа. Задание «Капканы»: на севере что-то ломает капканы —
 
-### scripts/main.gd (1562)
+### scripts/main.gd (1566)
 Главный узел игры: камера, загрузка локаций, ввод мышью, окна интерфейса.
-`_ready:90` `_on_level_up:117` `_build_ui:128` `space:201` `ui_blocked:205` `sfx:210` `think:235` `_on_menu:240` `_load_slot:268` `_on_sheet_closed:283` `_on_slides_done:294` `_unload:304` `load_location:322` `autosave:367` `quicksave:374` `show_game_over:383` `show_end:387` `status_text:393` `objective_text:399` `_on_hud_action:412` `open_kpk:457` `use_item:483` `_swap_hands:558` `_open_pause:570` `_move_speed:578` `_sneak_radius:589` `on_combat_start:598` `is_filler:614` `filler_bark:619` `talk_to:660` `say:685` `_on_dialog_action:695` `open_trade:734` `_on_dialog_closed:740` `start_fight:745` `_unhandled_input:766` `wait_time:828` `begin_cutscene:833` `end_cutscene:841` `_enemies_near:846` `open_wait:854` `wait_hours:864` `_pick:881` `_click:922` `_may_attack:965` `_near_edge:975` `_can_leave:980` `_walk_to_hex:992` `_walk_clear:1035` `_smooth_path:1050` `_go_then:1064` `_do_pending:1096` `interact:1124` `loot:1148` `_body_entries:1166` `open_loot:1187` `pickpocket:1208` `examine:1243` `_open_actions:1259` `_on_action_picked:1305` `_process:1324` `_update_xray:1390` `_set_alpha:1456` `_update_glow:1468` `_check_aggro:1476` `_look_around:1511` `_look_text:1533`
+`_ready:94` `_on_level_up:121` `_build_ui:132` `space:205` `ui_blocked:209` `sfx:214` `think:239` `_on_menu:244` `_load_slot:272` `_on_sheet_closed:287` `_on_slides_done:298` `_unload:308` `load_location:326` `autosave:371` `quicksave:378` `show_game_over:387` `show_end:391` `status_text:397` `objective_text:403` `_on_hud_action:416` `open_kpk:461` `use_item:487` `_swap_hands:562` `_open_pause:574` `_move_speed:582` `_sneak_radius:593` `on_combat_start:602` `is_filler:618` `filler_bark:623` `talk_to:664` `say:689` `_on_dialog_action:699` `open_trade:738` `_on_dialog_closed:744` `start_fight:749` `_unhandled_input:770` `wait_time:832` `begin_cutscene:837` `end_cutscene:845` `_enemies_near:850` `open_wait:858` `wait_hours:868` `_pick:885` `_click:926` `_may_attack:969` `_near_edge:979` `_can_leave:984` `_walk_to_hex:996` `_walk_clear:1039` `_smooth_path:1054` `_go_then:1068` `_do_pending:1100` `interact:1128` `loot:1152` `_body_entries:1170` `open_loot:1191` `pickpocket:1212` `examine:1247` `_open_actions:1263` `_on_action_picked:1309` `_process:1328` `_update_xray:1394` `_set_alpha:1460` `_update_glow:1472` `_check_aggro:1480` `_look_around:1515` `_look_text:1537`
 
 ### scripts/ui/char_sheet.gd (376) · class CharSheet
 «Дело» — лист персонажа. Новая игра начинается с выбора одного из четырёх готовых
@@ -436,9 +457,9 @@ Project Doomsday — 1–4
 ### scripts/ui/map_view.gd (38) · class MapView
 Карта локации на экране КПК: проходимые места, ты, люди, отметки.
 
-### scripts/ui/menu.gd (296) · class GameMenu
+### scripts/ui/menu.gd (304) · class GameMenu
 Меню на весь экран в стиле ЭЛТ: главное, пауза, смерть, конец пролога.
-`setup:16` `open:59` `_slider:137` `_item:161` `_on:185` `_unhandled_key_input:224`
+`setup:16` `open:59` `_slider:145` `_item:169` `_on:193` `_unhandled_key_input:232`
 
 ### scripts/ui/model_view.gd (92) · class ModelView
 Окошко с 3D-моделью героя: портрет (голова и плечи) или в полный рост, крутится на месте.
@@ -518,9 +539,9 @@ Project Doomsday — 1–4
 Каменный Сунгар (бывший посёлок городского типа): дома в 2–4 этажа из штукатурки
 `_ready:18` `_city_materials:126` `_glow_mat:193` `swin:208` `balcony:249` `entry:284` `open_door:299` `roof:309` `stone_block:354` `sandrik:487` `arch_win:500` `_stalin_decor:532` `_labaz_decor:575` `_balustrade:604` `_spire:621` `nyurba_props:639` `_wkind:785` `_wear:804` `_shop_window:862` `_portico:874` `_shell:890` `_lining:914` `stair_flight:929` `partition_z:943` `_table:955` `_bed:972` `_wardrobe:983` `_counter:989` `_shelf_goods:995` `_stove:1009` `_rug:1015` `_plant:1019` `_interior:1027` `heat_pipes:1381` `boiler_house:1419` `water_tower:1445` `garages:1458` `kiosk:1473` `bus_stop:1489` `conc_fence:1509` `paz_wreck:1520` `bins:1537` `furniture:1549` `_stair_piece:1613` `_crt:1626` `cassette_props:1635` `ruin_props:1721`
 
-### tools/build_east.gd (629)
+### tools/build_east.gd (991)
 Локации востока по сюжету: Мар-Кун (финал Акта I), Промзона МИР, Мирный и ГЭС (Акт III),
-`_build:8` `_container:32` `_dugout:59` `_markun:79` `_quarry_pit:211` `_flagpole:266` `_poster:280` `_mirny:284` `_quarry:422` `_ges:511`
+`_build:8` `_container:39` `_dugout:66` `_markun:86` `_quarry_pit:218` `_flagpole:273` `_poster:287` `_mirny:291` `_quarry:429` `_ges:518` `_ruin_block:643` `_rubikon:652` `_env_dim:715` `_harat:725` `_gorny:762` `_yakutsk:824` `_complex:872`
 
 ### tools/build_hero_skin.gd (78)
 Собирает сетку героя с новой развёрткой из assets/models/hero_skin_mesh.bin
@@ -572,14 +593,14 @@ Project Doomsday — 1–4
 ### tools/screenshots.gd (107)
 Снимки экрана для проверки интерфейса (нужен рендер, не --headless).
 
-### tools/smoke_test.gd (3271)
+### tools/smoke_test.gd (3367)
 Автотест пролога: проходит всю цепочку без участия человека и печатает, что сломалось.
-`new_enc:12` `ok:17` `wait:25` `frames:29` `close_dialogs:34` `shut:43` `choose:48` `opt_texts:54` `find_opt:61` `tp:79` `fight:86` `wait_loading:128` `unreachable:137` `go_upstairs:166` `go_downstairs:176` `nakharro_life_tests:187` `kresty_life_tests:365` `encounter_lore_tests:444` `city_tests:512` `admin_tests:705` `weather_tests:783` `social_tests:850` `markun_tests:946` `mirny_tests:996` `ges_tests:1047` `nr_go:1082` `nyurba_tests:1096` `sungar_tests:1229` `_ready:1377`
+`new_enc:12` `ok:17` `wait:25` `frames:29` `close_dialogs:34` `shut:43` `choose:48` `opt_texts:54` `find_opt:61` `tp:79` `fight:86` `wait_loading:128` `unreachable:137` `go_upstairs:166` `go_downstairs:176` `nakharro_life_tests:187` `kresty_life_tests:365` `encounter_lore_tests:444` `city_tests:512` `admin_tests:705` `weather_tests:783` `social_tests:850` `markun_tests:946` `mirny_tests:996` `ges_tests:1047` `act4_tests:1083` `nr_go:1177` `nyurba_tests:1191` `sungar_tests:1324` `_ready:1472`
 
 ## Данные (data/)
 
 - data/barks.json (723 строк)
-- data/characters.json (170 строк)
+- data/characters.json (183 строк)
 - data/dialogs/camp_boss.json (385 строк)
 - data/dialogs/camp_nyurgun.json (194 строк)
 - data/dialogs/camp_rumors.json (127 строк)
@@ -609,6 +630,8 @@ Project Doomsday — 1–4
 - data/dialogs/ges_chief.json (151 строк)
 - data/dialogs/ges_watch.json (86 строк)
 - data/dialogs/girl.json (213 строк)
+- data/dialogs/gr_elder.json (74 строк)
+- data/dialogs/gr_mother.json (118 строк)
 - data/dialogs/guard.json (120 строк)
 - data/dialogs/hay_quarrel.json (151 строк)
 - data/dialogs/hermit.json (474 строк)
@@ -616,6 +639,9 @@ Project Doomsday — 1–4
 - data/dialogs/hs_kid2.json (28 строк)
 - data/dialogs/hs_kid3.json (28 строк)
 - data/dialogs/hunter.json (180 строк)
+- data/dialogs/hz_kirk.json (58 строк)
+- data/dialogs/hz_kirsh.json (115 строк)
+- data/dialogs/hz_viktor.json (93 строк)
 - data/dialogs/kid.json (257 строк)
 - data/dialogs/kr_banya.json (100 строк)
 - data/dialogs/kr_brewer.json (605 строк)
@@ -685,13 +711,13 @@ Project Doomsday — 1–4
 - data/dialogs/varvara.json (251 строк)
 - data/dialogs/water.json (114 строк)
 - data/elley.json (15 строк)
-- data/intro.json (36 строк)
-- data/items.json (106 строк)
+- data/intro.json (40 строк)
+- data/items.json (107 строк)
 - data/lore.json (115 строк)
 - data/observations.json (81 строк)
 - data/presets.json (22 строк)
-- data/quests.json (644 строк)
+- data/quests.json (667 строк)
 - data/rep_greet.json (34 строк)
 - data/schedules.json (749 строк)
 - data/weapons.json (20 строк)
-- data/world.json (2980 строк)
+- data/world.json (2989 строк)

@@ -1078,6 +1078,101 @@ func ges_tests() -> void:
 		await frames(2)
 
 
+## Акт IV: Рубикон (Харат, ополченцы, проход), Горный (кто кормит Ушана), ГРЭС-2 (пост и лифт),
+## комплекс (архив, Кирк, Кирш) и финал со слайдами
+func act4_tests() -> void:
+	ok(main.world_map.can_go("vilyuysk") and not main.world_map.can_go("gorny"), "Вилюйск (Рубикон) открыт, Горный — ещё нет")
+	main.load_location("rubikon", "Road")
+	await wait_loading()
+	while main.slides.visible:
+		main.slides._next()
+		await frames(2)
+	var loc: Node = main.location
+	ok(loc.location_id == "rubikon" and Game.quest_stage("act4") == 1, "Рубикон: задание «Мерзлота»")
+	var a0: Character = loc.character("Ally0")
+	ok(a0 != null and a0.visible == (str(Game.flag_value("ges_owner", "")) in ["workers", "republic"]), "ополченцы — только если ток у рабочих или совета")
+	ok(loc.get_node_or_null("Village/Harat") != null, "по Рубикону бродит Харат")
+	ok(unreachable(loc, loc.spawn_point("Road"), func(nd): return String(nd.name) in ["EastExit", "TrailIn"]).is_empty(), "до восточного выезда и тропы можно дойти")
+	ok(unreachable(loc, loc.spawn_point("Trail"), func(nd): return String(nd.name) in ["TrailOut"]).is_empty(), "северная тропа проходима")
+	loc.on_interact(loc.item("EastExit"))
+	await frames(3)
+	main.world_map.close()
+	ok(Game.flag("rubicon_passed") and Game.quest_stage("act4") == 2 and main.world_map.can_go("gorny") and main.world_map.can_go("yakutsk"), "Рубикон пройден — Горный и Якутск открыты")
+	# Горный
+	main.load_location("gorny", "Road")
+	await wait_loading()
+	loc = main.location
+	ok(Game.quest_stage("act4") == 3, "Горный: этап 3")
+	ok(unreachable(loc, loc.spawn_point("Road"), func(nd): return String(nd.name) in ["Elder", "Mother", "EastExit"]).is_empty(), "до старосты, матери и выезда можно дойти")
+	main.talk_to(loc.character("Elder"))
+	await frames(2)
+	await choose(find_opt("кормит"))
+	await choose(0)
+	await close_dialogs()
+	ok(Game.quest_stage("gr_feeder") == 1, "староста просит узнать, кто кормит мутантов")
+	var u: Character = loc.character("Ushan")
+	await tp(Vector3(31, 0, 8.5))
+	loc.on_hero_moved(main.player.global_position)
+	ok(Game.flag("gr_saw_ushan"), "у ограды — Ушан в детской шапке")
+	var m: Character = loc.character("Mother")
+	await tp(m.global_position + Vector3(0, 0, 1.4))
+	main.talk_to(m)
+	await frames(2)
+	await choose(find_opt("шапке"))
+	ok(Game.quest_stage("gr_feeder") == 2, "мать рассказала про сына")
+	await choose(find_opt("Охотники"))
+	await choose(0)
+	await close_dialogs()
+	await wait(7.0)
+	ok(Game.quest_stage("gr_feeder") == 3 and Game.flag("gr_ushan_dead") and not u.visible, "охотники застрелили Ушана")
+	# ГРЭС-2
+	main.load_location("yakutsk", "Road")
+	await wait_loading()
+	loc = main.location
+	var g0: Character = loc.character("Gate0")
+	ok(Game.item_count("ges_pass") == 0 or not g0.hostile, "по пропуску пост не стреляет")
+	ok(unreachable(loc, loc.spawn_point("Road"), func(nd): return String(nd.name) == "Lift").is_empty(), "до лифта можно дойти")
+	loc.on_interact(loc.item("Lift"))
+	await wait_loading()
+	loc = main.location
+	ok(loc.location_id == "complex" and Game.quest_stage("act4") == 5, "лифт привёз в комплекс")
+	ok(unreachable(loc, loc.spawn_point("FromLift"), func(nd): return String(nd.name) in ["Kirk", "Viktor", "Archive", "Board"]).is_empty(), "до Кирка, Виктора и архива можно дойти")
+	ok(not unreachable(loc, loc.spawn_point("FromLift"), func(nd): return String(nd.name) == "Kirsh").is_empty(), "серверная закрыта, пока Кирк у двери")
+	Game.add_item("keycard")
+	loc.on_interact(loc.item("Archive"))
+	ok(Game.item_count("kirsh_report") == 1, "в архиве — отчёт отца Кирша")
+	var k: Character = loc.character("Kirk")
+	await tp(k.global_position + Vector3(-1.4, 0, 0))
+	main.talk_to(k)
+	await frames(2)
+	await choose(find_opt("сжёг"))
+	await choose(0)
+	await close_dialogs()
+	await frames(5)
+	ok(main.combat.on, "бой с Кирком")
+	await fight()
+	await wait(2.0)
+	ok(Game.flag("kirk_done") and loc.get_node_or_null("Village/SrvDoor") == null, "Кирк пал — серверная открыта")
+	ok(unreachable(loc, loc.spawn_point("FromLift"), func(nd): return String(nd.name) == "Kirsh").is_empty(), "к Киршу можно пройти")
+	main.talk_to(loc.character("Kirsh"))
+	await frames(2)
+	await choose(find_opt("Хватит речей"))
+	await choose(find_opt("Архив оставить"))
+	await close_dialogs()
+	var t := 0.0
+	while not main.slides.visible and t < 5.0:
+		await wait(0.5)
+		t += 0.5
+	ok(main.slides.visible and Game.quest_stage("act4") == 6, "финальные слайды")
+	while main.slides.visible:
+		main.slides._next()
+		await frames(2)
+	await frames(5)
+	ok(main.menu.visible and main.menu.mode == "end_game", "титры: имя героя по молве")
+	main.menu.visible = false
+	get_tree().paused = false
+
+
 ## Перейти по улице в соседний район Нью-Рбы
 func nr_go(exit: String, to: String) -> void:
 	var it: Interactable = main.location.item(exit)
@@ -1414,6 +1509,7 @@ func _ready() -> void:
 		WorldMap.reveal("mirny")
 		await mirny_tests()
 		await ges_tests()
+		await act4_tests()
 		print("=== ИТОГ: ошибок ", fails, " ===")
 		get_tree().quit(1 if fails else 0)
 		return

@@ -11,7 +11,7 @@ func _build() -> void:
 			"rock_big", "rock", "fire", "firewood", "barrel", "crates", "bench", "stump", "log_fallen", "spruce_b", "birch_b", "pine_b"]:
 		if ResourceLoader.exists(PROP_DIR + n + ".tscn"):
 			P[n] = load(PROP_DIR + n + ".tscn")
-	for n in ["metal_green", "paint_orange", "roof_moss", "metal", "stone", "enamel", "sofa", "glass_city", "frame_white"]:
+	for n in ["metal_green", "paint_orange", "roof_moss", "metal", "stone", "enamel", "sofa", "glass_city", "frame_white", "plastic_dark", "led_green", "led_red", "plywood", "glass", "plastic_beige", "screen_green", "screen_amber", "paper", "planks_old", "metal_dark", "paint_red", "paint_white", "brick", "coal", "concrete"]:
 		if ResourceLoader.exists(MAT_DIR + n + ".tres"):
 			M[n] = load(MAT_DIR + n + ".tres")
 	for n in ["st_admin", "st_office", "st_police", "st_canteen", "st_obshaga", "st_store", "st_res4", "st_hotel"]:
@@ -26,6 +26,13 @@ func _build() -> void:
 		_quarry()
 	if only == "" or only == "ges":
 		_ges()
+	if only == "" or only == "rubikon":
+		_rubikon()
+	if only == "" or only == "gorny":
+		_gorny()
+	if only == "" or only == "complex":
+		_yakutsk()
+		_complex()
 
 
 ## Ржавый морской контейнер — жильё Мар-Куна: дверь прорезана, сверху мох и шкуры
@@ -626,3 +633,358 @@ func _ges() -> void:
 	marker(root, "MarkRadio", Vector3(69, 0, 27), "Радиорубка")
 	marker(root, "MarkCtrl", Vector3(69, 0, 38), "Пульт")
 	_finish("ges")
+
+
+# ======================================================================
+# РУБИКОН — бывший Вилюйск, куда упала бомба. Пепел, стекло, остовы домов, кратер.
+# Мутанты (Вурды, Рогачи, Топтун, Ушаны) и чёрный конь Харат, который бродит по проспекту.
+# Тайная тропа по северной опушке — только если браслет расшифрован (там чучуна).
+# ======================================================================
+func _ruin_block(parent: Node, prop: String, pos: Vector3, rot: float, nm: String) -> void:
+	var b := _bld(parent, prop, nm, pos, rot)
+	# копоть и провалы — дом выгорел
+	for k in 4:
+		box(parent, Vector3(randf_range(2.0, 4.0), randf_range(1.5, 3.0), 0.05), pos + Vector3(randf_range(-5, 5), randf_range(2.0, 6.0), 5.6 if rot == 0.0 else -5.6), "coal").owner = root
+	for k in 6:
+		box(parent, Vector3(randf_range(0.6, 1.4), randf_range(0.3, 0.7), randf_range(0.6, 1.2)), pos + Vector3(randf_range(-6, 6), 0.3, randf_range(5.5, 8.0) * (1.0 if rot == 0.0 else -1.0)), "concrete", Vector3(randf(), randf() * TAU, randf())).owner = root
+
+
+func _rubikon() -> void:
+	var rect := Rect2(0, 0, 100, 70)
+	_begin("rubikon", "Рубикон", rect, "res://scripts/locations/rubikon.gd")
+	var d := "ground_dirt"
+	strip(null, Vector2(-6, 38), Vector2(106, 38), 5.0, d)
+	road_segs.append([Vector2(-6, 38), Vector2(106, 38), 2.6])
+	strip(null, Vector2(4, 9), Vector2(96, 9), 1.4, d)
+	road_segs.append([Vector2(4, 9), Vector2(96, 9), 0.8])
+	_mud.append(Rect2(0, 18, 100, 52))
+	_clear.append(Rect2(0, 16, 100, 54))
+	_ground_for("rubikon")
+	_env_dim()
+	var vil := group(root, "Village")
+	# кратер: оплавленное стекло кольцами
+	var gm := StandardMaterial3D.new()
+	gm.albedo_color = Color("2a3a34")
+	gm.roughness = 0.05
+	gm.metallic = 0.4
+	M["glassed"] = gm
+	for i in 5:
+		cyl(vil, 13.0 - i * 2.4, 13.2 - i * 2.4, 0.05, Vector3(56, 0.03 + i * 0.005, 58), "glassed" if i % 2 == 0 else "coal", Vector3.ZERO, 40).owner = root
+	_own(collider(vil, Vector3(14.0, 1.0, 10.0), Vector3(56, 0.5, 60)), root)
+	# остовы домов вдоль проспекта
+	var k := 0
+	for spec in [["nr_stalin4", Vector3(14, 0, 26), 0.0], ["st_block4", Vector3(36, 0, 25), 0.0], ["nr_stalin3", Vector3(62, 0, 26), 0.0], ["st_block3a", Vector3(86, 0, 25), 0.0],
+			["st_block3b", Vector3(18, 0, 50), PI], ["st_block2", Vector3(34, 0, 49), PI], ["st_barrack2", Vector3(84, 0, 49), PI]]:
+		_ruin_block(vil, spec[0], spec[1], spec[2], "Ruin%d" % k)
+		k += 1
+	_clutter(vil, [["car_wreck", 24, 36.0, 0.3], ["car_wreck", 48, 40.0, 2.4], ["paz_wreck", 72, 36.5, 0.1], ["car_wreck", 92, 40.0, 1.0],
+		["rubble", 30, 34], ["rubble", 54, 42], ["rubble", 78, 34], ["burnt_shed", 46, 30, 0.6], ["rubble", 66, 46], ["rubble", 8, 44]])
+	for p in [Vector3(6, 0, 30), Vector3(44, 0, 46), Vector3(70, 0, 30), Vector3(96, 0, 46), Vector3(28, 0, 60), Vector3(80, 0, 62)]:
+		put(P.dead_tree, vil, p, randf() * TAU)
+	# кости и черепа у дороги
+	for p in [Vector3(20, 0, 41), Vector3(52, 0, 35), Vector3(76, 0, 41)]:
+		sphere(vil, 0.14, p + Vector3(0, 0.14, 0), "paint_white").owner = root
+		box(vil, Vector3(0.6, 0.06, 0.08), p + Vector3(0.4, 0.04, 0.2), "paint_white", Vector3(0, 0.6, 0)).owner = root
+	_harat(vil, Vector3(12, 0, 38))
+	_signboard(vil, "ВИЛЮЙСК · 1634", Vector3(4.0, 1.6, 34.0), 0.0, 3.0, Color("b0a890"))
+	_woods(220)
+	# люди и звери
+	var chars := group(root, "Characters")
+	var muts := [["Vurd1", "mt_vurd", Vector3(30, 0, 42)], ["Vurd2", "mt_vurd", Vector3(32, 0, 44)], ["Vurd3", "mt_vurd", Vector3(28.5, 0, 45)],
+		["Rogach1", "mt_rogach", Vector3(66, 0, 34)], ["Rogach2", "mt_rogach", Vector3(69, 0, 33)], ["Toptun", "mt_toptun", Vector3(56, 0, 48)],
+		["Ushan1", "mt_ushan", Vector3(84, 0, 42)], ["Ushan2", "mt_ushan", Vector3(86, 0, 44)], ["Ushan3", "mt_ushan", Vector3(10, 0, 50)]]
+	for m in muts:
+		character(chars, m[0], m[1], m[2], randf() * TAU, {"hostile": true, "aggro_radius": 7.5, "squad": "rb_" + str(m[0]).left(4)})
+	character(chars, "Chuchuna", "chuchuna", Vector3(50, 0, 9.5), PI / 2.0, {"hostile": true, "aggro_radius": 8.0, "squad": "rb_trail"})
+	for i in 3:
+		character(chars, "Ally%d" % i, "ally_militia", Vector3(6 + i * 1.5, 0, 40.5), 0.0, {"display_name": "Ополченец", "armed": true})
+	var items := group(root, "Items")
+	_exit(items, "WestExit", "Назад, на тракт", Vector3(1.0, 0, 38.0), Vector3(1.6, 2.2, 5.0))
+	_exit(items, "EastExit", "Дальше на восток — к Горному", Vector3(99.0, 0, 38.0), Vector3(1.6, 2.2, 5.0))
+	_use(items, "TrailIn", "Тропа в чаще", Vector3(4.0, 0, 11.0), Vector3(1.6, 2.0, 1.6))
+	_use(items, "TrailOut", "Конец тропы", Vector3(96.0, 0, 9.0), Vector3(1.6, 2.0, 1.6))
+	_spawn("Start", Vector3(4.0, 0, 38.0))
+	_spawn("Road", Vector3(4.0, 0, 38.0))
+	_spawn("Trail", Vector3(6.0, 0, 9.0))
+	_spawn("FromEast", Vector3(96.0, 0, 38.0))
+	marker(root, "MarkCrater", Vector3(56, 0, 58), "Кратер")
+	_finish("rubikon")
+
+
+## Сумрак: низкое солнце сквозь пепел
+func _env_dim() -> void:
+	var env := root.get_node("Env/WorldEnvironment").environment as Environment
+	env.ambient_light_color = Color("8a8070")
+	env.ambient_light_energy = 0.3
+	env.fog_light_color = Color("6a6050")
+	env.fog_density = 0.004
+	env.adjustment_saturation = 0.55
+
+
+## Харат — чёрный конь: собран из коробок, бродит сам (его водит скрипт локации)
+func _harat(parent: Node, pos: Vector3) -> Node3D:
+	var h := Node3D.new()
+	h.name = "Harat"
+	h.position = pos
+	parent.add_child(h)
+	h.owner = root
+	var bm := StandardMaterial3D.new()
+	bm.albedo_color = Color("0c0b0b")
+	bm.roughness = 0.4
+	M["harat"] = bm
+	var em := StandardMaterial3D.new()
+	em.albedo_color = Color("ff3020")
+	em.emission_enabled = true
+	em.emission = Color("ff2010")
+	em.emission_energy_multiplier = 3.0
+	M["harat_eye"] = em
+	box(h, Vector3(1.3, 1.5, 3.6), Vector3(0, 2.6, 0), "harat").owner = root
+	box(h, Vector3(0.7, 1.8, 0.8), Vector3(0, 3.8, 1.9), "harat", Vector3(-0.5, 0, 0)).owner = root
+	box(h, Vector3(0.6, 0.6, 1.4), Vector3(0, 4.6, 2.7), "harat", Vector3(0.3, 0, 0)).owner = root
+	for sx in [-0.2, 0.2]:
+		box(h, Vector3(0.1, 0.1, 0.05), Vector3(sx, 4.75, 3.35), "harat_eye").owner = root
+	for i in 4:
+		var leg := Node3D.new()
+		leg.name = "Leg%d" % i
+		leg.position = Vector3(-0.45 if i % 2 == 0 else 0.45, 2.0, 1.3 if i < 2 else -1.3)
+		h.add_child(leg)
+		leg.owner = root
+		box(leg, Vector3(0.3, 2.0, 0.3), Vector3(0, -1.0, 0), "harat").owner = root
+	box(h, Vector3(0.2, 1.4, 0.2), Vector3(0, 2.6, -2.0), "harat", Vector3(0.7, 0, 0)).owner = root
+	return h
+
+
+# ======================================================================
+# ГОРНЫЙ — посёлок под «Горизонтом»: свет, еда, порядок. Ровные улицы, фонари,
+# теплицы, плакаты. Но люди уходят «на работы» и не возвращаются, а у северной ограды
+# по ночам кормят Ушана в детской шапке.
+# ======================================================================
+func _gorny() -> void:
+	var rect := Rect2(0, 0, 72, 56)
+	_begin("gorny", "Горный", rect, "res://scripts/locations/gorny.gd")
+	var d := "ground_dirt"
+	strip(null, Vector2(-6, 30), Vector2(78, 30), 3.4, d)
+	strip(null, Vector2(36, 8), Vector2(36, 52), 2.4, d)
+	road_segs.append([Vector2(-6, 30), Vector2(78, 30), 2.4])
+	road_segs.append([Vector2(36, 8), Vector2(36, 52), 1.6])
+	_clear.append(Rect2(4, 4, 64, 48))
+	_ground_for("gorny")
+	var vil := group(root, "Village")
+	# ограда: бетонные плиты, на севере — с проходом к лесу
+	_wall(vil, Vector2(6, 6), Vector2(66, 6), [[28.0, 34.0]])
+	_wall(vil, Vector2(6, 52), Vector2(66, 52))
+	_wall(vil, Vector2(6, 6), Vector2(6, 26))
+	_wall(vil, Vector2(6, 34), Vector2(6, 52))
+	_wall(vil, Vector2(66, 6), Vector2(66, 26))
+	_wall(vil, Vector2(66, 34), Vector2(66, 52))
+	# дома: аккуратные, побелённые, с горящими окнами
+	var houses := [["st_block2b", Vector3(16, 0, 18), 0.0], ["st_block2b", Vector3(54, 0, 18), 0.0], ["st_block2", Vector3(16, 0, 42), PI],
+		["st_block3b", Vector3(56, 0, 43), PI], ["st_store", Vector3(26, 0, 18.5), 0.0]]
+	var k := 0
+	for h in houses:
+		_bld(vil, h[0], "House%d" % k, h[1], h[2])
+		k += 1
+	var club := _bld(vil, "st_canteen", "Canteen", Vector3(46, 0, 18.5))
+	_sign_on(vil, club, "СТОЛОВАЯ · ПО ТАЛОНАМ", 3.8, Color("e8f0ff"))
+	for p in [Vector3(26, 0, 42), Vector3(40, 0, 43)]:
+		put(P.greenhouse, vil, p, 0.0)
+	_signboard(vil, "«ГОРИЗОНТ» ЗАБОТИТСЯ О ВАС", Vector3(36, 3.0, 26.6), 0.0, 5.0, Color("e8f0ff"))
+	_signboard(vil, "НАБОР НА РАБОТЫ В ЯКУТСК · ХОРОШАЯ ОПЛАТА", Vector3(8.6, 2.0, 22.0), PI / 2.0, 4.6, Color("e8f0ff"))
+	_info_screen(vil, Vector3(30, 0, 33.6), PI, "ГОРНЫЙ\nСвет: 24 ч\nТалоны: выдача в 9:00")
+	for p in [Vector3(12, 0, 27.6), Vector3(24, 0, 27.6), Vector3(48, 0, 27.6), Vector3(60, 0, 27.6), Vector3(12, 0, 32.4), Vector3(60, 0, 32.4),
+			Vector3(33.6, 0, 12), Vector3(33.6, 0, 48)]:
+		_lamp_post(vil, p, Color("e8f0ff"))
+	for b in [[Vector3(20, 0, 32.4), PI], [Vector3(52, 0, 32.4), PI]]:
+		put(P.nr_bench, vil, b[0], b[1])
+	_woods(140)
+	var chars := group(root, "Characters")
+	character(chars, "Elder", "gr_elder", Vector3(36.8, 0, 28.2), PI, {"dialog": "gr_elder"})
+	character(chars, "Mother", "gr_mother", Vector3(30.0, 0, 12.0), 0.0, {"dialog": "gr_mother"})
+	character(chars, "Hunter1", "gr_hunter", Vector3(56.0, 0, 26.0), PI, {"display_name": "Охотник", "armed": true})
+	character(chars, "Hunter2", "gr_hunter", Vector3(22.0, 0, 26.0), PI, {"display_name": "Охотник", "armed": true})
+	character(chars, "HzPatrol", "hz_guard", Vector3(20, 0, 31), PI / 2.0, {"display_name": "Патруль «Горизонта»",
+		"patrol": PackedVector3Array([Vector3(20, 0, 31), Vector3(56, 0, 31), Vector3(36, 0, 46), Vector3(36, 0, 14)]), "patrol_wait": 5.0})
+	character(chars, "Kid1", "kid", Vector3(40, 0, 32), 1.0, {"display_name": "Чистый, сытый мальчишка"})
+	character(chars, "Woman1", "town_f1", Vector3(46, 0, 23), PI, {"display_name": "Жительница с талонами"})
+	character(chars, "Ushan", "mt_ushan", Vector3(31.0, 0, 2.0), 0.0, {"display_name": "Ушан в детской шапке", "look": {"skin": "#a8a094", "cap": "#c83a2a"}})
+	var items := group(root, "Items")
+	_exit(items, "WestExit", "На запад, к Рубикону", Vector3(1.0, 0, 30.0), Vector3(1.6, 2.2, 5.0))
+	_exit(items, "EastExit", "На восток — к ГРЭС-2", Vector3(71.0, 0, 30.0), Vector3(1.6, 2.2, 5.0))
+	_spawn("Start", Vector3(3.0, 0, 30.0))
+	_spawn("Road", Vector3(3.0, 0, 30.0))
+	marker(root, "MarkElder", Vector3(36, 0, 28), "Староста")
+	_finish("gorny")
+
+
+# ======================================================================
+# ГРЭС-2: поверхность у Якутска — кратер, мёртвые трубы, пост «Горизонта» и шахта лифта.
+# Подземный комплекс (сцена complex): лифт с музыкой, офис, кабинет и. о. генерального,
+# лаборатория Виктора, серверный зал с Киршем. Кирк — у дверей серверной.
+# ======================================================================
+func _yakutsk() -> void:
+	var rect := Rect2(0, 0, 70, 56)
+	_begin("yakutsk", "ГРЭС-2", rect, "res://scripts/locations/yakutsk.gd")
+	var d := "ground_dirt"
+	strip(null, Vector2(-6, 30), Vector2(50, 30), 3.0, d)
+	road_segs.append([Vector2(-6, 30), Vector2(50, 30), 2.0])
+	_mud.append(Rect2(0, 0, 70, 56))
+	_clear.append(Rect2(0, 0, 70, 56))
+	_ground_for("yakutsk")
+	_env_dim()
+	var vil := group(root, "Village")
+	# кратер от бомбы на юге
+	for i in 4:
+		cyl(vil, 14.0 - i * 3.0, 14.2 - i * 3.0, 0.05, Vector3(24, 0.03 + i * 0.005, 52), "coal" if i % 2 else "concrete", Vector3.ZERO, 40).owner = root
+	# ГРЭС-2: корпус и трубы
+	box(vil, Vector3(20, 12, 10), Vector3(56, 6, 10), "brick").owner = root
+	_own(collider(vil, Vector3(20, 12, 10), Vector3(56, 6, 10)), root)
+	for x in [50.0, 58.0, 66.0]:
+		cyl(vil, 1.4, 2.0, 30.0, Vector3(x, 15.0, 4.0), "concrete", Vector3.ZERO, 16).owner = root
+		for k in 3:
+			cyl(vil, 2.1, 2.1, 0.5, Vector3(x, 10.0 + k * 8.0, 4.0), "paint_red" if k % 2 == 0 else "paint_white", Vector3.ZERO, 16).owner = root
+	_signboard(vil, "ГРЭС-2 · ООО «ГОРИЗОНТ» · ОБЪЕКТ «ВОЗРОЖДЕНИЕ»", Vector3(56, 4.0, 15.1), 0.0, 8.0, Color("e8f0ff"))
+	# пост и будка лифта
+	_bld(vil, "checkpoint", "Post", Vector3(40, 0, 26.0), PI / 2.0)
+	_bld(vil, "sandbags", "Sand1", Vector3(42, 0, 34.0), PI / 2.0)
+	var lift := group(vil, "LiftHouse")
+	lift.position = Vector3(52, 0, 30)
+	box(lift, Vector3(6, 4, 6), Vector3(0, 2, 0), "concrete").owner = root
+	box(lift, Vector3(2.4, 2.8, 0.1), Vector3(0, 1.4, 3.05), "metal_dark").owner = root
+	box(lift, Vector3(0.3, 0.3, 0.1), Vector3(1.6, 1.4, 3.1), "led_green" if M.has("led_green") else "screen_green").owner = root
+	_own(collider(lift, Vector3(6, 4, 6), Vector3(0, 2, 0)), root)
+	for p in [Vector3(14, 0, 20), Vector3(30, 0, 40), Vector3(8, 0, 44)]:
+		put(P.dead_tree, vil, p, randf() * TAU)
+	_clutter(vil, [["car_wreck", 20, 33, 0.4], ["rubble", 30, 22], ["rubble", 46, 44]])
+	_woods(60)
+	var chars := group(root, "Characters")
+	for i in 2:
+		character(chars, "Gate%d" % i, "hz_guard", Vector3(44.0, 0, 27.0 + i * 5.5), -PI / 2.0, {"hostile": true, "aggro_radius": 9.0, "squad": "yk_gate", "armed": true})
+	var items := group(root, "Items")
+	_exit(items, "WestExit", "Назад, к Горному", Vector3(1.0, 0, 30.0), Vector3(1.6, 2.2, 5.0))
+	_use(items, "Lift", "Лифт вниз", Vector3(52, 0, 33.6), Vector3(2.4, 2.4, 1.0))
+	_spawn("Start", Vector3(3.0, 0, 30.0))
+	_spawn("Road", Vector3(3.0, 0, 30.0))
+	_spawn("FromLift", Vector3(52, 0, 35.5))
+	marker(root, "MarkLift", Vector3(52, 0, 30), "Лифт")
+	_finish("yakutsk")
+
+
+func _complex() -> void:
+	var rect := Rect2(0, 0, 64, 40)
+	seed(2062)
+	root = Node3D.new()
+	root.name = "Complex"
+	root.set_script(load("res://scripts/locations/complex.gd"))
+	root.set("location_id", "complex")
+	root.set("title", "Комплекс «Возрождение»")
+	root.set("map_rect", rect)
+	root.set("camera_start", Vector3(6, 0, 20))
+	var plain := func(c: String, rough: float, metal := 0.0) -> StandardMaterial3D:
+		var m := StandardMaterial3D.new()
+		m.albedo_color = Color(c)
+		m.roughness = rough
+		m.metallic = metal
+		return m
+	M["of_floor"] = plain.call("5a5248", 0.9)
+	M["of_wall"] = plain.call("b8b0a0", 0.8)
+	M["of_carpet"] = plain.call("4a5a6a", 1.0)
+	M["srv"] = plain.call("2a2c30", 0.4, 0.4)
+	_dark_env(Color("6a6a70"), 0.45)
+	var v := group(root, "Village")
+	_floor(v, rect.grow(0.3), "of_floor")
+	var lobby := Rect2(1, 14, 11, 12)
+	var office := Rect2(12, 3, 28, 34)
+	var cab := Rect2(40, 3, 12, 14)
+	var lab := Rect2(40, 23, 12, 14)
+	var srv := Rect2(52, 3, 11, 34)
+	_room_walls(v, lobby, 1.4, "of_wall", [[Vector2(12, 20), 2.4]])
+	_room_walls(v, office, 1.4, "of_wall", [[Vector2(12, 20), 2.4], [Vector2(40, 10), 2.0], [Vector2(40, 30), 2.0], [Vector2(40, 20), 2.0]])
+	_room_walls(v, cab, 1.4, "of_wall", [[Vector2(40, 10), 2.0]])
+	_room_walls(v, lab, 1.4, "of_wall", [[Vector2(40, 30), 2.0]])
+	_room_walls(v, Rect2(40, 17, 12, 6), 1.4, "of_wall", [[Vector2(40, 20), 2.0], [Vector2(52, 20), 2.0]])
+	_room_walls(v, srv, 1.4, "of_wall", [[Vector2(52, 20), 2.0]])
+	box(v, Vector3(28, 0.02, 34), Vector3(26, 0.02, 20), "of_carpet").owner = root
+	# лифт: двери, динамик с музыкой
+	box(v, Vector3(0.2, 2.6, 2.4), Vector3(1.2, 1.3, 20), "metal_dark").owner = root
+	box(v, Vector3(0.4, 0.4, 0.3), Vector3(1.4, 2.3, 18.2), "plastic_dark").owner = root
+	# офис: столы с ЭЛТ, доска «Лучший сотрудник месяца», стенгазета, пальма
+	for row in 3:
+		for col in 4:
+			var p := Vector3(16 + col * 6.0, 0, 8 + row * 9.0)
+			box(v, Vector3(2.2, 0.75, 1.0), p + Vector3(0, 0.38, 0), "planks_old").owner = root
+			box(v, Vector3(0.5, 0.42, 0.45), p + Vector3(-0.4, 0.96, -0.1), "plastic_beige").owner = root
+			box(v, Vector3(0.36, 0.28, 0.02), p + Vector3(-0.4, 0.98, 0.13), "screen_green" if (row + col) % 2 else "screen_amber").owner = root
+			_own(collider(v, Vector3(2.2, 0.8, 1.0), p + Vector3(0, 0.4, 0)), root)
+	box(v, Vector3(10.0, 2.2, 0.08), Vector3(26, 1.5, 3.1), "planks_old").owner = root
+	for i in 20:
+		box(v, Vector3(0.7, 0.85, 0.02), Vector3(21.8 + (i % 10) * 0.85, 1.0 + int(i / 10) * 1.0, 3.16), "paper" if i % 7 else "coal").owner = root
+	var lb := Label3D.new()
+	lb.text = "ЛУЧШИЙ СОТРУДНИК МЕСЯЦА"
+	lb.font_size = 48
+	lb.pixel_size = 0.006
+	lb.modulate = Color("2a2a26")
+	lb.position = Vector3(26, 2.45, 3.18)
+	v.add_child(lb)
+	lb.owner = root
+	box(v, Vector3(4.0, 1.4, 0.06), Vector3(34, 1.4, 36.9), "paper").owner = root
+	cyl(v, 0.35, 0.3, 0.6, Vector3(13.5, 0.3, 35.5), "brick").owner = root
+	for k in 4:
+		box(v, Vector3(0.06, 1.2, 0.5), Vector3(13.5, 1.2, 35.5), "plywood" if M.has("plywood") else "planks_old", Vector3(0.6, k * 0.8, 0)).owner = root
+	# кабинет и. о. генерального: стол, архив, портрет молодого Кирша
+	box(v, Vector3(3.0, 0.8, 1.2), Vector3(46, 0.4, 8), "planks_old").owner = root
+	_own(collider(v, Vector3(3.0, 0.8, 1.2), Vector3(46, 0.4, 8)), root)
+	box(v, Vector3(1.6, 1.2, 0.06), Vector3(46, 1.6, 3.1), "frame_white").owner = root
+	box(v, Vector3(2.0, 2.0, 0.6), Vector3(50.5, 1.0, 5.0), "metal_dark").owner = root
+	_own(collider(v, Vector3(2.0, 2.0, 0.6), Vector3(50.5, 1.0, 5.0)), root)
+	_signboard(v, "И. О. ГЕНЕРАЛЬНОГО ДИРЕКТОРА Р. О. КИРШ", Vector3(39.8, 2.0, 12.0), -PI / 2.0, 3.6, Color("e8e0c8"))
+	# лаборатория Виктора: стол с осциллографом, капсула
+	box(v, Vector3(4.0, 0.9, 1.0), Vector3(46, 0.45, 35), "metal_green").owner = root
+	_own(collider(v, Vector3(4.0, 0.9, 1.0), Vector3(46, 0.45, 35)), root)
+	cyl(v, 0.9, 0.9, 2.2, Vector3(49, 1.1, 27), "glass", Vector3.ZERO, 16).owner = root
+	_own(collider(v, Vector3(1.8, 2.2, 1.8), Vector3(49, 1.1, 27)), root)
+	# серверный зал: стойки рядами, кресло Генерального с трубками
+	for row in 2:
+		for i in 6:
+			var p := Vector3(54.5 + row * 6.0, 0, 6.0 + i * 5.0)
+			if absf(p.z - 20) < 3.0:
+				continue
+			box(v, Vector3(1.0, 2.2, 3.4), p + Vector3(0, 1.1, 0), "srv").owner = root
+			for l in 4:
+				box(v, Vector3(0.05, 0.08, 0.08), p + Vector3(0.52, 0.5 + l * 0.4, -1.2 + l * 0.7), "led_green" if (i + l) % 2 else "led_red").owner = root
+			_own(collider(v, Vector3(1.0, 2.2, 3.4), p + Vector3(0, 1.1, 0)), root)
+	box(v, Vector3(1.4, 1.2, 1.4), Vector3(60.5, 0.6, 20), "sofa").owner = root
+	cyl(v, 0.04, 0.04, 2.0, Vector3(61.6, 1.0, 21.0), "metal_dark").owner = root
+	box(v, Vector3(0.3, 0.4, 0.1), Vector3(61.6, 1.9, 21.0), "glass").owner = root
+	_own(collider(v, Vector3(1.4, 1.2, 1.4), Vector3(60.5, 0.6, 20)), root)
+	# дверь серверной: закрыта, пока Кирк стоит на пути
+	var sd := Node3D.new()
+	sd.name = "SrvDoor"
+	v.add_child(sd)
+	sd.owner = root
+	box(sd, Vector3(0.24, 1.4, 2.0), Vector3(52, 0.7, 20), "metal_dark").owner = root
+	_own(collider(sd, Vector3(0.3, 2.2, 2.0), Vector3(52, 1.1, 20)), root)
+	var lamps := group(v, "Lamps")
+	for p in [Vector3(6, 2.4, 20), Vector3(19, 2.4, 10), Vector3(33, 2.4, 10), Vector3(19, 2.4, 30), Vector3(33, 2.4, 30), Vector3(46, 2.4, 10),
+			Vector3(46, 2.4, 30), Vector3(46, 2.4, 20), Vector3(57, 2.4, 10), Vector3(57, 2.4, 30)]:
+		_lamp(lamps, "Lamp", p, Color("e8f0ff"), 1.2, 9.0).shadow_enabled = false
+	var chars := group(root, "Characters")
+	character(chars, "Kirk", "hz_kirk", Vector3(49.5, 0, 20.0), -PI / 2.0, {"dialog": "hz_kirk"})
+	character(chars, "Viktor", "hz_viktor", Vector3(46.0, 0, 33.6), PI, {"dialog": "hz_viktor"})
+	character(chars, "Kirsh", "hz_kirsh", Vector3(60.5, 0, 20.0), -PI / 2.0, {"dialog": "hz_kirsh", "start_pose": "sit"})
+	character(chars, "Clerk1", "hz_clerk", Vector3(16.6, 0, 9.0), PI, {"display_name": "Сотрудница отдела учёта", "start_pose": "sit"})
+	character(chars, "Clerk2", "hz_clerk", Vector3(28.6, 0, 18.0), PI, {"display_name": "Сотрудник планового отдела", "start_pose": "sit"})
+	character(chars, "Clerk3", "hz_clerk", Vector3(22.6, 0, 27.0), PI, {"display_name": "Сотрудница архива", "start_pose": "sit"})
+	for i in 4:
+		character(chars, "Guard%d" % i, "hz_guard", Vector3(18 + i * 6.0, 0, 21.6), -PI / 2.0, {"hostile": true, "aggro_radius": 8.0, "squad": "cx_guard%d" % (i / 2), "armed": true})
+	for i in 3:
+		character(chars, "Ally%d" % i, "ally_militia", Vector3(4.5 + i * 1.2, 0, 22.0), 0.0, {"display_name": "Ополченец", "armed": true})
+	var items := group(root, "Items")
+	_use(items, "LiftUp", "Лифт наверх", Vector3(2.0, 0, 20), Vector3(1.0, 2.4, 2.4))
+	_use(items, "Archive", "Архив отдела", Vector3(50.5, 0, 6.0), Vector3(2.0, 2.0, 0.8))
+	_use(items, "Board", "«Лучший сотрудник месяца»", Vector3(26, 0, 3.8), Vector3(10.0, 2.4, 0.6))
+	_use(items, "Palm", "Пальма в кадке", Vector3(13.5, 0, 35.5), Vector3(0.9, 1.8, 0.9))
+	_spawn("Start", Vector3(4.0, 0, 20.0))
+	_spawn("FromLift", Vector3(4.0, 0, 20.0))
+	marker(root, "MarkOffice", Vector3(26, 0, 20), "Офис")
+	marker(root, "MarkSrv", Vector3(57, 0, 20), "Серверный зал")
+	_finish("complex")
