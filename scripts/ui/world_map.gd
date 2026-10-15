@@ -202,8 +202,13 @@ func can_go(id: String) -> bool:
 	var n: Dictionary = nodes().get(id, {})
 	if n.is_empty() or not known(id):
 		return false
+	# сюжетные замки: этап задания и/или флаг (например, Нью-Рба — после Мар-Куна)
+	if n.has("need") and Game.quest_stage(str(n.need[0])) < int(n.need[1]):
+		return false
+	if n.has("need_flag") and not Game.flag(str(n.need_flag)):
+		return false
 	if n.has("end"):
-		return not n.has("need") or Game.quest_stage(str(n.need[0])) >= int(n.need[1])
+		return true
 	return n.has("loc") and not n.get("burned", false)
 
 

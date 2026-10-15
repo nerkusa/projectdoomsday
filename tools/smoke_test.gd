@@ -942,6 +942,56 @@ func social_tests() -> void:
 	ok(calm.is_empty(), "после резни в Крестах никто мирно не ходит (мирных: %s, врагов: %d)" % [str(calm), hostile])
 
 
+## Мар-Кун — финал Акта I: предупредить, держаться вместе, перебить серых → Акт II
+func markun_tests() -> void:
+	var loc: Node = main.location
+	ok(loc != null and loc.location_id == "markun" and Game.quest_stage("markun") == 1, "Мар-Кун: пришёл, задание — предупредить людей")
+	ok(unreachable(loc, loc.spawn_point("Road"), func(nd): return String(nd.name) in ["Chief", "Instructor", "Tent", "Radio", "Shrine"]).is_empty(),
+		"до начальника участка, Инструктора и лагеря серых можно дойти")
+	ok(Game.flag("mk_proof"), "бумаги про «список Б» с собой — есть чем доказать")
+	var ch: Character = loc.character("Chief")
+	await tp(ch.global_position + Vector3(1.4, 0, 0.8))
+	main.talk_to(ch)
+	await frames(2)
+	await choose(find_opt("чистильщики"))
+	await choose(find_opt("бумаги"))
+	await choose(0)
+	ok(Game.flag("mk_believe") and Game.quest_stage("markun") == 3, "начальник участка поверил")
+	await choose(find_opt("Держимся"))
+	await choose(0)
+	await close_dialogs()
+	await wait(0.6)
+	ok(Game.flag("mk_defend") and Game.flag("mk_attack"), "держимся вместе — серые пошли на участок")
+	var boss: Character = loc.character("CleanerBoss")
+	var t := 0.0
+	while not main.combat.on and t < 30.0:
+		await wait(0.5)
+		t += 0.5
+		if t > 8.0 and not main.combat.on:
+			await tp(boss.global_position + Vector3(2.0, 0, 2.0))
+	ok(main.combat.on, "бой с серыми")
+	await fight(300)
+	if main.combat.on or not loc.squad_cleared("mk_cleaners"):
+		# в бой вошли не все — добиваем остальных
+		for c in loc.characters():
+			if c.squad == "mk_cleaners" and c.visible and c.pose != "dead":
+				await tp(c.global_position + Vector3(1.5, 0, 1.5))
+				await wait(1.0)
+				if main.combat.on:
+					await fight(300)
+	ok(loc.squad_cleared("mk_cleaners"), "серых больше нет")
+	t = 0.0
+	while not main.slides.visible and t < 10.0:
+		await wait(0.5)
+		t += 0.5
+	ok(Game.flag("mk_done") and Game.quest_stage("markun") == 5 and Game.flag("act2"), "Мар-Кун отстоял — конец Акта I")
+	ok(main.slides.visible, "слайды конца акта")
+	while main.slides.visible:
+		main.slides._next()
+		await frames(2)
+	ok(main.world_map.can_go("nyurba"), "Нью-Рба открылась на карте")
+
+
 ## Перейти по улице в соседний район Нью-Рбы
 func nr_go(exit: String, to: String) -> void:
 	var it: Interactable = main.location.item(exit)
@@ -1196,9 +1246,10 @@ func sungar_tests() -> void:
 	loc.on_interact(loc.item("WestExit"))
 	await frames(2)
 	ok(wm.visible and wm.can_go("markun"), "Мар-Кун открыт на карте")
+	ok(not wm.can_go("nyurba"), "Нью-Рба пока закрыта (Акт II)")
 	await wm.travel("markun")
-	await frames(3)
-	ok(main.menu.visible and main.menu.mode == "end_act1", "экран «Дорога на Мар-Кун»")
+	await wait_loading()
+	await markun_tests()
 
 
 func _ready() -> void:
@@ -1216,6 +1267,21 @@ func _ready() -> void:
 	# погода в сюжетном прогоне ясная и не меняется; проверяется отдельно в конце
 	Weather.frozen = true
 	Weather.set_kind("clear", 999.0)
+	# быстрый прогон Мар-Куна: -- markun
+	if "markun" in OS.get_cmdline_user_args():
+		Game.new_hero()
+		main.menu.visible = false
+		get_tree().paused = false
+		Game.set_quest("bootur", 8)
+		Game.add_item("ledger_page")
+		Game.add_item("ammo9", 30)
+		WorldMap.reveal("markun")
+		main.load_location("markun", "Road")
+		await wait_loading()
+		await markun_tests()
+		print("=== ИТОГ: ошибок ", fails, " ===")
+		get_tree().quit(1 if fails else 0)
+		return
 	# быстрый прогон одного города: -- nyurba
 	if "nyurba" in OS.get_cmdline_user_args():
 		Game.new_hero()

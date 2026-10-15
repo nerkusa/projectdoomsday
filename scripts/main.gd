@@ -20,6 +20,7 @@ const LOCATIONS := {
 	"sungar_dom": "res://scenes/locations/sungar_dom.tscn",
 	"sungar_obshaga": "res://scenes/locations/sungar_obshaga.tscn",
 	"sungar_admin": "res://scenes/locations/sungar_admin.tscn",
+	"markun": "res://scenes/locations/markun.tscn",
 	"nyurba": "res://scenes/locations/nyurba.tscn",
 	"nyurba_sewer": "res://scenes/locations/nyurba_sewer.tscn",
 	"nyurba_center": "res://scenes/locations/nyurba_center.tscn",

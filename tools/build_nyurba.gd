@@ -14,6 +14,16 @@ const LANE_W := 4.0
 
 
 func _build() -> void:
+	_load_all()
+	_proxod()
+	_sewer()
+	_center()
+	_prom()
+	_black()
+
+
+## Материалы и пропы города (их же берёт tools/build_east.gd)
+func _load_all() -> void:
 	for n in ["cloth_sack", "cloth_red", "rope_mat", "rust", "metal_dark", "tin", "hay", "bark_dark", "planks_old",
 			"stone_wall", "tire", "paper", "metal_roof", "glass", "paint_faded", "paint_white", "cloth", "water", "log_dark",
 			"log_weathered", "ground_dirt", "concrete", "coal", "soot", "manure"]:
@@ -32,11 +42,6 @@ func _build() -> void:
 			"bus_stop", "conc_fence", "paz_wreck", "bins", "cf_info_screen", "loudspeaker", "power_pole", "sandbags", "checkpoint",
 			"notice_board", "trash_pile", "trash_pile_b", "rubble", "car_wreck", "burnt_shed", "burn_barrel", "boardwalk"]:
 		P[n] = load(PROP_DIR + n + ".tscn")
-	_proxod()
-	_sewer()
-	_center()
-	_prom()
-	_black()
 
 
 ## Горожане без своего разговора — с репликами над головой
