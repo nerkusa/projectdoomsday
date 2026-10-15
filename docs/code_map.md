@@ -134,6 +134,9 @@ Project Doomsday — 1–4
 - **lessons** «Уроки друга детства»: scripts/locations/nakharro.gd, scripts/world/tutor.gd, tools/smoke_test.gd
 - **markun** «Мар-Кун»: scripts/locations/markun.gd, tools/smoke_test.gd, data/dialogs/mk_chief.json
 - **act2** «Нью-Рба»: scripts/locations/markun.gd, scripts/locations/nyurba_black.gd, scripts/locations/nyurba_district.gd, tools/smoke_test.gd, data/dialogs/nr_apovich.json, data/dialogs/nr_artur.json, data/dialogs/nr_bootur.json, data/dialogs/nr_buyer.json, data/dialogs/nr_kesha.json
+- **act3** «Ток»: scripts/locations/mirny.gd, tools/smoke_test.gd, data/dialogs/mr_belsky.json, data/dialogs/mr_ivanov.json, data/dialogs/mr_scar.json, data/dialogs/mr_slepcova.json
+- **mr_trial** «Суд йегерей»: scripts/locations/mirny.gd, tools/smoke_test.gd, data/dialogs/mr_denouncer.json, data/dialogs/mr_judge.json
+- **mr_quarry** «Спуститься первым»: scripts/locations/mirny.gd, scripts/locations/mirny_quarry.gd, tools/smoke_test.gd, data/dialogs/mr_belsky.json, data/dialogs/mr_ivanov.json, data/dialogs/mr_scar.json, data/dialogs/mr_slepcova.json
 
 ## Места карты мира (data/world.json → сцена → скрипт)
 
@@ -147,7 +150,7 @@ Project Doomsday — 1–4
 - sungar «Сунгар»: scenes/locations/sungar.tscn → scripts/locations/sungar.gd
 - markun «Мар-Кун»: scenes/locations/markun.tscn → scripts/locations/markun.gd
 - nyurba «Нью-Рба»: scenes/locations/nyurba.tscn → scripts/locations/nyurba.gd
-- mirny «Мирный»: — 
+- mirny «Мирный»: scenes/locations/mirny.tscn → scripts/locations/mirny.gd
 - mir «Промзона МИР»: — 
 - ges «Вилюйская ГЭС»: — 
 - vilyuysk «Вилюйск»: — 
@@ -203,8 +206,15 @@ Project Doomsday — 1–4
 - kr_rumors: tools/build_act1.gd:574, tools/build_act1.gd:576, tools/build_act1.gd:585, tools/build_act1.gd:587, tools/build_act1.gd:588, tools/build_act1.gd:589, tools/build_act1.gd:590, tools/build_act1.gd:592
 - kr_smith: tools/build_act1.gd:581
 - kr_trader: tools/build_act1.gd:566
-- mk_chief: tools/build_east.gd:160
-- mk_instructor: tools/build_east.gd:161
+- mk_chief: tools/build_east.gd:168
+- mk_instructor: tools/build_east.gd:169
+- mr_belsky: tools/build_east.gd:369
+- mr_buyer: tools/build_east.gd:370
+- mr_denouncer: tools/build_east.gd:374
+- mr_ivanov: tools/build_east.gd:384
+- mr_judge: tools/build_east.gd:377
+- mr_scar: tools/build_east.gd:389
+- mr_slepcova: tools/build_east.gd:375
 - nr_apovich: tools/build_nyurba.gd:608
 - nr_artur: tools/build_nyurba.gd:606
 - nr_bootur: tools/build_nyurba.gd:626, tools/build_nyurba.gd:844
@@ -314,6 +324,12 @@ Project Doomsday — 1–4
 Мар-Кун — финал Акта I. У ручья ждут проводника чистильщики. Исходы:
 `_ready:17` `status_line:24` `on_enter:28` `_check_proof:38` `_apply_state:45` `_hide:57` `_cleaners_hostile:65` `objective:72` `on_dialog_action:87` `_evacuate:102` `_attack:116` `on_hero_moved:130` `_maybe_leave:142` `on_combat_round:158` `on_combat_end:172` `_resolve:179` `_end_act:192` `on_interact:203` `_tent:227` `item_actions:249` `describe:260`
 
+### scripts/locations/mirny.gd (133)
+Мирный — город контрастов (Акт III). Мёртвый карьер в центре, четыре района фракций:
+
+### scripts/locations/mirny_quarry.gd (51)
+Дно карьера «Мир»: брошенная техника, стая одичавших псов и лаборатория обогащения.
+
 ### scripts/locations/nakharro.gd (1894)
 Пролог: деревня Нахарро.
 `_ready:35` `friend:51` `_apply_friend:56` `_exit_tree:82` `phase:91` `on_new_game:105` `on_world_state_applied:130` `_apply_sacred:136` `on_enter:143` `_on_dialog_closed:158` `translator:177` `on_pocket:187` `_restore_barn:194` `can_leave_edge:211` `edge_tip:215` `_apply_phase:219` `_apply_light:280` `uses_clock_light:301` `schedule_active:306` `_set_on:310` `status_line:326` `food_count:332` `objective:336` `food_portions:382` `has_travel:390` `pack_ready:397` `pack_line:405` `_check_pack:415` `_process:426` `on_hero_moved:467` `can_pick:530` `is_theft:551` `theft_watch_radius:555` `_is_theft:559` `_witness:567` `_steal:587` `on_picked:612` `_dusk:635` `_gone_home:658` `_start_ambush:668` `_behind:707` `_ambush_hit:713` `_ambush_heard:736` `_prowl_arrived:747` `_prowl_tick:768` `_prowl_leave:795` `_prowl_gone:805` `leave_hide:818` `_gate_enemies_left:825` `_friend_gate_scene:837` `_gate_scene:870` `_gate_fight:920` `_nobody_left:932` `_close_village_quests:952` `_kill_npc:961` `_gate_round:973` `_doomed_alive:994` `_barn_tick:1010` `_cleaners_leave:1038` `_cleaner_gone:1052` `on_looted:1065` `_on_hour:1075` `_on_quest:1079` `_friend_say:1117` `has_fire:1136` `bonfire_lit:1141` `_apply_life:1147` `_friend_to_fire:1167` `dialog_cond:1185` `_bonfire:1193` `_tower:1208` `on_interact:1223` `on_dialog_action:1310` `on_combat_round:1404` `_ded_shoot:1419` `on_fighter_down:1438` `on_combat_end:1444` `_ded_falls:1492` `_ded_near:1515` `_fighting_cleaners:1525` `_fighting_squad:1529` `_cleaners_hear:1538` `_alive_cleaner:1549` `_shoot_ded:1556` `_quest_item:1581` `_update_quest_marks:1597` `_mark_label:1619` `_chest:1637` `_open_chest:1675` `item_actions:1683` `describe:1726` `_mend_fence:1759` `_apply_fence:1783` `_set_solid:1805` `_on_hero_changed:1812` `_assemble_kpk:1828` `_absorb_modules:1851` `_update_exit_guard:1872` `_exit_guard_alive:1891`
@@ -386,9 +402,9 @@ Project Doomsday — 1–4
 ### scripts/locations/zaimka.gd (140)
 Заимка охотника Дьаакыпа. Задание «Капканы»: на севере что-то ломает капканы —
 
-### scripts/main.gd (1559)
+### scripts/main.gd (1561)
 Главный узел игры: камера, загрузка локаций, ввод мышью, окна интерфейса.
-`_ready:87` `_on_level_up:114` `_build_ui:125` `space:198` `ui_blocked:202` `sfx:207` `think:232` `_on_menu:237` `_load_slot:265` `_on_sheet_closed:280` `_on_slides_done:291` `_unload:301` `load_location:319` `autosave:364` `quicksave:371` `show_game_over:380` `show_end:384` `status_text:390` `objective_text:396` `_on_hud_action:409` `open_kpk:454` `use_item:480` `_swap_hands:555` `_open_pause:567` `_move_speed:575` `_sneak_radius:586` `on_combat_start:595` `is_filler:611` `filler_bark:616` `talk_to:657` `say:682` `_on_dialog_action:692` `open_trade:731` `_on_dialog_closed:737` `start_fight:742` `_unhandled_input:763` `wait_time:825` `begin_cutscene:830` `end_cutscene:838` `_enemies_near:843` `open_wait:851` `wait_hours:861` `_pick:878` `_click:919` `_may_attack:962` `_near_edge:972` `_can_leave:977` `_walk_to_hex:989` `_walk_clear:1032` `_smooth_path:1047` `_go_then:1061` `_do_pending:1093` `interact:1121` `loot:1145` `_body_entries:1163` `open_loot:1184` `pickpocket:1205` `examine:1240` `_open_actions:1256` `_on_action_picked:1302` `_process:1321` `_update_xray:1387` `_set_alpha:1453` `_update_glow:1465` `_check_aggro:1473` `_look_around:1508` `_look_text:1530`
+`_ready:89` `_on_level_up:116` `_build_ui:127` `space:200` `ui_blocked:204` `sfx:209` `think:234` `_on_menu:239` `_load_slot:267` `_on_sheet_closed:282` `_on_slides_done:293` `_unload:303` `load_location:321` `autosave:366` `quicksave:373` `show_game_over:382` `show_end:386` `status_text:392` `objective_text:398` `_on_hud_action:411` `open_kpk:456` `use_item:482` `_swap_hands:557` `_open_pause:569` `_move_speed:577` `_sneak_radius:588` `on_combat_start:597` `is_filler:613` `filler_bark:618` `talk_to:659` `say:684` `_on_dialog_action:694` `open_trade:733` `_on_dialog_closed:739` `start_fight:744` `_unhandled_input:765` `wait_time:827` `begin_cutscene:832` `end_cutscene:840` `_enemies_near:845` `open_wait:853` `wait_hours:863` `_pick:880` `_click:921` `_may_attack:964` `_near_edge:974` `_can_leave:979` `_walk_to_hex:991` `_walk_clear:1034` `_smooth_path:1049` `_go_then:1063` `_do_pending:1095` `interact:1123` `loot:1147` `_body_entries:1165` `open_loot:1186` `pickpocket:1207` `examine:1242` `_open_actions:1258` `_on_action_picked:1304` `_process:1323` `_update_xray:1389` `_set_alpha:1455` `_update_glow:1467` `_check_aggro:1475` `_look_around:1510` `_look_text:1532`
 
 ### scripts/ui/char_sheet.gd (376) · class CharSheet
 «Дело» — лист персонажа. Новая игра начинается с выбора одного из четырёх готовых
@@ -491,13 +507,13 @@ Project Doomsday — 1–4
 Генератор локаций первого акта: Кресты (живое поселение у реки) и
 `_build:17` `_begin:40` `_finish:59` `_water_mats:71` `_river_plane:83` `_slot_of:99` `_homely:105` `_ground_for:124` `_paint:160` `_woods:190` `_blocked:228` `_free2:239` `_boxes_of:248` `_dress:272` `_cross:307` `_mound:324` `_net_rack:331` `_tent:351` `_lean_to:366` `_boat:381` `_exit:390` `_use:401` `_spawn:412` `_kresty:427` `_camp:637` `_encounter:713` `_spawn_mark:722` `_zaimka:734` `_truck:824` `_convoy:846` `_block:884` `_ruin:901` `_bunker_portal:991` `_radio_post:1053` `_dark_env:1186` `_lamp:1204` `_room_walls:1219` `_floor:1258` `_cellar:1263` `_glow:1321` `_upper:1330` `_bunker:1479` `_bunker_mats:1565` `_bk_panels:1592` `_hazard:1624` `_collapse:1636` `_bk_shaft:1651` `_bk_gate:1666` `_bk_corridor:1708` `_console:1741` `_reel_unit:1764` `_bk_control:1776` `_bk_barracks:1825` `_bk_generator:1856` `_bk_archive:1877` `_river_south:1904` `_stall:1914` `_signboard:1934` `_lamp_post:1954` `_laundry:1968`
 
-### tools/build_city.gd (1784)
+### tools/build_city.gd (1785)
 Каменный Сунгар (бывший посёлок городского типа): дома в 2–4 этажа из штукатурки
-`_ready:18` `_city_materials:126` `_glow_mat:193` `swin:208` `balcony:249` `entry:284` `open_door:299` `roof:309` `stone_block:354` `sandrik:487` `arch_win:500` `_stalin_decor:532` `_labaz_decor:575` `_balustrade:604` `_spire:621` `nyurba_props:639` `_wkind:785` `_wear:804` `_shop_window:862` `_portico:874` `_shell:890` `_lining:914` `stair_flight:929` `partition_z:943` `_table:955` `_bed:972` `_wardrobe:983` `_counter:989` `_shelf_goods:995` `_stove:1009` `_rug:1015` `_plant:1019` `_interior:1027` `heat_pipes:1380` `boiler_house:1418` `water_tower:1444` `garages:1457` `kiosk:1472` `bus_stop:1488` `conc_fence:1508` `paz_wreck:1519` `bins:1536` `furniture:1548` `_stair_piece:1612` `_crt:1625` `cassette_props:1634` `ruin_props:1720`
+`_ready:18` `_city_materials:126` `_glow_mat:193` `swin:208` `balcony:249` `entry:284` `open_door:299` `roof:309` `stone_block:354` `sandrik:487` `arch_win:500` `_stalin_decor:532` `_labaz_decor:575` `_balustrade:604` `_spire:621` `nyurba_props:639` `_wkind:785` `_wear:804` `_shop_window:862` `_portico:874` `_shell:890` `_lining:914` `stair_flight:929` `partition_z:943` `_table:955` `_bed:972` `_wardrobe:983` `_counter:989` `_shelf_goods:995` `_stove:1009` `_rug:1015` `_plant:1019` `_interior:1027` `heat_pipes:1381` `boiler_house:1419` `water_tower:1445` `garages:1458` `kiosk:1473` `bus_stop:1489` `conc_fence:1509` `paz_wreck:1520` `bins:1537` `furniture:1549` `_stair_piece:1613` `_crt:1626` `cassette_props:1635` `ruin_props:1721`
 
-### tools/build_east.gd (188)
+### tools/build_east.gd (498)
 Локации востока по сюжету: Мар-Кун (финал Акта I), Промзона МИР, Мирный и ГЭС (Акт III),
-`_build:8` `_container:22` `_dugout:49` `_markun:69`
+`_build:8` `_container:30` `_dugout:57` `_markun:77` `_quarry_pit:209` `_flagpole:264` `_poster:278` `_mirny:282` `_quarry:420`
 
 ### tools/build_hero_skin.gd (78)
 Собирает сетку героя с новой развёрткой из assets/models/hero_skin_mesh.bin
@@ -549,14 +565,14 @@ Project Doomsday — 1–4
 ### tools/screenshots.gd (107)
 Снимки экрана для проверки интерфейса (нужен рендер, не --headless).
 
-### tools/smoke_test.gd (3172)
+### tools/smoke_test.gd (3235)
 Автотест пролога: проходит всю цепочку без участия человека и печатает, что сломалось.
-`new_enc:12` `ok:17` `wait:25` `frames:29` `close_dialogs:34` `shut:43` `choose:48` `opt_texts:54` `find_opt:61` `tp:79` `fight:86` `wait_loading:128` `unreachable:137` `go_upstairs:166` `go_downstairs:176` `nakharro_life_tests:187` `kresty_life_tests:365` `encounter_lore_tests:444` `city_tests:512` `admin_tests:705` `weather_tests:783` `social_tests:850` `markun_tests:946` `nr_go:996` `nyurba_tests:1010` `sungar_tests:1143` `_ready:1291`
+`new_enc:12` `ok:17` `wait:25` `frames:29` `close_dialogs:34` `shut:43` `choose:48` `opt_texts:54` `find_opt:61` `tp:79` `fight:86` `wait_loading:128` `unreachable:137` `go_upstairs:166` `go_downstairs:176` `nakharro_life_tests:187` `kresty_life_tests:365` `encounter_lore_tests:444` `city_tests:512` `admin_tests:705` `weather_tests:783` `social_tests:850` `markun_tests:946` `mirny_tests:996` `nr_go:1047` `nyurba_tests:1061` `sungar_tests:1194` `_ready:1342`
 
 ## Данные (data/)
 
 - data/barks.json (723 строк)
-- data/characters.json (155 строк)
+- data/characters.json (165 строк)
 - data/dialogs/camp_boss.json (385 строк)
 - data/dialogs/camp_nyurgun.json (194 строк)
 - data/dialogs/camp_rumors.json (127 строк)
@@ -606,6 +622,13 @@ Project Doomsday — 1–4
 - data/dialogs/kr_trader.json (385 строк)
 - data/dialogs/mk_chief.json (180 строк)
 - data/dialogs/mk_instructor.json (61 строк)
+- data/dialogs/mr_belsky.json (127 строк)
+- data/dialogs/mr_buyer.json (46 строк)
+- data/dialogs/mr_denouncer.json (63 строк)
+- data/dialogs/mr_ivanov.json (114 строк)
+- data/dialogs/mr_judge.json (81 строк)
+- data/dialogs/mr_scar.json (114 строк)
+- data/dialogs/mr_slepcova.json (128 строк)
 - data/dialogs/nr_apovich.json (144 строк)
 - data/dialogs/nr_artur.json (127 строк)
 - data/dialogs/nr_bootur.json (165 строк)
@@ -653,11 +676,11 @@ Project Doomsday — 1–4
 - data/dialogs/water.json (114 строк)
 - data/elley.json (15 строк)
 - data/intro.json (30 строк)
-- data/items.json (103 строк)
+- data/items.json (104 строк)
 - data/lore.json (115 строк)
 - data/observations.json (81 строк)
 - data/presets.json (22 строк)
-- data/quests.json (607 строк)
+- data/quests.json (644 строк)
 - data/rep_greet.json (34 строк)
 - data/schedules.json (749 строк)
 - data/weapons.json (20 строк)

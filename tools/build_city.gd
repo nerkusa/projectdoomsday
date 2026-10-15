@@ -1320,10 +1320,11 @@ func _interior(kind: String, w: float, d: float, door_x: float) -> void:
 			box("glass", Vector3(0.04, 0.8, 3.0), Vector3(-hx + 2.4, 1.5, -0.5))
 			_crt(Vector3(-hx + 2.3, 1.02, -1.4), PI / 2.0, "screen_green")
 			slots["clerk"] = Vector3(-hx + 1.4, 0, -0.5)
+			# стулья очереди — в стороне от двери, чтобы не перегораживать вход
 			for i in 4:
-				box("planks_old", Vector3(0.45, 0.45, 0.45), Vector3(-1.5 + i * 0.6, 0.23, hz - 0.5))
-			solid(Vector3(2.6, 0.5, 0.5), Vector3(-0.6, 0.25, hz - 0.5))
-			slots["queue"] = Vector3(-0.6, 0, hz - 1.2)
+				box("planks_old", Vector3(0.45, 0.45, 0.45), Vector3(door_x - 4.4 + i * 0.6, 0.23, hz - 0.5))
+			solid(Vector3(2.6, 0.5, 0.5), Vector3(door_x - 3.5, 0.25, hz - 0.5))
+			slots["queue"] = Vector3(door_x - 3.5, 0, hz - 1.2)
 			# стенд «Сунгар — город будущего», флаг, фикусы
 			box("frame_white", Vector3(2.4, 1.0, 0.05), Vector3(1.4, 0.8, -hz + 0.04))
 			box("screen_amber", Vector3(1.0, 0.6, 0.03), Vector3(1.4, 0.85, -hz + 0.08))

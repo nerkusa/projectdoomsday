@@ -992,6 +992,57 @@ func markun_tests() -> void:
 	ok(main.world_map.can_go("nyurba"), "Нью-Рба открылась на карте")
 
 
+## Мирный (Акт III): лидеры фракций, суд йегерей, карьер, союз за ГЭС
+func mirny_tests() -> void:
+	main.load_location("mirny", "Road")
+	await wait_loading()
+	var loc: Node = main.location
+	ok(loc != null and loc.location_id == "mirny" and Game.quest_stage("act3") == 2, "Мирный: пришёл, задание — фракции и плотина")
+	ok(unreachable(loc, loc.spawn_point("Road"), func(nd): return String(nd.name) in ["Belsky", "Buyer", "Slepcova", "Judge", "Gosha", "Ivanov", "Scar", "ToQuarry", "EastRoad"]).is_empty(),
+		"до всех лидеров, Судьи, покупателя, карьера и выхода к ГЭС можно дойти (%s)" % str(unreachable(loc, loc.spawn_point("Road"), func(nd): return String(nd.name) in ["Belsky", "Buyer", "Slepcova", "Judge", "Gosha", "Ivanov", "Scar", "ToQuarry", "EastRoad"])))
+	# суд йегерей: доносчик врёт — Пётр свободен
+	Game.force_check = 1
+	main.talk_to(loc.character("Gosha"))
+	await frames(2)
+	await choose(find_opt("Внимательность"))
+	await choose(0)
+	await close_dialogs()
+	main.talk_to(loc.character("Judge"))
+	await frames(2)
+	await choose(find_opt("Донос ложный"))
+	await choose(0)
+	await close_dialogs()
+	Game.force_check = 0
+	await wait(0.6)
+	ok(Game.flag("mr_freed") and Game.quest_stage("mr_trial") == 3, "суд йегерей: донос ложный, Пётр свободен")
+	# карьер: спуститься, отбиться от псов, забрать ящик
+	loc.on_interact(loc.item("ToQuarry"))
+	await wait_loading()
+	var q: Node = main.location
+	ok(q.location_id == "mirny_quarry", "спустился на дно карьера")
+	ok(unreachable(q, q.spawn_point("FromTop"), func(nd): return String(nd.name) in ["LabCrate", "LabDesk", "UpRamp"]).is_empty(), "по дну карьера можно дойти до лаборатории")
+	q.on_interact(q.item("LabCrate"))
+	ok(Game.item_count("quarry_find") == 1 and Game.quest_stage("mr_quarry") == 2, "ящик лаборатории — настоящие алмазы")
+	q.on_interact(q.item("UpRamp"))
+	await wait_loading()
+	loc = main.location
+	ok(loc.location_id == "mirny", "поднялся из карьера")
+	# союз с рабочими и находка — профкому
+	main.talk_to(loc.character("Ivanov"))
+	await frames(2)
+	await choose(find_opt("ящик"))
+	await choose(find_opt("Берите"))
+	ok(Game.quest_stage("mr_quarry") == 3 and Game.item_count("quarry_find") == 0, "находку из карьера отдал рабочим")
+	await close_dialogs()
+	main.talk_to(loc.character("Ivanov"))
+	await frames(2)
+	await choose(find_opt("с рабочими"))
+	await choose(0)
+	await close_dialogs()
+	ok(str(Game.flag_value("ges_side", "")) == "workers" and Game.quest_stage("act3") == 4, "союз с рабочими — дальше на ГЭС")
+	ok(main.world_map.can_go("ges") or not ResourceLoader.exists("res://scenes/locations/ges.tscn"), "плотина ГЭС открыта на карте")
+
+
 ## Перейти по улице в соседний район Нью-Рбы
 func nr_go(exit: String, to: String) -> void:
 	var it: Interactable = main.location.item(exit)
@@ -1315,6 +1366,18 @@ func _ready() -> void:
 		main.load_location("markun", "Road")
 		await wait_loading()
 		await markun_tests()
+		print("=== ИТОГ: ошибок ", fails, " ===")
+		get_tree().quit(1 if fails else 0)
+		return
+	# быстрый прогон Мирного: -- mirny
+	if "mirny" in OS.get_cmdline_user_args():
+		Game.new_hero()
+		main.menu.visible = false
+		get_tree().paused = false
+		Game.set_flag("act3")
+		Game.set_quest("act3", 1)
+		WorldMap.reveal("mirny")
+		await mirny_tests()
 		print("=== ИТОГ: ошибок ", fails, " ===")
 		get_tree().quit(1 if fails else 0)
 		return
