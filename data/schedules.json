@@ -530,5 +530,219 @@
       "from": 8,
       "to": 17
     }
+  },
+  "nyurba_center": {
+    "Artur": {
+      "from": 10,
+      "to": 20
+    },
+    "Garik": {
+      "from": 8,
+      "to": 21
+    },
+    "Apovich": {
+      "from": 7,
+      "to": 22
+    },
+    "Secretary": {
+      "from": 8,
+      "to": 18
+    },
+    "Croupier1": {
+      "from": 16,
+      "to": 28
+    },
+    "Croupier2": {
+      "from": 18,
+      "to": 28
+    },
+    "Player1": {
+      "from": 19,
+      "to": 28
+    },
+    "Player2": {
+      "from": 17,
+      "to": 26
+    },
+    "Player3": {
+      "from": 20,
+      "to": 27
+    },
+    "SlotPlayer": {
+      "from": 12,
+      "to": 26
+    },
+    "SlotPlayer2": {
+      "from": 14,
+      "to": 28
+    },
+    "Singer": {
+      "from": 20,
+      "to": 27
+    },
+    "CasinoBar": {
+      "from": 16,
+      "to": 28
+    },
+    "HotelGuest": {
+      "from": 9,
+      "to": 22
+    },
+    "Jeweler": {
+      "from": 10,
+      "to": 19
+    },
+    "Promoter": {
+      "from": 14,
+      "to": 22
+    },
+    "Fighter1": {
+      "from": 15,
+      "to": 21
+    },
+    "Fighter2": {
+      "from": 15,
+      "to": 21
+    },
+    "Crowd1": {
+      "from": 15,
+      "to": 21
+    },
+    "Crowd2": {
+      "from": 15,
+      "to": 21
+    },
+    "Crowd3": {
+      "from": 15,
+      "to": 21
+    },
+    "SalonGirl": {
+      "from": 19,
+      "to": 28
+    },
+    "SalonDoor": {
+      "from": 18,
+      "to": 28
+    },
+    "RichWalker1": {
+      "from": 11,
+      "to": 23
+    },
+    "RichWalker2": {
+      "from": 12,
+      "to": 22
+    },
+    "Walker3": {
+      "from": 8,
+      "to": 21
+    },
+    "Kid1": {
+      "from": 9,
+      "to": 20
+    }
+  },
+  "nyurba_prom": {
+    "Kesha": {
+      "from": 6,
+      "to": 20
+    },
+    "Worker0": {
+      "from": 6,
+      "to": 18
+    },
+    "Worker1": {
+      "from": 6,
+      "to": 18
+    },
+    "Worker2": {
+      "from": 7,
+      "to": 19
+    },
+    "Worker3": {
+      "from": 7,
+      "to": 19
+    },
+    "Worker4": {
+      "from": 8,
+      "to": 17
+    },
+    "Foreman": {
+      "from": 6,
+      "to": 19
+    },
+    "Cook": {
+      "from": 6,
+      "to": 17
+    },
+    "Eater1": {
+      "from": 12,
+      "to": 14
+    },
+    "Eater2": {
+      "from": 12,
+      "to": 15
+    },
+    "Storekeeper": {
+      "from": 7,
+      "to": 19
+    },
+    "Porter": {
+      "from": 7,
+      "to": 18
+    },
+    "Smoker1": {
+      "from": 9,
+      "to": 17
+    },
+    "Smoker2": {
+      "from": 10,
+      "to": 18
+    },
+    "Walker1": {
+      "from": 5,
+      "to": 20
+    },
+    "Walker2": {
+      "from": 6,
+      "to": 19
+    }
+  },
+  "nyurba_black": {
+    "Fence": {
+      "from": 10,
+      "to": 24
+    },
+    "Seller1": {
+      "from": 8,
+      "to": 20
+    },
+    "Seller2": {
+      "from": 9,
+      "to": 22
+    },
+    "Seller3": {
+      "from": 8,
+      "to": 19
+    },
+    "Collector1": {
+      "from": 10,
+      "to": 22
+    },
+    "Collector2": {
+      "from": 10,
+      "to": 22
+    },
+    "Woman1": {
+      "from": 8,
+      "to": 18
+    },
+    "Kid1": {
+      "from": 8,
+      "to": 20
+    },
+    "Thug1": {
+      "from": 16,
+      "to": 28
+    }
   }
 }

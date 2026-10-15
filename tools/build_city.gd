@@ -20,6 +20,8 @@ func _ready() -> void:
 	for n in ["trim", "metal_roof", "planks_old", "stone_wall", "metal_dark", "log_weathered", "cloth_sack", "cloth_red",
 			"tin", "paper", "rope_mat", "glass", "whitewash", "brass", "tire", "hay", "bread", "fish", "herb", "paint_faded", "paint_white"]:
 		M[n] = load(MAT_DIR + n + ".tres")
+	for n in ["metal", "stone", "paint_orange"]:
+		M[n] = load(MAT_DIR + n + ".tres")
 	M["window"] = load(MAT_DIR + "window.tres")
 	M["rust"] = load(MAT_DIR + "rust.tres")
 	_city_materials()
@@ -80,6 +82,21 @@ func _ready() -> void:
 		"nr_labaz_row2": {"w": 12.0, "d": 8.0, "floors": 2, "mat": "brick_white", "roof": "pitch", "labaz": true, "entries": [-2.5, 2.5], "fh": 3.4},
 		# склад: длинный, с воротами
 		"nr_warehouse": {"w": 22.0, "d": 11.0, "floors": 1, "mat": "brick", "roof": "pitch", "labaz": true, "gates": [-5.0, 5.0], "entries": [], "fh": 5.0},
+		# ---- Центр, Промрайон, Чёрный район ----
+		# казино в бывшем ДК: однорукие бандиты из старых ЭВМ, столы, сцена
+		"nr_casino": {"w": 20.0, "d": 12.0, "floors": 2, "mat": "plaster_cream", "enter": "casino", "roof": "flat", "stalin": true, "balustrade": true, "fh": 4.0},
+		# Дом правительства: приёмная, палаты президента, кабинет казначея
+		"nr_gov": {"w": 24.0, "d": 12.0, "floors": 3, "mat": "plaster_white", "enter": "gov", "roof": "flat", "stalin": true, "balustrade": true, "spire": true, "flag": true, "fh": 3.6},
+		# казармы охраны
+		"nr_barracks": {"w": 16.0, "d": 9.0, "floors": 2, "mat": "brick", "enter": "police", "roof": "pitch", "labaz": true, "bars": true, "flag": true, "fh": 3.4},
+		# цех: огранка и напыление, станки; пилообразная крыша, труба
+		"nr_factory": {"w": 24.0, "d": 14.0, "floors": 1, "mat": "brick", "enter": "factory", "roof": "saw", "labaz": true, "chimney": true, "fh": 6.0},
+		# глухой цех без входа
+		"nr_factory_b": {"w": 22.0, "d": 12.0, "floors": 1, "mat": "brick", "roof": "saw", "labaz": true, "gates": [-4.0, 4.0], "entries": [], "chimney": true, "fh": 6.0},
+		# ночлежка: нары в два яруса
+		"nr_nochlezhka": {"w": 14.0, "d": 8.0, "floors": 2, "mat": "plaster_green", "enter": "nochlezhka", "roof": "pitch", "fh": 3.2},
+		# рюмочная в облупленном лабазе
+		"nr_ryumka": {"w": 10.0, "d": 8.0, "floors": 1, "mat": "brick_white", "enter": "bar", "roof": "pitch", "labaz": true, "fh": 3.6},
 		# склад, куда можно войти: стеллажи, ящики, мешки, весы
 		"nr_warehouse_in": {"w": 22.0, "d": 11.0, "floors": 1, "mat": "brick", "roof": "pitch", "labaz": true, "gates": [6.0], "enter": "storage", "door_x": -4.0, "fh": 5.0},
 	}
@@ -290,6 +307,16 @@ func open_door(x: float, front: float, width := DOOR_W) -> void:
 
 ## Крыша: плоская (рубероид, парапет, вентшахты, антенны) или скатная из профнастила
 func roof(w: float, d: float, top: float, kind: String) -> void:
+	if kind == "saw":
+		# пилообразная крыша цеха: зубцы с остеклением на север
+		box("tar", Vector3(w, 0.12, d), Vector3(0, top + 0.06, 0))
+		var n := int(d / 3.5)
+		var step := d / float(n)
+		for i in n:
+			var z := -d / 2.0 + step * (i + 0.5)
+			prism("metal_roof", Vector3(step, 1.8, w), Vector3(0, top + 0.9, z), Vector3(0, PI / 2.0, 0))
+			box("glass_city", Vector3(w - 0.4, 1.5, 0.05), Vector3(0, top + 0.8, z - step / 2.0 + 0.05))
+		return
 	if kind == "flat":
 		box("tar", Vector3(w, 0.12, d), Vector3(0, top + 0.06, 0))
 		for sz in [-1, 1]:
@@ -439,6 +466,11 @@ func stone_block(n: String, o: Dictionary) -> void:
 		_balustrade(w, d, top)
 	if o.get("spire", false):
 		_spire(w, d, top)
+	if o.get("chimney", false):
+		cyl("brick", 0.6, 0.9, 16.0, Vector3(w / 2.0 - 1.4, 8.0, -d / 2.0 + 1.4), Vector3.ZERO, 12)
+		for k in 3:
+			cyl("concrete", 0.95, 0.95, 0.2, Vector3(w / 2.0 - 1.4, 4.0 + k * 5.0, -d / 2.0 + 1.4), Vector3.ZERO, 12)
+		box("metal_dark", Vector3(0.1, 14.0, 0.1), Vector3(w / 2.0 - 0.6, 7.0, -d / 2.0 + 1.4))
 	if o.get("flag", false):
 		cyl("metal_dark", 0.05, 0.05, 4.0, Vector3(hx - 1.0, top + 2.0, hz - 1.0), Vector3.ZERO, 6)
 		box("flag_red", Vector3(1.4, 0.8, 0.03), Vector3(hx - 0.25, top + 3.5, hz - 1.0))
@@ -726,6 +758,28 @@ func nyurba_props() -> void:
 	solid(Vector3(1.8, 0.8, 0.5), Vector3(0, 0.4, 0))
 	slots["sit"] = Vector3(0, 0, 0.05)
 	finish("nr_bench", "CityBench")
+	# самострой Чёрного района: доски, жесть, брезент, труба буржуйки; в два варианта
+	for v in 2:
+		begin()
+		_rng.seed = 900 + v
+		var w := 4.2 if v == 0 else 3.4
+		var dd := 3.2
+		var m: String = "planks_old" if v == 0 else "rust"
+		box(m, Vector3(w, 2.3, 0.08), Vector3(0, 1.15, -dd / 2.0))
+		box(m, Vector3(0.08, 2.3, dd), Vector3(-w / 2.0, 1.15, 0))
+		box(m, Vector3(0.08, 2.3, dd), Vector3(w / 2.0, 1.15, 0))
+		box(m, Vector3(w * 0.35, 2.3, 0.08), Vector3(-w * 0.325, 1.15, dd / 2.0))
+		box(m, Vector3(w * 0.35, 2.3, 0.08), Vector3(w * 0.325, 1.15, dd / 2.0))
+		box("tarp_blue" if v == 0 else "cloth_sack", Vector3(w * 0.3, 1.9, 0.04), Vector3(0, 1.0, dd / 2.0 + 0.04), Vector3(0, 0, 0.05))
+		box("metal_roof", Vector3(w + 0.5, 0.06, dd + 0.6), Vector3(0, 2.45, 0), Vector3(0.12, 0, 0))
+		for k in 4:
+			box(["tin", "rust", "plywood", "tin"][k], Vector3(_rng.randf_range(0.6, 1.2), _rng.randf_range(0.5, 0.9), 0.04),
+				Vector3(_rng.randf_range(-w / 2.0 + 0.6, w / 2.0 - 0.6), _rng.randf_range(0.6, 1.8), -dd / 2.0 - 0.04))
+		cyl("metal_dark", 0.08, 0.08, 1.4, Vector3(w / 2.0 - 0.5, 3.0, -0.6), Vector3.ZERO, 6)
+		for k in 3:
+			box("tire", Vector3(0.5, 0.15, 0.5), Vector3(-w / 2.0 + 0.6 + k * 1.2, 2.55, 0.2))
+		solid(Vector3(w, 2.3, dd), Vector3(0, 1.15, 0))
+		finish("nr_shack" if v == 0 else "nr_shack_b", "Shack")
 
 
 func _wkind() -> String:
@@ -1028,6 +1082,133 @@ func _interior(kind: String, w: float, d: float, door_x: float) -> void:
 			slots["t3"] = Vector3(hx - 1.4, 0, 1.6)
 			_stove(1.2, hz - 0.8)
 			_rug(-0.4, 0.4, 1.6, 2.4, "cloth_sack")
+		"casino":
+			_lining(w, d, "wallpaper_b", "cloth_red", door_x)
+			# однорукие бандиты из ЭВМ вдоль задней стены: шкафы с экранами и рычагами
+			for i in 6:
+				var x := -hx + 1.0 + i * 1.3
+				box("plastic_beige", Vector3(1.0, 1.7, 0.7), Vector3(x, 0.85, -hz + 0.45))
+				box("screen_amber" if i % 2 == 0 else "screen_green", Vector3(0.6, 0.45, 0.03), Vector3(x, 1.25, -hz + 0.81))
+				for l in 3:
+					box("led_red" if (i + l) % 2 == 0 else "led_green", Vector3(0.08, 0.08, 0.03), Vector3(x - 0.2 + l * 0.2, 0.85, -hz + 0.81))
+				cyl("metal_dark", 0.03, 0.03, 0.5, Vector3(x + 0.55, 1.1, -hz + 0.6), Vector3.ZERO, 6)
+				box("led_red", Vector3(0.1, 0.1, 0.1), Vector3(x + 0.55, 1.38, -hz + 0.6))
+			solid(Vector3(8.0, 1.7, 0.8), Vector3(-hx + 4.25, 0.85, -hz + 0.45))
+			slots["slot1"] = Vector3(-hx + 1.6, 0, -hz + 1.4)
+			slots["slot2"] = Vector3(-hx + 4.2, 0, -hz + 1.4)
+			# игровые столы с сукном
+			var k := 1
+			for tp in [Vector2(-2.5, 0.8), Vector2(2.0, 0.8)]:
+				box("felt", Vector3(2.2, 0.08, 1.2), Vector3(tp.x, 0.8, tp.y))
+				box("planks_old", Vector3(2.0, 0.76, 1.0), Vector3(tp.x, 0.38, tp.y))
+				solid(Vector3(2.2, 0.9, 1.2), Vector3(tp.x, 0.45, tp.y))
+				slots["croupier%d" % k] = Vector3(tp.x, 0, tp.y - 1.1)
+				slots["player%d" % k] = Vector3(tp.x - 0.6, 0, tp.y + 1.1)
+				slots["player%da" % k] = Vector3(tp.x + 0.6, 0, tp.y + 1.1)
+				k += 1
+			# рулетка
+			cyl("planks_old", 0.7, 0.75, 0.8, Vector3(hx - 2.2, 0.4, -hz + 2.0), Vector3.ZERO, 16)
+			cyl("felt", 0.62, 0.62, 0.04, Vector3(hx - 2.2, 0.82, -hz + 2.0), Vector3.ZERO, 16)
+			cyl("brass", 0.3, 0.3, 0.06, Vector3(hx - 2.2, 0.86, -hz + 2.0), Vector3.ZERO, 12)
+			solid(Vector3(1.5, 0.9, 1.5), Vector3(hx - 2.2, 0.45, -hz + 2.0))
+			slots["roulette"] = Vector3(hx - 2.2, 0, -hz + 0.9)
+			# стойка бара у правой стены, сцена с микрофоном
+			_counter(hx - 0.8, hz - 2.4, 0.6)
+			box("planks_old", Vector3(0.6, 1.0, 2.4), Vector3(hx - 0.8, 0.5, hz - 2.4))
+			solid(Vector3(0.65, 1.0, 2.4), Vector3(hx - 0.8, 0.5, hz - 2.4))
+			slots["barman"] = Vector3(hx - 0.3, 0, hz - 2.4)
+			box("planks_old", Vector3(3.0, 0.3, 1.6), Vector3(-hx + 2.0, 0.15, hz - 1.1))
+			solid(Vector3(3.0, 0.3, 1.6), Vector3(-hx + 2.0, 0.15, hz - 1.1))
+			cyl("metal_dark", 0.02, 0.02, 1.4, Vector3(-hx + 2.0, 1.0, hz - 1.0), Vector3.ZERO, 6)
+			slots["singer"] = Vector3(-hx + 2.0, 0, hz - 1.4)
+			slots["bouncer"] = Vector3(door_x + 1.5, 0, hz - 0.9)
+		"gov":
+			_lining(w, d, "wallpaper_b", "linoleum", door_x)
+			# ковровая дорожка от двери, стойка секретаря, флаги, портрет президента
+			box("cloth_red", Vector3(1.4, 0.02, d - 1.2), Vector3(door_x, 0.05, 0))
+			_counter(door_x - 2.6, 0.6, 0.6)
+			box("planks_old", Vector3(0.6, 1.0, 2.2), Vector3(door_x - 2.6, 0.5, 0.6))
+			solid(Vector3(0.65, 1.0, 2.2), Vector3(door_x - 2.6, 0.5, 0.6))
+			slots["secretary"] = Vector3(door_x - 3.4, 0, 0.6)
+			box("frame_white", Vector3(1.4, 1.0, 0.05), Vector3(door_x, 1.0, -hz + 0.05))
+			box("paint_blue", Vector3(1.2, 0.85, 0.03), Vector3(door_x, 1.0, -hz + 0.09))
+			for sx in [-1, 1]:
+				cyl("brass", 0.03, 0.03, 2.0, Vector3(door_x + sx * 1.2, 1.0, -hz + 0.4), Vector3.ZERO, 6)
+				box("flag_red", Vector3(0.5, 0.7, 0.02), Vector3(door_x + sx * 1.2 + 0.26, 1.6, -hz + 0.4))
+			slots["guard"] = Vector3(door_x + 1.5, 0, hz - 1.0)
+			slots["guard2"] = Vector3(door_x - 1.5, 0, -hz + 1.2)
+			# палаты президента (левое крыло): Т-образный стол, кресло, ковёр, сейф
+			partition_z(-hx + 7.0, -hz, hz, 0.0, "wallpaper_b")
+			box("planks_old", Vector3(3.0, 0.08, 1.0), Vector3(-hx + 3.4, 0.78, -hz + 1.6))
+			box("planks_old", Vector3(1.0, 0.08, 2.6), Vector3(-hx + 3.4, 0.78, -hz + 3.4))
+			box("planks_old", Vector3(2.8, 0.74, 0.8), Vector3(-hx + 3.4, 0.37, -hz + 1.6))
+			solid(Vector3(3.0, 0.8, 1.0), Vector3(-hx + 3.4, 0.4, -hz + 1.6))
+			solid(Vector3(1.0, 0.8, 2.6), Vector3(-hx + 3.4, 0.4, -hz + 3.4))
+			box("sofa", Vector3(0.8, 1.2, 0.7), Vector3(-hx + 3.4, 0.6, -hz + 0.5))
+			_rug(-hx + 3.4, 1.4, 3.0, 2.4)
+			_plant(-hx + 0.5, hz - 0.5)
+			slots["artur"] = Vector3(-hx + 3.4, 0, -hz + 0.9)
+			slots["garik"] = Vector3(-hx + 2.2, 0, -hz + 2.6)
+			# кабинет казначея (правое крыло): стол, сейф, шкаф с папками, счёты
+			partition_z(hx - 6.5, -hz, hz, 1.0, "wallpaper")
+			_table(hx - 3.2, -hz + 1.6, "planks_old", 1)
+			box("metal_dark", Vector3(1.2, 1.6, 0.8), Vector3(hx - 0.9, 0.8, -hz + 0.6))
+			cyl("brass", 0.25, 0.25, 0.06, Vector3(hx - 0.9, 0.9, -hz + 1.02), Vector3(PI / 2.0, 0, 0), 12)
+			solid(Vector3(1.2, 1.6, 0.8), Vector3(hx - 0.9, 0.8, -hz + 0.6))
+			box("planks_old", Vector3(0.5, 2.0, 2.4), Vector3(hx - 0.4, 1.0, 1.6))
+			for i in 8:
+				box("paper", Vector3(0.3, 0.35, 0.05), Vector3(hx - 0.68, 0.6 + int(i / 4) * 0.7, 0.8 + (i % 4) * 0.5))
+			solid(Vector3(0.6, 2.0, 2.4), Vector3(hx - 0.4, 1.0, 1.6))
+			slots["apovich"] = Vector3(hx - 3.2, 0, -hz + 0.85)
+			slots["safe"] = Vector3(hx - 0.9, 0, -hz + 1.5)
+		"factory":
+			_lining(w, d, "brick", "concrete", door_x)
+			# станки в два ряда: токарные (станина, патрон), шлифовальные круги
+			for row in 2:
+				var zz := -hz + 2.2 + row * 4.0
+				for i in 4:
+					var x := -hx + 2.5 + i * 5.0
+					box("metal_green", Vector3(2.4, 0.9, 0.8), Vector3(x, 0.45, zz))
+					box("metal_dark", Vector3(0.6, 0.6, 0.7), Vector3(x - 1.0, 1.15, zz))
+					cyl("metal", 0.22, 0.22, 0.2, Vector3(x - 0.6, 1.1, zz), Vector3(0, 0, PI / 2.0), 10)
+					if (i + row) % 2 == 0:
+						cyl("stone", 0.45, 0.45, 0.12, Vector3(x + 0.7, 1.35, zz), Vector3(PI / 2.0, 0, 0), 14)
+					solid(Vector3(2.4, 1.2, 0.8), Vector3(x, 0.6, zz))
+					slots["m%d%d" % [row, i]] = Vector3(x, 0, zz + 0.9)
+			# верстаки у передней стены, ящики с инструментом «с алмазным напылением»
+			for i in 3:
+				box("planks_old", Vector3(2.2, 0.9, 0.8), Vector3(hx - 2.0 - i * 2.6, 0.45, hz - 0.8))
+				box("tin", Vector3(0.6, 0.2, 0.4), Vector3(hx - 2.0 - i * 2.6, 0.98, hz - 0.8))
+				solid(Vector3(2.2, 0.9, 0.8), Vector3(hx - 2.0 - i * 2.6, 0.45, hz - 0.8))
+			for i in 4:
+				box("planks_old", Vector3(0.8, 0.6, 0.6), Vector3(-hx + 1.0 + (i % 2) * 0.9, 0.3 + int(i / 2) * 0.6, hz - 0.8))
+			solid(Vector3(1.8, 1.2, 0.7), Vector3(-hx + 1.45, 0.6, hz - 0.8))
+			# кран-балка под крышей
+			box("paint_orange", Vector3(w - 1.0, 0.4, 0.4), Vector3(0, 5.2, 0.5))
+			box("metal_dark", Vector3(0.6, 0.6, 0.6), Vector3(2.0, 4.8, 0.5))
+			slots["kesha"] = Vector3(0.0, 0, 1.0)
+			slots["bench"] = Vector3(hx - 2.0, 0, hz - 1.6)
+		"nochlezhka":
+			_lining(w, d, "paint_green", "planks_old", door_x)
+			# нары в два яруса вдоль стен, печка, стол
+			for i in 4:
+				for side in [-1.0, 1.0]:
+					var x := -hx + 1.0 + i * 1.6
+					if x > door_x - 1.6 and x < door_x + 1.6 and side > 0:
+						continue
+					var z: float = side * (hz - 0.55)
+					box("planks_old", Vector3(1.4, 0.06, 0.8), Vector3(x, 0.45, z))
+					box("planks_old", Vector3(1.4, 0.06, 0.8), Vector3(x, 1.5, z))
+					box("cloth_sack", Vector3(1.2, 0.1, 0.7), Vector3(x, 0.53, z))
+					for c in [-0.65, 0.65]:
+						box("planks_old", Vector3(0.06, 1.6, 0.06), Vector3(x + c, 0.8, z + 0.35 * side))
+					solid(Vector3(1.4, 1.6, 0.8), Vector3(x, 0.8, z))
+			slots["bunk"] = Vector3(-hx + 1.0, 0, -hz + 1.3)
+			slots["bunk2"] = Vector3(-hx + 4.2, 0, -hz + 1.3)
+			_stove(hx - 1.2, -hz + 1.0)
+			_table(hx - 2.0, 1.0, "planks_old", 2)
+			slots["keeper"] = Vector3(hx - 2.0, 0, 1.7)
+			slots["t1"] = Vector3(hx - 2.0, 0, 0.3)
 		"storage":
 			_lining(w, d, "brick", "concrete", door_x)
 			for row in 3:

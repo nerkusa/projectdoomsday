@@ -942,10 +942,31 @@ func social_tests() -> void:
 	ok(calm.is_empty(), "после резни в Крестах никто мирно не ходит (мирных: %s, врагов: %d)" % [str(calm), hostile])
 
 
+## Перейти по улице в соседний район Нью-Рбы
+func nr_go(exit: String, to: String) -> void:
+	var it: Interactable = main.location.item(exit)
+	await tp(it.global_position + (Vector3(44, 0, 40) - it.global_position).normalized() * 2.5)
+	main.location.on_interact(it)
+	var t := 0.0
+	while (main._loading or main.location.location_id != to) and t < 20.0:
+		await frames(2)
+		t += 0.05
+	await frames(5)
+	ok(main.location.location_id == to, "перешёл: %s → %s" % [exit, to])
+
+
 ## Нью-Рба (Акт II): Проход — стена с воротами (створки открываются, когда подходишь днём),
 ## мусор (порыться раз в сутки), люк в коллектор и обратно, заходимые дома
 func nyurba_tests() -> void:
 	await close_dialogs()
+	# прошлые проверки могли оставить открытые окна — с ними герой «не ходит» (on_hero_moved молчит)
+	for w in [main.world_map, main.kpk, main.loot_win, main.trade_win, main.sheet, main.slides, main.menu, main.wait_scr]:
+		if w.visible:
+			print("  [нью-рба] было открыто окно: ", w.name)
+			w.visible = false
+	if main.plugging:
+		print("  [нью-рба] КПК ещё подключался")
+		main.plugging = false
 	Clock.set_hours(floorf(Clock.hours() / 24.0) * 24.0 + 12.0)
 	main.load_location("nyurba", "Road")
 	while main._loading:
@@ -958,6 +979,8 @@ func nyurba_tests() -> void:
 	await wait(2.4)
 	var lf: Node3D = loc.get_node("CityWall/GateLeafN")
 	ok(loc.gate_open and absf(lf.rotation.y) > 1.4, "подошёл днём — ворота распахнулись (%.2f)" % lf.rotation.y)
+	if not loc.gate_open:
+		print("  [ворота] час=%.1f busy=%s герой=%s ui=%s бой=%s" % [Clock.hour_of_day(), loc._gate_busy, main.player.global_position, main.ui_blocked(), main.combat.on])
 	ok(unreachable(loc, Vector3(3.5, 0, 40.0), func(nd): return String(nd.name) in ["Junk0", "Hatch", "ToCenter", "ToProm"]).is_empty(), "через ворота можно пройти к мусору, люку и выходам")
 	# мусор: порыться можно раз в сутки
 	var jk: Interactable = loc.item("Junk0")
@@ -990,6 +1013,37 @@ func nyurba_tests() -> void:
 		await frames(2)
 	await frames(5)
 	ok(main.location.location_id == "nyurba" and main.player.global_position.distance_to(Vector3(27.8, 0, 60.4)) < 2.0, "поднялся обратно во двор за баром")
+	# Центр, Чёрный район, Промрайон: переходы по улицам и ключевые лица
+	await nr_go("ToCenter", "nyurba_center")
+	var c: Node = main.location
+	ok(unreachable(c, c.spawn_point("FromProxod"), func(nd): return String(nd.name) in ["Artur", "Garik", "Apovich", "Croupier1", "Bouncer", "ToBlack", "Junk0"]).is_empty(),
+		"Центр: до президента, советника, казначея и казино можно дойти")
+	main.talk_to(c.character("Artur"))
+	await frames(2)
+	ok(main.dialog.visible and main.dialog.speaker == c.character("Artur"), "президент Артур заговорил")
+	await close_dialogs()
+	await nr_go("ToBlack", "nyurba_black")
+	var bl: Node = main.location
+	var bt: Character = bl.character("Bootur")
+	ok(bt != null and unreachable(bl, bl.spawn_point("FromCenter"), func(nd): return String(nd.name) in ["Bootur", "Fence", "ToProm", "Hatch"]).is_empty(),
+		"Чёрный район: до Боотура в рюмочной и до барахолки можно дойти")
+	main.talk_to(bt)
+	await frames(2)
+	await choose(find_opt("сожгли"))
+	await choose(find_opt("Кому"))
+	await close_dialogs()
+	ok(Game.flag("nr_bootur_met"), "Боотур признался: сдал Нахарро казначею")
+	await nr_go("ToProm", "nyurba_prom")
+	var pr: Node = main.location
+	ok(unreachable(pr, pr.spawn_point("FromBlack"), func(nd): return String(nd.name) in ["Kesha", "Cutters", "ToProxod"]).is_empty(), "Промрайон: до Кеши и резцов можно дойти")
+	main.talk_to(pr.character("Kesha"))
+	await frames(2)
+	await choose(find_opt("Что делаете"))
+	await choose(find_opt("Почему"))
+	await close_dialogs()
+	ok(Game.flag("nr_kesha_pal"), "Кеша: резцы крошатся — это паль")
+	await nr_go("ToProxod", "nyurba")
+	ok(main.location.location_id == "nyurba", "из Промрайона — обратно в Проход")
 	# ночью ворота закрыты
 	Clock.force_day = false
 	Clock.set_hours(floorf(Clock.hours() / 24.0) * 24.0 + 24.0 + 1.0)
@@ -1167,6 +1221,11 @@ func _ready() -> void:
 		Game.new_hero()
 		main.menu.visible = false
 		get_tree().paused = false
+		# как в полном прогоне: приходим из другой локации
+		main.load_location("kresty")
+		while main._loading:
+			await frames(1)
+		await frames(5)
 		await nyurba_tests()
 		print("=== ИТОГ: ошибок ", fails, " ===")
 		get_tree().quit(1 if fails else 0)

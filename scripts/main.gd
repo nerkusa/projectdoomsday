@@ -22,6 +22,9 @@ const LOCATIONS := {
 	"sungar_admin": "res://scenes/locations/sungar_admin.tscn",
 	"nyurba": "res://scenes/locations/nyurba.tscn",
 	"nyurba_sewer": "res://scenes/locations/nyurba_sewer.tscn",
+	"nyurba_center": "res://scenes/locations/nyurba_center.tscn",
+	"nyurba_prom": "res://scenes/locations/nyurba_prom.tscn",
+	"nyurba_black": "res://scenes/locations/nyurba_black.tscn",
 }
 const CAM_DIR := Vector3(1, 1, 1)
 ## Камера ортогональная: расстояние не меняет картинку, но от него зависит
