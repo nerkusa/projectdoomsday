@@ -144,7 +144,7 @@ Project Doomsday — 1–4
 - tower «Пост связи»: scenes/locations/radio_post.tscn → scripts/locations/radio_post.gd
 - sungar «Сунгар»: scenes/locations/sungar.tscn → scripts/locations/sungar.gd
 - markun «Мар-Кун»: — 
-- nyurba «Нью-Рба»: — 
+- nyurba «Нью-Рба»: scenes/locations/nyurba.tscn → scripts/locations/nyurba.gd
 - mirny «Мирный»: — 
 - mir «Промзона МИР»: — 
 - ges «Вилюйская ГЭС»: — 
@@ -311,6 +311,12 @@ Project Doomsday — 1–4
 Вторые этажи двухэтажных изб Нахарро. Светёлки лежат в одной сцене рядом
 `_ready:14` `room_at:19` `status_line:26` `uses_clock_light:30` `on_world_state_applied:34` `on_enter:39` `_show:44` `_allowed:65` `on_dialog_action:73` `on_interact:83` `_antenna:120` `item_actions:142` `describe:156` `can_leave_edge:180`
 
+### scripts/locations/nyurba.gd (35)
+Нью-Рба, Проход — вход в город и низы: ворота с охраной, Алмазный банк, ломбард,
+
+### scripts/locations/nyurba_district.gd (34) · class NyurbaDistrict
+Общее для районов Нью-Рбы: переходы между районами по улицам (To* → другая локация).
+
 ### scripts/locations/radio_post.gd (124)
 Пост связи наёмников на сопке — источник сигнала из модуля «Связь».
 
@@ -354,9 +360,9 @@ Project Doomsday — 1–4
 ### scripts/locations/zaimka.gd (140)
 Заимка охотника Дьаакыпа. Задание «Капканы»: на севере что-то ломает капканы —
 
-### scripts/main.gd (1552)
+### scripts/main.gd (1553)
 Главный узел игры: камера, загрузка локаций, ввод мышью, окна интерфейса.
-`_ready:81` `_on_level_up:108` `_build_ui:119` `space:192` `ui_blocked:196` `sfx:201` `think:226` `_on_menu:231` `_load_slot:259` `_on_sheet_closed:274` `_on_slides_done:285` `_unload:295` `load_location:313` `autosave:358` `quicksave:365` `show_game_over:374` `show_end:378` `status_text:384` `objective_text:390` `_on_hud_action:403` `open_kpk:448` `use_item:474` `_swap_hands:549` `_open_pause:561` `_move_speed:569` `_sneak_radius:580` `on_combat_start:589` `is_filler:605` `filler_bark:610` `talk_to:651` `say:676` `_on_dialog_action:686` `open_trade:725` `_on_dialog_closed:731` `start_fight:736` `_unhandled_input:757` `wait_time:819` `begin_cutscene:824` `end_cutscene:832` `_enemies_near:837` `open_wait:845` `wait_hours:855` `_pick:872` `_click:913` `_may_attack:956` `_near_edge:966` `_can_leave:971` `_walk_to_hex:983` `_walk_clear:1026` `_smooth_path:1041` `_go_then:1055` `_do_pending:1087` `interact:1115` `loot:1139` `_body_entries:1157` `open_loot:1178` `pickpocket:1199` `examine:1234` `_open_actions:1250` `_on_action_picked:1296` `_process:1315` `_update_xray:1381` `_set_alpha:1446` `_update_glow:1458` `_check_aggro:1466` `_look_around:1501` `_look_text:1523`
+`_ready:82` `_on_level_up:109` `_build_ui:120` `space:193` `ui_blocked:197` `sfx:202` `think:227` `_on_menu:232` `_load_slot:260` `_on_sheet_closed:275` `_on_slides_done:286` `_unload:296` `load_location:314` `autosave:359` `quicksave:366` `show_game_over:375` `show_end:379` `status_text:385` `objective_text:391` `_on_hud_action:404` `open_kpk:449` `use_item:475` `_swap_hands:550` `_open_pause:562` `_move_speed:570` `_sneak_radius:581` `on_combat_start:590` `is_filler:606` `filler_bark:611` `talk_to:652` `say:677` `_on_dialog_action:687` `open_trade:726` `_on_dialog_closed:732` `start_fight:737` `_unhandled_input:758` `wait_time:820` `begin_cutscene:825` `end_cutscene:833` `_enemies_near:838` `open_wait:846` `wait_hours:856` `_pick:873` `_click:914` `_may_attack:957` `_near_edge:967` `_can_leave:972` `_walk_to_hex:984` `_walk_clear:1027` `_smooth_path:1042` `_go_then:1056` `_do_pending:1088` `interact:1116` `loot:1140` `_body_entries:1158` `open_loot:1179` `pickpocket:1200` `examine:1235` `_open_actions:1251` `_on_action_picked:1297` `_process:1316` `_update_xray:1382` `_set_alpha:1447` `_update_glow:1459` `_check_aggro:1467` `_look_around:1502` `_look_text:1524`
 
 ### scripts/ui/char_sheet.gd (376) · class CharSheet
 «Дело» — лист персонажа. Новая игра начинается с выбора одного из четырёх готовых
@@ -459,9 +465,9 @@ Project Doomsday — 1–4
 Генератор локаций первого акта: Кресты (живое поселение у реки) и
 `_build:17` `_begin:40` `_finish:59` `_water_mats:71` `_river_plane:83` `_slot_of:99` `_homely:105` `_ground_for:124` `_paint:160` `_woods:190` `_blocked:228` `_free2:239` `_boxes_of:248` `_dress:272` `_cross:307` `_mound:324` `_net_rack:331` `_tent:351` `_lean_to:366` `_boat:381` `_exit:390` `_use:401` `_spawn:412` `_kresty:427` `_camp:637` `_encounter:713` `_spawn_mark:722` `_zaimka:734` `_truck:824` `_convoy:846` `_block:884` `_ruin:901` `_bunker_portal:991` `_radio_post:1053` `_dark_env:1186` `_lamp:1204` `_room_walls:1219` `_floor:1258` `_cellar:1263` `_glow:1321` `_upper:1330` `_bunker:1479` `_bunker_mats:1565` `_bk_panels:1592` `_hazard:1624` `_collapse:1636` `_bk_shaft:1651` `_bk_gate:1666` `_bk_corridor:1708` `_console:1741` `_reel_unit:1764` `_bk_control:1776` `_bk_barracks:1825` `_bk_generator:1856` `_bk_archive:1877` `_river_south:1904` `_stall:1914` `_signboard:1934` `_lamp_post:1954` `_laundry:1968`
 
-### tools/build_city.gd (1230)
+### tools/build_city.gd (1449)
 Каменный Сунгар (бывший посёлок городского типа): дома в 2–4 этажа из штукатурки
-`_ready:18` `_city_materials:81` `_glow_mat:146` `swin:161` `balcony:202` `entry:237` `open_door:252` `roof:262` `stone_block:297` `_wkind:396` `_wear:415` `_shop_window:473` `_portico:485` `_shell:501` `_lining:525` `stair_flight:540` `partition_z:554` `_table:566` `_bed:583` `_wardrobe:594` `_counter:600` `_shelf_goods:606` `_stove:620` `_rug:626` `_plant:630` `_interior:638` `heat_pipes:826` `boiler_house:864` `water_tower:890` `garages:903` `kiosk:918` `bus_stop:934` `conc_fence:954` `paz_wreck:965` `bins:982` `furniture:994` `_stair_piece:1058` `_crt:1071` `cassette_props:1080` `ruin_props:1166`
+`_ready:18` `_city_materials:100` `_glow_mat:167` `swin:182` `balcony:223` `entry:258` `open_door:273` `roof:283` `stone_block:318` `sandrik:445` `arch_win:458` `_stalin_decor:490` `_labaz_decor:533` `_balustrade:562` `_spire:579` `_wkind:595` `_wear:614` `_shop_window:672` `_portico:684` `_shell:700` `_lining:724` `stair_flight:739` `partition_z:753` `_table:765` `_bed:782` `_wardrobe:793` `_counter:799` `_shelf_goods:805` `_stove:819` `_rug:825` `_plant:829` `_interior:837` `heat_pipes:1045` `boiler_house:1083` `water_tower:1109` `garages:1122` `kiosk:1137` `bus_stop:1153` `conc_fence:1173` `paz_wreck:1184` `bins:1201` `furniture:1213` `_stair_piece:1277` `_crt:1290` `cassette_props:1299` `ruin_props:1385`
 
 ### tools/build_hero_skin.gd (78)
 Собирает сетку героя с новой развёрткой из assets/models/hero_skin_mesh.bin
@@ -469,6 +475,10 @@ Project Doomsday — 1–4
 ### tools/build_nakharro.gd (1209)
 Генератор большой деревни Нахарро (по референсу «Нахарра», ~40 человек):
 `_ready:43` `_build:63` `_env:93` `_ground:134` `strip:186` `_ground_material:195` `_paint_splat:212` `_sd_rect:246` `_seg_dist:254` `_ring_dist:261` `_ditch_h:268` `_village:282` `_forest:368` `_forest_edge:421` `_raid:449` `_characters:467` `_seat:579` `_items:586` `_fence_mend:663` `_clear_overlaps:680` `_is_plant:748` `_inside:755` `_pal:764` `_moat:772` `_ditch_mesh:827` `_bridge:853` `_multi:870` `_xf:884` `_free_spot:888` `_details:897` `_building_boxes:987` `_tutorial_extras:1015` `_sacred_tree:1055` `_village_life:1129`
+
+### tools/build_nyurba.gd (260)
+Нью-Рба — большой алмазный город на месте Нюрбы (Акт II). Город квадратный,
+`_build:16` `_finish:35` `_wall:45` `_walk:62` `_proxod:70`
 
 ### tools/build_props.gd (1531)
 Генератор построек и растительности в стиле референса «Нахарра».
@@ -516,7 +526,7 @@ Project Doomsday — 1–4
 ## Данные (data/)
 
 - data/barks.json (686 строк)
-- data/characters.json (130 строк)
+- data/characters.json (138 строк)
 - data/dialogs/camp_boss.json (385 строк)
 - data/dialogs/camp_nyurgun.json (194 строк)
 - data/dialogs/camp_rumors.json (127 строк)

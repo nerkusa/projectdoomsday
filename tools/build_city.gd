@@ -56,9 +56,28 @@ func _ready() -> void:
 		"st_police": {"w": 12.0, "d": 8.0, "floors": 2, "mat": "plaster_blue", "enter": "police", "roof": "flat", "bars": true, "flag": true},
 		# администрация посёлка: приёмная, паспортный стол, лестница наверх (кабинеты, ЭВМ)
 		"st_admin": {"w": 16.0, "d": 10.0, "floors": 3, "mat": "plaster_white", "enter": "admin", "roof": "flat", "flag": true, "fh": 3.2},
+		# ---- Нью-Рба: старый алмазный город ----
+		# сталинки: рустованный низ, пилястры, сандрики над окнами, тяжёлый карниз
+		"nr_stalin3": {"w": 18.0, "d": 10.0, "floors": 3, "mat": "plaster_ochre", "roof": "pitch", "stalin": true, "balconies": true, "entries": [-4.4, 4.4], "fh": 3.3},
+		"nr_stalin4": {"w": 20.0, "d": 11.0, "floors": 4, "mat": "plaster_pink", "roof": "flat", "stalin": true, "balustrade": true, "balconies": true, "entries": [-5.0, 5.0], "fh": 3.3},
+		"nr_stalin4b": {"w": 16.0, "d": 11.0, "floors": 4, "mat": "plaster_cream", "roof": "pitch", "stalin": true, "balconies": true, "entries": [0.0], "fh": 3.3},
+		# угловая сталинка со шпилем — на перекрёстке, видна отовсюду
+		"nr_stalin_spire": {"w": 18.0, "d": 12.0, "floors": 4, "mat": "plaster_ochre", "roof": "flat", "stalin": true, "balustrade": true, "spire": true, "entries": [-5.0, 5.0], "fh": 3.3},
+		# банк в сталинке: операционный зал с решёткой и сейфом
+		"nr_bank": {"w": 16.0, "d": 10.0, "floors": 3, "mat": "plaster_cream", "enter": "bank", "roof": "flat", "stalin": true, "balustrade": true, "fh": 3.5},
+		# гостиница-сталинка
+		"nr_hotel": {"w": 18.0, "d": 10.0, "floors": 4, "mat": "plaster_pink", "enter": "lobby", "roof": "pitch", "stalin": true, "balconies": true, "fh": 3.3},
+		# лабазы: кирпич, арочные окна, кованые ставни, ступенчатый карниз
+		"nr_labaz": {"w": 14.0, "d": 9.0, "floors": 1, "mat": "brick", "enter": "shop", "roof": "pitch", "labaz": true, "fh": 3.8},
+		"nr_labaz_bar": {"w": 14.0, "d": 9.0, "floors": 2, "mat": "brick", "enter": "bar", "roof": "pitch", "labaz": true, "fh": 3.5},
+		"nr_labaz_pawn": {"w": 10.0, "d": 8.0, "floors": 2, "mat": "brick_white", "enter": "shop", "roof": "pitch", "labaz": true, "bars": true, "fh": 3.4},
+		"nr_labaz_row": {"w": 16.0, "d": 8.0, "floors": 1, "mat": "brick", "roof": "pitch", "labaz": true, "entries": [-5.0, 0.0, 5.0], "fh": 3.8},
+		"nr_labaz_row2": {"w": 12.0, "d": 8.0, "floors": 2, "mat": "brick_white", "roof": "pitch", "labaz": true, "entries": [-2.5, 2.5], "fh": 3.4},
+		# склад: длинный, с воротами
+		"nr_warehouse": {"w": 22.0, "d": 11.0, "floors": 1, "mat": "brick", "roof": "pitch", "labaz": true, "gates": [-5.0, 5.0], "entries": [], "fh": 5.0},
 	}
 	for n in houses:
-		if only == "" or n == only:
+		if only == "" or n == only or (only.ends_with("*") and n.begins_with(only.trim_suffix("*"))):
 			stone_block(n, houses[n])
 	if only == "" or only == "misc":
 		heat_pipes()
@@ -84,6 +103,8 @@ func _city_materials() -> void:
 	_tex_mat("plaster_blue", "plaster", 0.3, 0.95, 0.0, Color("9eafb6"))
 	_tex_mat("plaster_white", "plaster", 0.3, 0.95, 0.0, Color("d6d2c6"))
 	_tex_mat("plaster_green", "plaster", 0.3, 0.95, 0.0, Color("a9b88e"))
+	_tex_mat("plaster_ochre", "plaster", 0.3, 0.95, 0.0, Color("c9a064"))
+	_tex_mat("plaster_cream", "plaster", 0.3, 0.95, 0.0, Color("e2d3b0"))
 	_tex_mat("brick", "brick", 0.32, 0.95)
 	_tex_mat("brick_white", "brick", 0.32, 0.95, 0.0, Color("e0d8c8"))
 	_tex_mat("concrete", "concrete", 0.25, 0.95)
@@ -358,8 +379,18 @@ func stone_block(n: String, o: Dictionary) -> void:
 			for ex in ent_x:
 				if absf(x - float(ex)) < 1.5:
 					near_door = true
+			var gate := false
+			for gx in o.get("gates", []):
+				if absf(x - float(gx)) < 2.2:
+					gate = true
+			if gate:
+				pass
+			elif o.get("labaz", false):
+				# лабаз: арочные окна с белой обводкой, внизу — кованые ставни
+				if not (f == 0 and near_door):
+					arch_win(Vector3(x, y, hz + 0.01), 0.0, f == 0, o.get("bars", false))
 			# фасад (+Z)
-			if f == 0:
+			elif f == 0:
 				if near_door:
 					pass
 				elif o.get("shopfront", false):
@@ -371,18 +402,34 @@ func stone_block(n: String, o: Dictionary) -> void:
 				swin(Vector3(x, y - fh * 0.5 + 0.1, hz + 0.01), 0.0, _wkind())
 			else:
 				swin(Vector3(x, y, hz + 0.01), 0.0, _wkind())
+				if o.get("stalin", false):
+					sandrik(Vector3(x, y, hz + 0.01), 0.0, f == 1)
 				if o.get("balconies", false) and f >= 1 and (i + f + bal_row) % 3 == 0:
 					balcony(Vector3(x, base + f * fh, hz + 0.01), 0.0, (i + f) % 3)
 			# двор (-Z)
-			swin(Vector3(x, y, -hz - 0.01), PI, "bars" if f == 0 and o.get("bars", false) else _wkind())
+			if o.get("labaz", false):
+				arch_win(Vector3(x, y, -hz - 0.01), PI, f == 0, true)
+			else:
+				swin(Vector3(x, y, -hz - 0.01), PI, "bars" if f == 0 and o.get("bars", false) else _wkind())
 		# торцы
 		for sx in [-1, 1]:
 			if d > 7.5:
-				swin(Vector3(sx * (hx + 0.01), y, 0), sx * PI / 2.0, _wkind())
+				if o.get("labaz", false):
+					arch_win(Vector3(sx * (hx + 0.01), y, 0), sx * PI / 2.0, f == 0, true)
+				else:
+					swin(Vector3(sx * (hx + 0.01), y, 0), sx * PI / 2.0, _wkind())
 	if o.get("portico", false):
 		_portico(w, d, top, base)
+	if o.get("stalin", false):
+		_stalin_decor(w, d, top, base, floors, fh, bays, step, ent_x, o)
+	if o.get("labaz", false):
+		_labaz_decor(w, d, top, base, floors, fh, bays, step, o)
 	_wear(n, w, d, top, base, mat, enter, o.get("roof", "flat"))
 	roof(w, d, top, o.get("roof", "flat"))
+	if o.get("balustrade", false):
+		_balustrade(w, d, top)
+	if o.get("spire", false):
+		_spire(w, d, top)
 	if o.get("flag", false):
 		cyl("metal_dark", 0.05, 0.05, 4.0, Vector3(hx - 1.0, top + 2.0, hz - 1.0), Vector3.ZERO, 6)
 		box("flag_red", Vector3(1.4, 0.8, 0.03), Vector3(hx - 0.25, top + 3.5, hz - 1.0))
@@ -391,6 +438,158 @@ func stone_block(n: String, o: Dictionary) -> void:
 		cyl("tin", 0.08, 0.08, top - 0.3, Vector3(sx * (hx - 0.1), (top - 0.3) / 2.0, hz + 0.12), Vector3.ZERO, 6)
 	box("metal_dark", Vector3(0.6, 0.8, 0.2), Vector3(-hx + 1.6, 1.4 + base, -hz - 0.1))
 	finish(n, n.to_pascal_case())
+
+
+# ---------------- Нью-Рба: сталинки и лабазы ----------------
+## Над окном сталинки: на втором этаже — треугольный фронтон, выше — прямой карниз
+func sandrik(pos: Vector3, yaw: float, pediment: bool) -> void:
+	var b := Basis.from_euler(Vector3(0, yaw, 0))
+	var r := Vector3(0, yaw, 0)
+	box("plaster_white", Vector3(1.5, 0.1, 0.16), pos + b * Vector3(0, 0.86, 0.08), r)
+	if pediment:
+		prism("plaster_white", Vector3(1.5, 0.34, 0.12), pos + b * Vector3(0, 1.08, 0.07), r)
+	# наличник
+	for sx in [-1, 1]:
+		box("plaster_white", Vector3(0.1, 1.56, 0.06), pos + b * Vector3(sx * 0.68, 0, 0.04), r)
+
+
+## Арочное окно лабаза: стекло с полукруглым верхом, белая кирпичная обводка;
+## на первом этаже — кованые ставни (то закрыты, то распахнуты)
+func arch_win(pos: Vector3, yaw: float, ground: bool, bars: bool) -> void:
+	var b := Basis.from_euler(Vector3(0, yaw, 0))
+	var r := Vector3(0, yaw, 0)
+	var arch := r + Vector3(PI / 2.0, 0, 0)
+	box("brick_white", Vector3(1.5, 1.5, 0.04), pos + b * Vector3(0, -0.15, 0.01), r)
+	cyl("brick_white", 0.75, 0.75, 0.04, pos + b * Vector3(0, 0.6, 0.01), arch, 14)
+	var lit := _rng.randf() < 0.18
+	box("window_lit" if lit else "glass_city", Vector3(1.1, 1.3, 0.04), pos + b * Vector3(0, -0.2, 0.04), r)
+	cyl("window_lit" if lit else "glass_city", 0.55, 0.55, 0.04, pos + b * Vector3(0, 0.45, 0.04), arch, 14)
+	box("frame_white", Vector3(0.05, 1.8, 0.06), pos + b * Vector3(0, 0.05, 0.06), r)
+	box("frame_white", Vector3(1.1, 0.05, 0.06), pos + b * Vector3(0, 0.3, 0.06), r)
+	box("concrete", Vector3(1.6, 0.08, 0.24), pos + b * Vector3(0, -0.9, 0.09), r)
+	# замковый камень
+	box("stone_wall", Vector3(0.22, 0.3, 0.08), pos + b * Vector3(0, 1.08, 0.04), r)
+	if bars:
+		for i in 5:
+			box("metal_dark", Vector3(0.03, 1.5, 0.03), pos + b * Vector3(-0.44 + i * 0.22, 0.0, 0.1), r)
+	if ground:
+		if _rng.randf() < 0.4:
+			# закрыто: две створки во всё окно, с поперечными полосами
+			box("rust", Vector3(1.2, 1.4, 0.05), pos + b * Vector3(0, -0.2, 0.1), r)
+			for yy in [-0.6, 0.0, 0.4]:
+				box("metal_dark", Vector3(1.24, 0.06, 0.04), pos + b * Vector3(0, yy, 0.14), r)
+			box("metal_dark", Vector3(0.04, 1.4, 0.04), pos + b * Vector3(0, -0.2, 0.14), r)
+		else:
+			# распахнуты к стене
+			for sx in [-1, 1]:
+				box("rust", Vector3(0.6, 1.4, 0.05), pos + b * Vector3(sx * 1.08, -0.2, 0.06), r)
+
+
+## Сталинка: рустованный первый этаж, пилястры между пролётами, карниз с сухариками,
+## порталы подъездов
+func _stalin_decor(w: float, d: float, top: float, base: float, floors: int, fh: float, bays: int, step: float, ent_x: Array, o: Dictionary) -> void:
+	var hx := w / 2.0
+	var hz := d / 2.0
+	# руст: облицовка первого этажа и швы
+	for face in [1.0, -1.0]:
+		box("stone_wall", Vector3(w + 0.06, fh - 0.2, 0.02), Vector3(0, base + (fh - 0.2) / 2.0, face * (hz + 0.01)))
+		var yy := base + 0.55
+		while yy < base + fh - 0.3:
+			box("concrete", Vector3(w + 0.08, 0.04, 0.012), Vector3(0, yy, face * (hz + 0.026)))
+			yy += 0.55
+		box("concrete", Vector3(w + 0.2, 0.22, 0.2), Vector3(0, base + fh - 0.1, face * (hz + 0.08)))
+	for sx in [-1.0, 1.0]:
+		box("stone_wall", Vector3(0.02, fh - 0.2, d + 0.06), Vector3(sx * (hx + 0.01), base + (fh - 0.2) / 2.0, 0))
+	# пилястры между пролётами (со второго этажа до карниза) и по углам
+	var ph := top - base - fh - 0.2
+	var xs := [-hx + 0.15, hx - 0.15]
+	for i in bays - 1:
+		xs.append(-hx + 0.8 + (i + 0.5) * step)
+	for x in xs:
+		var nearent := false
+		for ex in ent_x:
+			if absf(float(x) - float(ex)) < 1.0:
+				nearent = true
+		if nearent:
+			continue
+		box("plaster_white", Vector3(0.36, ph, 0.12), Vector3(x, base + fh + ph / 2.0, hz + 0.06))
+		box("plaster_white", Vector3(0.52, 0.18, 0.2), Vector3(x, top - 0.45, hz + 0.1))
+	# карниз с сухариками
+	box("plaster_white", Vector3(w + 0.7, 0.3, d + 0.7), Vector3(0, top - 0.05, 0))
+	box("plaster_white", Vector3(w + 0.4, 0.14, d + 0.4), Vector3(0, top - 0.28, 0))
+	var k := -hx
+	while k < hx:
+		box("plaster_white", Vector3(0.14, 0.14, 0.14), Vector3(k, top - 0.42, hz + 0.18))
+		k += 0.45
+	# порталы подъездов: полуколонны и полукруглая арка
+	for ex in ent_x:
+		for sx in [-1, 1]:
+			cyl("plaster_white", 0.17, 0.19, 2.7, Vector3(float(ex) + sx * 1.15, base + 1.35, hz + 0.22), Vector3.ZERO, 10)
+		box("plaster_white", Vector3(2.8, 0.3, 0.4), Vector3(float(ex), base + 2.85, hz + 0.2))
+		prism("plaster_white", Vector3(2.8, 0.55, 0.16), Vector3(float(ex), base + 3.27, hz + 0.18))
+
+
+## Лабаз: лопатки между окнами, ступенчатый кирпичный карниз, цоколь из бута
+func _labaz_decor(w: float, d: float, top: float, base: float, floors: int, fh: float, bays: int, step: float, o: Dictionary) -> void:
+	var hx := w / 2.0
+	var hz := d / 2.0
+	for face in [1.0, -1.0]:
+		box("stone_wall", Vector3(w + 0.1, 0.7, 0.05), Vector3(0, 0.35, face * (hz + 0.02)))
+		for i in 3:
+			box("brick_white" if i == 1 else "brick", Vector3(w + 0.2 + i * 0.16, 0.18, 0.08 + i * 0.08), Vector3(0, top - 0.5 + i * 0.18, face * (hz + 0.04 + i * 0.04)))
+		for fl in range(1, floors):
+			box("brick_white", Vector3(w + 0.1, 0.16, 0.08), Vector3(0, base + fl * fh, face * (hz + 0.04)))
+	for sx in [-1.0, 1.0]:
+		box("stone_wall", Vector3(0.05, 0.7, d + 0.1), Vector3(sx * (hx + 0.02), 0.35, 0))
+		box("brick_white", Vector3(0.5, top - 0.7, 0.1), Vector3(sx * (hx - 0.25), 0.7 + (top - 0.7) / 2.0, hz + 0.05))
+	for i in bays - 1:
+		var x := -hx + 0.8 + (i + 0.5) * step
+		box("brick_white", Vector3(0.3, top - 1.2, 0.07), Vector3(x, 0.7 + (top - 1.2) / 2.0, hz + 0.04))
+	# ворота склада: арка, железные створки, засов
+	for gx in o.get("gates", []):
+		var g := float(gx)
+		box("brick_white", Vector3(3.6, 3.6, 0.06), Vector3(g, 1.8, hz + 0.02))
+		cyl("brick_white", 1.8, 1.8, 0.06, Vector3(g, 3.6, hz + 0.02), Vector3(PI / 2.0, 0, 0), 16)
+		box("rust", Vector3(3.0, 3.4, 0.1), Vector3(g, 1.7, hz + 0.08))
+		cyl("rust", 1.5, 1.5, 0.1, Vector3(g, 3.4, hz + 0.08), Vector3(PI / 2.0, 0, 0), 16)
+		box("metal_dark", Vector3(0.05, 4.4, 0.06), Vector3(g, 2.2, hz + 0.15))
+		for yy in [0.8, 2.6]:
+			box("metal_dark", Vector3(3.0, 0.1, 0.06), Vector3(g, yy, hz + 0.15))
+		box("metal_dark", Vector3(0.9, 0.12, 0.1), Vector3(g + 0.3, 1.5, hz + 0.2))
+
+
+## Балюстрада по краю плоской крыши: тумбы и балясины
+func _balustrade(w: float, d: float, top: float) -> void:
+	var hx := w / 2.0
+	var hz := d / 2.0
+	for face in [1.0, -1.0]:
+		box("plaster_white", Vector3(w + 0.3, 0.12, 0.3), Vector3(0, top + 0.9, face * (hz - 0.05)))
+		var x := -hx + 0.3
+		var i := 0
+		while x < hx - 0.2:
+			if i % 8 == 0:
+				box("plaster_white", Vector3(0.36, 0.9, 0.36), Vector3(x, top + 0.45, face * (hz - 0.05)))
+			else:
+				cyl("plaster_white", 0.06, 0.09, 0.75, Vector3(x, top + 0.45, face * (hz - 0.05)), Vector3.ZERO, 6)
+			x += 0.32
+			i += 1
+
+
+## Башенка со шпилем и звездой посреди фасада
+func _spire(w: float, d: float, top: float) -> void:
+	var z := d / 2.0 - 2.0
+	box("plaster_ochre", Vector3(4.0, 3.2, 4.0), Vector3(0, top + 1.6, z))
+	box("plaster_white", Vector3(4.4, 0.3, 4.4), Vector3(0, top + 3.3, z))
+	for sx in [-1, 1]:
+		box("glass_city", Vector3(0.9, 1.8, 0.05), Vector3(sx * 1.0, top + 1.7, z + 2.02))
+	box("plaster_ochre", Vector3(2.6, 2.2, 2.6), Vector3(0, top + 4.5, z))
+	box("plaster_white", Vector3(2.9, 0.22, 2.9), Vector3(0, top + 5.65, z))
+	cyl("brass", 0.04, 1.2, 4.2, Vector3(0, top + 7.8, z), Vector3.ZERO, 8)
+	box("flag_red", Vector3(0.5, 0.5, 0.08), Vector3(0, top + 10.1, z), Vector3(0, 0, PI / 4.0))
+	# часы
+	cyl("paint_white", 0.7, 0.7, 0.06, Vector3(0, top + 4.6, z + 1.32), Vector3(PI / 2.0, 0, 0), 16)
+	box("metal_dark", Vector3(0.06, 0.5, 0.04), Vector3(0, top + 4.75, z + 1.36))
+	box("metal_dark", Vector3(0.35, 0.06, 0.04), Vector3(0.15, top + 4.6, z + 1.36))
 
 
 func _wkind() -> String:
@@ -693,6 +892,26 @@ func _interior(kind: String, w: float, d: float, door_x: float) -> void:
 			slots["t3"] = Vector3(hx - 1.4, 0, 1.6)
 			_stove(1.2, hz - 0.8)
 			_rug(-0.4, 0.4, 1.6, 2.4, "cloth_sack")
+		"bank":
+			# операционный зал: стойка с решёткой до потолка, за ней — кассир и сейф
+			_lining(w, d, "plaster_cream", "tiles", door_x)
+			var cz := -hz + 2.4
+			_counter(0, cz, w - 4.0, "planks_old")
+			for i in int((w - 4.0) / 0.3):
+				box("brass", Vector3(0.03, 1.2, 0.03), Vector3(-(w - 4.0) / 2.0 + i * 0.3, 1.6, cz))
+			box("brass", Vector3(w - 4.0, 0.05, 0.05), Vector3(0, 2.2, cz))
+			box("metal_dark", Vector3(2.2, 2.4, 0.5), Vector3(hx - 1.6, 1.2, -hz + 0.3))
+			cyl("brass", 0.35, 0.35, 0.1, Vector3(hx - 1.6, 1.2, -hz + 0.58), Vector3(PI / 2.0, 0, 0), 12)
+			solid(Vector3(2.2, 2.4, 0.6), Vector3(hx - 1.6, 1.2, -hz + 0.3))
+			slots["teller"] = Vector3(-1.5, 0, cz - 0.8)
+			slots["teller2"] = Vector3(1.5, 0, cz - 0.8)
+			slots["guard"] = Vector3(hx - 1.0, 0, hz - 1.2)
+			slots["client"] = Vector3(-1.5, 0, cz + 0.9)
+			for cx in [-hx + 1.0, -hx + 2.2]:
+				box("sofa", Vector3(0.9, 0.45, 0.6), Vector3(cx, 0.23, hz - 0.8))
+			_plant(-hx + 0.4, -hz + 0.4)
+			_plant(hx - 0.4, hz - 0.4)
+			_rug(0, 0.8, 3.2, 1.8)
 		"canteen":
 			_lining(w, d, "paint_green", "tiles", door_x)
 			_counter(0, -hz + 1.4, w - 3.0, "enamel")

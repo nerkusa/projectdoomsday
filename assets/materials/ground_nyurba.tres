@@ -1,0 +1,29 @@
+[gd_resource type="ShaderMaterial" format=3]
+
+[ext_resource type="Shader" path="res://assets/shaders/ground_blend.gdshader" id="1_siiov"]
+[ext_resource type="Texture2D" path="res://assets/textures/dirt_road_n.png" id="2_mnbvc"]
+[ext_resource type="Texture2D" path="res://assets/textures/dirt_road.png" id="3_hhbd6"]
+[ext_resource type="Texture2D" path="res://assets/textures/grass_dark_n.png" id="4_lk31y"]
+[ext_resource type="Texture2D" path="res://assets/textures/grass_dark.png" id="5_qs46p"]
+[ext_resource type="Texture2D" path="res://assets/textures/meadow_n.png" id="6_w3vrn"]
+[ext_resource type="Texture2D" path="res://assets/textures/meadow.png" id="7_h26st"]
+[ext_resource type="Texture2D" path="res://assets/textures/mud_n.png" id="8_vw53g"]
+[ext_resource type="Texture2D" path="res://assets/textures/mud.png" id="9_iysus"]
+[ext_resource type="Texture2D" path="res://assets/textures/nyurba_splat.res" id="10_sylwv"]
+
+[resource]
+render_priority = 0
+shader = ExtResource("1_siiov")
+shader_parameter/grass_tex = ExtResource("5_qs46p")
+shader_parameter/grass_n = ExtResource("4_lk31y")
+shader_parameter/meadow_tex = ExtResource("7_h26st")
+shader_parameter/meadow_n = ExtResource("6_w3vrn")
+shader_parameter/dirt_tex = ExtResource("3_hhbd6")
+shader_parameter/dirt_n = ExtResource("2_mnbvc")
+shader_parameter/mud_tex = ExtResource("9_iysus")
+shader_parameter/mud_n = ExtResource("8_vw53g")
+shader_parameter/splat = ExtResource("10_sylwv")
+shader_parameter/splat_rect = Vector4(-24, -24, 132, 132)
+shader_parameter/meadow_tint = null
+shader_parameter/mud_tint = null
+shader_parameter/slope_mud = null

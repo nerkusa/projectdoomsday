@@ -20,6 +20,7 @@ const LOCATIONS := {
 	"sungar_dom": "res://scenes/locations/sungar_dom.tscn",
 	"sungar_obshaga": "res://scenes/locations/sungar_obshaga.tscn",
 	"sungar_admin": "res://scenes/locations/sungar_admin.tscn",
+	"nyurba": "res://scenes/locations/nyurba.tscn",
 }
 const CAM_DIR := Vector3(1, 1, 1)
 ## Камера ортогональная: расстояние не меняет картинку, но от него зависит
@@ -620,7 +621,7 @@ func filler_bark(ch: Character) -> void:
 		text = str(nl[randi() % nl.size()])
 	else:
 		# слух: сперва важные (once), иначе иногда — случайный, если не сторонятся
-		var rkey := "sungar" if lid.begins_with("sungar") else lid
+		var rkey := lid.get_slice("_", 0) if lid.begins_with("sungar") or lid.begins_with("nyurba") else lid
 		var rumors: Array = b.get("rumors", {}).get(rkey, [])
 		var pick = null
 		for r in rumors:

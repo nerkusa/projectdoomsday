@@ -1,0 +1,98 @@
+[gd_scene format=3]
+
+[ext_resource type="Material" path="res://assets/materials/brick.tres" id="1_x5c62"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/nr_warehouse_brick.res" id="2_3vr3t"]
+[ext_resource type="Material" path="res://assets/materials/concrete.tres" id="3_1wqnp"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/nr_warehouse_concrete.res" id="4_udoin"]
+[ext_resource type="Material" path="res://assets/materials/brick_white.tres" id="5_rf4xv"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/nr_warehouse_brick_white.res" id="6_5nxcj"]
+[ext_resource type="Material" path="res://assets/materials/glass_city.tres" id="7_5pjsx"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/nr_warehouse_glass_city.res" id="8_h17xf"]
+[ext_resource type="Material" path="res://assets/materials/frame_white.tres" id="9_xt15k"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/nr_warehouse_frame_white.res" id="10_cem75"]
+[ext_resource type="Material" path="res://assets/materials/stone_wall.tres" id="11_g2af0"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/nr_warehouse_stone_wall.res" id="12_po0x1"]
+[ext_resource type="Material" path="res://assets/materials/rust.tres" id="13_m6eyt"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/nr_warehouse_rust.res" id="14_p4nxp"]
+[ext_resource type="Material" path="res://assets/materials/metal_dark.tres" id="15_s1l8f"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/nr_warehouse_metal_dark.res" id="16_d81b2"]
+[ext_resource type="Material" path="res://assets/materials/window_lit.tres" id="17_sncr8"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/nr_warehouse_window_lit.res" id="18_d01wh"]
+[ext_resource type="Material" path="res://assets/materials/tar.tres" id="19_nxd5m"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/nr_warehouse_tar.res" id="20_dwbop"]
+[ext_resource type="Material" path="res://assets/materials/soot_city.tres" id="21_v756w"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/nr_warehouse_soot_city.res" id="22_hu131"]
+[ext_resource type="Material" path="res://assets/materials/metal_roof.tres" id="23_e40on"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/nr_warehouse_metal_roof.res" id="24_3giyo"]
+[ext_resource type="Material" path="res://assets/materials/planks_old.tres" id="25_o0bc3"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/nr_warehouse_planks_old.res" id="26_x7a4t"]
+[ext_resource type="Material" path="res://assets/materials/tin.tres" id="27_lfssr"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/nr_warehouse_tin.res" id="28_jntsx"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_3h7cx"]
+size = Vector3(22.2, 3, 11.2)
+
+[node name="NrWarehouse" type="Node3D" unique_id=515990163]
+
+[node name="Mesh_brick" type="MeshInstance3D" parent="." unique_id=1654326868]
+material_override = ExtResource("1_x5c62")
+mesh = ExtResource("2_3vr3t")
+
+[node name="Mesh_concrete" type="MeshInstance3D" parent="." unique_id=34713149]
+material_override = ExtResource("3_1wqnp")
+mesh = ExtResource("4_udoin")
+
+[node name="Mesh_brick_white" type="MeshInstance3D" parent="." unique_id=1408930303]
+material_override = ExtResource("5_rf4xv")
+mesh = ExtResource("6_5nxcj")
+
+[node name="Mesh_glass_city" type="MeshInstance3D" parent="." unique_id=1413663915]
+material_override = ExtResource("7_5pjsx")
+mesh = ExtResource("8_h17xf")
+
+[node name="Mesh_frame_white" type="MeshInstance3D" parent="." unique_id=526805996]
+material_override = ExtResource("9_xt15k")
+mesh = ExtResource("10_cem75")
+
+[node name="Mesh_stone_wall" type="MeshInstance3D" parent="." unique_id=755658329]
+material_override = ExtResource("11_g2af0")
+mesh = ExtResource("12_po0x1")
+
+[node name="Mesh_rust" type="MeshInstance3D" parent="." unique_id=601649001]
+material_override = ExtResource("13_m6eyt")
+mesh = ExtResource("14_p4nxp")
+
+[node name="Mesh_metal_dark" type="MeshInstance3D" parent="." unique_id=620957741]
+material_override = ExtResource("15_s1l8f")
+mesh = ExtResource("16_d81b2")
+
+[node name="Mesh_window_lit" type="MeshInstance3D" parent="." unique_id=1402490080]
+material_override = ExtResource("17_sncr8")
+mesh = ExtResource("18_d01wh")
+
+[node name="Mesh_tar" type="MeshInstance3D" parent="." unique_id=204805113]
+material_override = ExtResource("19_nxd5m")
+mesh = ExtResource("20_dwbop")
+
+[node name="Mesh_soot_city" type="MeshInstance3D" parent="." unique_id=50691615]
+material_override = ExtResource("21_v756w")
+mesh = ExtResource("22_hu131")
+
+[node name="Mesh_metal_roof" type="MeshInstance3D" parent="." unique_id=500623631]
+material_override = ExtResource("23_e40on")
+mesh = ExtResource("24_3giyo")
+
+[node name="Mesh_planks_old" type="MeshInstance3D" parent="." unique_id=642687149]
+material_override = ExtResource("25_o0bc3")
+mesh = ExtResource("26_x7a4t")
+
+[node name="Mesh_tin" type="MeshInstance3D" parent="." unique_id=1868838987]
+material_override = ExtResource("27_lfssr")
+mesh = ExtResource("28_jntsx")
+
+[node name="Collision" type="StaticBody3D" parent="." unique_id=559772283]
+collision_mask = 0
+
+[node name="@CollisionShape3D@66" type="CollisionShape3D" parent="Collision" unique_id=1970355855]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 0)
+shape = SubResource("BoxShape3D_3h7cx")
