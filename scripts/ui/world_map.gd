@@ -209,6 +209,9 @@ func can_go(id: String) -> bool:
 		return false
 	if n.has("end"):
 		return true
+	# локация ещё не собрана — не пускаем
+	if n.has("loc") and not ResourceLoader.exists("res://scenes/locations/%s.tscn" % str(n.loc)):
+		return false
 	return n.has("loc") and not n.get("burned", false)
 
 

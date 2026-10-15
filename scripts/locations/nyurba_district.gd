@@ -11,6 +11,44 @@ func status_line() -> String:
 	return "2062 · Нью-Рба"
 
 
+func on_enter() -> void:
+	super.on_enter()
+	if Game.quest_stage("act2") == 1:
+		Game.set_quest("act2", 2)
+	_apply_story()
+	main.hud.refresh_objective()
+
+
+## Сюжет Акта II: кто арестован, кто сбежал, кто уехал — у каждого района своё
+func _apply_story() -> void:
+	pass
+
+
+func _hide_ch(n: String) -> void:
+	var ch := character(n)
+	if ch:
+		ch.stop()
+		ch.visible = false
+		ch.process_mode = Node.PROCESS_MODE_DISABLED
+
+
+## Доказательство аферы на руках — дальше решать, кому его нести
+func got_evidence() -> void:
+	if Game.quest_stage("act2") in [2, 3, 4]:
+		Game.set_quest("act2", 5)
+	main.hud.refresh_objective()
+
+
+## Конец Акта II: покупатель уехал в Мирный
+func act2_end() -> void:
+	if Game.flag("act3"):
+		return
+	Game.set_flag("act3")
+	WorldMap.reveal("mirny")
+	main.autosave()
+	main.slides.play(DB.intro.get("act2_end", ["Конец второго акта."]))
+
+
 func on_interact(it: Interactable) -> bool:
 	var n := String(it.name)
 	if links.has(n):

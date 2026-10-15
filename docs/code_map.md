@@ -133,7 +133,7 @@ Project Doomsday — 1–4
 - **book** «Четвёртый том»: tools/smoke_test.gd, data/dialogs/elder.json, data/dialogs/teacher.json
 - **lessons** «Уроки друга детства»: scripts/locations/nakharro.gd, scripts/world/tutor.gd, tools/smoke_test.gd
 - **markun** «Мар-Кун»: scripts/locations/markun.gd, tools/smoke_test.gd, data/dialogs/mk_chief.json
-- **act2** «Нью-Рба»: scripts/locations/markun.gd
+- **act2** «Нью-Рба»: scripts/locations/markun.gd, scripts/locations/nyurba_black.gd, scripts/locations/nyurba_district.gd, tools/smoke_test.gd, data/dialogs/nr_apovich.json, data/dialogs/nr_artur.json, data/dialogs/nr_bootur.json, data/dialogs/nr_buyer.json, data/dialogs/nr_kesha.json
 
 ## Места карты мира (data/world.json → сцена → скрипт)
 
@@ -207,9 +207,10 @@ Project Doomsday — 1–4
 - mk_instructor: tools/build_east.gd:161
 - nr_apovich: tools/build_nyurba.gd:608
 - nr_artur: tools/build_nyurba.gd:606
-- nr_bootur: tools/build_nyurba.gd:842
+- nr_bootur: tools/build_nyurba.gd:626, tools/build_nyurba.gd:844
+- nr_buyer: tools/build_nyurba.gd:625
 - nr_garik: tools/build_nyurba.gd:607
-- nr_kesha: tools/build_nyurba.gd:734
+- nr_kesha: tools/build_nyurba.gd:735
 - radio_kid: tools/build_act1.gd:1407
 - road: —
 - rumors: tools/build_nakharro.gd:495, tools/build_nakharro.gd:497, tools/build_nakharro.gd:499, tools/build_nakharro.gd:510, tools/build_nakharro.gd:512, tools/build_nakharro.gd:514, tools/build_nakharro.gd:516
@@ -327,16 +328,16 @@ Project Doomsday — 1–4
 ### scripts/locations/nyurba.gd (117)
 Нью-Рба, Проход — вход в город и низы: ворота с охраной, Алмазный банк, ломбард,
 
-### scripts/locations/nyurba_black.gd (19)
+### scripts/locations/nyurba_black.gd (65)
 Нью-Рба, Чёрный район — дно: лачуги, барахолка, ночлежка, рюмочная «24 часа».
 
-### scripts/locations/nyurba_center.gd (53)
+### scripts/locations/nyurba_center.gd (110)
 Нью-Рба, Центр — верхушка города грехов: Дом правительства (президент Артур,
 
-### scripts/locations/nyurba_district.gd (85) · class NyurbaDistrict
+### scripts/locations/nyurba_district.gd (123) · class NyurbaDistrict
 Общее для районов Нью-Рбы: переходы между районами по улицам (To* → другая локация).
 
-### scripts/locations/nyurba_prom.gd (36)
+### scripts/locations/nyurba_prom.gd (71)
 Нью-Рба, Промрайон — цеха огранки и напыления, приёмка сырья под охраной, склад
 
 ### scripts/locations/nyurba_sewer.gd (36)
@@ -431,9 +432,9 @@ Project Doomsday — 1–4
 Пропуск времени. Сначала — выбор, сколько ждать (час, три, шесть, до вечера,
 `setup:21` `options:77` `ask:87` `_close_ask:101` `_choose:107` `_unhandled_key_input:113` `blackout:126` `play:150` `_update_lbl:195` `_draw_dial:201`
 
-### scripts/ui/world_map.gd (991) · class WorldMap
+### scripts/ui/world_map.gd (994) · class WorldMap
 Карта мира как в Fallout: по картинке (data/world.json → image) герой ходит сам,
-`setup:62` `_layout:148` `set_zoom:164` `nodes:171` `node_pos:175` `known:180` `reveal:186` `can_go:201` `_fog_dims:224` `_fog_str:228` `explored:237` `explore:244` `_build_fog:265` `paths:277` `on_path:286` `hours:298` `time_text:302` `hours_to:306` `_build_nav:320` `_disc:343` `_cell:353` `seg_free:358` `_snap_free:367` `route:383` `open:410` `close:443` `_can_back:450` `go_node:457` `travel:466` `_go_to:475` `halt:486` `_process:492` `_save_pos:530` `_arrive:534` `_reveal_near:549` `_dir_word:566` `blast_k:575` `_locked_note:584` `enter:590` `_roll_encounter:619` `_roll_encounter_with:634` `biome_at:650` `pick_encounter:683` `_mark_seen:724` `start_road_event:731` `_on_dialog_closed:740` `on_action:749` `start_encounter:766` `select:788` `_refresh_time:795` `_refresh:799` `_to_px:823` `_from_px:827` `_text:831` `_smooth:838` `_draw_map:854` `_node_at:915` `_on_canvas_input:928` `_unhandled_key_input:970`
+`setup:62` `_layout:148` `set_zoom:164` `nodes:171` `node_pos:175` `known:180` `reveal:186` `can_go:201` `_fog_dims:227` `_fog_str:231` `explored:240` `explore:247` `_build_fog:268` `paths:280` `on_path:289` `hours:301` `time_text:305` `hours_to:309` `_build_nav:323` `_disc:346` `_cell:356` `seg_free:361` `_snap_free:370` `route:386` `open:413` `close:446` `_can_back:453` `go_node:460` `travel:469` `_go_to:478` `halt:489` `_process:495` `_save_pos:533` `_arrive:537` `_reveal_near:552` `_dir_word:569` `blast_k:578` `_locked_note:587` `enter:593` `_roll_encounter:622` `_roll_encounter_with:637` `biome_at:653` `pick_encounter:686` `_mark_seen:727` `start_road_event:734` `_on_dialog_closed:743` `on_action:752` `start_encounter:769` `select:791` `_refresh_time:798` `_refresh:802` `_to_px:826` `_from_px:830` `_text:834` `_smooth:841` `_draw_map:857` `_node_at:918` `_on_canvas_input:931` `_unhandled_key_input:973`
 
 ### scripts/world/anim_body.gd (162) · class AnimBody
 Манекен из Universal Animation Library (Quaternius, CC0) с готовыми анимациями.
@@ -505,9 +506,9 @@ Project Doomsday — 1–4
 Генератор большой деревни Нахарро (по референсу «Нахарра», ~40 человек):
 `_ready:43` `_build:63` `_env:93` `_ground:134` `strip:186` `_ground_material:195` `_paint_splat:212` `_sd_rect:246` `_seg_dist:254` `_ring_dist:261` `_ditch_h:268` `_village:282` `_forest:368` `_forest_edge:421` `_raid:449` `_characters:467` `_seat:579` `_items:586` `_fence_mend:663` `_clear_overlaps:680` `_is_plant:748` `_inside:755` `_pal:764` `_moat:772` `_ditch_mesh:827` `_bridge:853` `_multi:870` `_xf:884` `_free_spot:888` `_details:897` `_building_boxes:987` `_tutorial_extras:1015` `_sacred_tree:1055` `_village_life:1129`
 
-### tools/build_nyurba.gd (877)
+### tools/build_nyurba.gd (879)
 Нью-Рба — большой алмазный город на месте Нюрбы (Акт II). Город квадратный,
-`_build:16` `_load_all:26` `_finish:48` `_wall:58` `_junk:80` `_junk_items:85` `_city_wall:95` `_city_gate:111` `_walk:136` `_proxod:144` `_sewer:378` `_grid_streets:482` `_walks:500` `_street_dress:507` `_center:526` `_prom:676` `add_rocks:773` `_black:782`
+`_build:16` `_load_all:26` `_finish:48` `_wall:58` `_junk:80` `_junk_items:85` `_city_wall:95` `_city_gate:111` `_walk:136` `_proxod:144` `_sewer:378` `_grid_streets:482` `_walks:500` `_street_dress:507` `_center:526` `_prom:677` `add_rocks:775` `_black:784`
 
 ### tools/build_props.gd (1551)
 Генератор построек и растительности в стиле референса «Нахарра».
@@ -548,14 +549,14 @@ Project Doomsday — 1–4
 ### tools/screenshots.gd (107)
 Снимки экрана для проверки интерфейса (нужен рендер, не --headless).
 
-### tools/smoke_test.gd (3136)
+### tools/smoke_test.gd (3172)
 Автотест пролога: проходит всю цепочку без участия человека и печатает, что сломалось.
-`new_enc:12` `ok:17` `wait:25` `frames:29` `close_dialogs:34` `shut:43` `choose:48` `opt_texts:54` `find_opt:61` `tp:79` `fight:86` `wait_loading:128` `unreachable:137` `go_upstairs:166` `go_downstairs:176` `nakharro_life_tests:187` `kresty_life_tests:365` `encounter_lore_tests:444` `city_tests:512` `admin_tests:705` `weather_tests:783` `social_tests:850` `markun_tests:946` `nr_go:996` `nyurba_tests:1010` `sungar_tests:1107` `_ready:1255`
+`new_enc:12` `ok:17` `wait:25` `frames:29` `close_dialogs:34` `shut:43` `choose:48` `opt_texts:54` `find_opt:61` `tp:79` `fight:86` `wait_loading:128` `unreachable:137` `go_upstairs:166` `go_downstairs:176` `nakharro_life_tests:187` `kresty_life_tests:365` `encounter_lore_tests:444` `city_tests:512` `admin_tests:705` `weather_tests:783` `social_tests:850` `markun_tests:946` `nr_go:996` `nyurba_tests:1010` `sungar_tests:1143` `_ready:1291`
 
 ## Данные (data/)
 
 - data/barks.json (723 строк)
-- data/characters.json (154 строк)
+- data/characters.json (155 строк)
 - data/dialogs/camp_boss.json (385 строк)
 - data/dialogs/camp_nyurgun.json (194 строк)
 - data/dialogs/camp_rumors.json (127 строк)
@@ -605,11 +606,12 @@ Project Doomsday — 1–4
 - data/dialogs/kr_trader.json (385 строк)
 - data/dialogs/mk_chief.json (180 строк)
 - data/dialogs/mk_instructor.json (61 строк)
-- data/dialogs/nr_apovich.json (75 строк)
-- data/dialogs/nr_artur.json (91 строк)
-- data/dialogs/nr_bootur.json (64 строк)
+- data/dialogs/nr_apovich.json (144 строк)
+- data/dialogs/nr_artur.json (127 строк)
+- data/dialogs/nr_bootur.json (165 строк)
+- data/dialogs/nr_buyer.json (66 строк)
 - data/dialogs/nr_garik.json (60 строк)
-- data/dialogs/nr_kesha.json (78 строк)
+- data/dialogs/nr_kesha.json (114 строк)
 - data/dialogs/radio_kid.json (107 строк)
 - data/dialogs/road.json (1268 строк)
 - data/dialogs/rumors.json (72 строк)
@@ -650,13 +652,13 @@ Project Doomsday — 1–4
 - data/dialogs/varvara.json (251 строк)
 - data/dialogs/water.json (114 строк)
 - data/elley.json (15 строк)
-- data/intro.json (25 строк)
-- data/items.json (101 строк)
+- data/intro.json (30 строк)
+- data/items.json (103 строк)
 - data/lore.json (115 строк)
 - data/observations.json (81 строк)
 - data/presets.json (22 строк)
-- data/quests.json (601 строк)
+- data/quests.json (607 строк)
 - data/rep_greet.json (34 строк)
 - data/schedules.json (749 строк)
 - data/weapons.json (20 строк)
-- data/world.json (2971 строк)
+- data/world.json (2974 строк)

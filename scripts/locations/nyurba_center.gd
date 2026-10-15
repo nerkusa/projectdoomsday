@@ -30,9 +30,66 @@ func on_interact(it: Interactable) -> bool:
 			main.think("Ринг из досок, канаты — из красной ткани. На полу тёмные пятна. Бои — по субботам, ставки принимает устроитель.")
 			return true
 		"Safe":
-			main.think("Сейф казначея. Старый, немецкий, с латунной ручкой. Такой ни отвёрткой, ни шпилькой не взять — да и охрана в двух шагах.")
+			_safe()
 			return true
 	return super.on_interact(it)
+
+
+func _apply_story() -> void:
+	if Game.flag("nr_apovich_arrested") or Game.flag("nr_coup"):
+		_hide_ch("Apovich")
+	if Game.flag("nr_coup"):
+		_hide_ch("Artur")
+	if Game.flag("act3"):
+		_hide_ch("Buyer")
+	var b := character("BooturC")
+	if b:
+		b.visible = Game.flag("bootur_rise") and not Game.flag("nr_resolved")
+		b.process_mode = Node.PROCESS_MODE_INHERIT if b.visible else Node.PROCESS_MODE_DISABLED
+
+
+## Сейф казначея: пока Аповича нет (ночью или он под замком) — Воровство; рядом охрана палат
+func _safe() -> void:
+	if Game.item_count("horizon_memo") > 0:
+		main.think("Сейф пуст — бумаги у меня.")
+		return
+	var ap := character("Apovich")
+	if ap and ap.visible and not Clock.is_night():
+		main.think("Казначей сидит в двух шагах от сейфа и считает. Днём к нему не подобраться.")
+		return
+	if not Game.flag("nr_apovich_arrested") and not Game.skill_check("Воровство", "REF", "Воровство", 15, 2 if Game.hero.get("sneak", false) else 0):
+		Game.change_rep(-5, "лез в сейф казначея")
+		main.think("Замок щёлкнул не там. Охранник у двери обернулся: «Эй! А ну отошёл от сейфа!» Пришлось уходить.")
+		return
+	Game.add_item("horizon_memo")
+	Game.grant_xp(120)
+	main.think("Сейф поддался. Внутри — папка с треугольником в круге. Ориентировка на браслет… серия ЭЛ-1, владелец Эллэй. Мой браслет.")
+	got_evidence()
+
+
+func on_dialog_action(a: String, sp: Character) -> bool:
+	match a:
+		"nr_arrest":
+			Game.set_flag("nr_resolved")
+			Game.set_flag("nr_apovich_arrested")
+			main.dialog.closed.connect(func(): _hide_ch("Apovich"); _hide_ch("BooturC"), CONNECT_ONE_SHOT)
+			Game.add_note("Нью-Рба: казначея Аповича взяли под замок. Сделку президент всё равно подписал — покупатель в «Алмазе».")
+			return true
+		"nr_deal":
+			Game.set_flag("nr_resolved")
+			Game.set_flag("nr_apovich_deal")
+			return true
+		"act2_end":
+			main.dialog.closed.connect(func():
+				var bu := character("Buyer")
+				if bu:
+					bu.start_pose = ""
+					bu.pose = ""
+					bu.move_along(Clock._route(self, bu.global_position, Vector3(2, 0, 40)), func(): _hide_ch("Buyer"), 2.6)
+				await get_tree().create_timer(2.0, false).timeout
+				act2_end(), CONNECT_ONE_SHOT)
+			return true
+	return super.on_dialog_action(a, sp)
 
 
 func describe(it: Interactable) -> String:

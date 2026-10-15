@@ -1081,8 +1081,11 @@ func nyurba_tests() -> void:
 	await frames(2)
 	await choose(find_opt("сожгли"))
 	await choose(find_opt("Кому"))
+	await choose(find_opt("делать"))
+	ok(Game.flag("nr_bootur_met") and Game.quest_stage("act2") == 3, "Боотур признался: сдал Нахарро казначею")
+	await choose(find_opt("Живи"))
 	await close_dialogs()
-	ok(Game.flag("nr_bootur_met"), "Боотур признался: сдал Нахарро казначею")
+	ok(Game.flag("bootur_spared") and Game.quest_stage("act2") == 4, "Боотура оставил жить — дальше Апович и покупатель")
 	await nr_go("ToProm", "nyurba_prom")
 	var pr: Node = main.location
 	ok(unreachable(pr, pr.spawn_point("FromBlack"), func(nd): return String(nd.name) in ["Kesha", "Cutters", "ToProxod"]).is_empty(), "Промрайон: до Кеши и резцов можно дойти")
@@ -1092,8 +1095,41 @@ func nyurba_tests() -> void:
 	await choose(find_opt("Почему"))
 	await close_dialogs()
 	ok(Game.flag("nr_kesha_pal"), "Кеша: резцы крошатся — это паль")
+	# ведомость приёмки со склада — и к Кеше: рабочие поднимаются
+	Game.force_check = 1
+	pr.on_interact(pr.item("Ledger"))
+	Game.force_check = 0
+	ok(Game.item_count("pal_ledger") == 1 and Game.quest_stage("act2") == 5, "ведомость приёмки: «сорт II — стекло», подпись А. П.")
+	main.talk_to(pr.character("Kesha"))
+	await frames(2)
+	await choose(find_opt("ведомость"))
+	await choose(0)
+	await choose(0)
+	await close_dialogs()
+	ok(Game.flag("nr_coup") and Game.quest_stage("act2") == 6, "Кеша поднял рабочих — город решил свою судьбу")
+	await nr_go("ToBlack", "nyurba_black")
+	await nr_go("ToCenter", "nyurba_center")
+	var cc: Node = main.location
+	ok(not cc.character("Apovich").visible and not cc.character("Artur").visible, "после переворота президента и казначея в Центре нет")
+	var bu: Character = cc.character("Buyer")
+	ok(bu != null and unreachable(cc, cc.spawn_point("FromBlack"), func(nd): return nd == bu).is_empty(), "покупатель в «Алмазе», дойти можно")
+	main.talk_to(bu)
+	await frames(2)
+	await choose(find_opt("купили"))
+	await choose(find_opt("дальше"))
+	await choose(0)
+	await close_dialogs()
+	var tw := 0.0
+	while not main.slides.visible and tw < 8.0:
+		await wait(0.5)
+		tw += 0.5
+	ok(Game.quest_stage("act2") == 7 and Game.flag("act3") and main.slides.visible, "покупатель уехал в Мирный — конец Акта II")
+	while main.slides.visible:
+		main.slides._next()
+		await frames(2)
+	ok(main.world_map.can_go("mirny"), "Мирный открылся на карте")
 	await nr_go("ToProxod", "nyurba")
-	ok(main.location.location_id == "nyurba", "из Промрайона — обратно в Проход")
+	ok(main.location.location_id == "nyurba", "из Центра — обратно в Проход")
 	# ночью ворота закрыты
 	Clock.force_day = false
 	Clock.set_hours(floorf(Clock.hours() / 24.0) * 24.0 + 24.0 + 1.0)
