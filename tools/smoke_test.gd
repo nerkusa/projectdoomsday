@@ -1043,6 +1043,41 @@ func mirny_tests() -> void:
 	ok(main.world_map.can_go("ges") or not ResourceLoader.exists("res://scenes/locations/ges.tscn"), "плотина ГЭС открыта на карте")
 
 
+## Вилюйская ГЭС: портфель с пропуском, проходная, Смена отдаёт ток союзникам → Акт IV
+func ges_tests() -> void:
+	main.load_location("ges", "Road")
+	await wait_loading()
+	var loc: Node = main.location
+	ok(loc != null and loc.location_id == "ges" and Game.quest_stage("act3") == 5, "ГЭС: подступы, нужен допуск")
+	ok(unreachable(loc, loc.spawn_point("Road"), func(nd): return String(nd.name) in ["Briefcase", "Watch", "Turnstile"]).is_empty(), "до портфеля и проходной можно дойти")
+	loc.on_interact(loc.item("Briefcase"))
+	ok(Game.item_count("ges_pass") == 1, "в портфеле — пропуск «Горизонта»")
+	var w: Character = loc.character("Watch")
+	await tp(w.global_position + Vector3(-1.4, 0, 0))
+	main.talk_to(w)
+	await frames(2)
+	await choose(find_opt("пропуск"))
+	await choose(0)
+	await close_dialogs()
+	await wait(1.6)
+	ok(Game.flag("ges_in") and loc.get_node_or_null("Village/Turnstile") == null, "Смена приняла допуск — турникет открыт")
+	ok(unreachable(loc, loc.spawn_point("Road"), func(nd): return String(nd.name) in ["Chief", "Announcer", "Terminal", "Journal"]).is_empty(), "в машинный зал, радиорубку и к пульту можно пройти")
+	main.talk_to(loc.character("Chief"))
+	await frames(2)
+	await choose(find_opt("Кому"))
+	await choose(find_opt("рабочим"))
+	await choose(0)
+	await close_dialogs()
+	var t := 0.0
+	while not main.slides.visible and t < 6.0:
+		await wait(0.5)
+		t += 0.5
+	ok(str(Game.flag_value("ges_owner", "")) == "workers" and Game.quest_stage("act3") == 7 and Game.flag("act4"), "ток — рабочим Мирного; конец Акта III")
+	while main.slides.visible:
+		main.slides._next()
+		await frames(2)
+
+
 ## Перейти по улице в соседний район Нью-Рбы
 func nr_go(exit: String, to: String) -> void:
 	var it: Interactable = main.location.item(exit)
@@ -1378,6 +1413,7 @@ func _ready() -> void:
 		Game.set_quest("act3", 1)
 		WorldMap.reveal("mirny")
 		await mirny_tests()
+		await ges_tests()
 		print("=== ИТОГ: ошибок ", fails, " ===")
 		get_tree().quit(1 if fails else 0)
 		return

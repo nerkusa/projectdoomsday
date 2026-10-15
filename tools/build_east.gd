@@ -24,6 +24,8 @@ func _build() -> void:
 	if only == "" or only == "mirny":
 		_mirny()
 		_quarry()
+	if only == "" or only == "ges":
+		_ges()
 
 
 ## Ржавый морской контейнер — жильё Мар-Куна: дверь прорезана, сверху мох и шкуры
@@ -495,3 +497,132 @@ func _quarry() -> void:
 	_spawn("FromTop", Vector3(5.5, 0, 6.0))
 	marker(root, "MarkLab", Vector3(48, 0, 8), "Лаборатория")
 	_finish("mirny_quarry")
+
+
+# ======================================================================
+# ВИЛЮЙСКАЯ ГЭС — плотина и машинный зал, где живёт «Смена». Подступы заминированы всеми
+# фракциями, на гребне — снайпер. У дороги — портфель прежнего начальника отдела ф. м.
+# с пропуском. Внутри: турбина «Она», теплицы, радиорубка с диктором, пульт с журналом
+# и терминалом (взлом браслета).
+# ======================================================================
+const GES_MINES := [Rect2(8, 12, 26, 13), Rect2(8, 41, 26, 16)]
+
+
+func _ges() -> void:
+	var rect := Rect2(0, 0, 90, 64)
+	_begin("ges", "Вилюйская ГЭС", rect, "res://scripts/locations/ges.gd")
+	var d := "ground_dirt"
+	strip(null, Vector2(-6, 32), Vector2(40, 36), 2.6, d)
+	road_segs.append([Vector2(-6, 32), Vector2(40, 36), 2.0])
+	for r in GES_MINES:
+		_mud.append(r)
+	_clear.append(Rect2(0, 0, 90, 64))
+	_no_edge.append(Rect2(-40, -40, 170, 52))
+	_no_edge.append(Rect2(-40, 58, 170, 40))
+	_ground_for("ges")
+	var vil := group(root, "Village")
+	# водохранилище на севере и река внизу на юге
+	var wm := StandardMaterial3D.new()
+	wm.albedo_color = Color("2a3c44")
+	wm.roughness = 0.1
+	wm.metallic = 0.2
+	M["reservoir"] = wm
+	box(vil, Vector3(200, 0.04, 40), Vector3(45, 0.03, -10), "reservoir").owner = root
+	box(vil, Vector3(200, 0.04, 30), Vector3(45, 0.03, 76), "reservoir").owner = root
+	# тело плотины: бетонная стена с гребнем, водосливы
+	var dam := group(vil, "Dam")
+	box(dam, Vector3(120, 3.2, 4.0), Vector3(45, 1.6, 10.0), "concrete").owner = root
+	box(dam, Vector3(120, 0.4, 4.6), Vector3(45, 3.4, 10.0), "concrete").owner = root
+	for x in range(0, 100, 8):
+		box(dam, Vector3(0.6, 1.2, 0.6), Vector3(x, 4.2, 8.2), "metal_dark").owner = root
+	for x in [56.0, 64.0, 72.0]:
+		box(dam, Vector3(5.0, 3.0, 0.3), Vector3(x, 1.6, 12.1), "rust").owner = root
+	_own(collider(dam, Vector3(120, 3.2, 4.0), Vector3(45, 1.6, 10.0)), root)
+	_own(collider(vil, Vector3(200, 2.0, 1.0), Vector3(45, 1.0, 59.6)), root)
+	# здание станции: машинный зал, радиорубка, пульт — стены-срезы
+	var hall := Rect2(40, 22, 22, 22)
+	var radio := Rect2(62, 22, 14, 10)
+	var ctrl := Rect2(62, 32, 14, 12)
+	_room_walls(vil, hall, 1.6, "concrete", [[Vector2(40, 38), 2.4], [Vector2(62, 27), 2.0], [Vector2(62, 38), 2.0]])
+	_room_walls(vil, radio, 1.6, "concrete", [[Vector2(62, 27), 2.0]])
+	_room_walls(vil, ctrl, 1.6, "concrete", [[Vector2(62, 38), 2.0]])
+	for r in [hall, radio, ctrl]:
+		box(vil, Vector3(r.size.x, 0.04, r.size.y), Vector3(r.get_center().x, 0.02, r.get_center().y), "concrete").owner = root
+	_signboard(vil, "ВИЛЮЙСКАЯ ГЭС · ПОСТОРОННИМ ВХОД ВОСПРЕЩЁН", Vector3(39.6, 2.4, 33.0), -PI / 2.0, 5.6, Color("e8e0c8"))
+	# турникет на входе: пока нет допуска — не пройти
+	var ts := Node3D.new()
+	ts.name = "Turnstile"
+	vil.add_child(ts)
+	ts.owner = root
+	box(ts, Vector3(0.3, 1.1, 2.4), Vector3(40, 0.55, 38), "metal_dark").owner = root
+	for i in 3:
+		box(ts, Vector3(0.06, 0.06, 2.3), Vector3(40.2, 0.6 + i * 0.25, 38), "rust").owner = root
+	_own(collider(ts, Vector3(0.4, 2.2, 2.4), Vector3(40, 1.1, 38)), root)
+	# турбина «Она»: кожух, кольцо, жёлтые полосы; вокруг — теплицы под лампами
+	cyl(vil, 4.0, 4.2, 2.6, Vector3(51, 1.3, 31), "metal_green", Vector3.ZERO, 32).owner = root
+	cyl(vil, 4.3, 4.3, 0.2, Vector3(51, 2.6, 31), "paint_orange", Vector3.ZERO, 32).owner = root
+	cyl(vil, 1.2, 1.2, 1.0, Vector3(51, 3.2, 31), "metal_dark", Vector3.ZERO, 16).owner = root
+	_own(collider(vil, Vector3(8.4, 2.6, 8.4), Vector3(51, 1.3, 31)), root)
+	for p in [Vector3(51, 0, 24.5), Vector3(51, 0, 41.5)]:
+		for i in 4:
+			box(vil, Vector3(3.6, 0.5, 1.2), p + Vector3(-7.5 + i * 5.0, 0.25, 0), "planks_old").owner = root
+			box(vil, Vector3(3.4, 0.35, 1.0), p + Vector3(-7.5 + i * 5.0, 0.6, 0), "leaves").owner = root
+			_own(collider(vil, Vector3(3.6, 0.8, 1.2), p + Vector3(-7.5 + i * 5.0, 0.4, 0)), root)
+	var gl := group(vil, "GreenLights")
+	for x in [44.0, 51.0, 58.0]:
+		for z in [24.5, 41.5]:
+			_lamp(gl, "Grow", Vector3(x, 2.4, z), Color("ff7ad8"), 1.2, 5.0).shadow_enabled = false
+	_lamp(vil, "TurbineLight", Vector3(51, 3.6, 31), Color("a0ffb0"), 1.0, 7.0)
+	# радиорубка: стол, магнитофон, микрофон
+	box(vil, Vector3(3.0, 0.8, 1.0), Vector3(69, 0.4, 23.2), "planks_old").owner = root
+	_own(collider(vil, Vector3(3.0, 0.8, 1.0), Vector3(69, 0.4, 23.2)), root)
+	box(vil, Vector3(0.8, 0.4, 0.5), Vector3(68, 1.0, 23.2), "plastic_beige").owner = root
+	cyl(vil, 0.02, 0.02, 0.5, Vector3(70, 1.05, 23.4), "metal_dark").owner = root
+	box(vil, Vector3(1.2, 1.8, 0.4), Vector3(74.5, 0.9, 23.0), "metal_dark").owner = root
+	# пульт: длинный стол со шкалами, журнал, терминал ЭЛТ
+	box(vil, Vector3(10.0, 1.0, 1.0), Vector3(69, 0.5, 42.6), "metal_green").owner = root
+	_own(collider(vil, Vector3(10.0, 1.0, 1.0), Vector3(69, 0.5, 42.6)), root)
+	for i in 8:
+		box(vil, Vector3(0.5, 0.4, 0.05), Vector3(65 + i * 1.1, 1.3, 43.1), "screen_amber" if i % 3 else "screen_green").owner = root
+	box(vil, Vector3(0.7, 0.55, 0.6), Vector3(64.6, 1.3, 42.4), "plastic_beige").owner = root
+	box(vil, Vector3(0.5, 0.35, 0.03), Vector3(64.6, 1.35, 42.08), "screen_green").owner = root
+	box(vil, Vector3(0.6, 0.08, 0.45), Vector3(72.0, 1.04, 42.4), "paper").owner = root
+	_lamp(vil, "CtrlLight", Vector3(69, 2.2, 38), Color("ffd08a"), 0.8, 7.0)
+	# подступы: руины, таблички минных полей, череп, портфель
+	_clutter(vil, [["rubble", 18.0, 22.0], ["burnt_shed", 22.0, 50.0, 0.4], ["car_wreck", 14.0, 30.0, 1.2], ["rubble", 30.0, 46.0]])
+	var signs := [[Vector3(12.0, 0, 26.6), "МИНЫ · «КИМБЕРЛИТ»"], [Vector3(26.0, 0, 26.6), "НЕ ХОДИ · ШРАМ"], [Vector3(12.0, 0, 40.4), "МИНЫ · ПРОФСОЮЗ"],
+		[Vector3(26.0, 0, 40.4), "МИНИРОВАНО · СОВЕТ"]]
+	for sg in signs:
+		cyl(vil, 0.05, 0.05, 1.4, sg[0] + Vector3(0, 0.7, 0), "planks_old").owner = root
+		_signboard(vil, sg[1], sg[0] + Vector3(0, 1.4, 0), 0.0, 2.6, Color("e85a3a"))
+	for r in GES_MINES:
+		for k in 10:
+			box(vil, Vector3(0.3, 0.06, 0.3), Vector3(randf_range(r.position.x, r.end.x), 0.03, randf_range(r.position.y, r.end.y)), "metal_dark").owner = root
+	box(vil, Vector3(0.5, 0.35, 0.12), Vector3(19.6, 0.18, 36.6), "planks_old").owner = root
+	sphere(vil, 0.15, Vector3(18.8, 0.15, 36.9), "paint_white").owner = root
+	_woods(40)
+	_dress(Rect2(2, 14, 36, 44), 160)
+	# люди
+	var chars := group(root, "Characters")
+	character(chars, "Watch", "ges_watch", Vector3(38.6, 0, 36.2), -PI / 2.0, {"dialog": "ges_watch"})
+	character(chars, "Chief", "ges_chief", Vector3(51.0, 0, 26.0), 0.0, {"dialog": "ges_chief"})
+	character(chars, "Announcer", "ges_announcer", Vector3(69.0, 0, 24.6), PI, {"dialog": "ges_announcer", "start_pose": "sit"})
+	character(chars, "Duty1", "ges_duty", Vector3(46.0, 0, 40.0), 0.0, {"display_name": "Дежурная по теплице"})
+	character(chars, "Duty2", "ges_duty", Vector3(57.0, 0, 26.0), PI, {"display_name": "Дежурный по Ней"})
+	character(chars, "Duty3", "ges_duty", Vector3(69.0, 0, 41.2), PI, {"display_name": "Дежурный у пульта"})
+	character(chars, "Kid", "kid", Vector3(55.0, 0, 36.0), 1.0, {"display_name": "Ребёнок Смены"})
+	character(chars, "Sniper", "ges_sniper", Vector3(26.0, 3.6, 10.0), PI, {"hostile": true, "aggro_radius": 15.0, "squad": "ges_sniper", "armed": true})
+	var items := group(root, "Items")
+	_exit(items, "WestRoad", "Дорога в Мирный", Vector3(1.0, 0, 32.0), Vector3(1.6, 2.2, 4.0))
+	_use(items, "Briefcase", "Портфель у дороги", Vector3(19.6, 0, 36.6), Vector3(1.0, 0.6, 0.8))
+	_use(items, "Turnstile", "Турникет проходной", Vector3(40.0, 0, 38.0), Vector3(0.6, 1.4, 2.4))
+	_use(items, "Journal", "Журнал дежурств", Vector3(72.0, 0, 41.6), Vector3(1.0, 1.2, 0.8))
+	_use(items, "Terminal", "Терминал ЭВМ", Vector3(64.6, 0, 41.6), Vector3(1.0, 1.4, 0.8))
+	_use(items, "Overload", "Аварийный рубильник", Vector3(75.0, 0, 34.0), Vector3(0.8, 1.6, 0.8))
+	box(vil, Vector3(0.4, 1.0, 0.3), Vector3(75.6, 1.0, 34.0), "paint_red").owner = root
+	_spawn("Start", Vector3(3.0, 0, 32.0))
+	_spawn("Road", Vector3(3.0, 0, 32.0))
+	marker(root, "MarkHall", Vector3(51, 0, 33), "Машинный зал")
+	marker(root, "MarkRadio", Vector3(69, 0, 27), "Радиорубка")
+	marker(root, "MarkCtrl", Vector3(69, 0, 38), "Пульт")
+	_finish("ges")
