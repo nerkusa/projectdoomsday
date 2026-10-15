@@ -834,7 +834,7 @@ func weather_tests() -> void:
 	# карта мира: туман войны и находки
 	var wm: WorldMap = main.world_map
 	ok(wm.explored(Vector2(Game.hero.flags.wm_pos[0], Game.hero.flags.wm_pos[1])) and not wm.explored(Vector2(3000, 200)), "туман войны: рядом с героем открыто, у Якутска — нет")
-	ok(wm.can_go("kresty") and not wm.can_go("nyurba"), "в найденные места — свободно, в закрытые города — нет")
+	ok(wm.can_go("kresty") and not wm.can_go("mirny"), "в найденные места — свободно, в закрытые города — нет")
 	# смена сама собой: время вышло — погода другая или та же, но срок продлён
 	Weather.frozen = false
 	Weather.set_kind("rain", 0.5)
