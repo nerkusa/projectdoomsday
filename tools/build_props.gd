@@ -219,6 +219,12 @@ func begin() -> void:
 	door_local = Vector3.ZERO
 	slots = {}
 	root_props = {}
+	xray_vol = []
+
+
+## Объём для «рентгена» (слой 8): высокий дом становится прозрачным, когда закрывает героя,
+## хотя стены-коллизии у него по пояс. [размер, центр]; на сетку ходов не влияет.
+var xray_vol: Array = []
 
 
 func add(mat: String, mesh: Mesh, pos: Vector3, rot := Vector3.ZERO, scl := Vector3.ONE) -> void:
@@ -367,6 +373,20 @@ func finish(n: String, root_name := "") -> void:
 			cs.rotation.y = s[2]
 			body.add_child(cs)
 			cs.owner = root
+	if not xray_vol.is_empty():
+		var xb := StaticBody3D.new()
+		xb.name = "XrayVolume"
+		xb.collision_layer = 8
+		xb.collision_mask = 0
+		root.add_child(xb)
+		xb.owner = root
+		var xs := CollisionShape3D.new()
+		var xbs := BoxShape3D.new()
+		xbs.size = xray_vol[0]
+		xs.shape = xbs
+		xs.position = xray_vol[1]
+		xb.add_child(xs)
+		xs.owner = root
 	var ps := PackedScene.new()
 	ps.pack(root)
 	ResourceSaver.save(ps, PROP_DIR + n + ".tscn")

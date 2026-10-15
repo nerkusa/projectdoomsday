@@ -434,5 +434,101 @@
       "from": 8,
       "to": 18
     }
+  },
+  "nyurba": {
+    "Teller": {
+      "from": 9,
+      "to": 18
+    },
+    "Teller2": {
+      "from": 9,
+      "to": 18
+    },
+    "BankClient": {
+      "from": 10,
+      "to": 16
+    },
+    "Pawnbroker": {
+      "from": 9,
+      "to": 20
+    },
+    "Shopkeeper": {
+      "from": 8,
+      "to": 20
+    },
+    "ShopBuyer": {
+      "from": 9,
+      "to": 13
+    },
+    "RowIn1": {
+      "from": 7,
+      "to": 19
+    },
+    "RowIn2": {
+      "from": 8,
+      "to": 19
+    },
+    "RowSeller1": {
+      "from": 8,
+      "to": 18
+    },
+    "Changer": {
+      "from": 9,
+      "to": 21
+    },
+    "Barman": {
+      "from": 12,
+      "to": 27
+    },
+    "Drinker1": {
+      "from": 17,
+      "to": 25
+    },
+    "Drinker2": {
+      "from": 14,
+      "to": 26
+    },
+    "Drinker3": {
+      "from": 19,
+      "to": 27
+    },
+    "Storekeeper": {
+      "from": 7,
+      "to": 19
+    },
+    "Porter": {
+      "from": 7,
+      "to": 18
+    },
+    "TollMan": {
+      "from": 6,
+      "to": 23
+    },
+    "Walker1": {
+      "from": 8,
+      "to": 21
+    },
+    "Walker2": {
+      "from": 7,
+      "to": 22
+    },
+    "Walker3": {
+      "from": 9,
+      "to": 20
+    },
+    "Walker4": {
+      "from": 6,
+      "to": 19
+    },
+    "Kid1": {
+      "from": 8,
+      "to": 19
+    }
+  },
+  "nyurba_sewer": {
+    "PumpMan": {
+      "from": 8,
+      "to": 17
+    }
   }
 }

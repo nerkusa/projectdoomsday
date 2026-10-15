@@ -1,0 +1,28 @@
+[gd_scene format=3]
+
+[ext_resource type="Material" path="res://assets/materials/concrete.tres" id="1_dpw6u"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/nr_manhole_open_concrete.res" id="2_gp6wm"]
+[ext_resource type="Material" path="res://assets/materials/coal.tres" id="3_ku2jx"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/nr_manhole_open_coal.res" id="4_f6tay"]
+[ext_resource type="Material" path="res://assets/materials/metal_dark.tres" id="5_lfdsc"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/nr_manhole_open_metal_dark.res" id="6_7tdxd"]
+[ext_resource type="Material" path="res://assets/materials/rust.tres" id="7_bavop"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/nr_manhole_open_rust.res" id="8_pxqxk"]
+
+[node name="ManholeOpen" type="Node3D" unique_id=585199171]
+
+[node name="Mesh_concrete" type="MeshInstance3D" parent="." unique_id=1361534947]
+material_override = ExtResource("1_dpw6u")
+mesh = ExtResource("2_gp6wm")
+
+[node name="Mesh_coal" type="MeshInstance3D" parent="." unique_id=1308804020]
+material_override = ExtResource("3_ku2jx")
+mesh = ExtResource("4_f6tay")
+
+[node name="Mesh_metal_dark" type="MeshInstance3D" parent="." unique_id=570876539]
+material_override = ExtResource("5_lfdsc")
+mesh = ExtResource("6_7tdxd")
+
+[node name="Mesh_rust" type="MeshInstance3D" parent="." unique_id=66758074]
+material_override = ExtResource("7_bavop")
+mesh = ExtResource("8_pxqxk")

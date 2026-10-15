@@ -1,0 +1,38 @@
+[gd_scene format=3]
+
+[ext_resource type="Material" path="res://assets/materials/trash_black.tres" id="1_8c2a1"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/nr_junk_bags_trash_black.res" id="2_7la6y"]
+[ext_resource type="Material" path="res://assets/materials/cloth_sack.tres" id="3_qbwwr"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/nr_junk_bags_cloth_sack.res" id="4_pir6u"]
+[ext_resource type="Material" path="res://assets/materials/paper.tres" id="5_j81pm"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/nr_junk_bags_paper.res" id="6_qwxlx"]
+[ext_resource type="Material" path="res://assets/materials/bottle.tres" id="7_q4kpv"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/nr_junk_bags_bottle.res" id="8_28cst"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_yg6pg"]
+size = Vector3(1.6, 0.9, 1.3)
+
+[node name="NrJunkBags" type="Node3D" unique_id=1034841621]
+
+[node name="Mesh_trash_black" type="MeshInstance3D" parent="." unique_id=622407956]
+material_override = ExtResource("1_8c2a1")
+mesh = ExtResource("2_7la6y")
+
+[node name="Mesh_cloth_sack" type="MeshInstance3D" parent="." unique_id=1817362476]
+material_override = ExtResource("3_qbwwr")
+mesh = ExtResource("4_pir6u")
+
+[node name="Mesh_paper" type="MeshInstance3D" parent="." unique_id=190136896]
+material_override = ExtResource("5_j81pm")
+mesh = ExtResource("6_qwxlx")
+
+[node name="Mesh_bottle" type="MeshInstance3D" parent="." unique_id=177114022]
+material_override = ExtResource("7_q4kpv")
+mesh = ExtResource("8_28cst")
+
+[node name="Collision" type="StaticBody3D" parent="." unique_id=1233789488]
+collision_mask = 0
+
+[node name="@CollisionShape3D@275" type="CollisionShape3D" parent="Collision" unique_id=1832607568]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.45, 0)
+shape = SubResource("BoxShape3D_yg6pg")

@@ -1,0 +1,44 @@
+[gd_scene format=3]
+
+[ext_resource type="Material" path="res://assets/materials/rust.tres" id="1_0u1o5"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/nr_junk_scrap_rust.res" id="2_r2jf3"]
+[ext_resource type="Material" path="res://assets/materials/metal_dark.tres" id="3_gqh8t"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/nr_junk_scrap_metal_dark.res" id="4_f8drg"]
+[ext_resource type="Material" path="res://assets/materials/tin.tres" id="5_2phju"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/nr_junk_scrap_tin.res" id="6_p0cc7"]
+[ext_resource type="Material" path="res://assets/materials/paper.tres" id="7_35gh6"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/nr_junk_scrap_paper.res" id="8_p8acr"]
+[ext_resource type="Material" path="res://assets/materials/bottle.tres" id="9_ki5ut"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/nr_junk_scrap_bottle.res" id="10_rq622"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_pp4vl"]
+size = Vector3(1.6, 0.9, 1.3)
+
+[node name="NrJunkScrap" type="Node3D" unique_id=1003484764]
+
+[node name="Mesh_rust" type="MeshInstance3D" parent="." unique_id=1540958844]
+material_override = ExtResource("1_0u1o5")
+mesh = ExtResource("2_r2jf3")
+
+[node name="Mesh_metal_dark" type="MeshInstance3D" parent="." unique_id=1401006869]
+material_override = ExtResource("3_gqh8t")
+mesh = ExtResource("4_f8drg")
+
+[node name="Mesh_tin" type="MeshInstance3D" parent="." unique_id=970878762]
+material_override = ExtResource("5_2phju")
+mesh = ExtResource("6_p0cc7")
+
+[node name="Mesh_paper" type="MeshInstance3D" parent="." unique_id=276356634]
+material_override = ExtResource("7_35gh6")
+mesh = ExtResource("8_p8acr")
+
+[node name="Mesh_bottle" type="MeshInstance3D" parent="." unique_id=1406468403]
+material_override = ExtResource("9_ki5ut")
+mesh = ExtResource("10_rq622")
+
+[node name="Collision" type="StaticBody3D" parent="." unique_id=187192175]
+collision_mask = 0
+
+[node name="@CollisionShape3D@276" type="CollisionShape3D" parent="Collision" unique_id=1740106919]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.45, 0)
+shape = SubResource("BoxShape3D_pp4vl")

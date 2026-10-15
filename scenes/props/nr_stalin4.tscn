@@ -54,114 +54,125 @@
 [sub_resource type="BoxShape3D" id="BoxShape3D_idrb2"]
 size = Vector3(20.2, 3, 11.2)
 
-[node name="NrStalin4" type="Node3D" unique_id=1749173574]
+[sub_resource type="BoxShape3D" id="BoxShape3D_80h74"]
+size = Vector3(19.6, 13.2, 10.6)
 
-[node name="Mesh_plaster_pink" type="MeshInstance3D" parent="." unique_id=1888923227]
+[node name="NrStalin4" type="Node3D" unique_id=661626664]
+
+[node name="Mesh_plaster_pink" type="MeshInstance3D" parent="." unique_id=1310634961]
 material_override = ExtResource("1_0ypjr")
 mesh = ExtResource("2_hgjsn")
 
-[node name="Mesh_concrete" type="MeshInstance3D" parent="." unique_id=933538154]
+[node name="Mesh_concrete" type="MeshInstance3D" parent="." unique_id=1041361457]
 material_override = ExtResource("3_b2qt8")
 mesh = ExtResource("4_k0eby")
 
-[node name="Mesh_paint_door" type="MeshInstance3D" parent="." unique_id=2058056504]
+[node name="Mesh_paint_door" type="MeshInstance3D" parent="." unique_id=504818948]
 material_override = ExtResource("5_m6ap8")
 mesh = ExtResource("6_nerjq")
 
-[node name="Mesh_metal_dark" type="MeshInstance3D" parent="." unique_id=527944963]
+[node name="Mesh_metal_dark" type="MeshInstance3D" parent="." unique_id=2048330398]
 material_override = ExtResource("7_yt0o6")
 mesh = ExtResource("8_mgj8n")
 
-[node name="Mesh_frame_white" type="MeshInstance3D" parent="." unique_id=953390466]
+[node name="Mesh_frame_white" type="MeshInstance3D" parent="." unique_id=1598238151]
 material_override = ExtResource("9_el2dk")
 mesh = ExtResource("10_k1lfc")
 
-[node name="Mesh_glass" type="MeshInstance3D" parent="." unique_id=1810667596]
+[node name="Mesh_glass" type="MeshInstance3D" parent="." unique_id=1748364119]
 material_override = ExtResource("11_ae3nw")
 mesh = ExtResource("12_omnyg")
 
-[node name="Mesh_glass_city" type="MeshInstance3D" parent="." unique_id=234515016]
+[node name="Mesh_glass_city" type="MeshInstance3D" parent="." unique_id=363496011]
 material_override = ExtResource("13_rvg6p")
 mesh = ExtResource("14_cyjvo")
 
-[node name="Mesh_planks_old" type="MeshInstance3D" parent="." unique_id=1475054118]
+[node name="Mesh_planks_old" type="MeshInstance3D" parent="." unique_id=1366671479]
 material_override = ExtResource("15_17paw")
 mesh = ExtResource("16_cf2qc")
 
-[node name="Mesh_coal" type="MeshInstance3D" parent="." unique_id=2058539656]
+[node name="Mesh_coal" type="MeshInstance3D" parent="." unique_id=467858569]
 material_override = ExtResource("17_s1xim")
 mesh = ExtResource("18_wysml")
 
-[node name="Mesh_film" type="MeshInstance3D" parent="." unique_id=2066150098]
+[node name="Mesh_film" type="MeshInstance3D" parent="." unique_id=466321279]
 material_override = ExtResource("19_wk6xy")
 mesh = ExtResource("20_3fspq")
 
-[node name="Mesh_soot_city" type="MeshInstance3D" parent="." unique_id=161213050]
+[node name="Mesh_soot_city" type="MeshInstance3D" parent="." unique_id=1989877789]
 material_override = ExtResource("21_bf858")
 mesh = ExtResource("22_ef7we")
 
-[node name="Mesh_brick" type="MeshInstance3D" parent="." unique_id=717144081]
+[node name="Mesh_brick" type="MeshInstance3D" parent="." unique_id=1918058962]
 material_override = ExtResource("23_7t1m1")
 mesh = ExtResource("24_c13s1")
 
-[node name="Mesh_plaster_white" type="MeshInstance3D" parent="." unique_id=295197211]
+[node name="Mesh_plaster_white" type="MeshInstance3D" parent="." unique_id=975874364]
 material_override = ExtResource("25_a3huv")
 mesh = ExtResource("26_qgkda")
 
-[node name="Mesh_metal_roof" type="MeshInstance3D" parent="." unique_id=1822432498]
+[node name="Mesh_metal_roof" type="MeshInstance3D" parent="." unique_id=1181223953]
 material_override = ExtResource("27_26dmd")
 mesh = ExtResource("28_nob3v")
 
-[node name="Mesh_rope_mat" type="MeshInstance3D" parent="." unique_id=939450348]
+[node name="Mesh_rope_mat" type="MeshInstance3D" parent="." unique_id=1124794301]
 material_override = ExtResource("29_u1r75")
 mesh = ExtResource("30_vbt7a")
 
-[node name="Mesh_cloth_red" type="MeshInstance3D" parent="." unique_id=1245094151]
+[node name="Mesh_cloth_red" type="MeshInstance3D" parent="." unique_id=692638660]
 material_override = ExtResource("31_7ug8o")
 mesh = ExtResource("32_5g8k8")
 
-[node name="Mesh_paper" type="MeshInstance3D" parent="." unique_id=635367844]
+[node name="Mesh_paper" type="MeshInstance3D" parent="." unique_id=12318722]
 material_override = ExtResource("33_e1dql")
 mesh = ExtResource("34_s8sr7")
 
-[node name="Mesh_cloth_sack" type="MeshInstance3D" parent="." unique_id=76987530]
+[node name="Mesh_cloth_sack" type="MeshInstance3D" parent="." unique_id=667471441]
 material_override = ExtResource("35_go5l6")
 mesh = ExtResource("36_inrv0")
 
-[node name="Mesh_plywood" type="MeshInstance3D" parent="." unique_id=1814573000]
+[node name="Mesh_plywood" type="MeshInstance3D" parent="." unique_id=807870596]
 material_override = ExtResource("37_kvant")
 mesh = ExtResource("38_tna4b")
 
-[node name="Mesh_tin" type="MeshInstance3D" parent="." unique_id=385330761]
+[node name="Mesh_tin" type="MeshInstance3D" parent="." unique_id=827847492]
 material_override = ExtResource("39_554a4")
 mesh = ExtResource("40_driy6")
 
-[node name="Mesh_window_lit" type="MeshInstance3D" parent="." unique_id=738773088]
+[node name="Mesh_window_lit" type="MeshInstance3D" parent="." unique_id=1652262658]
 material_override = ExtResource("41_y8hqd")
 mesh = ExtResource("42_bqfho")
 
-[node name="Mesh_stone_wall" type="MeshInstance3D" parent="." unique_id=317137500]
+[node name="Mesh_stone_wall" type="MeshInstance3D" parent="." unique_id=1685435398]
 material_override = ExtResource("43_3hgd0")
 mesh = ExtResource("44_vyy4y")
 
-[node name="Mesh_tar" type="MeshInstance3D" parent="." unique_id=321623216]
+[node name="Mesh_tar" type="MeshInstance3D" parent="." unique_id=1923963701]
 material_override = ExtResource("45_p1yt4")
 mesh = ExtResource("46_i80rs")
 
-[node name="Mesh_rust" type="MeshInstance3D" parent="." unique_id=2055296353]
+[node name="Mesh_rust" type="MeshInstance3D" parent="." unique_id=1234058931]
 material_override = ExtResource("47_jtrln")
 mesh = ExtResource("48_irg6n")
 
-[node name="Mesh_tire" type="MeshInstance3D" parent="." unique_id=507851658]
+[node name="Mesh_tire" type="MeshInstance3D" parent="." unique_id=343033204]
 material_override = ExtResource("49_jcjhf")
 mesh = ExtResource("50_m3umv")
 
-[node name="Slot_sign" type="Marker3D" parent="." unique_id=756203741]
+[node name="Slot_sign" type="Marker3D" parent="." unique_id=769336690]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5, 3.35, 5.62)
 
-[node name="Collision" type="StaticBody3D" parent="." unique_id=1052788479]
+[node name="Collision" type="StaticBody3D" parent="." unique_id=211796315]
 collision_mask = 0
 
-[node name="@CollisionShape3D@3" type="CollisionShape3D" parent="Collision" unique_id=1256585534]
+[node name="@CollisionShape3D@159" type="CollisionShape3D" parent="Collision" unique_id=924126635]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 0)
 shape = SubResource("BoxShape3D_idrb2")
+
+[node name="XrayVolume" type="StaticBody3D" parent="." unique_id=1793026161]
+collision_layer = 8
+collision_mask = 0
+
+[node name="@CollisionShape3D@160" type="CollisionShape3D" parent="XrayVolume" unique_id=92131250]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 6.6, 0)
+shape = SubResource("BoxShape3D_80h74")

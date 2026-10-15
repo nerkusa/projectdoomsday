@@ -942,6 +942,64 @@ func social_tests() -> void:
 	ok(calm.is_empty(), "после резни в Крестах никто мирно не ходит (мирных: %s, врагов: %d)" % [str(calm), hostile])
 
 
+## Нью-Рба (Акт II): Проход — стена с воротами (створки открываются, когда подходишь днём),
+## мусор (порыться раз в сутки), люк в коллектор и обратно, заходимые дома
+func nyurba_tests() -> void:
+	await close_dialogs()
+	Clock.set_hours(floorf(Clock.hours() / 24.0) * 24.0 + 12.0)
+	main.load_location("nyurba", "Road")
+	while main._loading:
+		await frames(1)
+	await frames(5)
+	var loc: Node = main.location
+	ok(loc != null and loc.location_id == "nyurba", "Нью-Рба: Проход загрузился")
+	ok(loc.get_node_or_null("CityWall/GateLeafN") != null and loc.get_node_or_null("CityWall/GateLeafS") != null, "у ворот две створки")
+	await tp(Vector3(3.5, 0, 40.0))
+	await wait(2.4)
+	var lf: Node3D = loc.get_node("CityWall/GateLeafN")
+	ok(loc.gate_open and absf(lf.rotation.y) > 1.4, "подошёл днём — ворота распахнулись (%.2f)" % lf.rotation.y)
+	ok(unreachable(loc, Vector3(3.5, 0, 40.0), func(nd): return String(nd.name) in ["Junk0", "Hatch", "ToCenter", "ToProm"]).is_empty(), "через ворота можно пройти к мусору, люку и выходам")
+	# мусор: порыться можно раз в сутки
+	var jk: Interactable = loc.item("Junk0")
+	ok(jk != null and jk.has_meta("junk"), "куча мусора — с обыском")
+	await tp(jk.global_position + Vector3(1.4, 0, 1.2))
+	main.interact(jk)
+	await wait(1.2)
+	var got: bool = main.loot_win.visible or main.hud.thought_visible()
+	if main.loot_win.visible:
+		main.loot_win.take_all()
+		main.loot_win.close()
+	ok(got, "порылся в мусоре")
+	main.interact(jk)
+	await wait(1.2)
+	ok(not main.loot_win.visible and main.hud.thought_visible(), "второй раз за день — уже пусто")
+	# заходимые дома
+	for n in ["Bank", "Bar", "Pawnshop", "Shop", "ShopsRow", "Warehouse1", "House1", "House2"]:
+		var b: Node3D = loc.get_node_or_null("Village/" + n)
+		ok(b != null and b.get_node_or_null("Upper") != null, "в «%s» можно зайти" % n)
+	# люк — в коллектор и обратно
+	await tp(Vector3(27.8, 0, 60.4))
+	main.interact(loc.item("Hatch"))
+	while main._loading or main.location.location_id != "nyurba_sewer":
+		await frames(2)
+	await frames(5)
+	ok(main.location.location_id == "nyurba_sewer", "спустился в коллектор")
+	ok(unreachable(main.location, main.location.spawn_point("FromProxod"), func(nd): return String(nd.name) in ["UpBlack", "Valve", "Junk0"]).is_empty(), "по коллектору можно дойти до всех выходов")
+	main.interact(main.location.item("UpProxod"))
+	while main._loading or main.location.location_id != "nyurba":
+		await frames(2)
+	await frames(5)
+	ok(main.location.location_id == "nyurba" and main.player.global_position.distance_to(Vector3(27.8, 0, 60.4)) < 2.0, "поднялся обратно во двор за баром")
+	# ночью ворота закрыты
+	Clock.force_day = false
+	Clock.set_hours(floorf(Clock.hours() / 24.0) * 24.0 + 24.0 + 1.0)
+	await tp(Vector3(40, 0, 40))
+	await wait(2.4)
+	ok(not main.location.gate_open, "ночью ворота закрыты")
+	Clock.force_day = true
+	Clock.set_hours(floorf(Clock.hours() / 24.0) * 24.0 + 12.0)
+
+
 func sungar_tests() -> void:
 	var wm: WorldMap = main.world_map
 	var loc = main.location
@@ -1104,6 +1162,15 @@ func _ready() -> void:
 	# погода в сюжетном прогоне ясная и не меняется; проверяется отдельно в конце
 	Weather.frozen = true
 	Weather.set_kind("clear", 999.0)
+	# быстрый прогон одного города: -- nyurba
+	if "nyurba" in OS.get_cmdline_user_args():
+		Game.new_hero()
+		main.menu.visible = false
+		get_tree().paused = false
+		await nyurba_tests()
+		print("=== ИТОГ: ошибок ", fails, " ===")
+		get_tree().quit(1 if fails else 0)
+		return
 	ok(main.menu.visible, "главное меню открыто")
 	ok(AudioServer.get_bus_index("SFX") >= 0 and AudioServer.get_bus_index("Ambient") >= 0, "шины звука: общая, эффекты, окружение")
 	main.menu.open("sound")
@@ -2937,6 +3004,7 @@ func _ready() -> void:
 	await sungar_tests()
 	await weather_tests()
 	await social_tests()
+	await nyurba_tests()
 	print("Уровень героя: ", Game.hero.level, ", опыт: ", Game.hero.xp)
 	print("=== ИТОГ: ошибок ", fails, " ===")
 	get_tree().quit(1 if fails else 0)

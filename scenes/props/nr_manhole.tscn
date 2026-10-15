@@ -1,0 +1,22 @@
+[gd_scene format=3]
+
+[ext_resource type="Material" path="res://assets/materials/concrete.tres" id="1_mjevv"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/nr_manhole_concrete.res" id="2_048i7"]
+[ext_resource type="Material" path="res://assets/materials/metal_dark.tres" id="3_dcknl"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/nr_manhole_metal_dark.res" id="4_sfrio"]
+[ext_resource type="Material" path="res://assets/materials/rust.tres" id="5_2iey6"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/nr_manhole_rust.res" id="6_khqgl"]
+
+[node name="Manhole" type="Node3D" unique_id=410183429]
+
+[node name="Mesh_concrete" type="MeshInstance3D" parent="." unique_id=2131179124]
+material_override = ExtResource("1_mjevv")
+mesh = ExtResource("2_048i7")
+
+[node name="Mesh_metal_dark" type="MeshInstance3D" parent="." unique_id=431490686]
+material_override = ExtResource("3_dcknl")
+mesh = ExtResource("4_sfrio")
+
+[node name="Mesh_rust" type="MeshInstance3D" parent="." unique_id=1151958095]
+material_override = ExtResource("5_2iey6")
+mesh = ExtResource("6_khqgl")

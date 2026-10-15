@@ -19,16 +19,20 @@ func _build() -> void:
 			"log_weathered", "ground_dirt", "concrete", "coal", "soot", "manure"]:
 		M[n] = load(MAT_DIR + n + ".tres")
 	for n in ["screen_green", "screen_amber", "plastic_beige", "flag_red", "window_sky", "plaster_yellow", "plaster_pink", "plaster_white",
-			"plaster_ochre", "plaster_cream", "brick", "brick_white", "paint_green", "paint_blue", "tar", "felt", "frame_white"]:
+			"plaster_ochre", "plaster_cream", "brick", "brick_white", "paint_green", "paint_blue", "paint_red", "tar", "felt", "frame_white"]:
 		M[n] = load(MAT_DIR + n + ".tres")
 	for n in ["nr_stalin3", "nr_stalin4", "nr_stalin4b", "nr_stalin_spire", "nr_bank", "nr_hotel", "nr_labaz", "nr_labaz_bar",
 			"nr_labaz_pawn", "nr_labaz_row", "nr_labaz_row2", "nr_warehouse",
+			"nr_stalin3_in", "nr_stalin4b_in", "nr_labaz_row_in", "nr_warehouse_in", "nr_wall", "nr_wall_tower",
+			"nr_junk_bags", "nr_junk_scrap", "nr_junk_furniture", "nr_junk_tires", "nr_dumpster", "nr_manhole", "nr_manhole_open",
+			"nr_drain", "nr_bench",
 			"st_block3a", "st_block3b", "st_block4", "st_block4b", "st_block2", "st_block2b", "st_barrack2",
 			"heat_pipe_low", "heat_pipe_high", "heat_pipe_riser", "boiler_house", "water_tower", "garages", "kiosk", "kiosk_b",
 			"bus_stop", "conc_fence", "paz_wreck", "bins", "cf_info_screen", "loudspeaker", "power_pole", "sandbags", "checkpoint",
 			"notice_board", "trash_pile", "trash_pile_b", "rubble", "car_wreck", "burnt_shed", "burn_barrel", "boardwalk"]:
 		P[n] = load(PROP_DIR + n + ".tscn")
 	_proxod()
+	_sewer()
 
 
 ## Горожане без своего разговора — с репликами над головой
@@ -56,6 +60,67 @@ func _wall(parent: Node, a: Vector2, b: Vector2, gaps := []) -> void:
 			var p := a + dir * t
 			put(P.conc_fence, parent, Vector3(p.x, 0, p.y), rot)
 		t += 4.0
+
+
+## Кучи мусора, в которых можно порыться (раз в сутки): ставятся сейчас, точки «Junk*» — в конце
+var _junk_spots := []
+const JUNK_LABEL := {"nr_junk_bags": "Мешки с мусором", "nr_junk_scrap": "Куча железа", "nr_junk_furniture": "Сломанная мебель",
+	"nr_junk_tires": "Покрышки", "nr_dumpster": "Мусорный бак", "trash_pile": "Куча мусора", "trash_pile_b": "Куча мусора"}
+
+
+func _junk(parent: Node, kind: String, pos: Vector3, rot := 0.0) -> void:
+	put(P[kind], parent, pos, rot)
+	_junk_spots.append([kind, pos])
+
+
+func _junk_items(items: Node) -> void:
+	var i := 0
+	for j in _junk_spots:
+		var it := _use(items, "Junk%d" % i, str(JUNK_LABEL.get(j[0], "Мусор")), j[1], Vector3(1.8, 1.2, 1.6))
+		it.set_meta("junk", str(j[0]))
+		i += 1
+	_junk_spots.clear()
+
+
+## Городская стена из пролётов по 6 м по линии a → b (без проёмов), башни — в towers
+func _city_wall(parent: Node, a: Vector2, b: Vector2, towers := []) -> void:
+	var dir := (b - a).normalized()
+	var l := a.distance_to(b)
+	var rot := -atan2(dir.y, dir.x)
+	var t := 3.0
+	while t < l + 0.1:
+		var p := a + dir * t
+		put(P.nr_wall, parent, Vector3(p.x, 0, p.y), rot)
+		t += 6.0
+	for tw in towers:
+		var q := a + dir * float(tw)
+		put(P.nr_wall_tower, parent, Vector3(q.x, 0, q.y), 0.0)
+
+
+## Ворота: две створки на петлях (узлы GateLeafN / GateLeafS — их крутит скрипт локации),
+## над проёмом — кирпичная арка с вывеской. hinge_z — петли, створка длиной len к центру
+func _city_gate(parent: Node, x: float, zc: float, half: float, title: String) -> void:
+	box(parent, Vector3(1.6, 1.4, half * 2.0 + 1.6), Vector3(x, 6.2, zc), "brick").owner = root
+	box(parent, Vector3(1.8, 0.25, half * 2.0 + 1.8), Vector3(x, 7.0, zc), "concrete").owner = root
+	for k in 5:
+		box(parent, Vector3(1.0, 0.6, 0.8), Vector3(x, 7.4, zc - half + k * half / 2.0), "brick").owner = root
+	_signboard(parent, title, Vector3(x - 0.85, 6.2, zc), -PI / 2.0, half * 1.4, Color("f0d890"))
+	for side in [["GateLeafN", -1.0], ["GateLeafS", 1.0]]:
+		var leaf := Node3D.new()
+		leaf.name = side[0]
+		parent.add_child(leaf)
+		leaf.owner = root
+		var sg: float = -side[1]  # створка тянется к центру проёма
+		leaf.position = Vector3(x, 0, zc + float(side[1]) * half)
+		var ln := half - 0.05
+		box(leaf, Vector3(0.18, 4.4, ln), Vector3(0, 2.3, sg * ln / 2.0), "rust").owner = root
+		for y in [0.6, 2.3, 4.0]:
+			box(leaf, Vector3(0.26, 0.16, ln), Vector3(0, y, sg * ln / 2.0), "metal_dark").owner = root
+		box(leaf, Vector3(0.24, 0.14, ln * 1.25), Vector3(0, 1.45, sg * ln / 2.0), "metal_dark", Vector3(atan2(1.7, ln) * sg, 0, 0)).owner = root
+		for k in int(ln / 0.4):
+			box(leaf, Vector3(0.06, 0.4, 0.06), Vector3(0, 4.7, sg * (0.2 + k * 0.4)), "metal_dark").owner = root
+		cyl(leaf, 0.12, 0.12, 4.6, Vector3(0, 2.3, 0), "metal_dark").owner = root
+		_own(collider(leaf, Vector3(0.3, 3.0, ln), Vector3(0, 1.5, sg * ln / 2.0)), root)
 
 
 ## Тротуар вдоль фасада: плитка поверх земли
@@ -92,15 +157,20 @@ func _proxod() -> void:
 	var pav := group(vil, "Pavement")
 	pav.set_meta("no_xray", true)
 	# --- ворота: бетонная стена по x = 6, проём проспекта, вышки, шлагбаум, будка ---
-	_wall(vil, Vector2(6, 0), Vector2(6, NR), [[34.5, 45.5]])
-	put(P.tower, vil, Vector3(6.6, 0, 34.0), 0.0, "GateTowerN")
-	put(P.tower, vil, Vector3(6.6, 0, 46.0), 0.0, "GateTowerS")
+	# городская стена: кирпич на бутовом цоколе, 5 м, башни; запад и юг — внешние стороны города
+	var cw := group(root, "CityWall")
+	_city_wall(cw, Vector2(6, -4), Vector2(6, 32), [12.0])
+	_city_wall(cw, Vector2(6, 48), Vector2(6, 84), [])
+	_city_wall(cw, Vector2(6, 84.6), Vector2(NR + 12, 84.6), [24.0, 54.0])
+	put(P.nr_wall_tower, cw, Vector3(6, 0, 34.0), 0.0, "GateTowerN")
+	put(P.nr_wall_tower, cw, Vector3(6, 0, 46.0), 0.0, "GateTowerS")
+	put(P.nr_wall_tower, cw, Vector3(6, 0, 84.6), 0.0, "CornerTower")
+	_city_gate(cw, 6.0, 40.0, 3.8, "НЬЮ-РБА")
 	box(vil, Vector3(0.14, 0.14, 6.4), Vector3(9.0, 1.05, 40.0), "paint_white").owner = root
 	for i in 4:
 		box(vil, Vector3(0.15, 0.15, 0.8), Vector3(9.0, 1.06, 37.2 + i * 1.6), "flag_red").owner = root
 	for zz in [36.6, 43.4]:
 		cyl(vil, 0.09, 0.09, 1.2, Vector3(9.0, 0.6, zz), "metal_dark").owner = root
-	_signboard(vil, "НЬЮ-РБА", Vector3(5.2, 4.4, 40.0), -PI / 2.0, 4.2, Color("f0d890"))
 	_bld(vil, "checkpoint", "GateBooth", Vector3(12.0, 0, 33.0), PI / 2.0)
 	_bld(vil, "sandbags", "Sandbags1", Vector3(10.5, 0, 46.5), PI / 2.0)
 	_bld(vil, "sandbags", "Sandbags2", Vector3(10.5, 0, 33.5 - 3.0), PI / 2.0)
@@ -120,7 +190,8 @@ func _proxod() -> void:
 	var shop := _bld(vil, "nr_labaz", "Shop", Vector3(75.5, 0, 21.5), PI)
 	_sign_on(vil, shop, "ЛАВКА «КАРАТ»", 3.4, Color("f0d890"))
 	# склады за переулком z = 16 (на север — к Промрайону)
-	_bld(vil, "nr_warehouse", "Warehouse1", Vector3(31.0, 0, 7.5))
+	var wh := _bld(vil, "nr_warehouse_in", "Warehouse1", Vector3(31.0, 0, 7.5))
+	_sign_on(vil, wh, "СКЛАД № 3", 2.6, Color("e8e0c8"))
 	_bld(vil, "nr_warehouse", "Warehouse2", Vector3(68.0, 0, 7.5))
 	_graffiti(vil, "ПАЛЬ", Vector3(42.03, 1.8, 7.5), PI / 2.0)
 	# --- южная сторона проспекта ---
@@ -129,13 +200,15 @@ func _proxod() -> void:
 	_sign_on(vil, bar, "БАР «ЗАБОЙ»", 3.6, Color("ffcf7a"))
 	_neon(bar, "ЗАБОЙ", Vector3(0, 4.6, 4.6), 0.0, Color("ffb23a"), 96, true)
 	# торговые ряды в одноэтажном лабазе
-	var row := _bld(vil, "nr_labaz_row", "ShopsRow", Vector3(57.0, 0, 48.5), PI)
+	var row := _bld(vil, "nr_labaz_row_in", "ShopsRow", Vector3(57.0, 0, 48.5), PI)
 	_signboard(vil, "ТОВАРЫ · СОЛЬ · ПАТРОНЫ", _slot(row, "sign"), PI, 5.2, Color("e8d8a8"))
 	var lab2 := _bld(vil, "nr_labaz_row2", "Shops2", Vector3(76.5, 0, 49.5), PI)
 	_signboard(vil, "ОБМЕН · ВАЛЮТА · ТАЛОНЫ", _slot(lab2, "sign"), PI, 4.6, Color("e8e0c8"))
 	# жилые сталинки за переулком z = 64
-	_bld(vil, "nr_stalin3", "House1", Vector3(32.0, 0, 72.0), PI)
-	_bld(vil, "nr_stalin4", "House2", Vector3(64.0, 0, 73.0), PI)
+	var h1 := _bld(vil, "nr_stalin3_in", "House1", Vector3(32.0, 0, 72.0), PI)
+	_sign_on(vil, h1, "ул. ШАХТЁРОВ, 4", 2.6, Color("d8dce8"))
+	var h2 := _bld(vil, "nr_stalin4b_in", "House2", Vector3(64.0, 0, 73.5), PI)
+	_sign_on(vil, h2, "ул. ШАХТЁРОВ, 6", 2.6, Color("d8dce8"))
 	# у ворот на юге — барак охраны и гаражи
 	_bld(vil, "st_barrack2", "GuardBarrack", Vector3(12.5, 0, 56.0), PI / 2.0)
 	_bld(vil, "garages", "Garages", Vector3(12.5, 0, 72.0), PI / 2.0)
@@ -147,8 +220,11 @@ func _proxod() -> void:
 	cyl(fnt, 0.3, 0.4, 1.6, Vector3(0, 1.1, 0), "stone_wall", Vector3.ZERO, 10).owner = root
 	cyl(fnt, 0.7, 0.4, 0.3, Vector3(0, 2.0, 0), "stone_wall", Vector3.ZERO, 12).owner = root
 	_own(collider(fnt, Vector3(3.8, 1.0, 3.8), Vector3(0, 0.5, 0)), root)
-	for b in [Vector3(39.5, 0, 36.2), Vector3(48.5, 0, 43.8)]:
-		put(P.bench, vil, b, 0.0 if b.z < 40 else PI)
+	# скамейки: у фонтана, вдоль проспекта, во дворах
+	for b in [[Vector3(41.5, 0, 37.4), PI], [Vector3(46.5, 0, 37.4), PI], [Vector3(41.5, 0, 42.6), 0.0], [Vector3(46.5, 0, 42.6), 0.0],
+			[Vector3(68.0, 0, 44.6), PI], [Vector3(15.5, 0, 35.6), 0.0], [Vector3(68.5, 0, 35.4), 0.0],
+			[Vector3(34.0, 0, 62.6), 0.0], [Vector3(60.0, 0, 62.6), 0.0], [Vector3(56.0, 0, 17.6), PI]]:
+		put(P.nr_bench, vil, b[0], b[1])
 	_bld(vil, "loudspeaker", "Loudspeaker", Vector3(40.6, 0, 46.5))
 	_info_screen(vil, Vector3(39.4, 0, 43.9), PI, "РАДИОЛОТЕРЕЯ\nРозыгрыш — в 20:00\nБилет 2 р.")
 	_bld(vil, "bus_stop", "BusStop", Vector3(16.0, 0, 44.8), PI)
@@ -175,13 +251,29 @@ func _proxod() -> void:
 		["trash_pile", 37.5, 58.5], ["trash_pile_b", 23.5, 25.0], ["trash_pile", 80.0, 60.0], ["rubble", 70.0, 58.0],
 		["car_wreck", 46.0, 74.0, 1.2], ["car_wreck", 81.5, 3.0, 0.3], ["paz_wreck", 80.0, 71.0, PI / 2.0], ["bins", 50.5, 20.0, PI / 2.0]])
 	_broken_road(Vector2(8, 40), Vector2(NR, 40), 3.2, 24)
+	var trash := group(vil, "Trash")
+	for j in [["nr_junk_bags", Vector3(28.5, 0, 59.8), 0.3], ["nr_dumpster", Vector3(36.6, 0, 60.4), PI], ["nr_junk_furniture", Vector3(22.5, 0, 55.5), 1.0],
+			["nr_junk_scrap", Vector3(17.0, 0, 30.5), 0.4], ["nr_junk_tires", Vector3(14.5, 0, 63.0), 0.0], ["nr_dumpster", Vector3(50.5, 0, 22.5), PI / 2.0],
+			["nr_junk_bags", Vector3(66.5, 0, 59.5), 2.0], ["nr_junk_scrap", Vector3(78.0, 0, 13.0), 0.8], ["nr_junk_furniture", Vector3(46.5, 0, 66.5), 2.4],
+			["nr_dumpster", Vector3(71.0, 0, 61.5), 0.0], ["nr_junk_bags", Vector3(42.0, 0, 13.5), 1.4], ["nr_junk_tires", Vector3(81.5, 0, 34.0), 0.0],
+			["trash_pile", Vector3(38.0, 0, 58.0), 0.0], ["trash_pile_b", Vector3(23.0, 0, 25.0), 0.0], ["nr_junk_bags", Vector3(10.0, 0, 76.0), 0.5]]:
+		_junk(trash, j[0], j[1], j[2])
+	# канализация: люки на проспекте и улицах, решётки ливнёвки у бордюров; открытый люк — во дворе за баром
+	var sew := group(vil, "Sewer")
+	sew.set_meta("no_xray", true)
+	for m in [Vector3(30.0, 0, 40.0), Vector3(60.0, 0, 39.5), Vector3(44.0, 0, 26.0), Vector3(44.0, 0, 54.0), Vector3(74.0, 0, 40.5), Vector3(20.0, 0, 50.0)]:
+		put(P.nr_manhole, sew, m, randf() * TAU)
+	put(P.nr_manhole_open, sew, Vector3(26.5, 0, 61.5), 0.0, "HatchOpen")
+	for dr in [Vector3(26.0, 0, 36.6), Vector3(52.0, 0, 36.6), Vector3(36.0, 0, 43.4), Vector3(64.0, 0, 43.4), Vector3(40.6, 0, 30.0), Vector3(47.4, 0, 50.0)]:
+		put(P.nr_drain, sew, dr, 0.0 if absf(dr.z - 40.0) < 5.0 else PI / 2.0)
 	_graffiti(vil, "АПОВИЧ — ВОР", Vector3(22.97, 1.6, 29.0), -PI / 2.0)
 	_graffiti(vil, "ЗАБОЙ — НАШ", Vector3(23.97, 1.5, 49.0), -PI / 2.0, Color("1c1c1c"))
 	var det := group(root, "Yard")
 	for dd in [["crates", Vector3(26, 0, 59)], ["crates", Vector3(36, 0, 57.5)], ["barrel", Vector3(54, 0, 59)],
 			["crates", Vector3(68, 0, 36.6 - 2.0)], ["barrel", Vector3(62, 0, 21.5)], ["crates", Vector3(16, 0, 20)]]:
 		put(P[dd[0]], det, dd[1], randf() * TAU)
-	_edges(rect, [["E", 40.0]], ["S"])
+	_edges(rect, [["E", 40.0]], [])
+	_no_edge.append(Rect2(-10, NR - 2, NR + 40, 30))
 	# город за северным краем (Промрайон): склады и трубы
 	var far := group(root, "FarNorth")
 	far.set_meta("no_xray", true)
@@ -205,14 +297,22 @@ func _proxod() -> void:
 	character(chars, "Pawnbroker", "nr_pawn", _slot(pawn, "seller"), 0.0, {"display_name": "Оценщик Семён Маркович"})
 	character(chars, "Shopkeeper", "nr_shop", _slot(shop, "seller"), PI, {"display_name": "Лавочница Туяра"})
 	character(chars, "ShopBuyer", "town_old_f", _slot(shop, "buyer"), 0.0, {"display_name": "Покупательница"})
-	character(chars, "RowSeller1", "villager", Vector3(52.0, 0, 43.4), PI, {"display_name": "Торговец солью"})
-	character(chars, "RowSeller2", "villager_f", Vector3(62.0, 0, 43.4), PI, {"display_name": "Торговка патронами"})
+	character(chars, "RowSeller1", "villager", Vector3(52.0, 0, 43.4), PI, {"display_name": "Торговец с лотка"})
 	character(chars, "Changer", "town_m4", Vector3(76.5, 0, 44.2), PI, {"display_name": "Меняла"})
 	# бар «Забой»
 	character(chars, "Barman", "nr_barman", _slot(bar, "barman"), PI / 2.0, {"display_name": "Бармен Жора"})
 	character(chars, "Drinker1", "town_worker", _slot(bar, "t1"), PI, {"display_name": "Шахтёр после смены"})
 	character(chars, "Drinker2", "town_m4", _slot(bar, "t2"), PI, {"display_name": "Пьёт в долг"})
 	character(chars, "Drinker3", "nr_bandit", _slot(bar, "t3"), PI, {"display_name": "Хмурый в кепке"})
+	# жильцы сталинок, торговцы в рядах, кладовщик на складе
+	character(chars, "H1Old", "town_old_f", _slot(h1, "flatL"), 0.0, {"display_name": "Старуха с первого этажа"})
+	character(chars, "H1Kid", "kid", _slot(h1, "flatR"), PI, {"display_name": "Девочка у плиты"})
+	character(chars, "H2Man", "town_worker", _slot(h2, "flatL"), 0.0, {"display_name": "Шахтёр после ночной"})
+	character(chars, "H2Wife", "town_f3", _slot(h2, "flatR"), PI, {"display_name": "Жена шахтёра"})
+	character(chars, "RowIn1", "villager", _slot(row, "seller"), 0.0, {"display_name": "Торговец солью"})
+	character(chars, "RowIn2", "villager_f", _slot(row, "seller2"), 0.0, {"display_name": "Торговка патронами"})
+	character(chars, "Storekeeper", "town_m4", _slot(wh, "keeper"), 0.0, {"display_name": "Кладовщик склада № 3"})
+	character(chars, "Porter", "town_worker", _slot(wh, "porter"), 1.2, {"display_name": "Грузчик"})
 	# бичи у бочек
 	character(chars, "Bum1", "nr_bum", Vector3(25.8, 0, 59.2), -2.4, {"display_name": "Бич у бочки"})
 	character(chars, "Bum2", "nr_bum", Vector3(24.0, 0, 57.4), 0.8, {"display_name": "Бич", "start_pose": "sit"})
@@ -241,12 +341,15 @@ func _proxod() -> void:
 	_exit(items, "ToCenter", "В Центр", Vector3(NR - 1.0, 0, 40.0), Vector3(1.6, 2.2, 5.0))
 	_exit(items, "ToProm", "В Промрайон", Vector3(44.0, 0, 1.0), Vector3(5.0, 2.2, 1.6))
 	_exit(items, "ToRoad", "Из города — на тракт", Vector3(3.0, 0, 40.0), Vector3(1.6, 2.2, 5.0))
+	_junk_items(items)
+	_use(items, "Hatch", "Открытый люк", Vector3(26.5, 0, 61.5), Vector3(1.2, 0.6, 1.2))
 	_use(items, "Fountain", "Сухой фонтан", Vector3(44, 0, 42.2), Vector3(3.6, 2.4, 1.2))
 	_use(items, "InfoScreen", "Экран у ворот", Vector3(13.5, 0, 46.3), Vector3(1.4, 3.6, 0.6))
 	_spawn("Start", Vector3(2.5 + 2.0, 0, 40.0))
 	_spawn("Road", Vector3(2.5 + 2.0, 0, 40.0))
 	_spawn("FromCenter", Vector3(NR - 4.5, 0, 41.5))
 	_spawn("FromProm", Vector3(45.5, 0, 4.5))
+	_spawn("FromSewer", Vector3(27.8, 0, 60.4))
 	marker(root, "MarkGate", Vector3(10, 0, 40), "Ворота")
 	marker(root, "MarkBank", Vector3(31, 0, 29), "Алмазный банк")
 	marker(root, "MarkPawn", Vector3(75.5, 0, 31.5), "Ломбард")
@@ -257,3 +360,109 @@ func _proxod() -> void:
 	_dress(Rect2(8, 2, 74, 78), 260)
 	_clear_town(Rect2(7, 1, 76, 80))
 	_finish("nyurba")
+
+
+# ======================================================================
+# КАНАЛИЗАЦИЯ — коллектор под Проходом: из люка во дворе бара вниз; на той стороне —
+# скобы наверх в Чёрный район. В камере живут бичи, в насосной — чья-то заначка.
+# ======================================================================
+func _sewer() -> void:
+	var rect := Rect2(0, 0, 56, 28)
+	seed(5501)
+	root = Node3D.new()
+	root.name = "NyurbaSewer"
+	root.set_script(load("res://scripts/locations/nyurba_sewer.gd"))
+	root.set("location_id", "nyurba_sewer")
+	root.set("title", "Нью-Рба · коллектор")
+	root.set("map_rect", rect)
+	root.set("camera_start", Vector3(10, 0, 5))
+	var plain := func(c: String, rough: float, metal := 0.0) -> StandardMaterial3D:
+		var m := StandardMaterial3D.new()
+		m.albedo_color = Color(c)
+		m.roughness = rough
+		m.metallic = metal
+		return m
+	M["sw_floor"] = plain.call("34322c", 0.9)
+	M["sw_wall"] = plain.call("5a564a", 0.95)
+	M["sw_slime"] = plain.call("3e4a2c", 0.6)
+	M["sw_water"] = plain.call("1c2420", 0.05, 0.3)
+	_dark_env(Color("3a3a32"), 0.5)
+	var v := group(root, "Village")
+	_floor(v, rect.grow(0.3), "sw_floor")
+	var main_t := Rect2(2, 11, 52, 6)
+	var north := Rect2(8, 1, 4, 10)
+	var chamber := Rect2(24, 2, 12, 9)
+	var south := Rect2(44, 17, 4, 10)
+	var pump := Rect2(17, 17, 12, 8)
+	_room_walls(v, main_t, 1.4, "sw_wall", [[Vector2(10, 11), 4.0], [Vector2(30, 11), 4.0], [Vector2(46, 17), 4.0], [Vector2(23, 17), 3.0]])
+	_room_walls(v, north, 1.4, "sw_wall", [[Vector2(10, 11), 4.0]])
+	_room_walls(v, chamber, 1.4, "sw_wall", [[Vector2(30, 11), 4.0]])
+	_room_walls(v, south, 1.4, "sw_wall", [[Vector2(46, 17), 4.0]])
+	_room_walls(v, pump, 1.4, "sw_wall", [[Vector2(23, 17), 3.0]])
+	# сток посередине коллектора: тёмная вода между бетонными бортиками, слизь по краям
+	box(v, Vector3(52, 0.02, 1.5), Vector3(28, 0.03, 14), "sw_water").owner = root
+	for zz in [13.2, 14.8]:
+		box(v, Vector3(52, 0.08, 0.14), Vector3(28, 0.04, zz), "concrete").owner = root
+		box(v, Vector3(52, 0.03, 0.3), Vector3(28, 0.02, zz + (0.25 if zz > 14 else -0.25)), "sw_slime").owner = root
+	# трубы вдоль стен, вентили, потёки
+	for zz in [11.35, 16.65]:
+		cyl(v, 0.16, 0.16, 52, Vector3(28, 0.9, zz), "rust", Vector3(0, 0, PI / 2.0), 8).owner = root
+		for x in [8.0, 20.0, 34.0, 50.0]:
+			cyl(v, 0.22, 0.22, 0.12, Vector3(x, 0.9, zz), "metal_dark", Vector3(0, 0, PI / 2.0), 10).owner = root
+	for x in [5.0, 16.0, 27.0, 39.0, 52.0]:
+		box(v, Vector3(0.6, 1.2, 0.02), Vector3(x, 0.7, 11.03), "sw_slime").owner = root
+	# скобы-лестницы наверх
+	for pt in [[Vector3(10, 0, 1.1), 0.0], [Vector3(46, 0, 26.9), PI]]:
+		for k in 6:
+			box(v, Vector3(0.5, 0.04, 0.12), pt[0] + Vector3(0, 0.25 + k * 0.22, 0.1 if pt[1] == 0.0 else -0.1), "rust").owner = root
+		var l := _lamp(v, "Shaft", pt[0] + Vector3(0, 2.6, 0.6 if pt[1] == 0.0 else -0.6), Color("c8d8ff"), 1.4, 5.0)
+		l.shadow_enabled = false
+	# камера бичей: бочка с огнём, матрасы, тряпьё, верёвка с бельём
+	put(P.burn_barrel, v, Vector3(30, 0, 6.5), 0.0)
+	for m in [[Vector3(26.2, 0, 3.6), 0.2], [Vector3(33.8, 0, 3.6), -0.1], [Vector3(26.0, 0, 8.8), 1.4]]:
+		box(v, Vector3(1.9, 0.18, 0.9), m[0] + Vector3(0, 0.09, 0), "cloth_sack", Vector3(0, m[1], 0)).owner = root
+	box(v, Vector3(1.0, 0.6, 0.6), Vector3(34.6, 0.3, 8.6), "planks_old").owner = root
+	_own(collider(v, Vector3(1.0, 0.6, 0.6), Vector3(34.6, 0.3, 8.6)), root)
+	box(v, Vector3(7.0, 0.02, 0.02), Vector3(30, 1.3, 2.4), "rope_mat").owner = root
+	for i in 4:
+		box(v, Vector3(0.4, 0.5, 0.02), Vector3(27.5 + i * 1.6, 1.05, 2.4), ["cloth_red", "paper", "cloth_sack", "cloth_red"][i]).owner = root
+	_lamp(v, "Fire", Vector3(30, 1.4, 6.5), Color("ff9a4a"), 1.6, 7.5)
+	# насосная: два мёртвых насоса, щит, вентиль
+	for x in [20.0, 25.5]:
+		box(v, Vector3(2.0, 1.2, 1.4), Vector3(x, 0.6, 22.5), "metal_dark").owner = root
+		cyl(v, 0.35, 0.35, 1.6, Vector3(x, 0.7, 21.2), "rust", Vector3(PI / 2.0, 0, 0), 10).owner = root
+		_own(collider(v, Vector3(2.0, 1.2, 1.4), Vector3(x, 0.6, 22.5)), root)
+	box(v, Vector3(1.4, 1.0, 0.15), Vector3(28.5, 1.0, 20.0), "paint_green").owner = root
+	cyl(v, 0.3, 0.3, 0.06, Vector3(18.2, 0.9, 18.2), "paint_red", Vector3(PI / 2.0, 0, 0), 12).owner = root
+	# тусклые лампы в коллекторе: часть не горит
+	var lamps := group(v, "Lamps")
+	for x in [6.0, 18.0, 30.0, 42.0, 52.0]:
+		if x != 42.0:
+			_lamp(lamps, "Lamp", Vector3(x, 2.2, 14), Color("e8d49a"), 1.4, 8.0).shadow_enabled = false
+		box(lamps, Vector3(0.3, 0.12, 0.3), Vector3(x, 1.45, 11.3), "glass").owner = root
+	_lamp(lamps, "Pump", Vector3(23, 2.2, 21), Color("e8d49a"), 0.7, 6.0).shadow_enabled = false
+	# мусор (можно порыться)
+	var trash := group(v, "Trash")
+	_junk(trash, "nr_junk_bags", Vector3(34.0, 0, 3.8), 0.4)
+	_junk(trash, "nr_junk_scrap", Vector3(27.0, 0, 23.6), 1.0)
+	_junk(trash, "nr_junk_furniture", Vector3(52.0, 0, 15.6), 0.2)
+	_junk(trash, "nr_junk_tires", Vector3(4.2, 0, 15.6), 0.0)
+	# люди
+	var chars := group(root, "Characters")
+	character(chars, "SewerKing", "town_old_m", Vector3(30.0, 0, 4.4), PI, {"display_name": "Дед Хабаров, «хозяин» коллектора", "start_pose": "sit"})
+	character(chars, "SewerBum1", "nr_bum", Vector3(28.4, 0, 6.8), 1.6, {"display_name": "Бич у огня"})
+	character(chars, "SewerBum2", "nr_bum", Vector3(26.2, 0, 8.8), 1.4, {"display_name": "Спит на матрасе", "start_pose": "sleep"})
+	character(chars, "SewerBum3", "nr_bum", Vector3(32.2, 0, 7.4), -1.8, {"display_name": "Бич с кружкой", "start_pose": "sit"})
+	character(chars, "PumpMan", "town_worker", Vector3(23.0, 0, 19.6), PI, {"display_name": "Слесарь водоканала"})
+	var items := group(root, "Items")
+	_junk_items(items)
+	_use(items, "UpProxod", "Скобы наверх — в Проход", Vector3(10, 0, 1.8), Vector3(1.2, 2.4, 1.0))
+	_use(items, "UpBlack", "Скобы наверх — в Чёрный район", Vector3(46, 0, 26.2), Vector3(1.2, 2.4, 1.0))
+	_use(items, "Valve", "Вентиль", Vector3(18.4, 0, 18.4), Vector3(0.8, 1.4, 0.8))
+	_use(items, "Pumps", "Насосы", Vector3(22.8, 0, 22.5), Vector3(7.0, 1.4, 1.6))
+	_spawn("Start", Vector3(10, 0, 4.0))
+	_spawn("FromProxod", Vector3(10, 0, 4.0))
+	_spawn("FromBlack", Vector3(46, 0, 24.0))
+	marker(root, "MarkCamp", Vector3(30, 0, 6), "Стоянка бичей")
+	marker(root, "MarkPump", Vector3(23, 0, 21), "Насосная")
+	_finish("nyurba_sewer")

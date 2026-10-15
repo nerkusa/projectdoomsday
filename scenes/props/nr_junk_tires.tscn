@@ -1,0 +1,38 @@
+[gd_scene format=3]
+
+[ext_resource type="Material" path="res://assets/materials/tire.tres" id="1_ikigf"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/nr_junk_tires_tire.res" id="2_kybwn"]
+[ext_resource type="Material" path="res://assets/materials/coal.tres" id="3_0e7li"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/nr_junk_tires_coal.res" id="4_5p3og"]
+[ext_resource type="Material" path="res://assets/materials/paper.tres" id="5_iv82u"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/nr_junk_tires_paper.res" id="6_oo5q6"]
+[ext_resource type="Material" path="res://assets/materials/bottle.tres" id="7_qt6nh"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/nr_junk_tires_bottle.res" id="8_i715j"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_nntn0"]
+size = Vector3(1.6, 0.9, 1.3)
+
+[node name="NrJunkTires" type="Node3D" unique_id=1021733652]
+
+[node name="Mesh_tire" type="MeshInstance3D" parent="." unique_id=1491761035]
+material_override = ExtResource("1_ikigf")
+mesh = ExtResource("2_kybwn")
+
+[node name="Mesh_coal" type="MeshInstance3D" parent="." unique_id=178116284]
+material_override = ExtResource("3_0e7li")
+mesh = ExtResource("4_5p3og")
+
+[node name="Mesh_paper" type="MeshInstance3D" parent="." unique_id=1564385985]
+material_override = ExtResource("5_iv82u")
+mesh = ExtResource("6_oo5q6")
+
+[node name="Mesh_bottle" type="MeshInstance3D" parent="." unique_id=308762575]
+material_override = ExtResource("7_qt6nh")
+mesh = ExtResource("8_i715j")
+
+[node name="Collision" type="StaticBody3D" parent="." unique_id=1318984051]
+collision_mask = 0
+
+[node name="@CollisionShape3D@278" type="CollisionShape3D" parent="Collision" unique_id=1797915354]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.45, 0)
+shape = SubResource("BoxShape3D_nntn0")

@@ -1,0 +1,38 @@
+[gd_scene format=3]
+
+[ext_resource type="Material" path="res://assets/materials/planks_old.tres" id="1_18q1y"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/nr_junk_furniture_planks_old.res" id="2_w1tnc"]
+[ext_resource type="Material" path="res://assets/materials/sofa.tres" id="3_iolyd"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/nr_junk_furniture_sofa.res" id="4_aagxi"]
+[ext_resource type="Material" path="res://assets/materials/paper.tres" id="5_7ur5h"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/nr_junk_furniture_paper.res" id="6_iiax0"]
+[ext_resource type="Material" path="res://assets/materials/bottle.tres" id="7_268dt"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/nr_junk_furniture_bottle.res" id="8_fxkrs"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_a4sry"]
+size = Vector3(1.6, 0.9, 1.3)
+
+[node name="NrJunkFurniture" type="Node3D" unique_id=1369088253]
+
+[node name="Mesh_planks_old" type="MeshInstance3D" parent="." unique_id=273029579]
+material_override = ExtResource("1_18q1y")
+mesh = ExtResource("2_w1tnc")
+
+[node name="Mesh_sofa" type="MeshInstance3D" parent="." unique_id=1072594234]
+material_override = ExtResource("3_iolyd")
+mesh = ExtResource("4_aagxi")
+
+[node name="Mesh_paper" type="MeshInstance3D" parent="." unique_id=343933135]
+material_override = ExtResource("5_7ur5h")
+mesh = ExtResource("6_iiax0")
+
+[node name="Mesh_bottle" type="MeshInstance3D" parent="." unique_id=506887764]
+material_override = ExtResource("7_268dt")
+mesh = ExtResource("8_fxkrs")
+
+[node name="Collision" type="StaticBody3D" parent="." unique_id=550174450]
+collision_mask = 0
+
+[node name="@CollisionShape3D@277" type="CollisionShape3D" parent="Collision" unique_id=94578970]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.45, 0)
+shape = SubResource("BoxShape3D_a4sry")

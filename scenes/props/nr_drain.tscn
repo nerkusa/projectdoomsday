@@ -1,0 +1,22 @@
+[gd_scene format=3]
+
+[ext_resource type="Material" path="res://assets/materials/concrete.tres" id="1_epmd0"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/nr_drain_concrete.res" id="2_72tyw"]
+[ext_resource type="Material" path="res://assets/materials/coal.tres" id="3_s1dhc"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/nr_drain_coal.res" id="4_h51yd"]
+[ext_resource type="Material" path="res://assets/materials/metal_dark.tres" id="5_txblo"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/nr_drain_metal_dark.res" id="6_fkwu7"]
+
+[node name="Drain" type="Node3D" unique_id=2147088369]
+
+[node name="Mesh_concrete" type="MeshInstance3D" parent="." unique_id=453696445]
+material_override = ExtResource("1_epmd0")
+mesh = ExtResource("2_72tyw")
+
+[node name="Mesh_coal" type="MeshInstance3D" parent="." unique_id=1917964307]
+material_override = ExtResource("3_s1dhc")
+mesh = ExtResource("4_h51yd")
+
+[node name="Mesh_metal_dark" type="MeshInstance3D" parent="." unique_id=1314439781]
+material_override = ExtResource("5_txblo")
+mesh = ExtResource("6_fkwu7")

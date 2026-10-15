@@ -311,11 +311,14 @@ Project Doomsday — 1–4
 Вторые этажи двухэтажных изб Нахарро. Светёлки лежат в одной сцене рядом
 `_ready:14` `room_at:19` `status_line:26` `uses_clock_light:30` `on_world_state_applied:34` `on_enter:39` `_show:44` `_allowed:65` `on_dialog_action:73` `on_interact:83` `_antenna:120` `item_actions:142` `describe:156` `can_leave_edge:180`
 
-### scripts/locations/nyurba.gd (35)
+### scripts/locations/nyurba.gd (117)
 Нью-Рба, Проход — вход в город и низы: ворота с охраной, Алмазный банк, ломбард,
 
-### scripts/locations/nyurba_district.gd (34) · class NyurbaDistrict
+### scripts/locations/nyurba_district.gd (85) · class NyurbaDistrict
 Общее для районов Нью-Рбы: переходы между районами по улицам (To* → другая локация).
+
+### scripts/locations/nyurba_sewer.gd (36)
+Нью-Рба, коллектор под Проходом: люк во дворе бара «Забой» — вниз; на том конце —
 
 ### scripts/locations/radio_post.gd (124)
 Пост связи наёмников на сопке — источник сигнала из модуля «Связь».
@@ -360,9 +363,9 @@ Project Doomsday — 1–4
 ### scripts/locations/zaimka.gd (140)
 Заимка охотника Дьаакыпа. Задание «Капканы»: на севере что-то ломает капканы —
 
-### scripts/main.gd (1553)
+### scripts/main.gd (1555)
 Главный узел игры: камера, загрузка локаций, ввод мышью, окна интерфейса.
-`_ready:82` `_on_level_up:109` `_build_ui:120` `space:193` `ui_blocked:197` `sfx:202` `think:227` `_on_menu:232` `_load_slot:260` `_on_sheet_closed:275` `_on_slides_done:286` `_unload:296` `load_location:314` `autosave:359` `quicksave:366` `show_game_over:375` `show_end:379` `status_text:385` `objective_text:391` `_on_hud_action:404` `open_kpk:449` `use_item:475` `_swap_hands:550` `_open_pause:562` `_move_speed:570` `_sneak_radius:581` `on_combat_start:590` `is_filler:606` `filler_bark:611` `talk_to:652` `say:677` `_on_dialog_action:687` `open_trade:726` `_on_dialog_closed:732` `start_fight:737` `_unhandled_input:758` `wait_time:820` `begin_cutscene:825` `end_cutscene:833` `_enemies_near:838` `open_wait:846` `wait_hours:856` `_pick:873` `_click:914` `_may_attack:957` `_near_edge:967` `_can_leave:972` `_walk_to_hex:984` `_walk_clear:1027` `_smooth_path:1042` `_go_then:1056` `_do_pending:1088` `interact:1116` `loot:1140` `_body_entries:1158` `open_loot:1179` `pickpocket:1200` `examine:1235` `_open_actions:1251` `_on_action_picked:1297` `_process:1316` `_update_xray:1382` `_set_alpha:1447` `_update_glow:1459` `_check_aggro:1467` `_look_around:1502` `_look_text:1524`
+`_ready:83` `_on_level_up:110` `_build_ui:121` `space:194` `ui_blocked:198` `sfx:203` `think:228` `_on_menu:233` `_load_slot:261` `_on_sheet_closed:276` `_on_slides_done:287` `_unload:297` `load_location:315` `autosave:360` `quicksave:367` `show_game_over:376` `show_end:380` `status_text:386` `objective_text:392` `_on_hud_action:405` `open_kpk:450` `use_item:476` `_swap_hands:551` `_open_pause:563` `_move_speed:571` `_sneak_radius:582` `on_combat_start:591` `is_filler:607` `filler_bark:612` `talk_to:653` `say:678` `_on_dialog_action:688` `open_trade:727` `_on_dialog_closed:733` `start_fight:738` `_unhandled_input:759` `wait_time:821` `begin_cutscene:826` `end_cutscene:834` `_enemies_near:839` `open_wait:847` `wait_hours:857` `_pick:874` `_click:915` `_may_attack:958` `_near_edge:968` `_can_leave:973` `_walk_to_hex:985` `_walk_clear:1028` `_smooth_path:1043` `_go_then:1057` `_do_pending:1089` `interact:1117` `loot:1141` `_body_entries:1159` `open_loot:1180` `pickpocket:1201` `examine:1236` `_open_actions:1252` `_on_action_picked:1298` `_process:1317` `_update_xray:1383` `_set_alpha:1449` `_update_glow:1461` `_check_aggro:1469` `_look_around:1504` `_look_text:1526`
 
 ### scripts/ui/char_sheet.gd (376) · class CharSheet
 «Дело» — лист персонажа. Новая игра начинается с выбора одного из четырёх готовых
@@ -465,9 +468,9 @@ Project Doomsday — 1–4
 Генератор локаций первого акта: Кресты (живое поселение у реки) и
 `_build:17` `_begin:40` `_finish:59` `_water_mats:71` `_river_plane:83` `_slot_of:99` `_homely:105` `_ground_for:124` `_paint:160` `_woods:190` `_blocked:228` `_free2:239` `_boxes_of:248` `_dress:272` `_cross:307` `_mound:324` `_net_rack:331` `_tent:351` `_lean_to:366` `_boat:381` `_exit:390` `_use:401` `_spawn:412` `_kresty:427` `_camp:637` `_encounter:713` `_spawn_mark:722` `_zaimka:734` `_truck:824` `_convoy:846` `_block:884` `_ruin:901` `_bunker_portal:991` `_radio_post:1053` `_dark_env:1186` `_lamp:1204` `_room_walls:1219` `_floor:1258` `_cellar:1263` `_glow:1321` `_upper:1330` `_bunker:1479` `_bunker_mats:1565` `_bk_panels:1592` `_hazard:1624` `_collapse:1636` `_bk_shaft:1651` `_bk_gate:1666` `_bk_corridor:1708` `_console:1741` `_reel_unit:1764` `_bk_control:1776` `_bk_barracks:1825` `_bk_generator:1856` `_bk_archive:1877` `_river_south:1904` `_stall:1914` `_signboard:1934` `_lamp_post:1954` `_laundry:1968`
 
-### tools/build_city.gd (1449)
+### tools/build_city.gd (1603)
 Каменный Сунгар (бывший посёлок городского типа): дома в 2–4 этажа из штукатурки
-`_ready:18` `_city_materials:100` `_glow_mat:167` `swin:182` `balcony:223` `entry:258` `open_door:273` `roof:283` `stone_block:318` `sandrik:445` `arch_win:458` `_stalin_decor:490` `_labaz_decor:533` `_balustrade:562` `_spire:579` `_wkind:595` `_wear:614` `_shop_window:672` `_portico:684` `_shell:700` `_lining:724` `stair_flight:739` `partition_z:753` `_table:765` `_bed:782` `_wardrobe:793` `_counter:799` `_shelf_goods:805` `_stove:819` `_rug:825` `_plant:829` `_interior:837` `heat_pipes:1045` `boiler_house:1083` `water_tower:1109` `garages:1122` `kiosk:1137` `bus_stop:1153` `conc_fence:1173` `paz_wreck:1184` `bins:1201` `furniture:1213` `_stair_piece:1277` `_crt:1290` `cassette_props:1299` `ruin_props:1385`
+`_ready:18` `_city_materials:109` `_glow_mat:176` `swin:191` `balcony:232` `entry:267` `open_door:282` `roof:292` `stone_block:327` `sandrik:455` `arch_win:468` `_stalin_decor:500` `_labaz_decor:543` `_balustrade:572` `_spire:589` `nyurba_props:607` `_wkind:731` `_wear:750` `_shop_window:808` `_portico:820` `_shell:836` `_lining:860` `stair_flight:875` `partition_z:889` `_table:901` `_bed:918` `_wardrobe:929` `_counter:935` `_shelf_goods:941` `_stove:955` `_rug:961` `_plant:965` `_interior:973` `heat_pipes:1199` `boiler_house:1237` `water_tower:1263` `garages:1276` `kiosk:1291` `bus_stop:1307` `conc_fence:1327` `paz_wreck:1338` `bins:1355` `furniture:1367` `_stair_piece:1431` `_crt:1444` `cassette_props:1453` `ruin_props:1539`
 
 ### tools/build_hero_skin.gd (78)
 Собирает сетку героя с новой развёрткой из assets/models/hero_skin_mesh.bin
@@ -476,13 +479,13 @@ Project Doomsday — 1–4
 Генератор большой деревни Нахарро (по референсу «Нахарра», ~40 человек):
 `_ready:43` `_build:63` `_env:93` `_ground:134` `strip:186` `_ground_material:195` `_paint_splat:212` `_sd_rect:246` `_seg_dist:254` `_ring_dist:261` `_ditch_h:268` `_village:282` `_forest:368` `_forest_edge:421` `_raid:449` `_characters:467` `_seat:579` `_items:586` `_fence_mend:663` `_clear_overlaps:680` `_is_plant:748` `_inside:755` `_pal:764` `_moat:772` `_ditch_mesh:827` `_bridge:853` `_multi:870` `_xf:884` `_free_spot:888` `_details:897` `_building_boxes:987` `_tutorial_extras:1015` `_sacred_tree:1055` `_village_life:1129`
 
-### tools/build_nyurba.gd (260)
+### tools/build_nyurba.gd (469)
 Нью-Рба — большой алмазный город на месте Нюрбы (Акт II). Город квадратный,
-`_build:16` `_finish:35` `_wall:45` `_walk:62` `_proxod:70`
+`_build:16` `_finish:39` `_wall:49` `_junk:71` `_junk_items:76` `_city_wall:86` `_city_gate:102` `_walk:127` `_proxod:135` `_sewer:369`
 
-### tools/build_props.gd (1531)
+### tools/build_props.gd (1551)
 Генератор построек и растительности в стиле референса «Нахарра».
-`_ready:31` `_houses:67` `_tex_mat:81` `_card_mat:100` `_decal_mat:117` `_plain_mat:133` `_materials:145` `begin:214` `add:224` `rough:233` `rsphere:257` `rcone:266` `save_mesh:277` `box:293` `cyl:299` `prism:309` `solid:315` `finish:319` `_merge:377` `log_walls:405` `gable_roof:427` `window:471` `_window:477` `door:500` `wall_colliders:517` `plinth:531` `izba_interior:541` `porch:586` `chimney:601` `house:608` `hall:713` `tower:775` `barn:817` `shed:877` `workshop:892` `gate:917` `barricade:934` `greenhouse:950` `wind_turbine:975` `card:1001` `leaf:1019` `spruce:1026` `pine:1065` `birch:1099` `bush:1122` `dead_tree:1136` `rocks:1150` `tractor:1171` `palisades:1228` `small_props:1271` `scatter_meshes:1402` `travel_items:1449` `_item:1501` `junk:1509` `locked_box:1522`
+`_ready:31` `_houses:67` `_tex_mat:81` `_card_mat:100` `_decal_mat:117` `_plain_mat:133` `_materials:145` `begin:214` `add:230` `rough:239` `rsphere:263` `rcone:272` `save_mesh:283` `box:299` `cyl:305` `prism:315` `solid:321` `finish:325` `_merge:397` `log_walls:425` `gable_roof:447` `window:491` `_window:497` `door:520` `wall_colliders:537` `plinth:551` `izba_interior:561` `porch:606` `chimney:621` `house:628` `hall:733` `tower:795` `barn:837` `shed:897` `workshop:912` `gate:937` `barricade:954` `greenhouse:970` `wind_turbine:995` `card:1021` `leaf:1039` `spruce:1046` `pine:1085` `birch:1119` `bush:1142` `dead_tree:1156` `rocks:1170` `tractor:1191` `palisades:1248` `small_props:1291` `scatter_meshes:1422` `travel_items:1469` `_item:1521` `junk:1529` `locked_box:1542`
 
 ### tools/build_rural.gd (903)
 Деревня и дорога: постройки и вещи для Крестов (баня, часовня, коптильня, нужник,
@@ -519,9 +522,9 @@ Project Doomsday — 1–4
 ### tools/screenshots.gd (107)
 Снимки экрана для проверки интерфейса (нужен рендер, не --headless).
 
-### tools/smoke_test.gd (2943)
+### tools/smoke_test.gd (3011)
 Автотест пролога: проходит всю цепочку без участия человека и печатает, что сломалось.
-`new_enc:12` `ok:17` `wait:25` `frames:29` `close_dialogs:34` `shut:43` `choose:48` `opt_texts:54` `find_opt:61` `tp:79` `fight:86` `wait_loading:128` `unreachable:137` `go_upstairs:166` `go_downstairs:176` `nakharro_life_tests:187` `kresty_life_tests:365` `encounter_lore_tests:444` `city_tests:512` `admin_tests:705` `weather_tests:783` `social_tests:850` `sungar_tests:945` `_ready:1092`
+`new_enc:12` `ok:17` `wait:25` `frames:29` `close_dialogs:34` `shut:43` `choose:48` `opt_texts:54` `find_opt:61` `tp:79` `fight:86` `wait_loading:128` `unreachable:137` `go_upstairs:166` `go_downstairs:176` `nakharro_life_tests:187` `kresty_life_tests:365` `encounter_lore_tests:444` `city_tests:512` `admin_tests:705` `weather_tests:783` `social_tests:850` `nyurba_tests:947` `sungar_tests:1003` `_ready:1150`
 
 ## Данные (data/)
 
@@ -621,6 +624,6 @@ Project Doomsday — 1–4
 - data/presets.json (22 строк)
 - data/quests.json (581 строк)
 - data/rep_greet.json (34 строк)
-- data/schedules.json (439 строк)
+- data/schedules.json (535 строк)
 - data/weapons.json (20 строк)
 - data/world.json (2967 строк)

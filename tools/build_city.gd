@@ -59,8 +59,11 @@ func _ready() -> void:
 		# ---- Нью-Рба: старый алмазный город ----
 		# сталинки: рустованный низ, пилястры, сандрики над окнами, тяжёлый карниз
 		"nr_stalin3": {"w": 18.0, "d": 10.0, "floors": 3, "mat": "plaster_ochre", "roof": "pitch", "stalin": true, "balconies": true, "entries": [-4.4, 4.4], "fh": 3.3},
+		# сталинка с открытым подъездом: внизу две квартиры, лестница наверх
+		"nr_stalin3_in": {"w": 18.0, "d": 10.0, "floors": 3, "mat": "plaster_ochre", "roof": "pitch", "stalin": true, "balconies": true, "enter": "stairwell", "fh": 3.3},
 		"nr_stalin4": {"w": 20.0, "d": 11.0, "floors": 4, "mat": "plaster_pink", "roof": "flat", "stalin": true, "balustrade": true, "balconies": true, "entries": [-5.0, 5.0], "fh": 3.3},
 		"nr_stalin4b": {"w": 16.0, "d": 11.0, "floors": 4, "mat": "plaster_cream", "roof": "pitch", "stalin": true, "balconies": true, "entries": [0.0], "fh": 3.3},
+		"nr_stalin4b_in": {"w": 16.0, "d": 11.0, "floors": 4, "mat": "plaster_cream", "roof": "pitch", "stalin": true, "balconies": true, "enter": "stairwell", "fh": 3.3},
 		# угловая сталинка со шпилем — на перекрёстке, видна отовсюду
 		"nr_stalin_spire": {"w": 18.0, "d": 12.0, "floors": 4, "mat": "plaster_ochre", "roof": "flat", "stalin": true, "balustrade": true, "spire": true, "entries": [-5.0, 5.0], "fh": 3.3},
 		# банк в сталинке: операционный зал с решёткой и сейфом
@@ -72,13 +75,19 @@ func _ready() -> void:
 		"nr_labaz_bar": {"w": 14.0, "d": 9.0, "floors": 2, "mat": "brick", "enter": "bar", "roof": "pitch", "labaz": true, "fh": 3.5},
 		"nr_labaz_pawn": {"w": 10.0, "d": 8.0, "floors": 2, "mat": "brick_white", "enter": "shop", "roof": "pitch", "labaz": true, "bars": true, "fh": 3.4},
 		"nr_labaz_row": {"w": 16.0, "d": 8.0, "floors": 1, "mat": "brick", "roof": "pitch", "labaz": true, "entries": [-5.0, 0.0, 5.0], "fh": 3.8},
+		# торговые ряды, куда можно войти: прилавки вдоль стен
+		"nr_labaz_row_in": {"w": 16.0, "d": 8.0, "floors": 1, "mat": "brick", "roof": "pitch", "labaz": true, "enter": "shop", "fh": 3.8},
 		"nr_labaz_row2": {"w": 12.0, "d": 8.0, "floors": 2, "mat": "brick_white", "roof": "pitch", "labaz": true, "entries": [-2.5, 2.5], "fh": 3.4},
 		# склад: длинный, с воротами
 		"nr_warehouse": {"w": 22.0, "d": 11.0, "floors": 1, "mat": "brick", "roof": "pitch", "labaz": true, "gates": [-5.0, 5.0], "entries": [], "fh": 5.0},
+		# склад, куда можно войти: стеллажи, ящики, мешки, весы
+		"nr_warehouse_in": {"w": 22.0, "d": 11.0, "floors": 1, "mat": "brick", "roof": "pitch", "labaz": true, "gates": [6.0], "enter": "storage", "door_x": -4.0, "fh": 5.0},
 	}
 	for n in houses:
 		if only == "" or n == only or (only.ends_with("*") and n.begins_with(only.trim_suffix("*"))):
 			stone_block(n, houses[n])
+	if only == "" or only == "nr_misc" or only == "nr_*":
+		nyurba_props()
 	if only == "" or only == "misc":
 		heat_pipes()
 		boiler_house()
@@ -437,6 +446,7 @@ func stone_block(n: String, o: Dictionary) -> void:
 	for sx in [-1, 1]:
 		cyl("tin", 0.08, 0.08, top - 0.3, Vector3(sx * (hx - 0.1), (top - 0.3) / 2.0, hz + 0.12), Vector3.ZERO, 6)
 	box("metal_dark", Vector3(0.6, 0.8, 0.2), Vector3(-hx + 1.6, 1.4 + base, -hz - 0.1))
+	xray_vol = [Vector3(w - 0.4, top, d - 0.4), Vector3(0, top / 2.0, 0)]
 	finish(n, n.to_pascal_case())
 
 
@@ -590,6 +600,132 @@ func _spire(w: float, d: float, top: float) -> void:
 	cyl("paint_white", 0.7, 0.7, 0.06, Vector3(0, top + 4.6, z + 1.32), Vector3(PI / 2.0, 0, 0), 16)
 	box("metal_dark", Vector3(0.06, 0.5, 0.04), Vector3(0, top + 4.75, z + 1.36))
 	box("metal_dark", Vector3(0.35, 0.06, 0.04), Vector3(0.15, top + 4.6, z + 1.36))
+
+
+## Пропы Нью-Рбы: городская стена с башнями, кучи мусора (в них можно порыться),
+## мусорный контейнер, люки канализации, решётка ливнёвки, городская скамейка
+func nyurba_props() -> void:
+	# пролёт стены: 6 м, 5 м высоты, кирпич на бутовом цоколе, контрфорс, зубцы, колючка
+	begin()
+	_rng.seed = 6200
+	box("stone_wall", Vector3(6.0, 1.2, 1.4), Vector3(0, 0.6, 0))
+	box("brick", Vector3(6.0, 3.6, 1.0), Vector3(0, 3.0, 0))
+	box("concrete", Vector3(6.1, 0.2, 1.2), Vector3(0, 4.85, 0))
+	for i in 4:
+		box("brick", Vector3(0.8, 0.6, 1.0), Vector3(-2.25 + i * 1.5, 5.25, 0))
+	box("brick", Vector3(0.9, 4.2, 0.6), Vector3(2.6, 2.1, 0.75))
+	box("brick", Vector3(0.9, 4.2, 0.6), Vector3(2.6, 2.1, -0.75))
+	for k in 3:
+		box("rust", Vector3(6.0, 0.03, 0.03), Vector3(0, 5.6 + k * 0.2, 0.3 * (k - 1)))
+	for k in 3:
+		box(["brick_white", "concrete", "tar"][k], Vector3(_rng.randf_range(0.6, 1.4), _rng.randf_range(0.4, 0.9), 0.04),
+			Vector3(_rng.randf_range(-2.0, 1.8), _rng.randf_range(1.5, 4.0), 0.52))
+	box("tar", Vector3(0.08, 1.6, 0.02), Vector3(-1.0, 3.6, 0.51), Vector3(0, 0, 0.3))
+	solid(Vector3(6.0, 3.0, 1.4), Vector3(0, 1.5, 0))
+	finish("nr_wall", "CityWall")
+	# башня стены: 4×4 м, 8 м, бойницы, шатровая крыша, прожектор
+	begin()
+	box("stone_wall", Vector3(4.4, 1.4, 4.4), Vector3(0, 0.7, 0))
+	box("brick", Vector3(4.0, 6.6, 4.0), Vector3(0, 4.7, 0))
+	box("concrete", Vector3(4.6, 0.3, 4.6), Vector3(0, 8.1, 0))
+	for sx in [-1, 1]:
+		for y in [3.4, 6.0]:
+			box("coal", Vector3(0.25, 0.7, 0.05), Vector3(sx * 0.9, y, 2.01))
+			box("coal", Vector3(0.25, 0.7, 0.05), Vector3(sx * 0.9, y, -2.01))
+			box("coal", Vector3(0.05, 0.7, 0.25), Vector3(2.01, y, sx * 0.9))
+			box("coal", Vector3(0.05, 0.7, 0.25), Vector3(-2.01, y, sx * 0.9))
+	prism("metal_roof", Vector3(4.6, 2.0, 4.6), Vector3(0, 9.25, 0))
+	prism("metal_roof", Vector3(4.6, 2.0, 4.6), Vector3(0, 9.25, 0), Vector3(0, PI / 2.0, 0))
+	cyl("metal_dark", 0.25, 0.3, 0.4, Vector3(1.6, 8.5, 1.6), Vector3(0.6, 0, 0), 10)
+	box("flag_red", Vector3(0.9, 0.5, 0.03), Vector3(0, 11.0, 0))
+	cyl("metal_dark", 0.03, 0.03, 1.8, Vector3(-0.45, 10.6, 0), Vector3.ZERO, 5)
+	solid(Vector3(4.4, 3.0, 4.4), Vector3(0, 1.5, 0))
+	finish("nr_wall_tower", "WallTower")
+	# кучи мусора — разные
+	var heaps := {
+		"nr_junk_bags": [["trash_black", 0.45], ["trash_black", 0.4], ["cloth_sack", 0.35], ["trash_black", 0.38], ["paper", 0.3], ["trash_black", 0.32]],
+		"nr_junk_scrap": [["rust", 0.5], ["metal_dark", 0.4], ["rust", 0.35], ["tin", 0.3], ["rust", 0.3]],
+		"nr_junk_furniture": [["planks_old", 0.5], ["sofa", 0.45], ["planks_old", 0.35], ["paper", 0.3]],
+		"nr_junk_tires": [["tire", 0.4], ["tire", 0.4], ["tire", 0.4], ["rust", 0.3]],
+	}
+	var hk := 0
+	for hn in heaps:
+		begin()
+		_rng.seed = hash(hn)
+		var parts: Array = heaps[hn]
+		for i in parts.size():
+			var m: String = parts[i][0]
+			var r: float = parts[i][1]
+			var a := TAU * i / parts.size() + _rng.randf_range(-0.3, 0.3)
+			var pos := Vector3(cos(a) * 0.55, r * 0.7, sin(a) * 0.45)
+			if hn == "nr_junk_tires":
+				cyl("tire", 0.42, 0.42, 0.22, Vector3(_rng.randf_range(-0.4, 0.4), 0.11 + i * 0.22, _rng.randf_range(-0.3, 0.3)), Vector3.ZERO, 14)
+				cyl("coal", 0.22, 0.22, 0.24, Vector3(0, 0.11 + i * 0.22, 0), Vector3.ZERO, 10)
+			elif hn == "nr_junk_furniture":
+				box(m, Vector3(r * 2.2, r * 0.6, r * 1.4), pos, Vector3(_rng.randf_range(-0.4, 0.4), a, _rng.randf_range(-0.3, 0.3)))
+			elif hn == "nr_junk_scrap":
+				box(m, Vector3(r * 2.0, 0.08, r * 1.2), pos * 0.8 + Vector3(0, 0.1, 0), Vector3(_rng.randf_range(-0.6, 0.6), a, _rng.randf_range(-0.6, 0.6)))
+				cyl(m, 0.06, 0.06, r * 3.0, pos * 0.6 + Vector3(0, 0.3, 0), Vector3(1.2, a, 0.3), 6)
+			else:
+				add(m, rough(rsphere(r, 7, 5), 0.06, hk * 10 + i), pos, Vector3.ZERO, Vector3(1.0, 0.8, 1.0))
+		# мелочь вокруг: бумага, бутылки, банки
+		for i in 6:
+			var a := _rng.randf() * TAU
+			var dd := _rng.randf_range(0.8, 1.3)
+			if i % 2 == 0:
+				box("paper", Vector3(0.25, 0.01, 0.2), Vector3(cos(a) * dd, 0.01, sin(a) * dd), Vector3(0, a, 0))
+			else:
+				cyl("bottle", 0.05, 0.05, 0.25, Vector3(cos(a) * dd, 0.05, sin(a) * dd), Vector3(PI / 2.0, a, 0), 6)
+		solid(Vector3(1.6, 0.9, 1.3), Vector3(0, 0.45, 0))
+		finish(hn, hn.to_pascal_case())
+		hk += 1
+	# мусорный контейнер (железный, на колёсах, крышка откинута)
+	begin()
+	box("metal_green", Vector3(1.8, 1.1, 1.1), Vector3(0, 0.75, 0))
+	box("metal_dark", Vector3(1.85, 0.06, 1.15), Vector3(0, 1.32, -0.55), Vector3(-1.2, 0, 0))
+	add("trash_black", rough(rsphere(0.4, 7, 5), 0.06, 77), Vector3(-0.3, 1.25, 0.1))
+	add("cloth_sack", rough(rsphere(0.3, 7, 5), 0.06, 78), Vector3(0.4, 1.2, 0.0))
+	for sx in [-1, 1]:
+		for sz in [-1, 1]:
+			cyl("tire", 0.1, 0.1, 0.06, Vector3(sx * 0.75, 0.1, sz * 0.45), Vector3(PI / 2.0, 0, 0), 8)
+	box("rust", Vector3(0.6, 0.5, 0.02), Vector3(0.4, 0.8, 0.56))
+	solid(Vector3(1.9, 1.3, 1.2), Vector3(0, 0.65, 0))
+	finish("nr_dumpster", "Dumpster")
+	# люк: чугунная крышка в бетонном кольце
+	begin()
+	cyl("concrete", 0.55, 0.6, 0.06, Vector3(0, 0.03, 0), Vector3.ZERO, 16)
+	cyl("metal_dark", 0.42, 0.42, 0.04, Vector3(0, 0.06, 0), Vector3.ZERO, 16)
+	for i in 3:
+		box("rust", Vector3(0.7, 0.012, 0.04), Vector3(0, 0.085, -0.2 + i * 0.2))
+	finish("nr_manhole", "Manhole")
+	# открытый люк: крышка сдвинута, внутри темно, скобы лестницы
+	begin()
+	cyl("concrete", 0.55, 0.6, 0.06, Vector3(0, 0.03, 0), Vector3.ZERO, 16)
+	cyl("coal", 0.4, 0.4, 0.02, Vector3(0, 0.065, 0), Vector3.ZERO, 16)
+	cyl("metal_dark", 0.42, 0.42, 0.04, Vector3(0.75, 0.05, 0.2), Vector3(0, 0, 0.08), 16)
+	for i in 2:
+		box("rust", Vector3(0.3, 0.03, 0.03), Vector3(0, 0.075, -0.3 + i * 0.12))
+	finish("nr_manhole_open", "ManholeOpen")
+	# решётка ливнёвки у бордюра
+	begin()
+	box("concrete", Vector3(0.9, 0.05, 0.5), Vector3(0, 0.025, 0))
+	box("coal", Vector3(0.75, 0.02, 0.36), Vector3(0, 0.055, 0))
+	for i in 7:
+		box("metal_dark", Vector3(0.03, 0.03, 0.38), Vector3(-0.33 + i * 0.11, 0.06, 0))
+	finish("nr_drain", "Drain")
+	# городская скамейка: чугунные боковины, рейки
+	begin()
+	for sx in [-1, 1]:
+		box("metal_dark", Vector3(0.08, 0.45, 0.5), Vector3(sx * 0.85, 0.22, 0))
+		box("metal_dark", Vector3(0.08, 0.5, 0.08), Vector3(sx * 0.85, 0.7, -0.22), Vector3(-0.2, 0, 0))
+		box("metal_dark", Vector3(0.08, 0.06, 0.5), Vector3(sx * 0.85, 0.62, 0.0))
+	for i in 3:
+		box("planks_old", Vector3(1.9, 0.04, 0.12), Vector3(0, 0.47, -0.16 + i * 0.15))
+	for i in 2:
+		box("planks_old", Vector3(1.9, 0.12, 0.04), Vector3(0, 0.66 + i * 0.16, -0.26 - i * 0.03), Vector3(-0.2, 0, 0))
+	solid(Vector3(1.8, 0.8, 0.5), Vector3(0, 0.4, 0))
+	slots["sit"] = Vector3(0, 0, 0.05)
+	finish("nr_bench", "CityBench")
 
 
 func _wkind() -> String:
@@ -892,6 +1028,24 @@ func _interior(kind: String, w: float, d: float, door_x: float) -> void:
 			slots["t3"] = Vector3(hx - 1.4, 0, 1.6)
 			_stove(1.2, hz - 0.8)
 			_rug(-0.4, 0.4, 1.6, 2.4, "cloth_sack")
+		"storage":
+			_lining(w, d, "brick", "concrete", door_x)
+			for row in 3:
+				var zz := -hz + 1.0 + row * 2.6
+				for i in 3:
+					var xx := 1.5 + i * 2.6
+					box("planks_old", Vector3(2.0, 0.08, 0.9), Vector3(xx, 0.9, zz))
+					box("planks_old", Vector3(2.0, 0.08, 0.9), Vector3(xx, 1.8, zz))
+					for c in 2:
+						box(["cloth_sack", "planks_old", "tin"][(row + i + c) % 3], Vector3(0.6, 0.5, 0.6), Vector3(xx - 0.5 + c * 1.0, 1.2 + (c % 2) * 0.9, zz))
+					solid(Vector3(2.0, 2.0, 0.9), Vector3(xx, 1.0, zz))
+			for i in 6:
+				box("planks_old", Vector3(0.9, 0.8, 0.9), Vector3(-hx + 1.0 + (i % 3) * 1.0, 0.4 + int(i / 3) * 0.8, hz - 1.0), Vector3(0, i * 0.3, 0))
+			solid(Vector3(3.0, 1.6, 1.0), Vector3(-hx + 2.0, 0.8, hz - 1.0))
+			box("metal_dark", Vector3(0.9, 1.1, 0.6), Vector3(-hx + 0.8, 0.55, -hz + 0.8))
+			box("brass", Vector3(0.7, 0.05, 0.5), Vector3(-hx + 0.8, 1.12, -hz + 0.8))
+			slots["keeper"] = Vector3(-hx + 1.8, 0, -hz + 1.2)
+			slots["porter"] = Vector3(0.0, 0, 0.0)
 		"bank":
 			# операционный зал: стойка с решёткой до потолка, за ней — кассир и сейф
 			_lining(w, d, "plaster_cream", "tiles", door_x)

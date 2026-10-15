@@ -21,6 +21,7 @@ const LOCATIONS := {
 	"sungar_obshaga": "res://scenes/locations/sungar_obshaga.tscn",
 	"sungar_admin": "res://scenes/locations/sungar_admin.tscn",
 	"nyurba": "res://scenes/locations/nyurba.tscn",
+	"nyurba_sewer": "res://scenes/locations/nyurba_sewer.tscn",
 }
 const CAM_DIR := Vector3(1, 1, 1)
 ## Камера ортогональная: расстояние не меняет картинку, но от него зависит
@@ -1391,7 +1392,8 @@ func _update_xray() -> void:
 	for to in targets:
 		var excl: Array[RID] = []
 		for i in 6:
-			var q := PhysicsRayQueryParameters3D.create(from, to, 1)
+			# 8 — «рентген-объёмы» высоких домов (стены-коллизии у них только по пояс)
+			var q := PhysicsRayQueryParameters3D.create(from, to, 1 | 8)
 			q.exclude = excl
 			var r := space().intersect_ray(q)
 			if r.is_empty():
