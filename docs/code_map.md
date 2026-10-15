@@ -153,7 +153,7 @@ Project Doomsday — 1–4
 - markun «Мар-Кун»: scenes/locations/markun.tscn → scripts/locations/markun.gd
 - nyurba «Нью-Рба»: scenes/locations/nyurba.tscn → scripts/locations/nyurba.gd
 - mirny «Мирный»: scenes/locations/mirny.tscn → scripts/locations/mirny.gd
-- mir «Промзона МИР»: — 
+- mir «Промзона МИР»: scenes/locations/mirny_quarry.tscn → scripts/locations/mirny_quarry.gd
 - ges «Вилюйская ГЭС»: scenes/locations/ges.tscn → scripts/locations/ges.gd
 - vilyuysk «Вилюйск»: scenes/locations/rubikon.tscn → scripts/locations/rubikon.gd
 - gorny «Горный»: scenes/locations/gorny.tscn → scripts/locations/gorny.gd
@@ -593,9 +593,9 @@ Project Doomsday — 1–4
 ### tools/screenshots.gd (107)
 Снимки экрана для проверки интерфейса (нужен рендер, не --headless).
 
-### tools/smoke_test.gd (3367)
+### tools/smoke_test.gd (3371)
 Автотест пролога: проходит всю цепочку без участия человека и печатает, что сломалось.
-`new_enc:12` `ok:17` `wait:25` `frames:29` `close_dialogs:34` `shut:43` `choose:48` `opt_texts:54` `find_opt:61` `tp:79` `fight:86` `wait_loading:128` `unreachable:137` `go_upstairs:166` `go_downstairs:176` `nakharro_life_tests:187` `kresty_life_tests:365` `encounter_lore_tests:444` `city_tests:512` `admin_tests:705` `weather_tests:783` `social_tests:850` `markun_tests:946` `mirny_tests:996` `ges_tests:1047` `act4_tests:1083` `nr_go:1177` `nyurba_tests:1191` `sungar_tests:1324` `_ready:1472`
+`new_enc:12` `ok:17` `wait:25` `frames:29` `close_dialogs:34` `shut:43` `choose:48` `opt_texts:54` `find_opt:61` `tp:79` `fight:86` `wait_loading:128` `unreachable:137` `go_upstairs:166` `go_downstairs:176` `nakharro_life_tests:187` `kresty_life_tests:365` `encounter_lore_tests:444` `city_tests:512` `admin_tests:705` `weather_tests:783` `social_tests:850` `markun_tests:946` `mirny_tests:996` `ges_tests:1047` `act4_tests:1083` `nr_go:1178` `nyurba_tests:1192` `sungar_tests:1325` `_ready:1473`
 
 ## Данные (data/)
 
@@ -720,4 +720,4 @@ Project Doomsday — 1–4
 - data/rep_greet.json (34 строк)
 - data/schedules.json (749 строк)
 - data/weapons.json (20 строк)
-- data/world.json (2989 строк)
+- data/world.json (2992 строк)

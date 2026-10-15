@@ -1081,6 +1081,7 @@ func ges_tests() -> void:
 ## Акт IV: Рубикон (Харат, ополченцы, проход), Горный (кто кормит Ушана), ГРЭС-2 (пост и лифт),
 ## комплекс (архив, Кирк, Кирш) и финал со слайдами
 func act4_tests() -> void:
+	ok(main.world_map.can_go("mir"), "Промзона МИР (карьер) открыта на карте")
 	ok(main.world_map.can_go("vilyuysk") and not main.world_map.can_go("gorny"), "Вилюйск (Рубикон) открыт, Горный — ещё нет")
 	main.load_location("rubikon", "Road")
 	await wait_loading()
@@ -3361,6 +3362,9 @@ func _ready() -> void:
 	await weather_tests()
 	await social_tests()
 	await nyurba_tests()
+	await mirny_tests()
+	await ges_tests()
+	await act4_tests()
 	print("Уровень героя: ", Game.hero.level, ", опыт: ", Game.hero.xp)
 	print("=== ИТОГ: ошибок ", fails, " ===")
 	get_tree().quit(1 if fails else 0)
