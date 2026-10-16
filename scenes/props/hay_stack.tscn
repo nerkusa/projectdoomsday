@@ -1,0 +1,26 @@
+[gd_scene format=3]
+
+[ext_resource type="Material" path="res://assets/materials/hay.tres" id="1_amgjv"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/hay_stack_hay.res" id="2_10005"]
+[ext_resource type="Material" path="res://assets/materials/log_dark.tres" id="3_j11q7"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/hay_stack_log_dark.res" id="4_fqlwv"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_tjpj0"]
+size = Vector3(2.4, 2, 2.4)
+
+[node name="HayStack" type="Node3D" unique_id=2021553937]
+
+[node name="Mesh_hay" type="MeshInstance3D" parent="." unique_id=1517911442]
+material_override = ExtResource("1_amgjv")
+mesh = ExtResource("2_10005")
+
+[node name="Mesh_log_dark" type="MeshInstance3D" parent="." unique_id=1721658021]
+material_override = ExtResource("3_j11q7")
+mesh = ExtResource("4_fqlwv")
+
+[node name="Collision" type="StaticBody3D" parent="." unique_id=322914596]
+collision_mask = 0
+
+[node name="@CollisionShape3D@4" type="CollisionShape3D" parent="Collision" unique_id=1813375972]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+shape = SubResource("BoxShape3D_tjpj0")

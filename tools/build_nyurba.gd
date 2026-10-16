@@ -29,11 +29,11 @@ func _load_all() -> void:
 			"log_weathered", "ground_dirt", "concrete", "coal", "soot", "manure"]:
 		M[n] = load(MAT_DIR + n + ".tres")
 	for n in ["screen_green", "screen_amber", "plastic_beige", "flag_red", "window_sky", "plaster_yellow", "plaster_pink", "plaster_white",
-			"plaster_ochre", "plaster_cream", "brick", "brick_white", "paint_green", "paint_blue", "paint_red", "tar", "felt", "frame_white"]:
+			"plaster_ochre", "plaster_cream", "brick", "brick_white", "paint_green", "paint_blue", "paint_red", "tar", "felt", "frame_white", "wire", "brass", "stone"]:
 		M[n] = load(MAT_DIR + n + ".tres")
 	for n in ["nr_stalin3", "nr_stalin4", "nr_stalin4b", "nr_stalin_spire", "nr_bank", "nr_hotel", "nr_labaz", "nr_labaz_bar",
 			"nr_labaz_pawn", "nr_labaz_row", "nr_labaz_row2", "nr_warehouse",
-			"nr_stalin3_in", "nr_stalin4b_in", "nr_labaz_row_in", "nr_warehouse_in", "nr_wall", "nr_wall_tower",
+			"nr_stalin3_in", "nr_stalin4b_in", "nr_labaz_row_in", "nr_warehouse_in", "nr_wall", "nr_wall_b", "nr_wall_c", "nr_wall_tower",
 			"nr_junk_bags", "nr_junk_scrap", "nr_junk_furniture", "nr_junk_tires", "nr_dumpster", "nr_manhole", "nr_manhole_open",
 			"nr_drain", "nr_bench", "nr_casino", "nr_gov", "nr_barracks", "nr_factory", "nr_factory_b", "nr_nochlezhka", "nr_ryumka",
 			"nr_shack", "nr_shack_b", "st_canteen", "st_obshaga",
@@ -97,10 +97,12 @@ func _city_wall(parent: Node, a: Vector2, b: Vector2, towers := []) -> void:
 	var l := a.distance_to(b)
 	var rot := -atan2(dir.y, dir.x)
 	var t := 3.0
+	var i := int(absf(a.x * 7.0 + a.y * 3.0))
 	while t < l + 0.1:
 		var p := a + dir * t
-		put(P.nr_wall, parent, Vector3(p.x, 0, p.y), rot)
+		put([P.nr_wall, P.nr_wall_b, P.nr_wall_c][i % 3], parent, Vector3(p.x, 0, p.y), rot)
 		t += 6.0
+		i += 1 + int(t) % 2
 	for tw in towers:
 		var q := a + dir * float(tw)
 		put(P.nr_wall_tower, parent, Vector3(q.x, 0, q.y), 0.0)
@@ -109,10 +111,13 @@ func _city_wall(parent: Node, a: Vector2, b: Vector2, towers := []) -> void:
 ## Ворота: две створки на петлях (узлы GateLeafN / GateLeafS — их крутит скрипт локации),
 ## над проёмом — кирпичная арка с вывеской. hinge_z — петли, створка длиной len к центру
 func _city_gate(parent: Node, x: float, zc: float, half: float, title: String) -> void:
-	box(parent, Vector3(1.6, 1.4, half * 2.0 + 1.6), Vector3(x, 6.2, zc), "brick").owner = root
-	box(parent, Vector3(1.8, 0.25, half * 2.0 + 1.8), Vector3(x, 7.0, zc), "concrete").owner = root
-	for k in 5:
-		box(parent, Vector3(1.0, 0.6, 0.8), Vector3(x, 7.4, zc - half + k * half / 2.0), "brick").owner = root
+	# перемычка над проёмом: двутавр на рельсах, обшитый ржавым листом, сверху покрышки и колючка
+	box(parent, Vector3(1.2, 1.4, half * 2.0 + 1.6), Vector3(x, 6.2, zc), "rust").owner = root
+	box(parent, Vector3(1.4, 0.25, half * 2.0 + 1.8), Vector3(x, 7.0, zc), "metal_dark").owner = root
+	box(parent, Vector3(1.4, 0.25, half * 2.0 + 1.8), Vector3(x, 5.45, zc), "metal_dark").owner = root
+	for k in 4:
+		cyl(parent, 0.45, 0.45, 0.28, Vector3(x, 7.26, zc - half * 0.75 + k * half * 0.5), "tire", Vector3.ZERO, 12).owner = root
+	cyl(parent, 0.02, 0.02, half * 2.0 + 1.6, Vector3(x, 7.6, zc), "wire", Vector3(PI / 2.0, 0, 0), 4).owner = root
 	_signboard(parent, title, Vector3(x - 0.85, 6.2, zc), -PI / 2.0, half * 1.4, Color("f0d890"))
 	for side in [["GateLeafN", -1.0], ["GateLeafS", 1.0]]:
 		var leaf := Node3D.new()
@@ -136,6 +141,135 @@ func _city_gate(parent: Node, x: float, zc: float, half: float, title: String) -
 func _walk(parent: Node, r: Rect2) -> void:
 	_pavement(parent, r)
 
+
+# ---------------- праздник: гирлянды, флажки, растяжки ----------------
+## Лампочки и флажки гирлянды: на каждый цвет — один меш (сотни мелких узлов тормозят)
+func _fest_mats() -> void:
+	if M.has("bulb_0"):
+		return
+	var cols := [Color("ff2a1a"), Color("ffb020"), Color("20e040"), Color("2a7aff"), Color("ff40c0")]
+	for i in cols.size():
+		var m := StandardMaterial3D.new()
+		m.albedo_color = cols[i]
+		m.emission_enabled = true
+		m.emission = cols[i]
+		m.emission_energy_multiplier = 0.9
+		M["bulb_%d" % i] = m
+	var fc := [Color("c8302a"), Color("e8c040"), Color("2a6ac8"), Color("e8e4d8"), Color("3a9a4a")]
+	for i in fc.size():
+		var m := StandardMaterial3D.new()
+		m.albedo_color = fc[i]
+		m.roughness = 0.9
+		m.cull_mode = BaseMaterial3D.CULL_DISABLED
+		M["pennant_%d" % i] = m
+
+
+func _merged(parent: Node, parts: Array, mat: String, nm := "") -> void:
+	if parts.is_empty():
+		return
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	for p in parts:
+		st.append_from(p[0], 0, p[1])
+	var mi := MeshInstance3D.new()
+	if nm != "":
+		mi.name = nm
+	mi.mesh = st.commit()
+	mi.material_override = M[mat]
+	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	parent.add_child(mi, true)
+	mi.owner = root
+
+
+## Гирлянда между точками a и b с провисом: лампочки (bulbs) или треугольные флажки
+func _garland(parent: Node, a: Vector3, b: Vector3, sag := 0.7, bulbs := true) -> void:
+	_fest_mats()
+	var l := a.distance_to(b)
+	var n := maxi(4, int(l / (0.55 if bulbs else 0.7)))
+	var wire := []
+	var by := {}
+	var dir := Vector3(b.x - a.x, 0, b.z - a.z).normalized()
+	var yaw := atan2(dir.x, dir.z)
+	var prev := a
+	var bm := SphereMesh.new()
+	bm.radius = 0.09
+	bm.height = 0.2
+	bm.radial_segments = 6
+	bm.rings = 3
+	var pm := PrismMesh.new()
+	pm.size = Vector3(0.36, 0.46, 0.01)
+	for i in range(1, n + 1):
+		var t := float(i) / n
+		var p := a.lerp(b, t) - Vector3(0, sag * 4.0 * t * (1.0 - t), 0)
+		var seg := BoxMesh.new()
+		seg.size = Vector3(0.02, 0.02, prev.distance_to(p))
+		wire.append([seg, Transform3D(Basis.looking_at((p - prev).normalized(), Vector3.UP), (prev + p) / 2.0)])
+		if i < n:
+			var key := ("bulb_%d" if bulbs else "pennant_%d") % (i % 5)
+			if not by.has(key):
+				by[key] = []
+			if bulbs:
+				by[key].append([bm, Transform3D(Basis(), p - Vector3(0, 0.1, 0))])
+			else:
+				by[key].append([pm, Transform3D(Basis(Vector3.UP, yaw + PI / 2.0) * Basis(Vector3.FORWARD, PI), p - Vector3(0, 0.24, 0))])
+		prev = p
+	_merged(parent, wire, "metal_dark")
+	for k in by:
+		_merged(parent, by[k], k)
+
+
+## Столб для гирлянд: труба с перекладиной
+func _fest_pole(parent: Node, pos: Vector3, h := 6.4) -> void:
+	cyl(parent, 0.07, 0.09, h, pos + Vector3(0, h / 2.0, 0), "metal_dark", Vector3.ZERO, 6).owner = root
+
+
+## Растяжка через улицу на двух столбах: красное полотно с надписью
+func _banner(parent: Node, a: Vector3, b: Vector3, text: String) -> void:
+	_fest_pole(parent, a, 6.6)
+	_fest_pole(parent, b, 6.6)
+	var mid := (a + b) / 2.0
+	var l := Vector2(b.x - a.x, b.z - a.z).length()
+	var rot := atan2(b.x - a.x, b.z - a.z) - PI / 2.0
+	var bn := Node3D.new()
+	parent.add_child(bn, true)
+	bn.owner = root
+	bn.position = mid + Vector3(0, 5.6, 0)
+	bn.rotation.y = rot
+	box(bn, Vector3(l - 0.4, 1.1, 0.04), Vector3.ZERO, "cloth_red").owner = root
+	for sz in [-1.0, 1.0]:
+		var lb := Label3D.new()
+		lb.text = text
+		lb.font_size = 64
+		lb.pixel_size = 0.01
+		lb.modulate = Color("ffe08a")
+		lb.outline_size = 4
+		lb.position = Vector3(0, 0, sz * 0.03)
+		lb.rotation.y = 0.0 if sz > 0 else PI
+		fit_label(lb, l - 1.0, 0.9)
+		bn.add_child(lb)
+		lb.owner = root
+
+
+## Праздничные улицы: гирлянды поперёк проспекта и улицы, флажки вдоль тротуаров.
+## rich — Центр и Проход (лампочки), иначе — выцветшие флажки
+func _festive(vil: Node, rich: bool) -> void:
+	var f := group(vil, "Festive")
+	f.set_meta("no_xray", true)
+	for x in [12.0, 24.0, 34.0, 54.0, 64.0, 76.0]:
+		_fest_pole(f, Vector3(x, 0, 35.2))
+		_fest_pole(f, Vector3(x, 0, 44.8))
+		_garland(f, Vector3(x, 6.2, 35.2), Vector3(x, 6.2, 44.8), 0.9, rich)
+	for z in [10.0, 24.0, 56.0, 70.0]:
+		_fest_pole(f, Vector3(40.0, 0, z))
+		_fest_pole(f, Vector3(48.0, 0, z))
+		_garland(f, Vector3(40.0, 6.0, z), Vector3(48.0, 6.0, z), 0.7, rich)
+	# флажки вдоль проспекта — от столба к столбу
+	var xs := [12.0, 24.0, 34.0]
+	for row in [35.2, 44.8]:
+		for i in xs.size() - 1:
+			_garland(f, Vector3(xs[i], 5.4, row), Vector3(xs[i + 1], 5.4, row), 0.5, false)
+		_garland(f, Vector3(54.0, 5.4, row), Vector3(64.0, 5.4, row), 0.5, false)
+		_garland(f, Vector3(64.0, 5.4, row), Vector3(76.0, 5.4, row), 0.5, false)
 
 # ======================================================================
 # ПРОХОД — вход в город и низы: ворота с охраной, банк, ломбард, бар «Забой»,
@@ -254,6 +388,8 @@ func _proxod() -> void:
 	for p in [Vector3(18, 0, 44.2), Vector3(30, 0, 36.2), Vector3(52, 0, 44.2), Vector3(70, 0, 44.2), Vector3(40, 0, 26), Vector3(48, 0, 56),
 			Vector3(48, 0, 24), Vector3(26, 0, 64.0 + 2.4)]:
 		_lamp_post(vil, p)
+	_festive(vil, true)
+	_banner(vil, Vector3(17.0, 0, 35.0), Vector3(17.0, 0, 45.0), "НЬЮ-РБА — ГОРОД АЛМАЗОВ! С ПРАЗДНИКОМ!")
 	_pipes(vil, "high", Vector3(50.0, 0, 13.6), Vector3(82.0, 0, 13.6))
 	_pipes(vil, "low", Vector3(23.0, 0, 61.5), Vector3(39.0, 0, 61.5))
 	_clutter(vil, [["burn_barrel", 25.0, 58.0], ["burn_barrel", 16.0, 26.0], ["burn_barrel", 52.0, 60.5],
@@ -551,9 +687,12 @@ func _center() -> void:
 	_sign_on(vil, hotel, "ГОСТИНИЦА «АЛМАЗ»", 4.6, Color("f0d890"))
 	var bar := _bld(vil, "nr_barracks", "Barracks", Vector3(60.0, 0, 7.5))
 	_sign_on(vil, bar, "КАЗАРМЫ ОХРАНЫ", 3.8, Color("d8e0f0"))
-	# юг проспекта: арена (открытая), салон «Бархат», ювелирный
+	# юг проспекта — большая Алмазная площадь (z 44..63): ринг на западе, памятник «Первому
+	# алмазу» в середине, праздничный шест с гирляндами на востоке. Салон и ювелирный — за площадью
+	_walk(pav, Rect2(10, 44.5, 68, 18.5))
+	_walk(pav, Rect2(40.5, 63, 7, 2))
 	var arena := group(vil, "Arena")
-	arena.position = Vector3(30, 0, 53)
+	arena.position = Vector3(22, 0, 54)
 	box(arena, Vector3(9.0, 0.3, 9.0), Vector3(0, 0.15, 0), "planks_old").owner = root
 	for sx in [-1, 1]:
 		for sz in [-1, 1]:
@@ -565,36 +704,59 @@ func _center() -> void:
 			box(arena, Vector3(8.6, 0.04, 0.04) if horiz else Vector3(0.04, 0.04, 8.6),
 				Vector3(0, 0.6 + k * 0.4, off) if horiz else Vector3(off, 0.6 + k * 0.4, 0), "cloth_red").owner = root
 	_own(collider(arena, Vector3(9.0, 0.3, 9.0), Vector3(0, 0.15, 0)), root)
-	for b in [[Vector3(22.5, 0, 53), PI / 2.0], [Vector3(37.5, 0, 53), -PI / 2.0], [Vector3(30, 0, 60.5), PI]]:
+	for b in [[Vector3(14.5, 0, 54), PI / 2.0], [Vector3(29.5, 0, 54), -PI / 2.0], [Vector3(22, 0, 61.5), PI]]:
 		put(P.nr_bench, vil, b[0], b[1])
-	_signboard(vil, "АРЕНА · БОИ ПО СУББОТАМ", Vector3(30, 2.6, 46.8), PI, 4.4, Color("ffcf7a"))
-	var salon := _bld(vil, "nr_labaz_row2", "Salon", Vector3(58.0, 0, 49.5), PI)
+	_signboard(vil, "АРЕНА · БОИ ПО СУББОТАМ", Vector3(22, 2.6, 48.6), PI, 4.4, Color("ffcf7a"))
+	# за площадью, у переулка z = 64: салон, дома побогаче, ювелирный
+	var salon := _bld(vil, "nr_labaz_row2", "Salon", Vector3(10.0, 0, 73.5), PI)
 	_signboard(vil, "САЛОН «БАРХАТ»", _slot(salon, "sign"), PI, 3.6, Color("ff7ab0"))
 	_neon(salon, "♥", Vector3(0, 4.6, 4.1), 0.0, Color("ff3a7a"), 120, true)
-	var jew := _bld(vil, "nr_labaz", "Jeweler", Vector3(76.0, 0, 49.5), PI)
+	_bld(vil, "nr_stalin4", "House1", Vector3(29.0, 0, 74.5), PI)
+	var jew := _bld(vil, "nr_labaz", "Jeweler", Vector3(56.0, 0, 73.5), PI)
 	_sign_on(vil, jew, "ЮВЕЛИРНЫЙ «БРИЛЛИАНТ»", 4.2, Color("e8f0ff"))
-	# за переулком z = 64: дома побогаче
-	_bld(vil, "nr_stalin4", "House1", Vector3(30.0, 0, 74.0), PI)
-	_bld(vil, "nr_stalin3", "House2", Vector3(62.0, 0, 73.5), PI)
-	# площадь: памятник «Первому алмазу», радиолотерея, скамейки
+	_bld(vil, "nr_stalin3", "House2", Vector3(73.0, 0, 73.5), PI)
+	# памятник «Первому алмазу»: ступенчатый постамент, гранёный камень, по бокам клумбы
 	var mon := group(vil, "Monument")
-	mon.position = Vector3(44, 0, 40)
-	box(mon, Vector3(2.4, 1.2, 2.4), Vector3(0, 0.6, 0), "stone_wall").owner = root
-	box(mon, Vector3(1.8, 0.3, 1.8), Vector3(0, 1.35, 0), "plaster_white").owner = root
-	prism(mon, Vector3(1.4, 1.4, 1.4), Vector3(0, 2.2, 0), "glass").owner = root
-	prism(mon, Vector3(1.4, 1.0, 1.4), Vector3(0, 1.0 + 0.5, 0), "glass", Vector3(PI, 0, 0)).owner = root
-	_own(collider(mon, Vector3(2.4, 2.6, 2.4), Vector3(0, 1.3, 0)), root)
-	for b in [[Vector3(40.5, 0, 36.8), PI], [Vector3(47.5, 0, 36.8), PI], [Vector3(40.5, 0, 43.2), 0.0], [Vector3(47.5, 0, 43.2), 0.0],
-			[Vector3(14.0, 0, 44.6), PI], [Vector3(66.5, 0, 44.6), PI], [Vector3(14.0, 0, 35.4), 0.0]]:
+	mon.position = Vector3(44, 0, 53.5)
+	box(mon, Vector3(5.0, 0.3, 5.0), Vector3(0, 0.15, 0), "concrete").owner = root
+	box(mon, Vector3(3.2, 1.6, 3.2), Vector3(0, 1.1, 0), "stone_wall").owner = root
+	box(mon, Vector3(2.6, 0.3, 2.6), Vector3(0, 2.05, 0), "plaster_white").owner = root
+	prism(mon, Vector3(2.0, 2.0, 2.0), Vector3(0, 3.7, 0), "glass").owner = root
+	prism(mon, Vector3(2.0, 1.2, 2.0), Vector3(0, 2.8, 0), "glass", Vector3(PI, 0, 0)).owner = root
+	_own(collider(mon, Vector3(3.4, 3.0, 3.4), Vector3(0, 1.5, 0)), root)
+	_lamp(mon, "DiamondLight", Vector3(0, 3.4, 0), Color("bfe8ff"), 1.4, 7.0).shadow_enabled = false
+	for c in [Vector3(-4.2, 0, 0), Vector3(4.2, 0, 0)]:
+		box(mon, Vector3(1.6, 0.35, 3.6), c + Vector3(0, 0.17, 0), "stone_wall").owner = root
+		box(mon, Vector3(1.4, 0.06, 3.4), c + Vector3(0, 0.36, 0), "paint_green").owner = root
+		_own(collider(mon, Vector3(1.6, 0.6, 3.6), c + Vector3(0, 0.3, 0)), root)
+	for b in [[Vector3(40.0, 0, 49.0), PI], [Vector3(48.0, 0, 49.0), PI], [Vector3(40.0, 0, 58.2), 0.0], [Vector3(48.0, 0, 58.2), 0.0],
+			[Vector3(14.0, 0, 35.4), 0.0], [Vector3(66.5, 0, 46.0), PI]]:
 		put(P.nr_bench, vil, b[0], b[1])
-	_bld(vil, "loudspeaker", "Loudspeaker", Vector3(48.8, 0, 46.0))
-	_info_screen(vil, Vector3(39.2, 0, 46.2), PI, "РАДИОЛОТЕРЕЯ «АЛМАЗ»\nСегодня в 20:00\nДжекпот: 500 р.")
+	_bld(vil, "loudspeaker", "Loudspeaker", Vector3(51.0, 0, 47.0))
+	_info_screen(vil, Vector3(36.0, 0, 47.2), PI, "РАДИОЛОТЕРЕЯ «АЛМАЗ»\nСегодня в 20:00\nДжекпот: 500 р.")
+	# праздничный шест: мачта со звездой, от верха — гирлянды к кольцу столбов
+	var mast := group(vil, "FestMast")
+	mast.set_meta("no_xray", true)
+	var mc := Vector3(64, 0, 54)
+	cyl(mast, 0.12, 0.2, 12.0, mc + Vector3(0, 6.0, 0), "metal_dark", Vector3.ZERO, 8).owner = root
+	box(mast, Vector3(1.2, 0.5, 1.2), mc + Vector3(0, 0.25, 0), "concrete").owner = root
+	_own(collider(mast, Vector3(1.2, 2.0, 1.2), mc + Vector3(0, 1.0, 0)), root)
+	_fest_mats()
+	prism(mast, Vector3(0.9, 0.8, 0.12), mc + Vector3(0, 12.5, 0), "bulb_1").owner = root
+	prism(mast, Vector3(0.9, 0.8, 0.12), mc + Vector3(0, 12.2, 0), "bulb_1", Vector3(PI, 0, 0)).owner = root
+	for k in 10:
+		var ang := TAU * k / 10.0
+		var pp := mc + Vector3(cos(ang) * 7.5, 0, sin(ang) * 7.0)
+		_fest_pole(mast, pp, 3.2)
+		_garland(mast, mc + Vector3(0, 11.6, 0), pp + Vector3(0, 3.2, 0), 0.6, k % 2 == 0)
+	_banner(vil, Vector3(16.0, 0, 35.0), Vector3(16.0, 0, 45.0), "С ДНЁМ ПЕРВОГО АЛМАЗА!")
 	_street_dress(vil)
+	_festive(vil, true)
 	var trash := group(vil, "Trash")
-	for j in [["nr_dumpster", Vector3(17.0, 0, 22.0), PI / 2.0], ["nr_junk_bags", Vector3(76.0, 0, 21.5), 0.4], ["nr_dumpster", Vector3(48.5, 0, 61.0), 0.0],
-			["nr_junk_furniture", Vector3(16.0, 0, 70.0), 1.0]]:
+	for j in [["nr_dumpster", Vector3(17.0, 0, 22.0), PI / 2.0], ["nr_junk_bags", Vector3(76.0, 0, 21.5), 0.4], ["nr_dumpster", Vector3(37.5, 0, 65.0), 0.0],
+			["nr_junk_furniture", Vector3(2.5, 0, 65.0), 1.0]]:
 		_junk(trash, j[0], j[1], j[2])
-	_clutter(vil, [["car_wreck", 10.0, 50.0, 0.2], ["burn_barrel", 78.0, 60.0], ["trash_pile", 15.5, 60.0]])
+	_clutter(vil, [["car_wreck", 5.0, 56.0, 0.3], ["burn_barrel", 78.0, 60.0], ["trash_pile", 5.0, 64.5]])
 	_edges(rect, [["W", 40.0]], [])
 	var far := group(root, "FarNorth")
 	far.set_meta("no_xray", true)
@@ -626,14 +788,14 @@ func _center() -> void:
 	character(chars, "BooturC", "nr_bootur", Vector3(55.8, 0, 35.4), 0.0, {"dialog": "nr_bootur", "display_name": "Боотур"})
 	character(chars, "BarrChief", "nr_guard", _slot(bar, "chief"), PI / 2.0, {"display_name": "Начальник охраны", "armed": true})
 	character(chars, "BarrCop", "nr_guard", _slot(bar, "cop"), PI, {"display_name": "Дежурный", "armed": true})
-	character(chars, "Fighter1", "nr_bandit_b", Vector3(28.5, 0.3, 52.0), PI / 2.0, {"display_name": "Боец в красном углу"})
-	character(chars, "Fighter2", "town_worker", Vector3(31.5, 0.3, 54.0), -PI / 2.0, {"display_name": "Боец в синем углу"})
-	character(chars, "Promoter", "nr_rich", Vector3(35.6, 0, 47.4), PI, {"display_name": "Устроитель боёв"})
-	character(chars, "Crowd1", "town_m1", Vector3(23.4, 0, 49.4), PI / 2.0, {"display_name": "Зевака"})
-	character(chars, "Crowd2", "town_m4", Vector3(36.6, 0, 56.6), -PI / 2.0, {"display_name": "Делает ставку"})
-	character(chars, "Crowd3", "town_f2", Vector3(30.0, 0, 59.0), PI, {"display_name": "Зрительница", "start_pose": "sit"})
-	character(chars, "SalonDoor", "nr_bandit", Vector3(58.0, 0, 44.6), PI, {"display_name": "Швейцар «Бархата»"})
-	character(chars, "SalonGirl", "nr_singer", Vector3(55.6, 0, 44.4), PI, {"display_name": "Девушка у «Бархата»"})
+	character(chars, "Fighter1", "nr_bandit_b", Vector3(20.5, 0.3, 53.0), PI / 2.0, {"display_name": "Боец в красном углу"})
+	character(chars, "Fighter2", "town_worker", Vector3(23.5, 0.3, 55.0), -PI / 2.0, {"display_name": "Боец в синем углу"})
+	character(chars, "Promoter", "nr_rich", Vector3(28.0, 0, 48.8), PI, {"display_name": "Устроитель боёв"})
+	character(chars, "Crowd1", "town_m1", Vector3(15.6, 0, 50.0), PI / 2.0, {"display_name": "Зевака"})
+	character(chars, "Crowd2", "town_m4", Vector3(28.6, 0, 57.6), -PI / 2.0, {"display_name": "Делает ставку"})
+	character(chars, "Crowd3", "town_f2", Vector3(22.0, 0, 60.0), PI, {"display_name": "Зрительница", "start_pose": "sit"})
+	character(chars, "SalonDoor", "nr_bandit", Vector3(10.0, 0, 68.4), PI, {"display_name": "Швейцар «Бархата»"})
+	character(chars, "SalonGirl", "nr_singer", Vector3(12.6, 0, 68.4), PI, {"display_name": "Девушка у «Бархата»"})
 	character(chars, "Jeweler", "nr_pawn", _slot(jew, "seller"), 0.0, {"display_name": "Ювелир Изя"})
 	character(chars, "RichWalker1", "nr_rich", Vector3(30, 0, 39.0), PI / 2.0, {"display_name": "Господин в шубе",
 		"patrol": PackedVector3Array([Vector3(30, 0, 39.0), Vector3(70, 0, 38.0), Vector3(44, 0, 30)]), "patrol_wait": 5.0})
@@ -649,11 +811,11 @@ func _center() -> void:
 	_junk_items(items)
 	_exit(items, "ToProxod", "В Проход", Vector3(1.0, 0, 40.0), Vector3(1.6, 2.2, 5.0))
 	_exit(items, "ToBlack", "В Чёрный район", Vector3(44.0, 0, 1.0), Vector3(5.0, 2.2, 1.6))
-	_use(items, "Monument", "Памятник «Первому алмазу»", Vector3(44, 0, 42.4), Vector3(2.6, 3.0, 1.0))
-	_use(items, "Lottery", "Экран радиолотереи", Vector3(39.2, 0, 45.6), Vector3(1.4, 3.6, 0.6))
+	_use(items, "Monument", "Памятник «Первому алмазу»", Vector3(44, 0, 51.2), Vector3(3.4, 3.0, 1.0))
+	_use(items, "Lottery", "Экран радиолотереи", Vector3(36.0, 0, 46.6), Vector3(1.4, 3.6, 0.6))
 	_use(items, "Roulette", "Рулетка", _slot(cas, "roulette") + Vector3(0, 0, 1.1), Vector3(1.6, 1.0, 1.6))
 	_use(items, "Slots", "Однорукие бандиты", _slot(cas, "slot1") + Vector3(1.3, 0, -0.7), Vector3(4.0, 1.8, 0.8))
-	_use(items, "Ring", "Ринг", Vector3(30, 0, 48.2), Vector3(9.0, 1.2, 1.0))
+	_use(items, "Ring", "Ринг", Vector3(22, 0, 49.0), Vector3(9.0, 1.2, 1.0))
 	_use(items, "Safe", "Сейф казначея", _slot(gov, "safe"), Vector3(1.2, 1.6, 0.8))
 	_spawn("Start", Vector3(4.5, 0, 40.0))
 	_spawn("FromProxod", Vector3(4.5, 0, 41.5))
@@ -662,9 +824,10 @@ func _center() -> void:
 	marker(root, "MarkCasino", Vector3(30, 0, 28), "Казино")
 	marker(root, "MarkHotel", Vector3(30, 0, 7.5), "Гостиница «Алмаз»")
 	marker(root, "MarkBarracks", Vector3(60, 0, 7.5), "Казармы")
-	marker(root, "MarkArena", Vector3(30, 0, 53), "Арена")
-	marker(root, "MarkSalon", Vector3(58, 0, 49.5), "Салон «Бархат»")
-	marker(root, "MarkJeweler", Vector3(76, 0, 49.5), "Ювелирный")
+	marker(root, "MarkArena", Vector3(22, 0, 54), "Арена")
+	marker(root, "MarkSquare", Vector3(44, 0, 54), "Алмазная площадь")
+	marker(root, "MarkSalon", Vector3(10, 0, 73.5), "Салон «Бархат»")
+	marker(root, "MarkJeweler", Vector3(56, 0, 73.5), "Ювелирный")
 	_dress(Rect2(4, 2, 78, 78), 200)
 	_clear_town(Rect2(2, 1, 80, 80))
 	_finish("nyurba_center")
@@ -719,6 +882,7 @@ func _prom() -> void:
 	add_rocks(cart)
 	_own(collider(cart, Vector3(1.6, 1.0, 1.0), Vector3(0, 0.5, 0)), root)
 	_street_dress(vil)
+	_festive(vil, false)
 	var trash := group(vil, "Trash")
 	for j in [["nr_junk_scrap", Vector3(14.0, 0, 30.0), 0.4], ["nr_junk_scrap", Vector3(76.0, 0, 56.0), 1.2], ["nr_junk_tires", Vector3(16.0, 0, 50.0), 0.0],
 			["nr_dumpster", Vector3(38.0, 0, 58.0), PI], ["nr_junk_scrap", Vector3(52.0, 0, 20.5), 2.0]]:
@@ -825,6 +989,7 @@ func _black() -> void:
 	_bld(vil, "burnt_shed", "Burnt1", Vector3(78.0, 0, 22.0))
 	_bld(vil, "st_barrack2", "Barrack2", Vector3(26.0, 0, 74.5), PI)
 	_street_dress(vil, Vector3(76.0, 0, 58.0))
+	_festive(vil, false)
 	var trash := group(vil, "Trash")
 	for j in [["nr_junk_bags", Vector3(38.0, 0, 50.0), 0.3], ["nr_junk_furniture", Vector3(12.0, 0, 44.6 + 1.6), 1.0], ["nr_junk_tires", Vector3(79.0, 0, 34.0), 0.0],
 			["nr_dumpster", Vector3(48.5, 0, 22.0), PI / 2.0], ["nr_junk_bags", Vector3(72.0, 0, 62.0), 2.0], ["nr_junk_scrap", Vector3(36.0, 0, 64.0 + 4.0), 0.8],

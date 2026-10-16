@@ -1,0 +1,77 @@
+[gd_scene format=3]
+
+[ext_resource type="Material" path="res://assets/materials/log_weathered.tres" id="1_g5ba2"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/balagan_khoton_b_log_weathered.res" id="2_w5jg1"]
+[ext_resource type="Material" path="res://assets/materials/earth.tres" id="3_x86eb"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/balagan_khoton_b_earth.res" id="4_q156t"]
+[ext_resource type="Material" path="res://assets/materials/grass_roof.tres" id="5_jmg0r"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/balagan_khoton_b_grass_roof.res" id="6_e05kt"]
+[ext_resource type="Material" path="res://assets/materials/planks_old.tres" id="7_7d2lb"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/balagan_khoton_b_planks_old.res" id="8_j2h70"]
+[ext_resource type="Material" path="res://assets/materials/glass.tres" id="9_1w0o1"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/balagan_khoton_b_glass.res" id="10_b1jr2"]
+[ext_resource type="Material" path="res://assets/materials/whitewash.tres" id="11_ti3cv"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/balagan_khoton_b_whitewash.res" id="12_hgptl"]
+[ext_resource type="Material" path="res://assets/materials/metal_green.tres" id="13_to6cm"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/balagan_khoton_b_metal_green.res" id="14_vk25j"]
+[ext_resource type="Material" path="res://assets/materials/manure.tres" id="15_1kcjf"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/balagan_khoton_b_manure.res" id="16_ywa1j"]
+[ext_resource type="Material" path="res://assets/materials/hay.tres" id="17_ibefg"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/balagan_khoton_b_hay.res" id="18_uocoe"]
+[ext_resource type="Material" path="res://assets/materials/log_dark.tres" id="19_l2ov3"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/balagan_khoton_b_log_dark.res" id="20_l8jrd"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_lshbp"]
+size = Vector3(10, 2.4, 3.8)
+
+[node name="BalaganKhoton" type="Node3D" unique_id=455710234]
+
+[node name="Mesh_log_weathered" type="MeshInstance3D" parent="." unique_id=1137708078]
+material_override = ExtResource("1_g5ba2")
+mesh = ExtResource("2_w5jg1")
+
+[node name="Mesh_earth" type="MeshInstance3D" parent="." unique_id=1895709044]
+material_override = ExtResource("3_x86eb")
+mesh = ExtResource("4_q156t")
+
+[node name="Mesh_grass_roof" type="MeshInstance3D" parent="." unique_id=243207391]
+material_override = ExtResource("5_jmg0r")
+mesh = ExtResource("6_e05kt")
+
+[node name="Mesh_planks_old" type="MeshInstance3D" parent="." unique_id=937692859]
+material_override = ExtResource("7_7d2lb")
+mesh = ExtResource("8_j2h70")
+
+[node name="Mesh_glass" type="MeshInstance3D" parent="." unique_id=1012650126]
+material_override = ExtResource("9_1w0o1")
+mesh = ExtResource("10_b1jr2")
+
+[node name="Mesh_whitewash" type="MeshInstance3D" parent="." unique_id=2129965943]
+material_override = ExtResource("11_ti3cv")
+mesh = ExtResource("12_hgptl")
+
+[node name="Mesh_metal_green" type="MeshInstance3D" parent="." unique_id=236054163]
+material_override = ExtResource("13_to6cm")
+mesh = ExtResource("14_vk25j")
+
+[node name="Mesh_manure" type="MeshInstance3D" parent="." unique_id=150959632]
+material_override = ExtResource("15_1kcjf")
+mesh = ExtResource("16_ywa1j")
+
+[node name="Mesh_hay" type="MeshInstance3D" parent="." unique_id=834577352]
+material_override = ExtResource("17_ibefg")
+mesh = ExtResource("18_uocoe")
+
+[node name="Mesh_log_dark" type="MeshInstance3D" parent="." unique_id=1402386285]
+material_override = ExtResource("19_l2ov3")
+mesh = ExtResource("20_l8jrd")
+
+[node name="Slot_door" type="Marker3D" parent="." unique_id=1278341576]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.6, 0, 2.6)
+
+[node name="Collision" type="StaticBody3D" parent="." unique_id=780807562]
+collision_mask = 0
+
+[node name="@CollisionShape3D@3" type="CollisionShape3D" parent="Collision" unique_id=1336378040]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.1, 1.2, 0)
+shape = SubResource("BoxShape3D_lshbp")

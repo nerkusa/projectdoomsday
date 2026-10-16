@@ -11,6 +11,7 @@ var _splat_rect := Rect2()
 var _mud: Array = []
 var _meadow: Array = []
 var _clear: Array = []  # Rect2 полян: там не растёт лес
+var _alas: Array = []  # [центр Vector2, радиус] — круглые поляны-аласы: луг, без леса
 var _no_edge: Array = []  # Rect2, где нет и пояса леса за краем (река)
 
 
@@ -51,6 +52,7 @@ func _begin(id: String, title: String, rect: Rect2, script: String) -> void:
 	_mud.clear()
 	_meadow.clear()
 	_clear.clear()
+	_alas.clear()
 	_no_edge.clear()
 	_splat_rect = rect.grow(24.0)
 	_env()
@@ -175,6 +177,8 @@ func _paint(id: String) -> Image:
 			var m := smoothstep(0.2, 0.5, n) * 0.7
 			for mr in _meadow:
 				m = maxf(m, smoothstep(-2.5, 3.0, _sd_rect(p, mr) + n * 4.0 + f * 1.2))
+			for a in _alas:
+				m = maxf(m, smoothstep(-2.5, 3.0, float(a[1]) - p.distance_to(a[0]) - 1.5 + n * 4.0 + f * 1.2))
 			var d := 0.0
 			for sg in road_segs:
 				var dist := _seg_dist(p, sg[0], sg[1]) - float(sg[2])
@@ -229,6 +233,9 @@ func _blocked(p: Vector2, margin: float, roads_only := false) -> bool:
 	if not roads_only:
 		for c in _clear:
 			if (c as Rect2).has_point(p):
+				return true
+		for a in _alas:
+			if p.distance_to(a[0]) < float(a[1]):
 				return true
 	for sg in road_segs:
 		if _seg_dist(p, sg[0], sg[1]) < float(sg[2]) + margin:

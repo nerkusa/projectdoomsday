@@ -161,12 +161,12 @@ Project Doomsday — 1–4
 
 ## Жители: файл диалога → где поставлен (сборщик:строка)
 
-- camp_boss: tools/build_act1.gd:687
-- camp_nyurgun: tools/build_act1.gd:688
-- camp_rumors: tools/build_act1.gd:692, tools/build_act1.gd:693, tools/build_act1.gd:694
-- camp_thug: tools/build_act1.gd:685
-- camp_trader: tools/build_act1.gd:690
-- camp_wounded: tools/build_act1.gd:691
+- camp_boss: tools/build_act1.gd:694
+- camp_nyurgun: tools/build_act1.gd:695
+- camp_rumors: tools/build_act1.gd:699, tools/build_act1.gd:700, tools/build_act1.gd:701
+- camp_thug: tools/build_act1.gd:692
+- camp_trader: tools/build_act1.gd:697
+- camp_wounded: tools/build_act1.gd:698
 - ded: tools/build_nakharro.gd:472, tools/build_nakharro.gd:530, tools/build_scenes.gd:717, tools/build_scenes.gd:722
 - defender: tools/build_nakharro.gd:536
 - ebee: tools/build_nakharro.gd:1050
@@ -186,52 +186,52 @@ Project Doomsday — 1–4
 - friend: tools/build_nakharro.gd:475, tools/build_nakharro.gd:476
 - friend_dying: tools/build_nakharro.gd:540, tools/build_nakharro.gd:541
 - gambler: tools/build_nakharro.gd:504
-- ges_announcer: tools/build_east.gd:616
-- ges_chief: tools/build_east.gd:615
-- ges_watch: tools/build_east.gd:614
+- ges_announcer: tools/build_east.gd:672
+- ges_chief: tools/build_east.gd:671
+- ges_watch: tools/build_east.gd:670
 - girl: tools/build_nakharro.gd:503
-- gr_elder: tools/build_east.gd:801
-- gr_mother: tools/build_east.gd:802
+- gr_elder: tools/build_east.gd:857
+- gr_mother: tools/build_east.gd:858
 - guard: tools/build_nakharro.gd:482
 - hay_quarrel: tools/build_nakharro.gd:1197, tools/build_nakharro.gd:1198
-- hermit: tools/build_act1.gd:796
+- hermit: tools/build_act1.gd:803
 - hs_kid1: tools/build_nakharro.gd:1194
 - hs_kid2: tools/build_nakharro.gd:1195
-- hs_kid3: tools/build_act1.gd:1433
+- hs_kid3: tools/build_act1.gd:1440
 - hunter: tools/build_nakharro.gd:506
-- hz_kirk: tools/build_east.gd:971
-- hz_kirsh: tools/build_east.gd:973
-- hz_viktor: tools/build_east.gd:972
+- hz_kirk: tools/build_east.gd:1027
+- hz_kirsh: tools/build_east.gd:1029
+- hz_viktor: tools/build_east.gd:1028
 - kid: tools/build_nakharro.gd:478, tools/build_scenes.gd:720
-- kr_banya: tools/build_act1.gd:582
-- kr_brewer: tools/build_act1.gd:565
-- kr_drunk: tools/build_act1.gd:572
-- kr_fisher: tools/build_act1.gd:567
-- kr_guard: tools/build_act1.gd:563
-- kr_head: tools/build_act1.gd:564
-- kr_herder: tools/build_act1.gd:583
-- kr_kid: tools/build_act1.gd:578
-- kr_motryona: tools/build_act1.gd:573
-- kr_old: tools/build_act1.gd:568
-- kr_rumors: tools/build_act1.gd:574, tools/build_act1.gd:576, tools/build_act1.gd:585, tools/build_act1.gd:587, tools/build_act1.gd:588, tools/build_act1.gd:589, tools/build_act1.gd:590, tools/build_act1.gd:592
-- kr_smith: tools/build_act1.gd:581
-- kr_trader: tools/build_act1.gd:566
-- mk_chief: tools/build_east.gd:177
-- mk_instructor: tools/build_east.gd:178
-- mr_belsky: tools/build_east.gd:378
-- mr_buyer: tools/build_east.gd:379
-- mr_denouncer: tools/build_east.gd:383
-- mr_ivanov: tools/build_east.gd:393
-- mr_judge: tools/build_east.gd:386
-- mr_scar: tools/build_east.gd:398
-- mr_slepcova: tools/build_east.gd:384
-- nr_apovich: tools/build_nyurba.gd:608
-- nr_artur: tools/build_nyurba.gd:606
-- nr_bootur: tools/build_nyurba.gd:626, tools/build_nyurba.gd:844
-- nr_buyer: tools/build_nyurba.gd:625
-- nr_garik: tools/build_nyurba.gd:607
-- nr_kesha: tools/build_nyurba.gd:735
-- radio_kid: tools/build_act1.gd:1407
+- kr_banya: tools/build_act1.gd:589
+- kr_brewer: tools/build_act1.gd:572
+- kr_drunk: tools/build_act1.gd:579
+- kr_fisher: tools/build_act1.gd:574
+- kr_guard: tools/build_act1.gd:570
+- kr_head: tools/build_act1.gd:571
+- kr_herder: tools/build_act1.gd:590
+- kr_kid: tools/build_act1.gd:585
+- kr_motryona: tools/build_act1.gd:580
+- kr_old: tools/build_act1.gd:575
+- kr_rumors: tools/build_act1.gd:581, tools/build_act1.gd:583, tools/build_act1.gd:592, tools/build_act1.gd:594, tools/build_act1.gd:595, tools/build_act1.gd:596, tools/build_act1.gd:597, tools/build_act1.gd:599
+- kr_smith: tools/build_act1.gd:588
+- kr_trader: tools/build_act1.gd:573
+- mk_chief: tools/build_east.gd:231
+- mk_instructor: tools/build_east.gd:232
+- mr_belsky: tools/build_east.gd:434
+- mr_buyer: tools/build_east.gd:435
+- mr_denouncer: tools/build_east.gd:439
+- mr_ivanov: tools/build_east.gd:449
+- mr_judge: tools/build_east.gd:442
+- mr_scar: tools/build_east.gd:454
+- mr_slepcova: tools/build_east.gd:440
+- nr_apovich: tools/build_nyurba.gd:770
+- nr_artur: tools/build_nyurba.gd:768
+- nr_bootur: tools/build_nyurba.gd:788, tools/build_nyurba.gd:1009
+- nr_buyer: tools/build_nyurba.gd:787
+- nr_garik: tools/build_nyurba.gd:769
+- nr_kesha: tools/build_nyurba.gd:899
+- radio_kid: tools/build_act1.gd:1414
 - road: —
 - rumors: tools/build_nakharro.gd:495, tools/build_nakharro.gd:497, tools/build_nakharro.gd:499, tools/build_nakharro.gd:510, tools/build_nakharro.gd:512, tools/build_nakharro.gd:514, tools/build_nakharro.gd:516
 - sg_archylan: tools/build_sungar.gd:1286
@@ -266,7 +266,7 @@ Project Doomsday — 1–4
 - sick: tools/build_nakharro.gd:524
 - smith: tools/build_nakharro.gd:486
 - stepan: tools/build_nakharro.gd:473, tools/build_scenes.gd:718
-- teacher: tools/build_act1.gd:1473
+- teacher: tools/build_act1.gd:1480
 - thoughts: —
 - varvara: tools/build_nakharro.gd:477, tools/build_scenes.gd:719
 - water: —
@@ -531,17 +531,17 @@ Project Doomsday — 1–4
 ### tools/audit_interact.gd (84)
 Проверка: у каждого места в каждой локации каждое действие из меню даёт отклик
 
-### tools/build_act1.gd (1979)
+### tools/build_act1.gd (1986)
 Генератор локаций первого акта: Кресты (живое поселение у реки) и
-`_build:17` `_begin:40` `_finish:59` `_water_mats:71` `_river_plane:83` `_slot_of:99` `_homely:105` `_ground_for:124` `_paint:160` `_woods:190` `_blocked:228` `_free2:239` `_boxes_of:248` `_dress:272` `_cross:307` `_mound:324` `_net_rack:331` `_tent:351` `_lean_to:366` `_boat:381` `_exit:390` `_use:401` `_spawn:412` `_kresty:427` `_camp:637` `_encounter:713` `_spawn_mark:722` `_zaimka:734` `_truck:824` `_convoy:846` `_block:884` `_ruin:901` `_bunker_portal:991` `_radio_post:1053` `_dark_env:1186` `_lamp:1204` `_room_walls:1219` `_floor:1258` `_cellar:1263` `_glow:1321` `_upper:1330` `_bunker:1479` `_bunker_mats:1565` `_bk_panels:1592` `_hazard:1624` `_collapse:1636` `_bk_shaft:1651` `_bk_gate:1666` `_bk_corridor:1708` `_console:1741` `_reel_unit:1764` `_bk_control:1776` `_bk_barracks:1825` `_bk_generator:1856` `_bk_archive:1877` `_river_south:1904` `_stall:1914` `_signboard:1934` `_lamp_post:1954` `_laundry:1968`
+`_build:18` `_begin:41` `_finish:61` `_water_mats:73` `_river_plane:85` `_slot_of:101` `_homely:107` `_ground_for:126` `_paint:162` `_woods:194` `_blocked:232` `_free2:246` `_boxes_of:255` `_dress:279` `_cross:314` `_mound:331` `_net_rack:338` `_tent:358` `_lean_to:373` `_boat:388` `_exit:397` `_use:408` `_spawn:419` `_kresty:434` `_camp:644` `_encounter:720` `_spawn_mark:729` `_zaimka:741` `_truck:831` `_convoy:853` `_block:891` `_ruin:908` `_bunker_portal:998` `_radio_post:1060` `_dark_env:1193` `_lamp:1211` `_room_walls:1226` `_floor:1265` `_cellar:1270` `_glow:1328` `_upper:1337` `_bunker:1486` `_bunker_mats:1572` `_bk_panels:1599` `_hazard:1631` `_collapse:1643` `_bk_shaft:1658` `_bk_gate:1673` `_bk_corridor:1715` `_console:1748` `_reel_unit:1771` `_bk_control:1783` `_bk_barracks:1832` `_bk_generator:1863` `_bk_archive:1884` `_river_south:1911` `_stall:1921` `_signboard:1941` `_lamp_post:1961` `_laundry:1975`
 
-### tools/build_city.gd (1785)
+### tools/build_city.gd (1900)
 Каменный Сунгар (бывший посёлок городского типа): дома в 2–4 этажа из штукатурки
-`_ready:18` `_city_materials:126` `_glow_mat:193` `swin:208` `balcony:249` `entry:284` `open_door:299` `roof:309` `stone_block:354` `sandrik:487` `arch_win:500` `_stalin_decor:532` `_labaz_decor:575` `_balustrade:604` `_spire:621` `nyurba_props:639` `_wkind:785` `_wear:804` `_shop_window:862` `_portico:874` `_shell:890` `_lining:914` `stair_flight:929` `partition_z:943` `_table:955` `_bed:972` `_wardrobe:983` `_counter:989` `_shelf_goods:995` `_stove:1009` `_rug:1015` `_plant:1019` `_interior:1027` `heat_pipes:1381` `boiler_house:1419` `water_tower:1445` `garages:1458` `kiosk:1473` `bus_stop:1489` `conc_fence:1509` `paz_wreck:1520` `bins:1537` `furniture:1549` `_stair_piece:1613` `_crt:1626` `cassette_props:1635` `ruin_props:1721`
+`_ready:18` `_city_materials:126` `_glow_mat:193` `swin:208` `balcony:249` `entry:284` `open_door:299` `roof:309` `stone_block:354` `sandrik:489` `arch_win:502` `_stalin_decor:534` `_labaz_decor:577` `_balustrade:606` `_spire:623` `nyurba_props:641` `_wkind:850` `_wear:869` `_shop_window:927` `_portico:939` `_colonnade:956` `_shell:1005` `_lining:1029` `stair_flight:1044` `partition_z:1058` `_table:1070` `_bed:1087` `_wardrobe:1098` `_counter:1104` `_shelf_goods:1110` `_stove:1124` `_rug:1130` `_plant:1134` `_interior:1142` `heat_pipes:1496` `boiler_house:1534` `water_tower:1560` `garages:1573` `kiosk:1588` `bus_stop:1604` `conc_fence:1624` `paz_wreck:1635` `bins:1652` `furniture:1664` `_stair_piece:1728` `_crt:1741` `cassette_props:1750` `ruin_props:1836`
 
-### tools/build_east.gd (991)
+### tools/build_east.gd (1047)
 Локации востока по сюжету: Мар-Кун (финал Акта I), Промзона МИР, Мирный и ГЭС (Акт III),
-`_build:8` `_container:39` `_dugout:66` `_markun:86` `_quarry_pit:218` `_flagpole:273` `_poster:287` `_mirny:291` `_quarry:429` `_ges:518` `_ruin_block:643` `_rubikon:652` `_env_dim:715` `_harat:725` `_gorny:762` `_yakutsk:824` `_complex:872`
+`_build:8` `_container:40` `_dugout:67` `_alas_lake:88` `_homestead:114` `_markun:132` `_quarry_pit:274` `_flagpole:329` `_poster:343` `_mirny:347` `_quarry:485` `_ges:574` `_ruin_block:699` `_rubikon:708` `_env_dim:771` `_harat:781` `_gorny:818` `_yakutsk:880` `_complex:928`
 
 ### tools/build_hero_skin.gd (78)
 Собирает сетку героя с новой развёрткой из assets/models/hero_skin_mesh.bin
@@ -550,17 +550,17 @@ Project Doomsday — 1–4
 Генератор большой деревни Нахарро (по референсу «Нахарра», ~40 человек):
 `_ready:43` `_build:63` `_env:93` `_ground:134` `strip:186` `_ground_material:195` `_paint_splat:212` `_sd_rect:246` `_seg_dist:254` `_ring_dist:261` `_ditch_h:268` `_village:282` `_forest:368` `_forest_edge:421` `_raid:449` `_characters:467` `_seat:579` `_items:586` `_fence_mend:663` `_clear_overlaps:680` `_is_plant:748` `_inside:755` `_pal:764` `_moat:772` `_ditch_mesh:827` `_bridge:853` `_multi:870` `_xf:884` `_free_spot:888` `_details:897` `_building_boxes:987` `_tutorial_extras:1015` `_sacred_tree:1055` `_village_life:1129`
 
-### tools/build_nyurba.gd (879)
+### tools/build_nyurba.gd (1044)
 Нью-Рба — большой алмазный город на месте Нюрбы (Акт II). Город квадратный,
-`_build:16` `_load_all:26` `_finish:48` `_wall:58` `_junk:80` `_junk_items:85` `_city_wall:95` `_city_gate:111` `_walk:136` `_proxod:144` `_sewer:378` `_grid_streets:482` `_walks:500` `_street_dress:507` `_center:526` `_prom:677` `add_rocks:775` `_black:784`
+`_build:16` `_load_all:26` `_finish:48` `_wall:58` `_junk:80` `_junk_items:85` `_city_wall:95` `_city_gate:113` `_walk:141` `_fest_mats:147` `_merged:167` `_garland:185` `_fest_pole:222` `_banner:227` `_festive:255` `_proxod:278` `_sewer:514` `_grid_streets:618` `_walks:636` `_street_dress:643` `_center:662` `_prom:840` `add_rocks:939` `_black:948`
 
 ### tools/build_props.gd (1551)
 Генератор построек и растительности в стиле референса «Нахарра».
 `_ready:31` `_houses:67` `_tex_mat:81` `_card_mat:100` `_decal_mat:117` `_plain_mat:133` `_materials:145` `begin:214` `add:230` `rough:239` `rsphere:263` `rcone:272` `save_mesh:283` `box:299` `cyl:305` `prism:315` `solid:321` `finish:325` `_merge:397` `log_walls:425` `gable_roof:447` `window:491` `_window:497` `door:520` `wall_colliders:537` `plinth:551` `izba_interior:561` `porch:606` `chimney:621` `house:628` `hall:733` `tower:795` `barn:837` `shed:897` `workshop:912` `gate:937` `barricade:954` `greenhouse:970` `wind_turbine:995` `card:1021` `leaf:1039` `spruce:1046` `pine:1085` `birch:1119` `bush:1142` `dead_tree:1156` `rocks:1170` `tractor:1191` `palisades:1248` `small_props:1291` `scatter_meshes:1422` `travel_items:1469` `_item:1521` `junk:1529` `locked_box:1542`
 
-### tools/build_rural.gd (903)
+### tools/build_rural.gd (977)
 Деревня и дорога: постройки и вещи для Крестов (баня, часовня, коптильня, нужник,
-`_ready:10` `village_props:43` `personal_items:165` `wreck_props:237` `_an2:353` `_cwing:452` `_rivets:471` `_mi8:479` `_scorch:575` `_grime:583` `_bb:593` `_rbox_mesh:608` `_rotor:633` `_vtol:647` `_drone:731` `_duct:782` `_ring_mesh:802` `_jet:816` `_tw:891` `beam:897`
+`_ready:10` `village_props:49` `personal_items:171` `wreck_props:243` `_an2:359` `_cwing:458` `_rivets:477` `_mi8:485` `_scorch:581` `_grime:589` `_bb:599` `_rbox_mesh:614` `_rotor:639` `_vtol:653` `_drone:737` `_duct:788` `_ring_mesh:808` `_jet:822` `_tw:897` `beam:903` `markun_props:912`
 
 ### tools/build_scenes.gd (775)
 Генератор стартовых сцен: материалы, пропсы (избы, амбар, деревья…),

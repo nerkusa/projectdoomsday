@@ -1,56 +1,74 @@
 [gd_scene format=3]
 
-[ext_resource type="Material" path="res://assets/materials/stone_wall.tres" id="1_shdhj"]
-[ext_resource type="ArrayMesh" path="res://assets/models/props/nr_wall_tower_stone_wall.res" id="2_02o1p"]
-[ext_resource type="Material" path="res://assets/materials/brick.tres" id="3_7f4yl"]
-[ext_resource type="ArrayMesh" path="res://assets/models/props/nr_wall_tower_brick.res" id="4_chi55"]
-[ext_resource type="Material" path="res://assets/materials/concrete.tres" id="5_pq7af"]
-[ext_resource type="ArrayMesh" path="res://assets/models/props/nr_wall_tower_concrete.res" id="6_pc00r"]
-[ext_resource type="Material" path="res://assets/materials/coal.tres" id="7_mcvvc"]
-[ext_resource type="ArrayMesh" path="res://assets/models/props/nr_wall_tower_coal.res" id="8_m73yi"]
-[ext_resource type="Material" path="res://assets/materials/metal_roof.tres" id="9_eemco"]
-[ext_resource type="ArrayMesh" path="res://assets/models/props/nr_wall_tower_metal_roof.res" id="10_e8n2v"]
-[ext_resource type="Material" path="res://assets/materials/metal_dark.tres" id="11_5jqup"]
-[ext_resource type="ArrayMesh" path="res://assets/models/props/nr_wall_tower_metal_dark.res" id="12_2nf42"]
-[ext_resource type="Material" path="res://assets/materials/flag_red.tres" id="13_gnbwk"]
-[ext_resource type="ArrayMesh" path="res://assets/models/props/nr_wall_tower_flag_red.res" id="14_pqmjw"]
+[ext_resource type="Material" path="res://assets/materials/metal_dark.tres" id="1_mcvvc"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/nr_wall_tower_metal_dark.res" id="2_m73yi"]
+[ext_resource type="Material" path="res://assets/materials/planks_old.tres" id="3_eemco"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/nr_wall_tower_planks_old.res" id="4_e8n2v"]
+[ext_resource type="Material" path="res://assets/materials/rust.tres" id="5_5jqup"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/nr_wall_tower_rust.res" id="6_2nf42"]
+[ext_resource type="Material" path="res://assets/materials/coal.tres" id="7_gnbwk"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/nr_wall_tower_coal.res" id="8_pqmjw"]
+[ext_resource type="Material" path="res://assets/materials/paint_faded.tres" id="9_i2jlc"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/nr_wall_tower_paint_faded.res" id="10_vuiuv"]
+[ext_resource type="Material" path="res://assets/materials/metal_roof.tres" id="11_efsxe"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/nr_wall_tower_metal_roof.res" id="12_8hqqa"]
+[ext_resource type="Material" path="res://assets/materials/tarp_blue.tres" id="13_vxobd"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/nr_wall_tower_tarp_blue.res" id="14_kyd2s"]
+[ext_resource type="Material" path="res://assets/materials/flag_red.tres" id="15_fff4h"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/nr_wall_tower_flag_red.res" id="16_yil8k"]
+[ext_resource type="Material" path="res://assets/materials/cloth_sack.tres" id="17_qhu05"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/nr_wall_tower_cloth_sack.res" id="18_aqagu"]
+[ext_resource type="Material" path="res://assets/materials/tire.tres" id="19_t0ole"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/nr_wall_tower_tire.res" id="20_jltbu"]
 
-[sub_resource type="BoxShape3D" id="BoxShape3D_i2jlc"]
-size = Vector3(4.4, 3, 4.4)
+[sub_resource type="BoxShape3D" id="BoxShape3D_ywt0c"]
+size = Vector3(4, 3, 4)
 
-[node name="WallTower" type="Node3D" unique_id=1994786464]
+[node name="WallTower" type="Node3D" unique_id=1119388770]
 
-[node name="Mesh_stone_wall" type="MeshInstance3D" parent="." unique_id=1778154061]
-material_override = ExtResource("1_shdhj")
-mesh = ExtResource("2_02o1p")
+[node name="Mesh_metal_dark" type="MeshInstance3D" parent="." unique_id=19914198]
+material_override = ExtResource("1_mcvvc")
+mesh = ExtResource("2_m73yi")
 
-[node name="Mesh_brick" type="MeshInstance3D" parent="." unique_id=27680615]
-material_override = ExtResource("3_7f4yl")
-mesh = ExtResource("4_chi55")
+[node name="Mesh_planks_old" type="MeshInstance3D" parent="." unique_id=1631560286]
+material_override = ExtResource("3_eemco")
+mesh = ExtResource("4_e8n2v")
 
-[node name="Mesh_concrete" type="MeshInstance3D" parent="." unique_id=544312119]
-material_override = ExtResource("5_pq7af")
-mesh = ExtResource("6_pc00r")
+[node name="Mesh_rust" type="MeshInstance3D" parent="." unique_id=843960419]
+material_override = ExtResource("5_5jqup")
+mesh = ExtResource("6_2nf42")
 
-[node name="Mesh_coal" type="MeshInstance3D" parent="." unique_id=523582171]
-material_override = ExtResource("7_mcvvc")
-mesh = ExtResource("8_m73yi")
+[node name="Mesh_coal" type="MeshInstance3D" parent="." unique_id=581106861]
+material_override = ExtResource("7_gnbwk")
+mesh = ExtResource("8_pqmjw")
 
-[node name="Mesh_metal_roof" type="MeshInstance3D" parent="." unique_id=1709497158]
-material_override = ExtResource("9_eemco")
-mesh = ExtResource("10_e8n2v")
+[node name="Mesh_paint_faded" type="MeshInstance3D" parent="." unique_id=2092862928]
+material_override = ExtResource("9_i2jlc")
+mesh = ExtResource("10_vuiuv")
 
-[node name="Mesh_metal_dark" type="MeshInstance3D" parent="." unique_id=1470867063]
-material_override = ExtResource("11_5jqup")
-mesh = ExtResource("12_2nf42")
+[node name="Mesh_metal_roof" type="MeshInstance3D" parent="." unique_id=789305112]
+material_override = ExtResource("11_efsxe")
+mesh = ExtResource("12_8hqqa")
 
-[node name="Mesh_flag_red" type="MeshInstance3D" parent="." unique_id=1468557379]
-material_override = ExtResource("13_gnbwk")
-mesh = ExtResource("14_pqmjw")
+[node name="Mesh_tarp_blue" type="MeshInstance3D" parent="." unique_id=142557412]
+material_override = ExtResource("13_vxobd")
+mesh = ExtResource("14_kyd2s")
 
-[node name="Collision" type="StaticBody3D" parent="." unique_id=647103164]
+[node name="Mesh_flag_red" type="MeshInstance3D" parent="." unique_id=1913556011]
+material_override = ExtResource("15_fff4h")
+mesh = ExtResource("16_yil8k")
+
+[node name="Mesh_cloth_sack" type="MeshInstance3D" parent="." unique_id=517082501]
+material_override = ExtResource("17_qhu05")
+mesh = ExtResource("18_aqagu")
+
+[node name="Mesh_tire" type="MeshInstance3D" parent="." unique_id=1655010718]
+material_override = ExtResource("19_t0ole")
+mesh = ExtResource("20_jltbu")
+
+[node name="Collision" type="StaticBody3D" parent="." unique_id=1206888148]
 collision_mask = 0
 
-[node name="@CollisionShape3D@274" type="CollisionShape3D" parent="Collision" unique_id=1205493810]
+[node name="@CollisionShape3D@258" type="CollisionShape3D" parent="Collision" unique_id=1059026750]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 0)
-shape = SubResource("BoxShape3D_i2jlc")
+shape = SubResource("BoxShape3D_ywt0c")

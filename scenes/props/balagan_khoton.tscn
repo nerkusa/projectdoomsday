@@ -1,0 +1,77 @@
+[gd_scene format=3]
+
+[ext_resource type="Material" path="res://assets/materials/log_weathered.tres" id="1_new8v"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/balagan_khoton_log_weathered.res" id="2_cotmo"]
+[ext_resource type="Material" path="res://assets/materials/earth.tres" id="3_4y0c6"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/balagan_khoton_earth.res" id="4_ltd5c"]
+[ext_resource type="Material" path="res://assets/materials/grass_roof.tres" id="5_wggn5"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/balagan_khoton_grass_roof.res" id="6_8m2bv"]
+[ext_resource type="Material" path="res://assets/materials/planks_old.tres" id="7_3hq70"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/balagan_khoton_planks_old.res" id="8_ohrdt"]
+[ext_resource type="Material" path="res://assets/materials/glass.tres" id="9_ukgbo"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/balagan_khoton_glass.res" id="10_e4g51"]
+[ext_resource type="Material" path="res://assets/materials/whitewash.tres" id="11_on2eq"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/balagan_khoton_whitewash.res" id="12_h34q4"]
+[ext_resource type="Material" path="res://assets/materials/paint_faded.tres" id="13_kwmns"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/balagan_khoton_paint_faded.res" id="14_coa77"]
+[ext_resource type="Material" path="res://assets/materials/manure.tres" id="15_bsoen"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/balagan_khoton_manure.res" id="16_qa41d"]
+[ext_resource type="Material" path="res://assets/materials/hay.tres" id="17_ksf1i"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/balagan_khoton_hay.res" id="18_4ujy4"]
+[ext_resource type="Material" path="res://assets/materials/log_dark.tres" id="19_lxqrn"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/balagan_khoton_log_dark.res" id="20_ycq2y"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_cb400"]
+size = Vector3(10, 2.4, 3.8)
+
+[node name="BalaganKhoton" type="Node3D" unique_id=948580680]
+
+[node name="Mesh_log_weathered" type="MeshInstance3D" parent="." unique_id=1834913167]
+material_override = ExtResource("1_new8v")
+mesh = ExtResource("2_cotmo")
+
+[node name="Mesh_earth" type="MeshInstance3D" parent="." unique_id=1683365844]
+material_override = ExtResource("3_4y0c6")
+mesh = ExtResource("4_ltd5c")
+
+[node name="Mesh_grass_roof" type="MeshInstance3D" parent="." unique_id=1815731393]
+material_override = ExtResource("5_wggn5")
+mesh = ExtResource("6_8m2bv")
+
+[node name="Mesh_planks_old" type="MeshInstance3D" parent="." unique_id=88820898]
+material_override = ExtResource("7_3hq70")
+mesh = ExtResource("8_ohrdt")
+
+[node name="Mesh_glass" type="MeshInstance3D" parent="." unique_id=1734623794]
+material_override = ExtResource("9_ukgbo")
+mesh = ExtResource("10_e4g51")
+
+[node name="Mesh_whitewash" type="MeshInstance3D" parent="." unique_id=354340437]
+material_override = ExtResource("11_on2eq")
+mesh = ExtResource("12_h34q4")
+
+[node name="Mesh_paint_faded" type="MeshInstance3D" parent="." unique_id=1895599586]
+material_override = ExtResource("13_kwmns")
+mesh = ExtResource("14_coa77")
+
+[node name="Mesh_manure" type="MeshInstance3D" parent="." unique_id=568329840]
+material_override = ExtResource("15_bsoen")
+mesh = ExtResource("16_qa41d")
+
+[node name="Mesh_hay" type="MeshInstance3D" parent="." unique_id=2010742024]
+material_override = ExtResource("17_ksf1i")
+mesh = ExtResource("18_4ujy4")
+
+[node name="Mesh_log_dark" type="MeshInstance3D" parent="." unique_id=849178165]
+material_override = ExtResource("19_lxqrn")
+mesh = ExtResource("20_ycq2y")
+
+[node name="Slot_door" type="Marker3D" parent="." unique_id=1323711954]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.6, 0, 2.6)
+
+[node name="Collision" type="StaticBody3D" parent="." unique_id=615077214]
+collision_mask = 0
+
+[node name="@CollisionShape3D@2" type="CollisionShape3D" parent="Collision" unique_id=407446339]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.1, 1.2, 0)
+shape = SubResource("BoxShape3D_cb400")

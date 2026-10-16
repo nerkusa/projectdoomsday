@@ -12,7 +12,7 @@ func _ready() -> void:
 	for n in ["trim", "metal_roof", "planks_old", "stone_wall", "metal_dark", "log_weathered", "cloth_sack", "cloth_red",
 			"tin", "paper", "rope_mat", "glass", "whitewash", "brass", "tire", "hay", "bread", "fish", "herb", "paint_faded",
 			"paint_white", "reed", "berry", "concrete", "coal", "soot", "rust", "plastic_dark", "frame_white", "glass_city",
-			"enamel", "paint_red", "paint_blue", "metal_green", "flag_red", "trash_black", "tar", "window", "screen_amber", "screen_green"]:
+			"enamel", "paint_red", "paint_blue", "metal_green", "flag_red", "trash_black", "tar", "window", "screen_amber", "screen_green", "log_dark", "whitewash"]:
 		if ResourceLoader.exists(MAT_DIR + n + ".tres"):
 			M[n] = load(MAT_DIR + n + ".tres")
 	_plain_mat("an_paint", Color("5e6458"), 0.75)
@@ -32,9 +32,15 @@ func _ready() -> void:
 	_plain_mat("hz_panel", Color("2e3236"), 0.35)
 	_plain_mat("hz_metal", Color("858a8e"), 0.3)
 	_plain_mat("hz_grey", Color("5d6266"), 0.5)
+	if "markun" in OS.get_cmdline_user_args():
+		markun_props()
+		print("Мар-Кун собран.")
+		get_tree().quit()
+		return
 	village_props()
 	personal_items()
 	wreck_props()
+	markun_props()
 	print("Деревня и дорога собраны.")
 	get_tree().quit()
 
@@ -900,3 +906,71 @@ func beam(mat: String, a: Vector3, b: Vector3, t: float) -> void:
 	var x := y.cross(Vector3.FORWARD if absf(y.z) < 0.9 else Vector3.RIGHT).normalized()
 	var z := x.cross(y).normalized()
 	box(mat, Vector3(t, d.length(), t), (a + b) / 2.0, Basis(x, y, z).get_euler())
+
+## Мар-Кун: усадьба «балаган с хотоном» (жильё и хлев под одной стеной), стог сена,
+## жердевая изгородь-кюрюё. Запуск только их: build_rural.tscn -- markun
+func markun_props() -> void:
+	# балаган с хотоном: слева жилая часть (выше, с камельком и окном-льдиной),
+	# справа хлев — ниже и длиннее, стены обмазаны навозом с глиной
+	for vi in 2:
+		begin()
+		_rng.seed = 7100 + vi
+		var parts := [[-2.5, 4.4, 3.8, 9, "log_weathered"], [2.6, 5.6, 3.4, 7, "log_weathered"]]
+		for pi_ in parts.size():
+			var pr: Array = parts[pi_]
+			var cx: float = pr[0]
+			var bw: float = pr[1]
+			var bd: float = pr[2]
+			var rows: int = pr[3]
+			for i in rows:
+				var y := 0.15 + i * 0.26
+				var k := 1.0 - i * 0.022
+				for sz in [-1, 1]:
+					cyl(pr[4], 0.13, 0.13, bw * k, Vector3(cx, y, sz * bd / 2.0 * k), Vector3(sz * 0.12, 0, PI / 2.0), 7)
+				for sx in [-1, 1]:
+					if pi_ == 1 and sx == -1:
+						continue
+					cyl(pr[4], 0.13, 0.13, bd * k, Vector3(cx + sx * bw / 2.0 * k, y, 0), Vector3(PI / 2.0, 0, -sx * 0.12), 7)
+			var top := 0.15 + rows * 0.26
+			box("earth", Vector3(bw * 0.92, 0.32, bd * 0.92), Vector3(cx, top + 0.05, 0))
+			box("grass_roof", Vector3(bw * 0.94, 0.08, bd * 0.94), Vector3(cx, top + 0.24, 0))
+			if pi_ == 1:
+				# обмазка хотона: пятна навоза с глиной по стенам
+				for sz in [-1, 1]:
+					box("manure", Vector3(bw * 0.9, top * 0.8, 0.04), Vector3(cx, top * 0.45, sz * (bd / 2.0 + 0.06)), Vector3(sz * 0.12, 0, 0))
+				box("manure", Vector3(0.04, top * 0.8, bd * 0.85), Vector3(cx + bw / 2.0 + 0.06, top * 0.45, 0), Vector3(0, 0, -0.12))
+				box("planks_old", Vector3(1.0, 1.3, 0.06), Vector3(cx + 0.8, 0.7, bd / 2.0 - 0.05), Vector3(-0.12, 0, 0))
+				add("hay", rough(rsphere(0.6, 7, 4), 0.12, 7100 + vi), Vector3(cx - 0.6, 0.25, bd / 2.0 + 0.7), Vector3.ZERO, Vector3(1.2, 0.5, 0.8))
+				add("manure", rough(rsphere(0.5, 6, 4), 0.1, 7110 + vi), Vector3(cx + 2.3, 0.15, bd / 2.0 + 0.9), Vector3.ZERO, Vector3(1.0, 0.35, 0.8))
+			else:
+				box("planks_old", Vector3(0.9, 1.5, 0.06), Vector3(cx + 0.9, 0.8, bd / 2.0 - 0.06), Vector3(-0.12, 0, 0))
+				box("glass", Vector3(0.45, 0.4, 0.04), Vector3(cx - 1.0, 1.4, bd / 2.0 * 0.82 + 0.04))
+				box("whitewash", Vector3(0.6, 0.55, 0.03), Vector3(cx - 1.0, 1.4, bd / 2.0 * 0.82 + 0.02))
+				# камелёк: глиняная труба
+				cyl("whitewash", 0.22, 0.32, 1.1, Vector3(cx - 0.8, top + 0.6, -0.6), Vector3.ZERO, 8)
+				# по-корпоративному: на стене — табличка от дедов
+				box("paint_faded" if vi == 0 else "metal_green", Vector3(0.7, 0.35, 0.03), Vector3(cx + 0.9, 1.9, bd / 2.0 - 0.02))
+		# у стены — колода и вилы
+		box("log_weathered", Vector3(1.4, 0.4, 0.5), Vector3(-0.2, 0.2, 2.6))
+		box("log_dark", Vector3(0.05, 1.6, 0.05), Vector3(4.6, 0.8, 2.0), Vector3(0, 0, 0.3))
+		solid(Vector3(10.0, 2.4, 3.8), Vector3(0.1, 1.2, 0))
+		slots["door"] = Vector3(-1.6, 0, 2.6)
+		finish(["balagan_khoton", "balagan_khoton_b"][vi], "BalaganKhoton")
+	# стог сена на жердях: вокруг — три жерди шалашом
+	begin()
+	add("hay", rough(rsphere(1.3, 9, 6), 0.18, 7200), Vector3(0, 0.8, 0), Vector3.ZERO, Vector3(0.95, 0.8, 1.35))
+	add("hay", rough(rsphere(0.9, 8, 5), 0.15, 7201), Vector3(0, 1.6, 0), Vector3.ZERO, Vector3(0.9, 0.7, 1.3))
+	for k in 3:
+		var a := k * TAU / 3.0
+		box("log_dark", Vector3(0.07, 3.6, 0.07), Vector3(cos(a) * 0.5, 1.8, sin(a) * 0.5), Vector3(sin(a) * 0.25, 0, -cos(a) * 0.25))
+	solid(Vector3(2.4, 2.0, 2.4), Vector3(0, 1.0, 0))
+	finish("hay_stack", "HayStack")
+	# кюрюё — жердевая изгородь: пролёт 6 м, крестовины, жерди наискось
+	begin()
+	for x in [-3.0, 3.0]:
+		for s in [-1, 1]:
+			box("log_dark", Vector3(0.08, 1.7, 0.08), Vector3(x, 0.75, 0), Vector3(s * 0.35, 0, 0))
+	for k in 3:
+		box("log_weathered", Vector3(6.2, 0.08, 0.08), Vector3(0, 0.45 + k * 0.38, 0.0), Vector3(0, 0, (k - 1) * 0.04))
+	solid(Vector3(6.0, 1.4, 0.4), Vector3(0, 0.7, 0))
+	finish("pole_fence", "PoleFence")

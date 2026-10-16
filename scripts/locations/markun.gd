@@ -11,7 +11,7 @@ const PATIENCE := 2.0
 ## Сколько урона за раунд даёт сменный при обороне
 const HUNTER_DMG := Vector2i(2, 4)
 const PROOF_ITEMS := ["list_b", "ledger_page", "archive_printout", "merc_order", "target_list"]
-const FOLK := ["Chief", "Instructor", "Hunter1", "Hunter2", "Hunter3", "Woman1", "Woman2", "Old1", "Kid1"]
+const FOLK := ["Chief", "Instructor", "Hunter1", "Hunter2", "Hunter3", "Woman1", "Woman2", "Woman3", "Old1", "Herder", "Kid1"]
 
 
 func _ready() -> void:
@@ -119,7 +119,7 @@ func _attack(thought: String) -> void:
 	Game.set_flag("mk_attack")
 	Game.set_quest("markun", 4)
 	_cleaners_hostile()
-	var fire := Vector3(35, 0, 33)
+	var fire := Vector3(50, 0, 44)
 	for ch in characters():
 		if ch.squad == "mk_cleaners" and ch.pose != "dead" and ch.visible:
 			ch.move_along(Clock._route(self, ch.global_position, fire + Vector3(randf_range(-4, 4), 0, randf_range(-4, 4))), Callable(), 2.6)

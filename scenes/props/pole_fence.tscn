@@ -1,0 +1,26 @@
+[gd_scene format=3]
+
+[ext_resource type="Material" path="res://assets/materials/log_dark.tres" id="1_hn8b4"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/pole_fence_log_dark.res" id="2_nbmw0"]
+[ext_resource type="Material" path="res://assets/materials/log_weathered.tres" id="3_mtcen"]
+[ext_resource type="ArrayMesh" path="res://assets/models/props/pole_fence_log_weathered.res" id="4_jw3gr"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_qminj"]
+size = Vector3(6, 1.4, 0.4)
+
+[node name="PoleFence" type="Node3D" unique_id=363596438]
+
+[node name="Mesh_log_dark" type="MeshInstance3D" parent="." unique_id=3442455]
+material_override = ExtResource("1_hn8b4")
+mesh = ExtResource("2_nbmw0")
+
+[node name="Mesh_log_weathered" type="MeshInstance3D" parent="." unique_id=1133336192]
+material_override = ExtResource("3_mtcen")
+mesh = ExtResource("4_jw3gr")
+
+[node name="Collision" type="StaticBody3D" parent="." unique_id=1935201218]
+collision_mask = 0
+
+[node name="@CollisionShape3D@5" type="CollisionShape3D" parent="Collision" unique_id=389206665]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.7, 0)
+shape = SubResource("BoxShape3D_qminj")
