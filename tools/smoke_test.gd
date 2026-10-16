@@ -1028,7 +1028,19 @@ func mirny_tests() -> void:
 	ok(Game.flag("mr_freed") and Game.quest_stage("mr_trial") == 3, "суд йегерей: донос ложный, Пётр свободен")
 	await nr_go("ToCenter", "mirny")
 	loc = main.location
-	# карьер: спуститься, забрать ящик
+	# карьер: без костюма не пускают, костюм — у сторожа промзоны
+	loc.on_interact(loc.item("ToQuarry"))
+	await frames(5)
+	ok(main.location.location_id == "mirny" and not main._loading, "без защитного костюма в карьер не спуститься")
+	ok(unreachable(loc, loc.spawn_point("Road"), func(nd): return String(nd.name) in ["GokWatch", "ToQuarry"]).is_empty(), "до сторожа промзоны и ворот карьера можно дойти")
+	Game.add_item("rubles", 60)
+	var rub0 := Game.item_count("rubles")
+	main.talk_to(loc.character("GokWatch"))
+	await frames(2)
+	await choose(find_opt("костюм"))
+	await choose(find_opt("Отдать 60"))
+	await close_dialogs()
+	ok(Game.item_count("gok_suit") == 1 and Game.item_count("rubles") == rub0 - 60, "сторож продал защитный костюм за 60 рублей")
 	loc.on_interact(loc.item("ToQuarry"))
 	await wait_loading()
 	var q: Node = main.location
