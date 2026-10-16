@@ -19,6 +19,7 @@ func _ready() -> void:
 	add_child(_light)
 	add_child(_particles(false))
 	add_child(_particles(true))
+	add_child(_sparks())
 
 
 func _particles(smoke: bool) -> GPUParticles3D:
@@ -95,3 +96,42 @@ func _process(delta: float) -> void:
 		return
 	_t += delta
 	_light.light_energy = 2.2 + sin(_t * 11.0) * 0.3 + sin(_t * 23.0 + 1.3) * 0.25
+
+
+## Искры: яркие точки летят вверх и в стороны, кружатся и гаснут
+func _sparks() -> GPUParticles3D:
+	var p := GPUParticles3D.new()
+	p.add_to_group("ambient_fx")
+	p.amount = int(30 * maxf(1.0, strength))
+	p.lifetime = 1.6
+	p.preprocess = 1.0
+	var m := ParticleProcessMaterial.new()
+	m.direction = Vector3(0, 1, 0)
+	m.spread = 28.0
+	m.initial_velocity_min = 1.6 * sqrt(strength)
+	m.initial_velocity_max = 3.4 * sqrt(strength)
+	m.gravity = Vector3(0.3, 0.4, 0.1)
+	m.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_SPHERE
+	m.emission_sphere_radius = 0.4 * strength
+	m.turbulence_enabled = true
+	m.turbulence_noise_strength = 1.6
+	m.turbulence_noise_scale = 1.2
+	var g := Gradient.new()
+	g.set_color(0, Color(1.0, 0.85, 0.4, 1.0))
+	g.set_color(1, Color(1.0, 0.25, 0.05, 0.0))
+	var gt := GradientTexture1D.new()
+	gt.gradient = g
+	m.color_ramp = gt
+	p.process_material = m
+	var q := QuadMesh.new()
+	q.size = Vector2(0.1, 0.1)
+	var mat := StandardMaterial3D.new()
+	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	mat.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
+	mat.billboard_mode = BaseMaterial3D.BILLBOARD_PARTICLES
+	mat.vertex_color_use_as_albedo = true
+	q.material = mat
+	p.draw_pass_1 = q
+	p.position = Vector3(0, 0.6, 0)
+	return p

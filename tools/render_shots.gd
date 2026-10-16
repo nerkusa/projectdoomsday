@@ -4,7 +4,8 @@ extends Node
 ##     res://tools/render_shots.tscn -- "кадр;кадр;…" /путь/префикс     → префикс_0.png, _1.png…
 ## Кадр: loc|x|z|zoom|час|флаги — флаги через запятую, «квест=этап» ставит этап, «weather=rain» — погоду.
 ##       encounter|x|z|zoom|час|enc_id|ориентиры(plane,heli,…)
-##       Флаги кадра: alt — зажат Alt (подсветка); call=метод — вызвать метод локации (сцену) и подождать.
+##       Флаги кадра: alt — зажат Alt (подсветка); call=метод — вызвать метод локации (сцену) и подождать;
+##       fx=off|film|bleak — фильтр картинки.
 ##       MAP — карта мира с тропами (MAP|all — все места);  WAIT|часов|через_сколько_сек — экран ожидания.
 var main: Node
 
@@ -100,6 +101,10 @@ func _ready() -> void:
 					Game.hero.stats["INT"] = int(f.trim_prefix("int="))
 				elif f.begins_with("rad="):
 					Game.hero["rad"] = float(f.trim_prefix("rad="))
+				elif f.begins_with("fx="):
+					# фильтр картинки: fx=off|film|bleak
+					Game.settings["gfx_filter"] = f.trim_prefix("fx=")
+					Graphics.apply(get_tree())
 				elif f.begins_with("weather="):
 					Weather.frozen = true
 					Weather.set_kind(f.trim_prefix("weather="), 999.0)

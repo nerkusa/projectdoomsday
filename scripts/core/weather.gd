@@ -192,6 +192,9 @@ func attach(loc: Node) -> void:
 	_fx.add_child(_rain)
 	_dust = _make_dust()
 	_fx.add_child(_dust)
+	var amb := AmbientFX.new()
+	amb.visible = Graphics.value("gfx_particles") == "on"
+	_fx.add_child(amb)
 	refresh()
 
 

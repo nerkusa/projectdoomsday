@@ -13,6 +13,9 @@ const OPTIONS := [
 	{"id": "gfx_scale", "name": "Масштаб картинки", "values": ["0.5", "0.75", "1.0"],
 		"names": {"0.5": "50%", "0.75": "75%", "1.0": "100%"}},
 	{"id": "gfx_glow", "name": "Свечение огня", "values": ["off", "on"], "names": {"off": "нет", "on": "да"}},
+	{"id": "gfx_filter", "name": "Фильтр картинки", "values": ["off", "film", "bleak"],
+		"names": {"off": "нет", "film": "кино", "bleak": "выцветшая плёнка"}},
+	{"id": "gfx_particles", "name": "Частицы (пепел, листья, искры)", "values": ["on", "off"], "names": {"on": "да", "off": "нет"}},
 	{"id": "gfx_window", "name": "Режим окна", "values": ["window", "fullscreen"],
 		"names": {"window": "окно", "fullscreen": "весь экран"}},
 	{"id": "gfx_vsync", "name": "Вертикальная синхронизация", "values": ["on", "off"], "names": {"on": "да", "off": "нет"}},
@@ -26,7 +29,7 @@ const PRESETS := {
 }
 
 const DEFAULTS := {"gfx_preset": "normal", "gfx_shadows": "high", "gfx_aa": "fxaa", "gfx_scale": "1.0",
-	"gfx_glow": "on", "gfx_window": "window", "gfx_vsync": "on"}
+	"gfx_glow": "on", "gfx_window": "window", "gfx_vsync": "on", "gfx_filter": "off", "gfx_particles": "on"}
 
 
 static func value(id: String) -> String:
@@ -96,6 +99,11 @@ static func apply(tree: SceneTree) -> void:
 		var we := loc.get_node_or_null("Env/WorldEnvironment") as WorldEnvironment
 		if we and we.environment:
 			we.environment.glow_enabled = value("gfx_glow") == "on"
+	# фильтр картинки и атмосферные частицы
+	for n in tree.get_nodes_in_group("post_fx"):
+		n.set_mode(value("gfx_filter"))
+	for n in tree.get_nodes_in_group("ambient_fx"):
+		n.visible = value("gfx_particles") == "on"
 	# окно и синхронизация (в тестах без экрана пропускаем)
 	if DisplayServer.get_name() != "headless":
 		var fs := value("gfx_window") == "fullscreen"

@@ -116,6 +116,8 @@ func _ready() -> void:
 	add_child(combat)
 	combat.setup(self)
 	_build_ui()
+	# фильтр картинки поверх 3D (под интерфейсом)
+	add_child(PostFX.new())
 	Graphics.apply(get_tree())
 	Game.level_up.connect(_on_level_up)
 	menu.open("main")

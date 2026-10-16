@@ -299,7 +299,7 @@ Project Doomsday — 1–4
 Автозагрузка Game: состояние героя и мира, журнал, сохранения.
 `_ready:20` `new_hero:27` `gtext:51` `hero_max:62` `effective_stats:67` `hero_hp:75` `set_hero_hp:80` `rep:85` `change_rep:90` `stat_pool:106` `skill_pool:110` `stat_cap:114` `grant_xp:118` `log_line:134` `flag:139` `flag_value:143` `set_flag:147` `quest_stage:153` `set_quest:159` `add_note:183` `item_count:191` `add_item:201` `remove_item:222` `hero_wkey:250` `hero_weapon:254` `auto_reload:259` `wstate:275` `check_chance:290` `skill_check:296` `knows_sakha:315` `hero_stat:323` `cas_working:333` `cas_info:337` `is_cassette:341` `cas_active:346` `cas_has_tag:351` `cas_insert:358` `cas_eject:372` `stat_bonus:385` `skill_bonus:394` `worn:409` `effective_skills:418` `save_game:427` `has_save:437` `save_info:441` `load_game:451` `_fix_numbers:477` `_load_settings:493` `save_settings:504`
 
-### scripts/core/graphics.gd (108) · class Graphics
+### scripts/core/graphics.gd (116) · class Graphics
 Настройки графики: хранятся в Game.settings (user://settings.json),
 
 ### scripts/core/radiation.gd (118)
@@ -309,9 +309,9 @@ Project Doomsday — 1–4
 Правила игры: характеристики, навыки, броски, бой — по дизайн-документу (docs/design.md):
 `rep_label:78` `rep_title:86` `trade_mults:96` `all_skills:132` `stat_name:140` `norm_stat:147` `norm_skill:151` `normalize_stats:157` `normalize_skills:172` `weapon_stat:181` `empty_stats:185` `empty_skills:192` `sum_stats:199` `sum_skill_points:206` `r1:214` `roll_dice:218` `sum_arr:229` `roll_hit:237` `max_hp:254` `ap_for:259` `wound_dmg_penalty:264` `calc_ae:272` `level_reward:289` `xp_for_level:293` `earned:300` `random_core:311` `_build_hit_dist:345` `hit_chance:366` `atk_mods:378` `def_mods:401` `zone_by_name:410`
 
-### scripts/core/weather.gd (341)
+### scripts/core/weather.gd (344)
 Погода (автозагрузка Weather): ясно, пасмурно, дождь, ливень, гроза, буря,
-`_st:37` `kind:43` `info:47` `title:51` `vis_mult:56` `travel_mult:61` `shelter:66` `set_kind:70` `tick:83` `_announce:128` `outdoor:150` `setup:163` `_player:169` `attach:182` `_make_rain:198` `_make_dust:226` `refresh:259` `apply:292` `_process:318` `rad_step:339`
+`_st:37` `kind:43` `info:47` `title:51` `vis_mult:56` `travel_mult:61` `shelter:66` `set_kind:70` `tick:83` `_announce:128` `outdoor:150` `setup:163` `_player:169` `attach:182` `_make_rain:201` `_make_dust:229` `refresh:262` `apply:295` `_process:321` `rad_step:342`
 
 ### scripts/locations/act1_location.gd (133) · class Act1Location
 Общее для локаций первого акта: выходы на карту мира, еда для платы и подарков,
@@ -445,9 +445,9 @@ Project Doomsday — 1–4
 ### scripts/locations/zaimka.gd (140)
 Заимка охотника Дьаакыпа. Задание «Капканы»: на севере что-то ломает капканы —
 
-### scripts/main.gd (1570)
+### scripts/main.gd (1572)
 Главный узел игры: камера, загрузка локаций, ввод мышью, окна интерфейса.
-`_ready:98` `_on_level_up:125` `_build_ui:136` `space:209` `ui_blocked:213` `sfx:218` `think:243` `_on_menu:248` `_load_slot:276` `_on_sheet_closed:291` `_on_slides_done:302` `_unload:312` `load_location:330` `autosave:375` `quicksave:382` `show_game_over:391` `show_end:395` `status_text:401` `objective_text:407` `_on_hud_action:420` `open_kpk:465` `use_item:491` `_swap_hands:566` `_open_pause:578` `_move_speed:586` `_sneak_radius:597` `on_combat_start:606` `is_filler:622` `filler_bark:627` `talk_to:668` `say:693` `_on_dialog_action:703` `open_trade:742` `_on_dialog_closed:748` `start_fight:753` `_unhandled_input:774` `wait_time:836` `begin_cutscene:841` `end_cutscene:849` `_enemies_near:854` `open_wait:862` `wait_hours:872` `_pick:889` `_click:930` `_may_attack:973` `_near_edge:983` `_can_leave:988` `_walk_to_hex:1000` `_walk_clear:1043` `_smooth_path:1058` `_go_then:1072` `_do_pending:1104` `interact:1132` `loot:1156` `_body_entries:1174` `open_loot:1195` `pickpocket:1216` `examine:1251` `_open_actions:1267` `_on_action_picked:1313` `_process:1332` `_update_xray:1398` `_set_alpha:1464` `_update_glow:1476` `_check_aggro:1484` `_look_around:1519` `_look_text:1541`
+`_ready:98` `_on_level_up:127` `_build_ui:138` `space:211` `ui_blocked:215` `sfx:220` `think:245` `_on_menu:250` `_load_slot:278` `_on_sheet_closed:293` `_on_slides_done:304` `_unload:314` `load_location:332` `autosave:377` `quicksave:384` `show_game_over:393` `show_end:397` `status_text:403` `objective_text:409` `_on_hud_action:422` `open_kpk:467` `use_item:493` `_swap_hands:568` `_open_pause:580` `_move_speed:588` `_sneak_radius:599` `on_combat_start:608` `is_filler:624` `filler_bark:629` `talk_to:670` `say:695` `_on_dialog_action:705` `open_trade:744` `_on_dialog_closed:750` `start_fight:755` `_unhandled_input:776` `wait_time:838` `begin_cutscene:843` `end_cutscene:851` `_enemies_near:856` `open_wait:864` `wait_hours:874` `_pick:891` `_click:932` `_may_attack:975` `_near_edge:985` `_can_leave:990` `_walk_to_hex:1002` `_walk_clear:1045` `_smooth_path:1060` `_go_then:1074` `_do_pending:1106` `interact:1134` `loot:1158` `_body_entries:1176` `open_loot:1197` `pickpocket:1218` `examine:1253` `_open_actions:1269` `_on_action_picked:1315` `_process:1334` `_update_xray:1400` `_set_alpha:1466` `_update_glow:1478` `_check_aggro:1486` `_look_around:1521` `_look_text:1543`
 
 ### scripts/ui/char_sheet.gd (376) · class CharSheet
 «Дело» — лист персонажа. Новая игра начинается с выбора одного из четырёх готовых
@@ -479,6 +479,9 @@ Project Doomsday — 1–4
 ### scripts/ui/model_view.gd (92) · class ModelView
 Окошко с 3D-моделью героя: портрет (голова и плечи) или в полный рост, крутится на месте.
 
+### scripts/ui/post_fx.gd (39) · class PostFX
+Фильтр картинки поверх 3D (под интерфейсом): режимы из настроек графики — «нет», «Кино»,
+
 ### scripts/ui/trade_window.gd (299) · class TradeWindow
 Бартер: денег в первом акте нет, меняют вещь на вещь.
 `setup:29` `_column:87` `open:113` `mine:127` `stock:146` `give_value:150` `take_value:154` `_sum_of:158` `offer:166` `withdraw:180` `can_exchange:190` `exchange:194` `_line:220` `_render:224` `_fill:243` `close:281` `_unhandled_key_input:290`
@@ -495,6 +498,10 @@ Project Doomsday — 1–4
 Карта мира как в Fallout: по картинке (data/world.json → image) герой ходит сам,
 `setup:62` `_layout:148` `set_zoom:164` `nodes:171` `node_pos:175` `known:180` `reveal:186` `can_go:201` `_fog_dims:227` `_fog_str:231` `explored:240` `explore:247` `_build_fog:268` `paths:280` `on_path:289` `hours:301` `time_text:305` `hours_to:309` `_build_nav:323` `_disc:346` `_cell:356` `seg_free:361` `_snap_free:370` `route:386` `open:413` `close:446` `_can_back:453` `go_node:460` `travel:469` `_go_to:478` `halt:489` `_process:495` `_save_pos:533` `_arrive:537` `_reveal_near:552` `_dir_word:569` `blast_k:578` `_locked_note:587` `enter:593` `_roll_encounter:622` `_roll_encounter_with:637` `biome_at:653` `pick_encounter:686` `_mark_seen:727` `start_road_event:734` `_on_dialog_closed:743` `on_action:752` `start_encounter:769` `select:791` `_refresh_time:798` `_refresh:802` `_to_px:826` `_from_px:830` `_text:834` `_smooth:841` `_draw_map:857` `_node_at:918` `_on_canvas_input:931` `_unhandled_key_input:973`
 
+### scripts/world/ambient_fx.gd (154) · class AmbientFX
+Атмосферные частицы вокруг героя (узел едет вместе с ним, его создаёт Weather.attach):
+`_ready:20` `_make:53` `refresh:100` `_process:121` `_dot:129` `_leaf:142`
+
 ### scripts/world/anim_body.gd (162) · class AnimBody
 Манекен из Universal Animation Library (Quaternius, CC0) с готовыми анимациями.
 `build:23` `_skin:60` `_tint:79` `hand:94` `hand_l:98` `grip:106` `has:118` `length:122` `play:128` `_find:145` `_meshes:155`
@@ -506,7 +513,7 @@ Project Doomsday — 1–4
 Персонаж на локации: герой, жители, враги, звери.
 `_ready:108` `uid:145` `_rebuild_preview:149` `_build_visual:181` `move_along:221` `stop:239` `bark:251` `barking:272` `_hero_tpl:279` `rebuild_hero_body:292` `apply_hero_skin:310` `fov:332` `in_view:342` `show_cone:358` `face_towards:394` `_process:400` `_patrol:444` `act:459` `set_held:467` `_chest_attach:511` `_low_ready:532` `_two_handed:539` `_setup_two_hands:543` `_update_two_hands:585` `_make_weapon_mesh:637` `muzzle_flash:676` `_animate:688` `_animate_clips:825` `_act_clip:870` `_clip_act:887` `_fire_cb_once:933` `_end_act:942` `show_bracelet:956` `_plain:990` `_plug_tick:1000` `_sound:1027` `_plug_build:1033` `_plug_update:1082` `_seg:1104` `_plug_clear:1113` `_collect_meshes:1129` `_mark_kind:1136` `_update_marks:1158` `_set_ghost:1201` `_stencil_write:1226` `_stencil_mat:1246` `_sil_mat:1261` `_ring_mat:1272` `_sound_bolt:1284`
 
-### scripts/world/fire_fx.gd (98) · class FireFX
+### scripts/world/fire_fx.gd (138) · class FireFX
 Огонь: мерцающий свет, языки пламени и столб дыма.
 
 ### scripts/world/hero_body.gd (74) · class HeroBody
@@ -601,9 +608,9 @@ Project Doomsday — 1–4
 ### tools/preview_prop.gd (26)
 Превью одного пропа: тот же свет, что в деревне, изометрическая камера.
 
-### tools/render_shots.gd (167)
+### tools/render_shots.gd (172)
 Скриншоты для проверки (нужен рендер, не --headless):
-`_ready:11`
+`_ready:12`
 
 ### tools/screenshots.gd (107)
 Снимки экрана для проверки интерфейса (нужен рендер, не --headless).
