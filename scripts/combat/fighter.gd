@@ -11,7 +11,7 @@ var skills: Dictionary = {}
 var hp_roll := 0
 var max_hp := 1
 var _hp := 1
-## Броня тела: {"type": "light", "max": 8, "name": "ватник"} или пусто
+## Броня: {"type": "light", "max": 8, "name": "ватник", "head": true} или пусто; head — закрывает и голову
 var armor: Dictionary = {}
 var arm := 0
 var ap := 0
@@ -57,6 +57,9 @@ static func for_hero(n: Character) -> Fighter:
 	f.skills = Game.effective_skills()
 	f.max_hp = Game.hero_max()
 	f.lethal = true
+	# костюм (шлем + броня): защищает голову и тело, изнашивается
+	f.armor = Game.suit_info()
+	f.arm = Game.suit_arm() if not f.armor.is_empty() else 0
 	return f
 
 

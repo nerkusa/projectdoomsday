@@ -232,6 +232,16 @@ func _render_inv() -> void:
 			for k in it.bonus:
 				bs.append("%s +%d" % [k, int(it.bonus[k])])
 			right.add_child(_g("Если надеть: " + ", ".join(bs), 13))
+		if it.has("armor"):
+			var a: Dictionary = it.armor
+			var ln := "Костюм: %s броня, прочность %d / %d" % ["тяжёлая" if a.get("type", "") == "heavy" else "лёгкая", Game.suit_arm(_sel), int(a.get("max", 0))]
+			if a.get("head", false):
+				ln += " · закрывает голову"
+			if int(a.get("ap", 0)) != 0:
+				ln += " · %d ОД в бою" % int(a.ap)
+			if int(a.get("body_min", 0)) > 0:
+				ln += " · нужно Тело %d" % int(a.body_min)
+			right.add_child(_g(ln, 13))
 		if it.get("trinket", false):
 			right.add_child(_g("Безделушка. Можно выменять или подарить.", 12, UITheme.GREEN_DIM))
 		var label := ""
@@ -242,6 +252,10 @@ func _render_inv() -> void:
 				label = "Прочитать"
 			"wear":
 				label = "Снять" if Game.worn().has(_sel) else "Надеть"
+			"armor":
+				label = "Снять" if Game.suit() == _sel else "Надеть"
+			"repair":
+				label = "Починить костюм"
 			"measure":
 				label = "Включить"
 			"antirad":

@@ -1182,6 +1182,36 @@ func act4_tests() -> void:
 	get_tree().paused = false
 
 
+## Броня героя: один слот «костюм» (шлем + броня), тяжёлый требует Тела, защищает голову и тело,
+## изнашивается в бою, чинится ремнабором; бронированные враги оставляют костюм на теле
+func armor_tests() -> void:
+	Game.add_item("suit_vatnik")
+	Game.add_item("suit_horizon")
+	Game.add_item("repair_kit", 2)
+	main.use_item("suit_vatnik")
+	ok(Game.suit() == "suit_vatnik", "надел ватник с ушанкой")
+	var f := Fighter.for_hero(main.player)
+	ok(f.armor.get("head", false) and f.arm == 2, "костюм защищает и голову, прочность 2")
+	var body0 := int(Game.hero.stats.get("BODY", 0))
+	Game.hero.stats["BODY"] = 3
+	main.use_item("suit_horizon")
+	ok(Game.suit() == "suit_vatnik", "тяжёлые пластины «Горизонта» без силы не надеть")
+	Game.hero.stats["BODY"] = 7
+	main.use_item("suit_horizon")
+	ok(Game.suit() == "suit_horizon", "с Телом 7 надел пластины «Горизонта»")
+	ok(int(Game.skill_bonus().get("Скрытность", 0)) <= -2, "в тяжёлом костюме красться труднее")
+	Game.set_suit_arm("suit_horizon", 2)
+	Game.force_check = 1
+	main.use_item("repair_kit")
+	Game.force_check = 0
+	ok(Game.suit_arm() == 8 and Game.item_count("repair_kit") == 1, "ремнабор починил костюм до 8 / 8")
+	main.use_item("suit_horizon")
+	ok(Game.suit() == "", "костюм снят")
+	Game.hero.stats["BODY"] = body0
+	var tpl: Dictionary = DB.characters.get("cleaner", {})
+	ok(str(tpl.get("armor", {}).get("item", "")) == "suit_cleaner", "с чистильщика можно снять серую броню")
+
+
 ## Перейти по улице в соседний район Нью-Рбы
 func nr_go(exit: String, to: String) -> void:
 	var it: Interactable = main.location.item(exit)
@@ -1504,6 +1534,7 @@ func _ready() -> void:
 		WorldMap.reveal("markun")
 		main.load_location("markun", "Road")
 		await wait_loading()
+		await armor_tests()
 		await markun_tests()
 		print("=== ИТОГ: ошибок ", fails, " ===")
 		get_tree().quit(1 if fails else 0)
@@ -3369,6 +3400,7 @@ func _ready() -> void:
 	await sungar_tests()
 	await weather_tests()
 	await social_tests()
+	await armor_tests()
 	await nyurba_tests()
 	await mirny_tests()
 	await ges_tests()

@@ -185,6 +185,9 @@ func begin_turn() -> void:
 		# враги пришли в себя — внезапность упущена
 		sneak_attack = false
 	u.ap = Rules.ap_for(u.stats, u.hp, u.max_hp if not u.is_hero else Game.hero_max())
+	# тяжёлый костюм отнимает очки действия
+	if u.is_hero:
+		u.ap = maxi(1, u.ap + int(u.armor.get("ap", 0)))
 	u.ap_max = u.ap
 	u.db = 0
 	u.think = 0
@@ -759,7 +762,7 @@ func resolve_attack(att: Fighter, dfn: Fighter, w: Dictionary, aim_z, dist: int,
 	if sneak:
 		mul *= Rules.SNEAK_MULT
 	var armor_type := "none"
-	if not dfn.armor.is_empty() and z.slot == "body":
+	if not dfn.armor.is_empty() and (z.slot == "body" or (z.slot == "head" and dfn.armor.get("head", false))):
 		armor_type = dfn.armor.get("type", "none")
 	var ae: Dictionary
 	if z.ignore_armor:
@@ -869,6 +872,10 @@ func finish(res: String, gave_up := false) -> void:
 		clog("Бой окончен: %s" % ("ты победил" if win else ("ты сдался" if gave_up else "ты еле стоишь")), "", "hit" if win else "miss")
 	else:
 		clog("Бой окончен. Можно обыскать тела." if win else "Ты отступил.", "", "hit" if win else "miss")
+	# износ костюма героя остаётся после боя
+	for u in units:
+		if u.is_hero and not u.armor.is_empty() and Game.suit() != "":
+			Game.set_suit_arm(Game.suit(), u.arm)
 	await get_tree().create_timer(1.4, false).timeout
 	on = false
 	if kind == "spar":

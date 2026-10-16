@@ -275,11 +275,11 @@ Project Doomsday — 1–4
 
 Формат: файл (строк) — назначение. Ниже — функции `имя:строка` (для файлов от 150 строк).
 
-### scripts/combat/combat_manager.gd (901) · class CombatManager
+### scripts/combat/combat_manager.gd (908) · class CombatManager
 Пошаговый бой на гексах. Правила и ИИ перенесены из прототипа «Недострой»:
-`setup:30` `grid:34` `clog:38` `whose_turn:43` `my_turn:49` `enemies:53` `occ:63` `mode_cost:71` `mode_name:77` `cycle_mode:81` `start:92` `begin_turn:177` `end_turn:218` `after_hero_action:243` `paint:254` `units_center:273` `best_adj:282` `hover:297` `hero_wkey:352` `hero_weapon:356` `click:360` `_world_path:433` `do_attack:440` `zone_picked:455` `exec_attack:465` `reload:509` `use_med:539` `give_up:566` `ai_turn:576` `ai_move:627` `ai_shoot:665` `ai_melee:683` `ai_flee:700` `resolve_attack:727` `ally_hit:802` `react:816` `kill:829` `check_end:846` `finish:861` `game_over:892`
+`setup:30` `grid:34` `clog:38` `whose_turn:43` `my_turn:49` `enemies:53` `occ:63` `mode_cost:71` `mode_name:77` `cycle_mode:81` `start:92` `begin_turn:177` `end_turn:221` `after_hero_action:246` `paint:257` `units_center:276` `best_adj:285` `hover:300` `hero_wkey:355` `hero_weapon:359` `click:363` `_world_path:436` `do_attack:443` `zone_picked:458` `exec_attack:468` `reload:512` `use_med:542` `give_up:569` `ai_turn:579` `ai_move:630` `ai_shoot:668` `ai_melee:686` `ai_flee:703` `resolve_attack:730` `ally_hit:805` `react:819` `kill:832` `check_end:849` `finish:864` `game_over:899`
 
-### scripts/combat/fighter.gd (99) · class Fighter
+### scripts/combat/fighter.gd (102) · class Fighter
 Участник боя: герой или NPC. Хранит всё, что нужно правилам.
 
 ### scripts/combat/hex_overlay.gd (105) · class HexOverlay
@@ -295,9 +295,9 @@ Project Doomsday — 1–4
 ### scripts/core/db.gd (89)
 Автозагрузка DB: читает все данные игры из папки data/.
 
-### scripts/core/game_state.gd (508)
+### scripts/core/game_state.gd (561)
 Автозагрузка Game: состояние героя и мира, журнал, сохранения.
-`_ready:20` `new_hero:27` `gtext:51` `hero_max:62` `effective_stats:67` `hero_hp:75` `set_hero_hp:80` `rep:85` `change_rep:90` `stat_pool:106` `skill_pool:110` `stat_cap:114` `grant_xp:118` `log_line:134` `flag:139` `flag_value:143` `set_flag:147` `quest_stage:153` `set_quest:159` `add_note:183` `item_count:191` `add_item:201` `remove_item:222` `hero_wkey:250` `hero_weapon:254` `auto_reload:259` `wstate:275` `check_chance:290` `skill_check:296` `knows_sakha:315` `hero_stat:323` `cas_working:333` `cas_info:337` `is_cassette:341` `cas_active:346` `cas_has_tag:351` `cas_insert:358` `cas_eject:372` `stat_bonus:385` `skill_bonus:394` `worn:409` `effective_skills:418` `save_game:427` `has_save:437` `save_info:441` `load_game:451` `_fix_numbers:477` `_load_settings:493` `save_settings:504`
+`_ready:20` `new_hero:27` `gtext:51` `hero_max:62` `effective_stats:67` `hero_hp:75` `set_hero_hp:80` `rep:85` `change_rep:90` `stat_pool:106` `skill_pool:110` `stat_cap:114` `grant_xp:118` `log_line:134` `flag:139` `flag_value:143` `set_flag:147` `quest_stage:153` `set_quest:159` `add_note:183` `item_count:191` `add_item:201` `remove_item:222` `hero_wkey:250` `hero_weapon:254` `auto_reload:259` `wstate:275` `check_chance:290` `skill_check:296` `knows_sakha:315` `hero_stat:323` `cas_working:333` `cas_info:337` `is_cassette:341` `cas_active:346` `cas_has_tag:351` `cas_insert:358` `cas_eject:372` `stat_bonus:385` `skill_bonus:394` `suit:413` `suit_info:419` `suit_arm:429` `set_suit_arm:438` `toggle_suit:445` `worn:462` `effective_skills:471` `save_game:480` `has_save:490` `save_info:494` `load_game:504` `_fix_numbers:530` `_load_settings:546` `save_settings:557`
 
 ### scripts/core/graphics.gd (148) · class Graphics
 Настройки графики: хранятся в Game.settings (user://settings.json),
@@ -445,9 +445,9 @@ Project Doomsday — 1–4
 ### scripts/locations/zaimka.gd (140)
 Заимка охотника Дьаакыпа. Задание «Капканы»: на севере что-то ломает капканы —
 
-### scripts/main.gd (1572)
+### scripts/main.gd (1599)
 Главный узел игры: камера, загрузка локаций, ввод мышью, окна интерфейса.
-`_ready:98` `_on_level_up:127` `_build_ui:138` `space:211` `ui_blocked:215` `sfx:220` `think:245` `_on_menu:250` `_load_slot:278` `_on_sheet_closed:293` `_on_slides_done:304` `_unload:314` `load_location:332` `autosave:377` `quicksave:384` `show_game_over:393` `show_end:397` `status_text:403` `objective_text:409` `_on_hud_action:422` `open_kpk:467` `use_item:493` `_swap_hands:568` `_open_pause:580` `_move_speed:588` `_sneak_radius:599` `on_combat_start:608` `is_filler:624` `filler_bark:629` `talk_to:670` `say:695` `_on_dialog_action:705` `open_trade:744` `_on_dialog_closed:750` `start_fight:755` `_unhandled_input:776` `wait_time:838` `begin_cutscene:843` `end_cutscene:851` `_enemies_near:856` `open_wait:864` `wait_hours:874` `_pick:891` `_click:932` `_may_attack:975` `_near_edge:985` `_can_leave:990` `_walk_to_hex:1002` `_walk_clear:1045` `_smooth_path:1060` `_go_then:1074` `_do_pending:1106` `interact:1134` `loot:1158` `_body_entries:1176` `open_loot:1197` `pickpocket:1218` `examine:1253` `_open_actions:1269` `_on_action_picked:1315` `_process:1334` `_update_xray:1400` `_set_alpha:1466` `_update_glow:1478` `_check_aggro:1486` `_look_around:1521` `_look_text:1543`
+`_ready:98` `_on_level_up:127` `_build_ui:138` `space:211` `ui_blocked:215` `sfx:220` `think:245` `_on_menu:250` `_load_slot:278` `_on_sheet_closed:293` `_on_slides_done:304` `_unload:314` `load_location:332` `autosave:377` `quicksave:384` `show_game_over:393` `show_end:397` `status_text:403` `objective_text:409` `_on_hud_action:422` `open_kpk:467` `use_item:493` `_swap_hands:591` `_open_pause:603` `_move_speed:611` `_sneak_radius:622` `on_combat_start:631` `is_filler:647` `filler_bark:652` `talk_to:693` `say:718` `_on_dialog_action:728` `open_trade:767` `_on_dialog_closed:773` `start_fight:778` `_unhandled_input:799` `wait_time:861` `begin_cutscene:866` `end_cutscene:874` `_enemies_near:879` `open_wait:887` `wait_hours:897` `_pick:914` `_click:955` `_may_attack:998` `_near_edge:1008` `_can_leave:1013` `_walk_to_hex:1025` `_walk_clear:1068` `_smooth_path:1083` `_go_then:1097` `_do_pending:1129` `interact:1157` `loot:1181` `_body_entries:1199` `open_loot:1224` `pickpocket:1245` `examine:1280` `_open_actions:1296` `_on_action_picked:1342` `_process:1361` `_update_xray:1427` `_set_alpha:1493` `_update_glow:1505` `_check_aggro:1513` `_look_around:1548` `_look_text:1570`
 
 ### scripts/ui/char_sheet.gd (376) · class CharSheet
 «Дело» — лист персонажа. Новая игра начинается с выбора одного из четырёх готовых
@@ -461,9 +461,9 @@ Project Doomsday — 1–4
 Приборная панель внизу экрана (как в прототипе): журнал, герой, оружие, кнопки.
 `setup:52` `_build:65` `_make_slot:346` `refresh:370` `_slot_text:434` `refresh_objective:443` `_on_log:449` `_esc:465` `clear_log:469` `_mini_line:476` `think:496` `thought_visible:506` `_place_thought:510` `_draw_marks:528` `show_tip:553` `hide_tip:559` `flash_tip:565` `toast:571` `tutor_card:587` `tutor_text:606` `hurt_flash:610` `float_text:616` `show_zones:634` `hide_zones:648` `_process:653` `mouse_over_ui:669`
 
-### scripts/ui/kpk.gd (442) · class KPK
+### scripts/ui/kpk.gd (456) · class KPK
 Карманный компьютер на браслете. Пока браслета нет — просто «Сумка».
-`setup:19` `open:76` `close:83` `has_tab:88` `render:94` `_g:128` `_item_btn:134` `_render_inv:158` `_equip:261` `_render_stat:274` `_open_sheet:342` `_render_cas:351` `_render_map:400` `_render_quests:410` `_render_notes:429` `_unhandled_key_input:438`
+`setup:19` `open:76` `close:83` `has_tab:88` `render:94` `_g:128` `_item_btn:134` `_render_inv:158` `_equip:275` `_render_stat:288` `_open_sheet:356` `_render_cas:365` `_render_map:414` `_render_quests:424` `_render_notes:443` `_unhandled_key_input:452`
 
 ### scripts/ui/loot_window.gd (150) · class LootWindow
 Окно обыска: что лежит в теле, сундуке или чужом кармане. Каждую вещь можно
@@ -615,9 +615,9 @@ Project Doomsday — 1–4
 ### tools/screenshots.gd (107)
 Снимки экрана для проверки интерфейса (нужен рендер, не --headless).
 
-### tools/smoke_test.gd (3379)
+### tools/smoke_test.gd (3411)
 Автотест пролога: проходит всю цепочку без участия человека и печатает, что сломалось.
-`new_enc:12` `ok:17` `wait:25` `frames:29` `close_dialogs:34` `shut:43` `choose:48` `opt_texts:54` `find_opt:61` `tp:79` `fight:86` `wait_loading:128` `unreachable:137` `go_upstairs:166` `go_downstairs:176` `nakharro_life_tests:187` `kresty_life_tests:365` `encounter_lore_tests:444` `city_tests:512` `admin_tests:705` `weather_tests:783` `social_tests:850` `markun_tests:946` `mirny_tests:996` `ges_tests:1056` `act4_tests:1092` `nr_go:1186` `nyurba_tests:1200` `sungar_tests:1333` `_ready:1481`
+`new_enc:12` `ok:17` `wait:25` `frames:29` `close_dialogs:34` `shut:43` `choose:48` `opt_texts:54` `find_opt:61` `tp:79` `fight:86` `wait_loading:128` `unreachable:137` `go_upstairs:166` `go_downstairs:176` `nakharro_life_tests:187` `kresty_life_tests:365` `encounter_lore_tests:444` `city_tests:512` `admin_tests:705` `weather_tests:783` `social_tests:850` `markun_tests:946` `mirny_tests:996` `ges_tests:1056` `act4_tests:1092` `armor_tests:1187` `nr_go:1216` `nyurba_tests:1230` `sungar_tests:1363` `_ready:1511`
 
 ## Данные (data/)
 
@@ -735,7 +735,7 @@ Project Doomsday — 1–4
 - data/dialogs/water.json (114 строк)
 - data/elley.json (15 строк)
 - data/intro.json (40 строк)
-- data/items.json (108 строк)
+- data/items.json (116 строк)
 - data/lore.json (115 строк)
 - data/observations.json (81 строк)
 - data/presets.json (22 строк)

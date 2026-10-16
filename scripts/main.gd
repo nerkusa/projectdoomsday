@@ -509,6 +509,29 @@ func use_item(id: String) -> void:
 			Game.hero.flags["worn"] = w
 			Game.hero_changed.emit()
 			return
+		"armor":
+			var why := Game.toggle_suit(id)
+			if why != "":
+				think(why)
+			return
+		"repair":
+			var sid := Game.suit()
+			if sid == "":
+				think("Чинить нечего — костюм не надет.")
+				return
+			var mx := int(DB.items[sid].armor.get("max", 0))
+			var cur := Game.suit_arm()
+			if cur >= mx:
+				think("Костюм целый, чинить нечего.")
+				return
+			if Game.remove_item(id):
+				var ok := Game.skill_check("Механика", "INT", "Механика", 10)
+				var nv := mx if ok else mini(mx, cur + maxi(1, (mx - cur) / 2))
+				Game.set_suit_arm(sid, nv)
+				Game.log_line("Починил костюм: %d / %d" % [nv, mx], "", "hit")
+				think("Заплаты, заклёпки, проволока — как новенький." if ok else "Залатал как смог. Держит, но не так, как раньше.")
+				Game.hero_changed.emit()
+			return
 		"plug":
 			# модуль «Связь»: вставить в браслет и прослушать запись
 			if not Game.flag("kpk"):
@@ -1189,6 +1212,10 @@ func _body_entries(ch: Character) -> Array:
 	for src in [tpl.get("loot", {}), tpl.get("pockets", {})]:
 		for k in src:
 			out.append({"id": k, "n": int(src[k]), "ok": true})
+	# броню можно снять с тела
+	var ai := str(tpl.get("armor", {}).get("item", ""))
+	if ai != "" and DB.items.has(ai):
+		out.append({"id": ai, "n": 1, "ok": true})
 	return out
 
 

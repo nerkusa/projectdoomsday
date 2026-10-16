@@ -402,7 +402,60 @@ func skill_bonus() -> Dictionary:
 		var b: Dictionary = DB.items.get(id, {}).get("bonus", {})
 		for k in b:
 			out[k] = int(out.get(k, 0)) + int(b[k])
+	# тяжёлый костюм мешает красться
+	var ss: Dictionary = suit_info().get("skills", {})
+	for k in ss:
+		out[k] = int(out.get(k, 0)) + int(ss[k])
 	return out
+
+
+## Костюм — шлем и броня одной вещью (use = armor), один слот. id надетого или ""
+func suit() -> String:
+	var id := str(hero.flags.get("suit", ""))
+	return id if id != "" and item_count(id) > 0 else ""
+
+
+## Броня надетого костюма: {"type", "max", "name", "head", "ap", "body_min", "skills"} или пусто
+func suit_info() -> Dictionary:
+	var id := suit()
+	if id == "":
+		return {}
+	var a: Dictionary = DB.items.get(id, {}).get("armor", {}).duplicate()
+	a["name"] = DB.item_name(id)
+	return a
+
+
+## Сколько ещё держит костюм (износ хранится для каждого костюма отдельно)
+func suit_arm(id := "") -> int:
+	if id == "":
+		id = suit()
+	if id == "":
+		return 0
+	var mx := int(DB.items.get(id, {}).get("armor", {}).get("max", 0))
+	return int(hero.flags.get("suit_arm", {}).get(id, mx))
+
+
+func set_suit_arm(id: String, v: int) -> void:
+	var d: Dictionary = hero.flags.get("suit_arm", {})
+	d[id] = maxi(0, v)
+	hero.flags["suit_arm"] = d
+
+
+## Надеть или снять костюм. Возвращает текст для журнала / мысли, "" — если надет
+func toggle_suit(id: String) -> String:
+	if suit() == id:
+		hero.flags["suit"] = ""
+		log_line("Снял: " + DB.item_name(id))
+		hero_changed.emit()
+		return ""
+	var a: Dictionary = DB.items.get(id, {}).get("armor", {})
+	var need := int(a.get("body_min", 0))
+	if int(effective_stats().get("BODY", 0)) < need:
+		return "Тяжело. Чтобы носить «%s», нужно Тело %d." % [DB.item_name(id), need]
+	hero.flags["suit"] = id
+	log_line("Надел: " + DB.item_name(id), "", "hit")
+	hero_changed.emit()
+	return ""
 
 
 ## Что надето: вещи с use = wear, которые герой надел (и они ещё при нём)
