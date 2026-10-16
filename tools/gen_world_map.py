@@ -386,7 +386,7 @@ def crater(cx, cy, r):
     od.ellipse([cx - r * 0.18, cy - r * 0.16, cx + r * 0.18, cy + r * 0.16], fill=(40, 60, 64, 255))
 
 
-crater(N["mir"]["pos"][0] + 14, N["mir"]["pos"][1] - 6, 46)
+crater(363, 974, 46)  # карьер «Мир» у Мирного
 crater(N["nyurba"]["pos"][0] + 120, N["nyurba"]["pos"][1] - 70, 34)
 crater(1500, 1450, 26)
 crater(560, 260, 22)

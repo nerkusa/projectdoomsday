@@ -50,10 +50,10 @@ func _board() -> void:
 			return
 	Game.add_item("bootur_note")
 	Game.set_quest("sg_note", 3)
-	# записка: Боотур ушёл с караваном в МИР через Мар-Кун — туда и след
+	# записка: Боотур ушёл с караваном в Промзону МИР (Мирный) через Мар-Кун — туда и след
 	Game.set_quest("bootur", 8)
 	WorldMap.reveal("markun")
-	WorldMap.reveal("mir")
+	WorldMap.reveal("mirny")
 	Game.grant_xp(50)
 	Game.add_note(str(DB.items.get("bootur_note", {}).get("read", "")))
 	main.think("Поддел половицу ножом. Под ней — листок из школьной тетради. Почерк Боотура, ни с чем не спутаешь.")

@@ -44,7 +44,7 @@ func _window() -> void:
 		Game.add_item("ledger_page")
 		Game.set_quest("bootur", 8)
 		WorldMap.reveal("markun")
-		WorldMap.reveal("mir")
+		WorldMap.reveal("mirny")
 		Game.add_note(str(DB.items.get("ledger_page", {}).get("read", "")))
 		Game.grant_xp(150)
 		Game.set_flag("cl_list_got")

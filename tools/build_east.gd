@@ -1,7 +1,8 @@
 extends "res://tools/build_nyurba.gd"
-## Локации востока по сюжету: Мар-Кун (финал Акта I), Промзона МИР, Мирный и ГЭС (Акт III),
+## Локации востока по сюжету: Мар-Кун (финал Акта I), Мирный (центр с промзоной ГОК «Мир» и 4 района) и ГЭС (Акт III),
 ## Рубикон, Горный и комплекс под ГРЭС-2 (Акт IV).
-## Запуск: godot --headless --path . res://tools/build_east.tscn [-- markun|mir|mirny|ges|rubikon|gorny|complex]
+## Запуск: godot --headless --path . res://tools/build_east.tscn [-- markun|mirny|ges|rubikon|gorny|complex]
+## mirny — центр и четыре района фракций + дно карьера
 ## Без аргумента — всё.
 
 
@@ -24,6 +25,10 @@ func _build() -> void:
 		_markun()
 	if only == "" or only == "mirny":
 		_mirny()
+		_mr_kim()
+		_mr_rep()
+		_mr_work()
+		_mr_raid()
 		_quarry()
 	if only == "" or only == "ges":
 		_ges()
@@ -346,9 +351,9 @@ func _poster(parent: Node, text: String, pos: Vector3, rot: float, col: Color) -
 
 func _mirny() -> void:
 	var rect := Rect2(0, 0, MR, MR)
-	_begin("mirny", "Мирный", rect, "res://scripts/locations/mirny.gd")
+	_begin("mirny", "Мирный · центр", rect, "res://scripts/locations/mirny.gd")
 	var d := "ground_dirt"
-	# кольцо вокруг карьера и четыре луча
+	# кольцо вокруг карьера, тракт запад — восток, дороги в промзону и на барахолку
 	for k in 32:
 		var a0 := TAU * k / 32.0
 		var a1 := TAU * (k + 1) / 32.0
@@ -357,105 +362,98 @@ func _mirny() -> void:
 		var p1 := Vector2(QC.x + cos(a1) * r, QC.z + sin(a1) * r)
 		strip(null, p0, p1, 5.0, d)
 		road_segs.append([p0, p1, 2.4])
-	for seg in [[Vector2(-8, 60), Vector2(QC.x - QR - 5, 60)], [Vector2(QC.x + QR + 5, 60), Vector2(MR + 8, 60)],
-			[Vector2(60, -8), Vector2(60, QC.z - QR - 5)], [Vector2(60, QC.z + QR + 5), Vector2(60, MR + 8)]]:
-		strip(null, seg[0], seg[1], 6.0, d)
-		road_segs.append([seg[0], seg[1], 3.0])
+	for seg in [[Vector2(-8, 60), Vector2(QC.x - QR - 5, 60), 6.0], [Vector2(QC.x + QR + 5, 60), Vector2(MR + 8, 60), 6.0],
+			[Vector2(60, 33), Vector2(60, 26), 5.0], [Vector2(60, 87), Vector2(60, 112), 5.0],
+			# улицы в районы фракций — по диагоналям к углам
+			[Vector2(41, 41), Vector2(2, 2), 5.0], [Vector2(79, 41), Vector2(118, 2), 5.0],
+			[Vector2(41, 79), Vector2(2, 118), 5.0], [Vector2(79, 79), Vector2(118, 118), 5.0]]:
+		strip(null, seg[0], seg[1], seg[2], d)
+		road_segs.append([seg[0], seg[1], float(seg[2]) / 2.0])
 	_street_out(Vector2(0, 60), -1.0)
 	_street_out(Vector2(MR, 60), 1.0)
-	_mud.append(Rect2(84, 74, 30, 30))
-	_mud.append(Rect2(6, 76, 30, 20))
+	_mud.append(Rect2(-6, -6, MR + 12, MR + 12))
+	_mud.append(Rect2(36, 4, 48, 22))
+	_mud.append(Rect2(40, 92, 40, 22))
 	_clear.append(Rect2(-8, -8, MR + 16, MR + 16))
 	_ground_for("mirny")
 	var vil := group(root, "Village")
 	_quarry_pit(vil)
-	# --- северо-запад: «Кимберлит» — чисто, побелено, флаги ---
-	var kim := _bld(vil, "nr_gov", "KimberlitHQ", Vector3(26.0, 0, 24.0))
-	_sign_on(vil, kim, "«КИМБЕРЛИТ» · ПОРЯДОК · СВЕТ · РАБОТА", 7.0, Color("f0f0e8"))
-	_bld(vil, "nr_stalin4", "KimHouse1", Vector3(24.0, 0, 6.0))
-	_bld(vil, "nr_stalin3", "KimHouse2", Vector3(46.0, 0, 8.0))
-	for x in [12.0, 18.0, 34.0, 40.0]:
-		_flagpole(vil, Vector3(x, 0, 33.6), "paint_white", "◬")
-	_poster(vil, "ПОРЯДОК · СВЕТ · РАБОТА", Vector3(46.0, 2.2, 38.0), 0.0, Color("f0f0e8"))
-	# --- северо-восток: совет республиканцев, штаб йегерей, площадь суда ---
-	var council := _bld(vil, "st_admin", "Council", Vector3(92.0, 0, 22.0))
-	_sign_on(vil, council, "СОВЕТ МИРНОГО · ВЫБОРЫ — ЛЮДЯМ", 6.0, Color("e8e0c8"))
-	var jhq := _bld(vil, "st_office", "JaegerHQ", Vector3(106.0, 0, 40.0), -PI / 2.0)
-	_signboard(vil, "JAEGER CORP · ХАХАЙ", _slot(jhq, "sign"), -PI / 2.0, 4.6, Color("e8c060"))
-	_bld(vil, "nr_stalin3", "RepHouse", Vector3(96.0, 0, 6.0))
-	# помост суда: доски, столб, ступени
-	var sc := group(vil, "Scaffold")
-	sc.position = Vector3(84.0, 0, 42.0)
-	box(sc, Vector3(5.0, 1.0, 4.0), Vector3(0, 0.5, 0), "planks_old").owner = root
-	box(sc, Vector3(0.25, 3.6, 0.25), Vector3(-1.6, 2.8, -1.2), "log_dark").owner = root
-	box(sc, Vector3(2.0, 0.2, 0.2), Vector3(-0.7, 4.5, -1.2), "log_dark").owner = root
-	box(sc, Vector3(0.04, 1.2, 0.04), Vector3(0.2, 3.8, -1.2), "rope_mat").owner = root
+	# --- север: промзона ГОК «Мир» за бетонным забором ---
+	_wall(vil, Vector2(34, 26), Vector2(86, 26), [[24.0, 28.0]])
+	_wall(vil, Vector2(34, 2), Vector2(34, 26))
+	_wall(vil, Vector2(86, 2), Vector2(86, 26))
+	_bld(vil, "nr_factory", "GokMill", Vector3(48, 0, 12.0))
+	_bld(vil, "boiler_house", "GokBoiler", Vector3(74, 0, 10.0))
+	_bld(vil, "water_tower", "GokTower", Vector3(80, 0, 20.0))
+	_signboard(vil, "ГОК «МИР» · ПРОМЗОНА", Vector3(60, 3.6, 26.6), 0.0, 5.0, Color("e8d8a8"))
+	for sx in [-3.2, 3.2]:
+		box(vil, Vector3(0.3, 4.0, 0.3), Vector3(60 + sx, 2.0, 26.4), "rust").owner = root
+	# --- юг: барахолка ничейной земли и склады ---
+	var mk := group(vil, "Market")
+	for i in 6:
+		var p := Vector3(46.0 + (i % 3) * 14.0 if i % 3 != 1 else 60.0 + (6.0 if i < 3 else -6.0), 0, 96.0 + int(i / 3) * 9.0)
+		put(P.kiosk if i % 2 == 0 else P.kiosk_b, mk, p, PI if i < 3 else 0.0)
+	for p in [Vector3(52, 0, 100.5), Vector3(68, 0, 100.5)]:
+		box(mk, Vector3(3.0, 0.9, 1.0), p + Vector3(0, 0.45, 0), "planks_old").owner = root
+		box(mk, Vector3(3.4, 0.05, 1.8), p + Vector3(0, 2.2, 0), "tarp_blue" if M.has("tarp_blue") else "cloth_sack", Vector3(0.2, 0, 0)).owner = root
+		for sx in [-1.5, 1.5]:
+			box(mk, Vector3(0.08, 2.2, 0.08), p + Vector3(sx, 1.1, -0.6), "metal_dark").owner = root
+		_own(collider(mk, Vector3(3.0, 1.0, 1.0), p + Vector3(0, 0.5, 0)), root)
+	_bld(vil, "nr_warehouse", "Warehouse1", Vector3(40, 0, 113.5), PI)
+	_bld(vil, "nr_warehouse", "Warehouse2", Vector3(80, 0, 113.5), PI)
+	_signboard(vil, "БАРАХОЛКА · НИЧЕЙНАЯ ЗЕМЛЯ · ОРУЖИЕ НЕ ДОСТАВАТЬ", Vector3(60, 2.6, 89.6), PI, 5.6, Color("f0d890"))
+	# --- кордоны фракций у выходов в районы ---
+	var cd := group(vil, "Cordons")
+	for p in [Vector3(9, 0, 16), Vector3(16, 0, 9)]:
+		_flagpole(cd, p, "paint_white", "◬")
+	put(P.checkpoint, cd, Vector3(19, 0, 13), PI / 4.0)
+	_poster(cd, "«КИМБЕРЛИТ» · ПОРЯДОК", Vector3(22, 2.4, 22), PI / 4.0, Color("f0f0e8"))
+	for p in [Vector3(111, 0, 16), Vector3(104, 0, 9)]:
+		_flagpole(cd, p, "paint_blue", "♌")
+	put(P.sandbags, cd, Vector3(102, 0, 15), -PI / 4.0)
+	_poster(cd, "ВЫБОРЫ — ЛЮДЯМ", Vector3(98, 2.4, 22), -PI / 4.0, Color("e8e0c8"))
+	for p in [Vector3(9, 0, 104), Vector3(16, 0, 111)]:
+		_flagpole(cd, p, "paint_red", "☭")
+	_poster(cd, "ТОК — ЛЮДЯМ!", Vector3(22, 2.4, 98), 3.0 * PI / 4.0, Color("ff9a6a"))
+	var bar := group(cd, "Barricade")
 	for i in 3:
-		box(sc, Vector3(1.6, 0.25, 0.4), Vector3(1.2, 0.12 + i * 0.25, 2.2 - i * 0.4), "planks_old").owner = root
-	_own(collider(sc, Vector3(5.0, 1.0, 4.0), Vector3(0, 0.5, 0)), root)
-	_poster(vil, "СУД ПОЛИСА — ЗДЕСЬ", Vector3(84.0, 2.6, 39.6), PI, Color("e8c060"))
-	for x in [78.0, 90.0]:
-		_flagpole(vil, Vector3(x, 0, 34.0), "paint_blue", "♌")
-	# --- юго-запад: рабочие ---
-	var union := _bld(vil, "st_canteen", "Union", Vector3(26.0, 0, 92.0), PI)
-	_sign_on(vil, union, "ПРОФКОМ «КАРЬЕР»", 3.8, Color("f0e0c0"))
-	_bld(vil, "nr_factory_b", "Workshop", Vector3(28.0, 0, 110.0), PI)
-	_bld(vil, "st_barrack2", "Barrack1", Vector3(8.0, 0, 84.0), PI / 2.0)
-	_bld(vil, "st_obshaga", "Obshaga", Vector3(46.0, 0, 104.0), PI)
-	_poster(vil, "ТОК — ЛЮДЯМ!", Vector3(40.0, 2.4, 84.0), PI, Color("ff7a4a"))
-	# --- юго-восток: рейдеры — баррикады из лома, лачуги, притон ---
-	var den := _bld(vil, "nr_ryumka", "RaiderDen", Vector3(94.0, 0, 96.0), PI)
-	_sign_on(vil, den, "ПРИТОН «ДЫРА»", 3.0, Color("ffb23a"))
-	var bar := group(vil, "Barricade")
-	for i in 7:
-		_junk_fence(bar, Vector3(78.0 + i * 4.0, 0, 82.0), 0.0, i == 3)
-	for i in 5:
-		_junk_fence(bar, Vector3(78.0, 0, 86.0 + i * 4.0), PI / 2.0, false)
-	var shk := group(vil, "Shacks")
-	for spec in [[Vector3(104, 0, 88), 0.1, 0], [Vector3(110, 0, 92), -0.2, 1], [Vector3(84, 0, 108), 3.0, 1], [Vector3(102, 0, 110), 3.1, 0],
-			[Vector3(112, 0, 104), 2.9, 0]]:
-		put(P.nr_shack if spec[2] == 0 else P.nr_shack_b, shk, spec[0], spec[1])
-	_graffiti(vil, "ШРАМ — ХОЗЯИН", Vector3(88.97, 1.5, 96.0), -PI / 2.0)
-	# мусор и уличная жизнь
+		_junk_fence(bar, Vector3(100.0 + i * 2.8, 0, 94.0 + i * 2.8), -PI / 4.0, i == 1)
+		_junk_fence(bar, Vector3(94.0 + i * 2.8, 0, 100.0 + i * 2.8), -PI / 4.0, false)
+	_graffiti(vil, "ДАЛЬШЕ — ШРАМ", Vector3(86.0, 1.5, 104.0), PI / 2.0)
+	# брошенные дома ничейной земли вдоль тракта: выгоревшие, без хозяев
+	_ruin_block(vil, "st_block3a", Vector3(16, 0, 45.5), 0.0, "Empty1")
+	_ruin_block(vil, "st_block2", Vector3(104, 0, 46.0), 0.0, "Empty2")
+	_ruin_block(vil, "st_block3b", Vector3(16, 0, 74.5), PI, "Empty3")
+	_ruin_block(vil, "st_block2b", Vector3(104, 0, 74.5), PI, "Empty4")
+	# город за краем: дома районов видны в просветах улиц
+	var far := group(root, "FarCity")
+	far.set_meta("no_xray", true)
+	for spec in [["nr_stalin4", Vector3(-10, 0, -10), PI / 4.0], ["st_admin", Vector3(130, 0, -10), -PI / 4.0],
+			["st_barrack2", Vector3(-10, 0, 130), 3.0 * PI / 4.0], ["nr_shack", Vector3(130, 0, 130), -3.0 * PI / 4.0],
+			["st_block3a", Vector3(-14, 0, 20), PI / 2.0], ["st_block2", Vector3(134, 0, 20), -PI / 2.0], ["st_block4", Vector3(-14, 0, 100), PI / 2.0], ["nr_shack_b", Vector3(132, 0, 100), -PI / 2.0]]:
+		put(P[spec[0]], far, spec[1], spec[2])
+	# мусор, фонари, скамейки
 	var trash := group(vil, "Trash")
-	for j in [["nr_junk_scrap", Vector3(90.0, 0, 88.0), 0.2], ["nr_junk_tires", Vector3(100.0, 0, 84.0), 0.0], ["nr_dumpster", Vector3(14.0, 0, 100.0), PI / 2.0],
-			["nr_junk_bags", Vector3(38.0, 0, 96.0), 1.0], ["nr_junk_furniture", Vector3(110.0, 0, 30.0), 0.5]]:
+	for j in [["nr_junk_scrap", Vector3(28.0, 0, 30.0), 0.2], ["nr_junk_tires", Vector3(96.0, 0, 34.0), 0.0], ["nr_dumpster", Vector3(30.0, 0, 92.0), PI / 2.0],
+			["nr_junk_bags", Vector3(90.0, 0, 88.0), 1.0], ["nr_junk_furniture", Vector3(98.0, 0, 70.0), 0.5]]:
 		_junk(trash, j[0], j[1], j[2])
-	_clutter(vil, [["burn_barrel", 88.0, 90.0], ["burn_barrel", 16.0, 80.0], ["car_wreck", 108.0, 76.0, 0.4], ["car_wreck", 70.0, 108.0, 2.0],
-		["rubble", 104.0, 66.0], ["paz_wreck", 12.0, 66.0, 0.3]])
-	for b in [[Vector3(16.0, 0, 52.0), 0.0], [Vector3(104.0, 0, 52.0), 0.0], [Vector3(48.0, 0, 90.0), PI], [Vector3(72.0, 0, 30.0), PI]]:
+	_clutter(vil, [["burn_barrel", 55.0, 92.0], ["burn_barrel", 18.0, 66.0], ["car_wreck", 112.0, 36.0, 0.4], ["car_wreck", 30.0, 100.0, 2.0],
+		["rubble", 100.0, 66.0], ["paz_wreck", 8.0, 34.0, 0.3]])
+	for b in [[Vector3(16.0, 0, 55.0), 0.0], [Vector3(104.0, 0, 55.0), 0.0], [Vector3(64.0, 0, 92.0), PI]]:
 		put(P.nr_bench, vil, b[0], b[1])
-	for p in [Vector3(30, 0, 56), Vector3(90, 0, 56), Vector3(56, 0, 30), Vector3(56, 0, 90), Vector3(20, 0, 40), Vector3(100, 0, 80)]:
+	for p in [Vector3(30, 0, 56), Vector3(90, 0, 56), Vector3(56, 0, 30), Vector3(56, 0, 90), Vector3(30, 0, 36), Vector3(90, 0, 84)]:
 		_lamp_post(vil, p)
-	_woods(80)
+	_woods(40)
 	_dress(Rect2(4, 4, MR - 8, MR - 8), 300)
-	# --- люди ---
+	# --- люди ничейной земли ---
 	var chars := group(root, "Characters")
-	character(chars, "Belsky", "mr_belsky", _slot(kim, "garik"), PI / 2.0, {"dialog": "mr_belsky"})
-	character(chars, "Buyer", "nr_buyer", _slot(kim, "apovich"), 0.0, {"dialog": "mr_buyer", "display_name": "Покупатель"})
-	character(chars, "KimSecretary", "mr_kimber", _slot(kim, "secretary"), PI / 2.0, {"display_name": "Секретарь «Кимберлита»"})
-	character(chars, "KimGuard1", "mr_kimber", _slot(kim, "guard"), PI, {"display_name": "Дружинник «Кимберлита»", "armed": true})
-	character(chars, "KimGuard2", "mr_kimber", Vector3(24.0, 0, 31.4), 0.0, {"display_name": "Дружинник «Кимберлита»", "armed": true})
-	character(chars, "Gosha", "mr_denouncer", Vector3(76.0, 0, 46.0), 0.6, {"dialog": "mr_denouncer"})
-	character(chars, "Slepcova", "mr_slepcova", council.transform * Vector3(2.4, 0, 0.6), PI, {"dialog": "mr_slepcova"})
-	character(chars, "CouncilGuard", "mr_jaeger", _slot(council, "guard"), PI, {"display_name": "Йегерь у совета", "armed": true})
-	character(chars, "Judge", "mr_judge", Vector3(82.0, 1.0, 42.6), PI, {"dialog": "mr_judge"})
-	character(chars, "Accused", "mr_accused", Vector3(85.2, 1.0, 41.4), PI, {"display_name": "Рабочий Пётр", "start_pose": "yield"})
-	character(chars, "Jaeger1", "mr_jaeger", Vector3(80.0, 0, 45.6), PI, {"display_name": "Йегерь", "armed": true})
-	character(chars, "Jaeger2", "mr_jaeger", Vector3(88.4, 0, 45.6), PI, {"display_name": "Йегерь", "armed": true})
-	character(chars, "JaegerHQGuard", "mr_jaeger", _slot(jhq, "sign") + Vector3(-1.2, -_slot(jhq, "sign").y, 0), -PI / 2.0, {"display_name": "Часовой штаба", "armed": true})
-	character(chars, "Crowd1", "town_m1", Vector3(84.0, 0, 47.4), PI, {"display_name": "Зевака"})
-	character(chars, "Crowd2", "town_f2", Vector3(86.4, 0, 47.8), PI, {"display_name": "Плачет в платок"})
-	character(chars, "Ivanov", "mr_ivanov", _slot(union, "t1"), PI, {"dialog": "mr_ivanov"})
-	character(chars, "UnionCook", "town_f3", _slot(union, "cook"), PI, {"display_name": "Повариха профкома"})
-	character(chars, "Worker1", "nr_worker", _slot(union, "t3"), PI, {"display_name": "Электрик"})
-	character(chars, "Worker2", "nr_worker", Vector3(36.0, 0, 86.0), PI, {"display_name": "Пикетчик"})
-	character(chars, "Worker3", "nr_worker", Vector3(38.0, 0, 86.6), -2.4, {"display_name": "Пикетчик"})
-	character(chars, "Scar", "mr_scar", _slot(den, "t1"), PI, {"dialog": "mr_scar", "start_pose": "sit"})
-	character(chars, "DenBarman", "nr_barman", _slot(den, "barman"), PI / 2.0, {"display_name": "Наливает в «Дыре»"})
-	character(chars, "Raider1", "mr_raider", Vector3(90.0, 0, 84.4), PI, {"display_name": "Рейдер на баррикаде", "armed": true})
-	character(chars, "Raider2", "mr_raider", Vector3(80.4, 0, 92.0), -PI / 2.0, {"display_name": "Рейдер на баррикаде", "armed": true})
-	character(chars, "Raider3", "mr_raider", Vector3(100.0, 0, 92.0), 0.4, {"display_name": "Рейдер"})
+	character(chars, "KimPost", "mr_kimber", Vector3(17.0, 0, 9.5), PI / 4.0, {"display_name": "Дружинник на кордоне", "armed": true})
+	character(chars, "RepPost", "mr_jaeger", Vector3(103.0, 0, 9.5), -PI / 4.0, {"display_name": "Йегерь на кордоне", "armed": true})
+	character(chars, "WorkPost", "nr_worker", Vector3(17.0, 0, 110.5), 3.0 * PI / 4.0, {"display_name": "Пикетчик на въезде"})
+	character(chars, "RaidPost", "mr_raider", Vector3(108.0, 0, 103.0), -3.0 * PI / 4.0, {"display_name": "Рейдер у баррикады", "armed": true})
+	character(chars, "Trader1", "town_m4", Vector3(52.0, 0, 102.0), PI, {"display_name": "Барыга с барахолки"})
+	character(chars, "Trader2", "town_f3", Vector3(68.0, 0, 102.0), PI, {"display_name": "Торговка вяленой рыбой"})
+	character(chars, "GokWatch", "town_old_m", Vector3(62.5, 0, 28.0), PI, {"display_name": "Сторож промзоны"})
 	character(chars, "Walker1", "town_m3", Vector3(30, 0, 61.0), PI / 2.0, {"display_name": "Горожанин",
 		"patrol": PackedVector3Array([Vector3(30, 0, 61.0), Vector3(60, 0, 34.0), Vector3(90, 0, 61.0)]), "patrol_wait": 5.0})
 	character(chars, "Walker2", "town_f1", Vector3(60, 0, 88.0), 0.0, {"display_name": "Горожанка",
@@ -466,20 +464,245 @@ func _mirny() -> void:
 	_junk_items(items)
 	_exit(items, "WestRoad", "На тракт — к Нью-Рбе", Vector3(1.0, 0, 60.0), Vector3(1.6, 2.2, 5.0))
 	_exit(items, "EastRoad", "К плотине ГЭС", Vector3(MR - 1.0, 0, 60.0), Vector3(1.6, 2.2, 5.0))
+	_exit(items, "ToKimberlit", "В район «Кимберлита»", Vector3(2.5, 0, 2.5), Vector3(3.0, 2.2, 3.0))
+	_exit(items, "ToRepublic", "К совету и йегерям", Vector3(MR - 2.5, 0, 2.5), Vector3(3.0, 2.2, 3.0))
+	_exit(items, "ToWorkers", "В рабочий посёлок", Vector3(2.5, 0, MR - 2.5), Vector3(3.0, 2.2, 3.0))
+	_exit(items, "ToRaiders", "В квартал рейдеров", Vector3(MR - 2.5, 0, MR - 2.5), Vector3(3.0, 2.2, 3.0))
 	_use(items, "ToQuarry", "Серпантин в карьер", QC + Vector3(0, 0, -QR - 0.6), Vector3(3.0, 1.6, 1.2))
-	_use(items, "Scaffold", "Помост суда", Vector3(84.0, 0, 44.2), Vector3(5.0, 1.6, 1.0))
+	_use(items, "GokSign", "Вывеска промзоны", Vector3(60, 0, 27.4), Vector3(4.0, 2.0, 0.8))
 	_spawn("Start", Vector3(4.0, 0, 60.0))
 	_spawn("Road", Vector3(4.0, 0, 60.0))
 	_spawn("FromEast", Vector3(MR - 4.0, 0, 60.0))
 	_spawn("FromQuarry", QC + Vector3(1.5, 0, -QR - 2.4))
-	marker(root, "MarkQuarry", QC, "Карьер")
-	marker(root, "MarkKim", Vector3(26, 0, 24), "Штаб «Кимберлита»")
-	marker(root, "MarkCouncil", Vector3(92, 0, 22), "Совет Мирного")
-	marker(root, "MarkJudge", Vector3(84, 0, 42), "Площадь суда")
-	marker(root, "MarkUnion", Vector3(26, 0, 92), "Профком «Карьер»")
-	marker(root, "MarkDen", Vector3(94, 0, 96), "Притон «Дыра»")
+	_spawn("FromKimberlit", Vector3(8.0, 0, 8.0))
+	_spawn("FromRepublic", Vector3(MR - 8.0, 0, 8.0))
+	_spawn("FromWorkers", Vector3(8.0, 0, MR - 8.0))
+	_spawn("FromRaiders", Vector3(MR - 8.0, 0, MR - 8.0))
+	marker(root, "MarkQuarry", QC, "Карьер «Мир»")
+	marker(root, "MarkGok", Vector3(60, 0, 14), "Промзона ГОК «Мир»")
+	marker(root, "MarkMarket", Vector3(60, 0, 100), "Барахолка")
+	marker(root, "MarkKim", Vector3(8, 0, 8), "→ «Кимберлит»")
+	marker(root, "MarkRep", Vector3(MR - 8, 0, 8), "→ Совет и йегеря")
+	marker(root, "MarkWork", Vector3(8, 0, MR - 8), "→ Рабочий посёлок")
+	marker(root, "MarkRaid", Vector3(MR - 8, 0, MR - 8), "→ Рейдеры")
 	_finish("mirny")
 
+
+# ---------------- районы Мирного: квадрат 84 м, проспект z = 42 и улица x = 42 ----------------
+const MD := 84.0
+
+
+## Каркас района: проспект и улица, выход в центр на востоке (east) или западе,
+## за выходом — дома центра в просвете улицы
+func _mr_frame(id: String, title: String, script: String, east: bool) -> Node:
+	var rect := Rect2(0, 0, MD, MD)
+	_begin(id, title, rect, script)
+	var d := "ground_dirt"
+	strip(null, Vector2(-8, 42), Vector2(MD + 8, 42), 7.0, d)
+	strip(null, Vector2(42, -8), Vector2(42, MD + 8), 5.0, d)
+	road_segs.append([Vector2(-8, 42), Vector2(MD + 8, 42), 3.3])
+	road_segs.append([Vector2(42, -8), Vector2(42, MD + 8), 2.3])
+	for seg in [[Vector2(10, 18), Vector2(MD - 10, 18)], [Vector2(10, 66), Vector2(MD - 10, 66)]]:
+		strip(null, seg[0], seg[1], 3.6, d)
+		road_segs.append([seg[0], seg[1], 1.6])
+	_street_out(Vector2(MD if east else 0.0, 42), 1.0 if east else -1.0)
+	_clear.append(Rect2(-8, -8, MD + 16, MD + 16))
+	_mud.append(Rect2(-6, -6, MD + 12, MD + 12))
+	_ground_for(id)
+	var vil := group(root, "Village")
+	var pav := group(vil, "Pavement")
+	pav.set_meta("no_xray", true)
+	for r in [Rect2(4, 36.6, 34, 1.3), Rect2(46, 36.6, 34, 1.3), Rect2(4, 46.1, 34, 1.3), Rect2(46, 46.1, 34, 1.3)]:
+		_walk(pav, r)
+	_edges(rect, [["E" if east else "W", 42.0]], [])
+	var items := group(root, "Items")
+	_exit(items, "ToCenter", "В центр Мирного", Vector3(MD - 1.0 if east else 1.0, 0, 42.0), Vector3(1.6, 2.2, 6.0))
+	_spawn("Start", Vector3(MD - 4.0 if east else 4.0, 0, 42.0))
+	_spawn("FromCenter", Vector3(MD - 4.0 if east else 4.0, 0, 42.0))
+	return vil
+
+
+func _mr_close(id: String, vil: Node, lamps: Array, fill := []) -> void:
+	# дома во дворах у главной улицы
+	var k := 0
+	for f in fill:
+		_bld(vil, f[0], "Yard%d" % k, f[1], f[2])
+		k += 1
+	for p in lamps:
+		_lamp_post(vil, p)
+	_woods(20)
+	_dress(Rect2(4, 4, MD - 8, MD - 8), 180)
+	_clear_town(Rect2(2, 2, MD - 4, MD - 4))
+	_junk_items(root.get_node("Items"))
+	_finish(id)
+
+
+## «Кимберлит» — северо-запад города: побелено, флаги, плац с трибуной, штаб Бельского
+func _mr_kim() -> void:
+	var vil := _mr_frame("mirny_kimberlit", "Мирный · «Кимберлит»", "res://scripts/locations/mirny_kimberlit.gd", true)
+	var kim := _bld(vil, "nr_gov", "KimberlitHQ", Vector3(20.0, 0, 26.5))
+	_sign_on(vil, kim, "«КИМБЕРЛИТ» · ПОРЯДОК · СВЕТ · РАБОТА", 7.0, Color("f0f0e8"))
+	_bld(vil, "nr_stalin4", "KimHouse1", Vector3(64.0, 0, 27.0))
+	_bld(vil, "nr_stalin3", "KimHouse2", Vector3(20.0, 0, 54.0), PI)
+	_bld(vil, "nr_stalin4b", "KimHouse3", Vector3(64.0, 0, 54.5), PI)
+	_bld(vil, "st_res4", "KimHouse4", Vector3(20.0, 0, 6.5))
+	_bld(vil, "st_block3a", "KimHouse5", Vector3(64.0, 0, 77.0), PI)
+	# плац у перекрёстка: трибуна, флаги, плакаты
+	var pl := group(vil, "Parade")
+	box(pl, Vector3(4.0, 1.2, 2.4), Vector3(52, 0.6, 48.6), "plaster_white").owner = root
+	box(pl, Vector3(4.4, 0.12, 2.8), Vector3(52, 1.26, 48.6), "paint_white").owner = root
+	_own(collider(pl, Vector3(4.0, 1.2, 2.4), Vector3(52, 0.6, 48.6)), root)
+	for x in [47.0, 57.0, 62.0, 67.0]:
+		_flagpole(vil, Vector3(x, 0, 48.0), "paint_white", "◬")
+	for x in [10.0, 30.0]:
+		_flagpole(vil, Vector3(x, 0, 36.0), "paint_white", "◬")
+	_poster(vil, "ПОРЯДОК · СВЕТ · РАБОТА", Vector3(52, 2.6, 49.9), PI, Color("f0f0e8"))
+	_poster(vil, "«ГОРИЗОНТ» ДАСТ СВЕТ. А ТЫ — ЧТО ДАШЬ?", Vector3(34.0, 2.2, 36.0), 0.0, Color("f0f0e8"))
+	put(P.checkpoint, vil, Vector3(78, 0, 35.5), 0.0)
+	for b in [[Vector3(12.0, 0, 47.6), PI], [Vector3(28.0, 0, 47.6), PI], [Vector3(72.0, 0, 36.4), 0.0]]:
+		put(P.nr_bench, vil, b[0], b[1])
+	var chars := group(root, "Characters")
+	character(chars, "Belsky", "mr_belsky", _slot(kim, "garik"), PI / 2.0, {"dialog": "mr_belsky"})
+	character(chars, "Buyer", "nr_buyer", _slot(kim, "apovich"), 0.0, {"dialog": "mr_buyer", "display_name": "Покупатель"})
+	character(chars, "KimSecretary", "mr_kimber", _slot(kim, "secretary"), PI / 2.0, {"display_name": "Секретарь «Кимберлита»"})
+	character(chars, "KimGuard1", "mr_kimber", _slot(kim, "guard"), PI, {"display_name": "Дружинник «Кимберлита»", "armed": true})
+	character(chars, "KimGuard2", "mr_kimber", Vector3(20.0, 0, 37.0), 0.0, {"display_name": "Дружинник у штаба", "armed": true})
+	character(chars, "KimGate", "mr_kimber", Vector3(78.5, 0, 38.6), -PI / 2.0, {"display_name": "Дружинник на въезде", "armed": true})
+	character(chars, "Orator", "mr_kimber", Vector3(52.0, 1.3, 48.4), PI, {"display_name": "Оратор «Кимберлита»"})
+	character(chars, "Listener1", "town_m1", Vector3(51.0, 0, 44.6), 0.0, {"display_name": "Слушает оратора"})
+	character(chars, "Listener2", "town_f2", Vector3(53.6, 0, 44.4), 0.0, {"display_name": "Значок «Горизонта» на пальто"})
+	character(chars, "KimPatrol", "mr_kimber", Vector3(10, 0, 41.0), PI / 2.0, {"display_name": "Патруль дружины", "armed": true,
+		"patrol": PackedVector3Array([Vector3(10, 0, 41.0), Vector3(74, 0, 41.0), Vector3(43, 0, 70.0), Vector3(43, 0, 14.0)]), "patrol_wait": 4.0})
+	marker(root, "MarkKim", Vector3(20, 0, 26), "Штаб «Кимберлита»")
+	marker(root, "MarkParade", Vector3(52, 0, 49), "Плац")
+	_mr_close("mirny_kimberlit", vil, [Vector3(36, 0, 37.0), Vector3(48, 0, 47.2), Vector3(72, 0, 47.2), Vector3(12, 0, 37.0), Vector3(43.6, 0, 24), Vector3(40.4, 0, 60)], [["st_block2b", Vector3(34.5, 0, 8.5), 0.0], ["st_block2b", Vector3(49.5, 0, 8.5), 0.0], ["st_block2", Vector3(34.0, 0, 76.0), PI], ["st_block2b", Vector3(49.5, 0, 76.0), PI]])
+
+
+## Совет и йегеря — северо-восток: здание совета, штаб йегерей, площадь суда с помостом
+func _mr_rep() -> void:
+	var vil := _mr_frame("mirny_republic", "Мирный · совет и йегеря", "res://scripts/locations/mirny_republic.gd", false)
+	var council := _bld(vil, "st_admin", "Council", Vector3(64.0, 0, 30.0))
+	_sign_on(vil, council, "СОВЕТ МИРНОГО · ВЫБОРЫ — ЛЮДЯМ", 6.0, Color("e8e0c8"))
+	var jhq := _bld(vil, "st_office", "JaegerHQ", Vector3(64.0, 0, 51.5), PI)
+	_signboard(vil, "JAEGER CORP · ХАХАЙ", _slot(jhq, "sign"), PI, 4.6, Color("e8c060"))
+	_bld(vil, "nr_stalin3", "RepHouse", Vector3(20.0, 0, 54.0), PI)
+	_bld(vil, "st_block3b", "RepHouse2", Vector3(64.0, 0, 8.0))
+	_bld(vil, "st_block2", "RepHouse3", Vector3(20.0, 0, 77.0), PI)
+	_bld(vil, "st_police", "JaegerPost", Vector3(64.0, 0, 76.0), PI)
+	# площадь суда: помост, столб, ступени
+	_walk(group(vil, "SquarePave"), Rect2(8, 18, 26, 17))
+	var sc := group(vil, "Scaffold")
+	sc.position = Vector3(20.0, 0, 24.0)
+	box(sc, Vector3(5.0, 1.0, 4.0), Vector3(0, 0.5, 0), "planks_old").owner = root
+	box(sc, Vector3(0.25, 3.6, 0.25), Vector3(-1.6, 2.8, -1.2), "log_dark").owner = root
+	box(sc, Vector3(2.0, 0.2, 0.2), Vector3(-0.7, 4.5, -1.2), "log_dark").owner = root
+	box(sc, Vector3(0.04, 1.2, 0.04), Vector3(0.2, 3.8, -1.2), "rope_mat").owner = root
+	for i in 3:
+		box(sc, Vector3(1.6, 0.25, 0.4), Vector3(1.2, 0.12 + i * 0.25, 2.2 - i * 0.4), "planks_old").owner = root
+	_own(collider(sc, Vector3(5.0, 1.0, 4.0), Vector3(0, 0.5, 0)), root)
+	_poster(vil, "СУД ПОЛИСА — ЗДЕСЬ", Vector3(20.0, 2.6, 21.6), PI, Color("e8c060"))
+	for x in [12.0, 28.0]:
+		_flagpole(vil, Vector3(x, 0, 34.0), "paint_blue", "♌")
+	for x in [52.0, 76.0]:
+		_flagpole(vil, Vector3(x, 0, 37.0), "paint_blue", "♌")
+	put(P.notice_board, vil, Vector3(56.0, 0, 46.8), PI)
+	put(P.sandbags, vil, Vector3(6.0, 0, 35.5), 0.0)
+	_poster(vil, "СПИСКИ ПОСОБНИКОВ «ГОРИЗОНТА» — У ШТАБА", Vector3(30.0, 2.4, 47.0), PI, Color("e8c060"))
+	var chars := group(root, "Characters")
+	character(chars, "Slepcova", "mr_slepcova", council.transform * Vector3(2.4, 0, 0.6), PI, {"dialog": "mr_slepcova"})
+	character(chars, "CouncilGuard", "mr_jaeger", _slot(council, "guard"), PI, {"display_name": "Йегерь у совета", "armed": true})
+	character(chars, "Judge", "mr_judge", Vector3(18.0, 1.0, 24.6), PI, {"dialog": "mr_judge"})
+	character(chars, "Accused", "mr_accused", Vector3(21.2, 1.0, 23.4), PI, {"display_name": "Рабочий Пётр", "start_pose": "yield"})
+	character(chars, "Jaeger1", "mr_jaeger", Vector3(16.0, 0, 27.6), PI, {"display_name": "Йегерь", "armed": true})
+	character(chars, "Jaeger2", "mr_jaeger", Vector3(24.4, 0, 27.6), PI, {"display_name": "Йегерь", "armed": true})
+	character(chars, "Gosha", "mr_denouncer", Vector3(12.0, 0, 28.0), 0.6, {"dialog": "mr_denouncer"})
+	character(chars, "Crowd1", "town_m1", Vector3(20.0, 0, 29.4), PI, {"display_name": "Зевака"})
+	character(chars, "Crowd2", "town_f2", Vector3(22.4, 0, 29.8), PI, {"display_name": "Плачет в платок"})
+	character(chars, "JaegerHQGuard", "mr_jaeger", _slot(jhq, "sign") + Vector3(-1.2, -_slot(jhq, "sign").y, -0.6), PI, {"display_name": "Часовой штаба", "armed": true})
+	character(chars, "RepGate", "mr_jaeger", Vector3(6.0, 0, 38.0), PI / 2.0, {"display_name": "Йегерь на въезде", "armed": true})
+	character(chars, "Deputy", "town_m3", Vector3(58.0, 0, 38.6), 0.0, {"display_name": "Депутат совета"})
+	marker(root, "MarkCouncil", Vector3(64, 0, 30), "Совет Мирного")
+	marker(root, "MarkJudge", Vector3(20, 0, 24), "Площадь суда")
+	marker(root, "MarkJaeger", Vector3(64, 0, 51.5), "Штаб йегерей")
+	var items := root.get_node("Items")
+	_use(items, "Scaffold", "Помост суда", Vector3(20.0, 0, 26.2), Vector3(5.0, 1.6, 1.0))
+	_use(items, "Lists", "Списки пособников", Vector3(56.0, 0, 46.2), Vector3(2.0, 2.0, 0.6))
+	_mr_close("mirny_republic", vil, [Vector3(36, 0, 37.0), Vector3(48, 0, 47.2), Vector3(72, 0, 37.0), Vector3(12, 0, 47.2), Vector3(43.6, 0, 24), Vector3(40.4, 0, 60)], [["st_block2b", Vector3(34.5, 0, 8.5), 0.0], ["st_block2b", Vector3(49.5, 0, 8.5), 0.0], ["st_block2", Vector3(34.0, 0, 76.0), PI], ["st_block2b", Vector3(49.5, 0, 76.0), PI]])
+
+
+## Рабочий посёлок — юго-запад: профком, мастерские, бараки, общежитие, пикет
+func _mr_work() -> void:
+	var vil := _mr_frame("mirny_workers", "Мирный · рабочий посёлок", "res://scripts/locations/mirny_workers.gd", true)
+	var union := _bld(vil, "st_canteen", "Union", Vector3(20.0, 0, 31.0))
+	_sign_on(vil, union, "ПРОФКОМ «КАРЬЕР»", 3.8, Color("f0e0c0"))
+	_bld(vil, "nr_factory_b", "Workshop", Vector3(22.0, 0, 55.0), PI)
+	_bld(vil, "st_barrack2", "Barrack1", Vector3(62.0, 0, 32.5))
+	_bld(vil, "st_obshaga", "Obshaga", Vector3(64.0, 0, 52.5), PI)
+	_bld(vil, "st_barrack2", "Barrack2", Vector3(20.0, 0, 8.5))
+	_bld(vil, "st_barrack2", "Barrack3", Vector3(64.0, 0, 8.5))
+	_bld(vil, "garages", "Garages", Vector3(20.0, 0, 76.0), PI)
+	_bld(vil, "boiler_house", "Boiler", Vector3(64.0, 0, 76.0), PI)
+	for x in [12.0, 30.0, 54.0]:
+		_flagpole(vil, Vector3(x, 0, 36.0), "paint_red", "☭")
+	_poster(vil, "ТОК — ЛЮДЯМ!", Vector3(34.0, 2.4, 47.6), PI, Color("ff7a4a"))
+	_poster(vil, "НЕ ПРОДАДИМ ГОРОД ВМЕСТЕ С НАМИ", Vector3(52.0, 2.4, 36.2), 0.0, Color("ff9a6a"))
+	_banner(vil, Vector3(74.0, 0, 37.6), Vector3(74.0, 0, 46.4), "ПРОФСОЮЗ «КАРЬЕР» · ТОК — ЛЮДЯМ")
+	# бельё на верёвках между бараками
+	for z in [18.0, 66.0]:
+		for x in [8.0, 30.0, 54.0]:
+			cyl(vil, 0.01, 0.01, 8.0, Vector3(x + 4.0, 2.2, z + 2.6), "rope_mat", Vector3(0, 0, PI / 2.0), 4).owner = root
+			for k in 5:
+				box(vil, Vector3(0.6, 0.7, 0.02), Vector3(x + 1.0 + k * 1.5, 1.8, z + 2.6), ["cloth", "cloth_red", "paint_white", "cloth_sack", "paint_blue"][k]).owner = root
+	_clutter(vil, [["burn_barrel", 46.0, 50.0], ["burn_barrel", 36.0, 36.0], ["trash_pile", 34.0, 72.0]])
+	for b in [[Vector3(12.0, 0, 47.6), PI], [Vector3(56.0, 0, 47.6), PI]]:
+		put(P.nr_bench, vil, b[0], b[1])
+	var chars := group(root, "Characters")
+	character(chars, "Ivanov", "mr_ivanov", _slot(union, "t1"), PI, {"dialog": "mr_ivanov"})
+	character(chars, "UnionCook", "town_f3", _slot(union, "cook"), PI, {"display_name": "Повариха профкома"})
+	character(chars, "Worker1", "nr_worker", _slot(union, "t3"), PI, {"display_name": "Электрик"})
+	character(chars, "Worker2", "nr_worker", Vector3(36.0, 0, 38.0), PI, {"display_name": "Пикетчик"})
+	character(chars, "Worker3", "nr_worker", Vector3(38.0, 0, 38.6), -2.4, {"display_name": "Пикетчик"})
+	character(chars, "Worker4", "town_worker", Vector3(24.0, 0, 46.2), 0.0, {"display_name": "Слесарь со смены"})
+	character(chars, "Worker5", "town_f1", Vector3(60.0, 0, 46.8), PI, {"display_name": "Прачка"})
+	character(chars, "Kid1", "kid", Vector3(44.0, 0, 50.0), 1.0, {"display_name": "Чумазый пацан",
+		"patrol": PackedVector3Array([Vector3(44.0, 0, 50.0), Vector3(20, 0, 44.0), Vector3(66, 0, 44.0)]), "patrol_wait": 3.0})
+	marker(root, "MarkUnion", Vector3(20, 0, 31), "Профком «Карьер»")
+	marker(root, "MarkWorkshop", Vector3(22, 0, 55), "Мастерские")
+	_mr_close("mirny_workers", vil, [Vector3(36, 0, 47.2), Vector3(48, 0, 37.0), Vector3(72, 0, 47.2), Vector3(12, 0, 37.0), Vector3(43.6, 0, 24), Vector3(40.4, 0, 60)], [["st_block2b", Vector3(34.5, 0, 8.5), 0.0], ["st_block2b", Vector3(49.5, 0, 8.5), 0.0], ["st_block2", Vector3(34.0, 0, 76.0), PI], ["st_block2b", Vector3(49.5, 0, 76.0), PI]])
+
+
+## Квартал рейдеров — юго-восток: баррикады из лома, лачуги, притон «Дыра»
+func _mr_raid() -> void:
+	var vil := _mr_frame("mirny_raiders", "Мирный · квартал рейдеров", "res://scripts/locations/mirny_raiders.gd", false)
+	var den := _bld(vil, "nr_ryumka", "RaiderDen", Vector3(62.0, 0, 33.0))
+	_sign_on(vil, den, "ПРИТОН «ДЫРА»", 3.0, Color("ffb23a"))
+	_bld(vil, "nr_nochlezhka", "Flophouse", Vector3(22.0, 0, 54.0), PI)
+	var bar := group(vil, "Barricade")
+	for i in 7:
+		if i == 3:
+			continue
+		_junk_fence(bar, Vector3(10.0, 0, 30.0 + i * 4.0), PI / 2.0, false)
+	_junk_fence(bar, Vector3(10.0, 0, 42.0), PI / 2.0, true)
+	var shk := group(vil, "Shacks")
+	for spec in [[Vector3(20, 0, 30), 0.1, 0], [Vector3(30, 0, 29), -0.2, 1], [Vector3(60, 0, 54), 3.0, 1], [Vector3(72, 0, 55), 3.1, 0],
+			[Vector3(20, 0, 10), 0.0, 1], [Vector3(64, 0, 10), 0.2, 0], [Vector3(20, 0, 76), 3.0, 0], [Vector3(64, 0, 76), 3.2, 1], [Vector3(74, 0, 31), -0.1, 0]]:
+		put(P.nr_shack if spec[2] == 0 else P.nr_shack_b, shk, spec[0], spec[1])
+	_graffiti(vil, "ШРАМ — ХОЗЯИН", Vector3(56.97, 1.5, 33.0), -PI / 2.0)
+	var trash := group(vil, "Trash")
+	for j in [["nr_junk_scrap", Vector3(50.0, 0, 50.0), 0.2], ["nr_junk_tires", Vector3(34.0, 0, 48.0), 0.0], ["nr_junk_bags", Vector3(50.0, 0, 34.0), 1.0]]:
+		_junk(trash, j[0], j[1], j[2])
+	_clutter(vil, [["burn_barrel", 46.0, 36.0], ["burn_barrel", 30.0, 48.0], ["car_wreck", 74.0, 47.0, 0.4], ["car_wreck", 52.0, 70.0, 2.0],
+		["paz_wreck", 30.0, 72.0, 0.3], ["rubble", 74.0, 66.0]])
+	var chars := group(root, "Characters")
+	character(chars, "Scar", "mr_scar", _slot(den, "t1"), PI, {"dialog": "mr_scar", "start_pose": "sit"})
+	character(chars, "DenBarman", "nr_barman", _slot(den, "barman"), PI / 2.0, {"display_name": "Наливает в «Дыре»"})
+	character(chars, "Raider1", "mr_raider", Vector3(12.0, 0, 39.0), -PI / 2.0, {"display_name": "Рейдер на баррикаде", "armed": true})
+	character(chars, "Raider2", "mr_raider", Vector3(12.0, 0, 45.6), -PI / 2.0, {"display_name": "Рейдер на баррикаде", "armed": true})
+	character(chars, "Raider3", "mr_raider", Vector3(48.0, 0, 37.4), 0.4, {"display_name": "Рейдер"})
+	character(chars, "Raider4", "mr_raider", Vector3(32.0, 0, 46.6), 2.0, {"display_name": "Греется у бочки"})
+	character(chars, "Fence", "nr_fence", Vector3(54.0, 0, 46.4), PI, {"display_name": "Скупщик краденого"})
+	marker(root, "MarkDen", Vector3(62, 0, 33), "Притон «Дыра»")
+	_mr_close("mirny_raiders", vil, [Vector3(36, 0, 47.2), Vector3(52, 0, 47.2)])
 
 # ---------------- дно карьера ----------------
 func _quarry() -> void:

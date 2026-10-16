@@ -997,9 +997,20 @@ func mirny_tests() -> void:
 	main.load_location("mirny", "Road")
 	await wait_loading()
 	var loc: Node = main.location
-	ok(loc != null and loc.location_id == "mirny" and Game.quest_stage("act3") == 2, "Мирный: пришёл, задание — фракции и плотина")
-	ok(unreachable(loc, loc.spawn_point("Road"), func(nd): return String(nd.name) in ["Belsky", "Buyer", "Slepcova", "Judge", "Gosha", "Ivanov", "Scar", "ToQuarry", "EastRoad"]).is_empty(),
-		"до всех лидеров, Судьи, покупателя, карьера и выхода к ГЭС можно дойти (%s)" % str(unreachable(loc, loc.spawn_point("Road"), func(nd): return String(nd.name) in ["Belsky", "Buyer", "Slepcova", "Judge", "Gosha", "Ivanov", "Scar", "ToQuarry", "EastRoad"])))
+	ok(loc != null and loc.location_id == "mirny" and Game.quest_stage("act3") == 2, "Мирный: пришёл в центр, задание — фракции и плотина")
+	var need := ["ToKimberlit", "ToRepublic", "ToWorkers", "ToRaiders", "ToQuarry", "EastRoad", "GokSign"]
+	var un: Array = unreachable(loc, loc.spawn_point("Road"), func(nd): return String(nd.name) in need)
+	ok(un.is_empty(), "из центра можно дойти до всех районов, карьера, промзоны и выхода к ГЭС (%s)" % str(un))
+	# районы: из каждого — до своих лидеров и обратно в центр
+	for spec in [["ToKimberlit", "mirny_kimberlit", ["Belsky", "Buyer"]], ["ToRaiders", "mirny_raiders", ["Scar"]],
+			["ToRepublic", "mirny_republic", ["Slepcova", "Judge", "Gosha", "Scaffold", "Lists"]]]:
+		await nr_go(spec[0], spec[1])
+		loc = main.location
+		var who: Array = spec[2]
+		un = unreachable(loc, loc.spawn_point("FromCenter"), func(nd): return String(nd.name) in who or String(nd.name) == "ToCenter")
+		ok(un.is_empty(), "%s: до %s можно дойти (%s)" % [spec[1], str(who), str(un)])
+		if spec[1] != "mirny_republic":
+			await nr_go("ToCenter", "mirny")
 	# суд йегерей: доносчик врёт — Пётр свободен
 	Game.force_check = 1
 	main.talk_to(loc.character("Gosha"))
@@ -1015,7 +1026,9 @@ func mirny_tests() -> void:
 	Game.force_check = 0
 	await wait(0.6)
 	ok(Game.flag("mr_freed") and Game.quest_stage("mr_trial") == 3, "суд йегерей: донос ложный, Пётр свободен")
-	# карьер: спуститься, отбиться от псов, забрать ящик
+	await nr_go("ToCenter", "mirny")
+	loc = main.location
+	# карьер: спуститься, забрать ящик
 	loc.on_interact(loc.item("ToQuarry"))
 	await wait_loading()
 	var q: Node = main.location
@@ -1025,9 +1038,11 @@ func mirny_tests() -> void:
 	ok(Game.item_count("quarry_find") == 1 and Game.quest_stage("mr_quarry") == 2, "ящик лаборатории — настоящие алмазы")
 	q.on_interact(q.item("UpRamp"))
 	await wait_loading()
+	ok(main.location.location_id == "mirny", "поднялся из карьера в центр")
+	# рабочий посёлок: находка — профкому, союз с рабочими
+	await nr_go("ToWorkers", "mirny_workers")
 	loc = main.location
-	ok(loc.location_id == "mirny", "поднялся из карьера")
-	# союз с рабочими и находка — профкому
+	ok(unreachable(loc, loc.spawn_point("FromCenter"), func(nd): return String(nd.name) in ["Ivanov", "ToCenter"]).is_empty(), "в рабочем посёлке можно дойти до Иванова")
 	main.talk_to(loc.character("Ivanov"))
 	await frames(2)
 	await choose(find_opt("ящик"))
@@ -1040,8 +1055,8 @@ func mirny_tests() -> void:
 	await choose(0)
 	await close_dialogs()
 	ok(str(Game.flag_value("ges_side", "")) == "workers" and Game.quest_stage("act3") == 4, "союз с рабочими — дальше на ГЭС")
+	await nr_go("ToCenter", "mirny")
 	ok(main.world_map.can_go("ges") or not ResourceLoader.exists("res://scenes/locations/ges.tscn"), "плотина ГЭС открыта на карте")
-
 
 ## Вилюйская ГЭС: портфель с пропуском, проходная, Смена отдаёт ток союзникам → Акт IV
 func ges_tests() -> void:
@@ -1081,7 +1096,6 @@ func ges_tests() -> void:
 ## Акт IV: Рубикон (Харат, ополченцы, проход), Горный (кто кормит Ушана), ГРЭС-2 (пост и лифт),
 ## комплекс (архив, Кирк, Кирш) и финал со слайдами
 func act4_tests() -> void:
-	ok(main.world_map.can_go("mir"), "Промзона МИР (карьер) открыта на карте")
 	ok(main.world_map.can_go("vilyuysk") and not main.world_map.can_go("gorny"), "Вилюйск (Рубикон) открыт, Горный — ещё нет")
 	main.load_location("rubikon", "Road")
 	await wait_loading()
@@ -1386,7 +1400,7 @@ func sungar_tests() -> void:
 	await choose(find_opt("серой броне"))
 	await choose(find_opt("Отдать 40 рублей"))
 	await shut()
-	ok(Game.quest_stage("bootur") == 8 and wm.known("markun") and wm.known("mir") and "список Б" in str(Game.hero.notes),
+	ok(Game.quest_stage("bootur") == 8 and wm.known("markun") and wm.known("mirny") and "список Б" in str(Game.hero.notes),
 		"бюро Полиса: «список Б» с убитого чистильщика — дальше Мар-Кун")
 	# жилой квартал
 	loc.on_interact(loc.item("ToQuarter"))
