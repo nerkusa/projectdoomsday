@@ -185,12 +185,12 @@ Project Doomsday — 1–4
 - friend: tools/build_nakharro.gd:475, tools/build_nakharro.gd:476
 - friend_dying: tools/build_nakharro.gd:540, tools/build_nakharro.gd:541
 - gambler: tools/build_nakharro.gd:504
-- ges_announcer: tools/build_east.gd:895
-- ges_chief: tools/build_east.gd:894
-- ges_watch: tools/build_east.gd:893
+- ges_announcer: tools/build_east.gd:1059
+- ges_chief: tools/build_east.gd:1058
+- ges_watch: tools/build_east.gd:1057
 - girl: tools/build_nakharro.gd:503
-- gr_elder: tools/build_east.gd:1080
-- gr_mother: tools/build_east.gd:1081
+- gr_elder: tools/build_east.gd:1244
+- gr_mother: tools/build_east.gd:1245
 - guard: tools/build_nakharro.gd:482
 - hay_quarrel: tools/build_nakharro.gd:1197, tools/build_nakharro.gd:1198
 - hermit: tools/build_act1.gd:803
@@ -198,9 +198,9 @@ Project Doomsday — 1–4
 - hs_kid2: tools/build_nakharro.gd:1195
 - hs_kid3: tools/build_act1.gd:1440
 - hunter: tools/build_nakharro.gd:506
-- hz_kirk: tools/build_east.gd:1250
-- hz_kirsh: tools/build_east.gd:1252
-- hz_viktor: tools/build_east.gd:1251
+- hz_kirk: tools/build_east.gd:1414
+- hz_kirsh: tools/build_east.gd:1416
+- hz_viktor: tools/build_east.gd:1415
 - kid: tools/build_nakharro.gd:478, tools/build_scenes.gd:720
 - kr_banya: tools/build_act1.gd:589
 - kr_brewer: tools/build_act1.gd:572
@@ -217,13 +217,13 @@ Project Doomsday — 1–4
 - kr_trader: tools/build_act1.gd:573
 - mk_chief: tools/build_east.gd:236
 - mk_instructor: tools/build_east.gd:237
-- mr_belsky: tools/build_east.gd:565
-- mr_buyer: tools/build_east.gd:566
-- mr_denouncer: tools/build_east.gd:618
-- mr_ivanov: tools/build_east.gd:660
-- mr_judge: tools/build_east.gd:614
-- mr_scar: tools/build_east.gd:697
-- mr_slepcova: tools/build_east.gd:612
+- mr_belsky: tools/build_east.gd:714
+- mr_buyer: tools/build_east.gd:715
+- mr_denouncer: tools/build_east.gd:772
+- mr_ivanov: tools/build_east.gd:819
+- mr_judge: tools/build_east.gd:768
+- mr_scar: tools/build_east.gd:861
+- mr_slepcova: tools/build_east.gd:766
 - nr_apovich: tools/build_nyurba.gd:770
 - nr_artur: tools/build_nyurba.gd:768
 - nr_bootur: tools/build_nyurba.gd:788, tools/build_nyurba.gd:1009
@@ -347,7 +347,7 @@ Project Doomsday — 1–4
 ### scripts/locations/mirny.gd (55)
 Мирный · центр — ничейная земля. Посреди города мёртвый карьер трубки «Мир», вокруг —
 
-### scripts/locations/mirny_district.gd (71) · class MirnyDistrict
+### scripts/locations/mirny_district.gd (93) · class MirnyDistrict
 Мирный (Акт III) — город контрастов из пяти частей: в середине ничейная земля с мёртвым
 
 ### scripts/locations/mirny_kimberlit.gd (12)
@@ -553,9 +553,9 @@ Project Doomsday — 1–4
 Каменный Сунгар (бывший посёлок городского типа): дома в 2–4 этажа из штукатурки
 `_ready:18` `_city_materials:126` `_glow_mat:193` `swin:208` `balcony:249` `entry:284` `open_door:299` `roof:309` `stone_block:354` `sandrik:489` `arch_win:502` `_stalin_decor:534` `_labaz_decor:577` `_balustrade:606` `_spire:623` `nyurba_props:641` `_wkind:850` `_wear:869` `_shop_window:927` `_portico:939` `_colonnade:956` `_shell:1005` `_lining:1029` `stair_flight:1044` `partition_z:1058` `_table:1070` `_bed:1087` `_wardrobe:1098` `_counter:1104` `_shelf_goods:1110` `_stove:1124` `_rug:1130` `_plant:1134` `_interior:1142` `heat_pipes:1496` `boiler_house:1534` `water_tower:1560` `garages:1573` `kiosk:1588` `bus_stop:1604` `conc_fence:1624` `paz_wreck:1635` `bins:1652` `furniture:1664` `_stair_piece:1728` `_crt:1741` `cassette_props:1750` `ruin_props:1836`
 
-### tools/build_east.gd (1270)
+### tools/build_east.gd (1434)
 Локации востока по сюжету: Мар-Кун (финал Акта I), Мирный (центр с промзоной ГОК «Мир» и 4 района) и ГЭС (Акт III),
-`_build:9` `_container:45` `_dugout:72` `_alas_lake:93` `_homestead:119` `_markun:137` `_quarry_pit:279` `_flagpole:334` `_poster:348` `_mirny:352` `_mr_frame:497` `_mr_close:525` `_mr_kim:541` `_mr_rep:582` `_mr_work:634` `_mr_raid:675` `_quarry:708` `_ges:797` `_ruin_block:922` `_rubikon:931` `_env_dim:994` `_harat:1004` `_gorny:1041` `_yakutsk:1103` `_complex:1151`
+`_build:9` `_container:45` `_dugout:72` `_alas_lake:93` `_homestead:119` `_markun:137` `_quarry_pit:279` `_flagpole:334` `_poster:348` `_mirny:352` `_war_bld:508` `_ruin_shell:544` `_crater:581` `_hedgehog:591` `_nest:604` `_wire_line:610` `_war_dress:622` `_mr_frame:640` `_mr_close:668` `_mr_kim:684` `_mr_rep:731` `_mr_work:788` `_mr_raid:834` `_quarry:872` `_ges:961` `_ruin_block:1086` `_rubikon:1095` `_env_dim:1158` `_harat:1168` `_gorny:1205` `_yakutsk:1267` `_complex:1315`
 
 ### tools/build_hero_skin.gd (78)
 Собирает сетку героя с новой развёрткой из assets/models/hero_skin_mesh.bin

@@ -8,6 +8,9 @@ extends NyurbaDistrict
 ## Через сколько часов после прихода йегеря казнят Петра, если никто не вмешается
 const TRIAL_HOURS := 6.0
 
+## Фоновая война: до следующей далёкой очереди, сек
+var _war_t := 6.0
+
 
 func status_line() -> String:
 	return "2062 · Мирный"
@@ -46,6 +49,25 @@ func objective() -> String:
 		4:
 			return "Идти на плотину ГЭС — из центра города на восток (карта мира)."
 	return ""
+
+
+## Город воюет: то тут, то там — далёкие выстрелы, очереди, редкий разрыв
+func _process(delta: float) -> void:
+	if main == null or main.combat.on:
+		return
+	_war_t -= delta
+	if _war_t > 0.0:
+		return
+	_war_t = randf_range(10.0, 30.0)
+	_burst(1 if randf() < 0.5 else randi_range(2, 5))
+
+
+func _burst(n: int) -> void:
+	for i in n:
+		main.sfx("shot_far_%d" % randi_range(1, 3), randf_range(-16.0, -8.0), randf_range(0.9, 1.1))
+		await get_tree().create_timer(randf_range(0.08, 0.3), false).timeout
+	if randf() < 0.15:
+		main.sfx("thunder", -14.0, 0.55)
 
 
 func on_hero_moved(pos: Vector3) -> void:
