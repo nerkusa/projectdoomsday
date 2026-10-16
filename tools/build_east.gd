@@ -425,6 +425,62 @@ func _mir_pit(parent: Node) -> void:
 		var p := PC + Vector3(cos(a) * rr, -2 * PIT_H, sin(a) * rr)
 		cyl(g, 0.12, 0.15, 7.0, p + Vector3(0, 3.5, 0), "log_dark").owner = root
 		box(g, Vector3(1.6, 0.1, 0.1), p + Vector3(0, 6.6, 0), "log_dark", Vector3(0, -a, 0)).owner = root
+	# осыпи у подножия стен и валуны на уступах
+	var sp := {}
+	for i in PIT_K:
+		var rw := PR - i * (PIT_WALL + PIT_BENCH) - PIT_WALL
+		var yb := -(i + 1) * PIT_H
+		for k in 9:
+			var a := randf() * TAU
+			var base := PC + Vector3(cos(a) * (rw - 0.7), yb, sin(a) * (rw - 0.7))
+			for j in 5:
+				var q := base + Vector3(randf_range(-1.2, 1.2), randf_range(0.1, 0.7), randf_range(-1.2, 1.2))
+				_pb(sp, "pitw%d" % i if j % 2 else "pitf%d" % i, Vector3(randf_range(0.6, 1.6), randf_range(0.4, 1.2), randf_range(0.6, 1.4)), q, Vector3(randf(), randf() * TAU, randf()))
+		for k in 3:
+			var a := randf() * TAU
+			var q := PC + Vector3(cos(a) * (rw - 2.0), yb + 0.6, sin(a) * (rw - 2.0))
+			_pb(sp, "stone_wall", Vector3(randf_range(1.0, 1.8), randf_range(0.9, 1.4), randf_range(1.0, 1.6)), q, Vector3(randf(), randf() * TAU, randf()))
+	# конвейер по стене карьера: фермы уступ за уступом вниз
+	var ca := 2.3
+	for i in 6:
+		var r0 := PR - i * (PIT_WALL + PIT_BENCH) + 1.0
+		var r1 := PR - (i + 1) * (PIT_WALL + PIT_BENCH) + 1.0
+		var p0 := PC + Vector3(cos(ca) * r0, -i * PIT_H + 1.5, sin(ca) * r0)
+		var p1 := PC + Vector3(cos(ca) * r1, -(i + 1) * PIT_H + 1.5, sin(ca) * r1)
+		var mid := (p0 + p1) / 2.0
+		var ln := p0.distance_to(p1)
+		var pitch := atan2(p0.y - p1.y, Vector2(p0.x - p1.x, p0.z - p1.z).length())
+		var cyaw := atan2(p1.x - p0.x, p1.z - p0.z)
+		_pb(sp, "rust", Vector3(1.2, 0.35, ln + 0.3), mid, Vector3(pitch, cyaw, 0))
+		_pb(sp, "tar", Vector3(0.9, 0.06, ln + 0.3), mid + Vector3(0, 0.22, 0), Vector3(pitch, cyaw, 0))
+		_pb(sp, "metal_dark", Vector3(0.15, 2.5, 0.15), p1 + Vector3(0, -1.25 + 0.2, 0))
+	var spg := Node3D.new()
+	spg.name = "Scree"
+	g.add_child(spg)
+	spg.owner = root
+	_flush(spg, sp)
+	# будка диспетчера на бровке
+	var bp := PC + Vector3(cos(0.75), 0, sin(0.75)) * (PR + 6.5)
+	var bt := group(g, "Booth")
+	box(bt, Vector3(3.0, 2.6, 3.0), bp + Vector3(0, 1.3, 0), "metal_green").owner = root
+	box(bt, Vector3(3.3, 0.12, 3.3), bp + Vector3(0, 2.66, 0), "rust").owner = root
+	box(bt, Vector3(2.2, 0.8, 0.05), bp + Vector3(0, 1.7, -1.52), "coal").owner = root
+	_own(collider(bt, Vector3(3.0, 2.6, 3.0), bp + Vector3(0, 1.3, 0)), root)
+	# кости тех, кто полез без костюма: у ограды и на верхних уступах
+	var sk := group(g, "Skeletons")
+	var gas_i := 0
+	for a in [0.72, 0.9, 1.12, 1.33, 1.82, 2.0, 2.22, 2.42]:
+		var rr := PR + randf_range(2.2, 4.2)
+		var q := PC + Vector3(cos(a) * rr, 0, sin(a) * rr)
+		if q.z < 2.0:
+			continue
+		_skeleton(sk, q, randf() * TAU, gas_i % 3 == 0)
+		gas_i += 1
+	for spec in [[0, 1.25], [0, 1.9], [1, 1.45], [1, 2.05], [2, 1.65], [3, 1.3]]:
+		var i: int = spec[0]
+		var a: float = spec[1]
+		var rr := PR - i * (PIT_WALL + PIT_BENCH) - PIT_WALL - PIT_BENCH * 0.5
+		_skeleton(sk, PC + Vector3(cos(a) * rr, -(i + 1) * PIT_H + 0.02, sin(a) * rr), randf() * TAU, i % 2 == 1)
 	# ограждение по бровке (в пределах карты), с проёмом под ворота на юге
 	var fence := group(g, "RimFence")
 	var n := 220
@@ -517,13 +573,19 @@ func _mirny() -> void:
 	_war_bld(vil, "nr_warehouse", "Warehouse1", Vector3(96, 0, 64.0), 0.0, true)
 	_war_bld(vil, "st_block2", "Empty1", Vector3(122, 0, 64.5), 0.0, true)
 	_ruin_block(vil, "st_block3a", Vector3(22, 0, 93.0), 0.0, "Empty2")
-	_war_bld(vil, "st_block4", "Empty3", Vector3(50, 0, 94.0), 0.0, true)
-	_ruin_shell(vil, "Ruin4", Vector3(92, 0, 94.0), 0.0, 10.0, 10.0, 8.0, "plaster_white")
+	_big_ruin(vil, "Empty3", Vector3(48, 0, 95.0), 0.0, 24.0, 11.0, 5, "concrete")
+	_big_ruin(vil, "Ruin4", Vector3(94, 0, 95.0), 0.0, 22.0, 11.0, 4, "plaster_white")
 	_war_bld(vil, "st_block3b", "Empty4", Vector3(118, 0, 94.0), 0.0)
 	_war_bld(vil, "nr_warehouse", "Warehouse2", Vector3(30, 0, 123.0), PI)
-	_ruin_shell(vil, "Ruin5", Vector3(52, 0, 123.0), 0.0, 9.0, 9.0, 6.0)
-	_ruin_shell(vil, "Ruin6", Vector3(92, 0, 123.0), 0.0, 10.0, 9.0, 7.5)
+	_big_ruin(vil, "Ruin5", Vector3(54, 0, 123.5), PI, 20.0, 9.0, 5, "brick")
+	_big_ruin(vil, "Ruin6", Vector3(94, 0, 123.5), PI, 22.0, 9.0, 4, "concrete")
 	_war_bld(vil, "st_block2b", "Empty5", Vector3(116, 0, 123.0), PI, true)
+	# после боя: сгоревшие БТР и осколки по улицам
+	_btr(vil, Vector3(100, 0, 86.5), 1.4)
+	_btr(vil, Vector3(26, 0, 104.0), 0.3)
+	for dp in [Vector3(48, 0, 104), Vector3(94, 0, 104), Vector3(60, 0, 82), Vector3(84, 0, 79), Vector3(30, 0, 112), Vector3(110, 0, 112),
+			Vector3(70, 0, 96), Vector3(100, 0, 50), Vector3(40, 0, 50), Vector3(120, 0, 80), Vector3(50, 0, 114), Vector3(94, 0, 114), Vector3(70, 0, 56)]:
+		_debris(vil, dp, randf_range(3.0, 5.5), 70)
 	# --- кордоны фракций у выходов в районы ---
 	var cd := group(vil, "Cordons")
 	for p in [Vector3(9, 0, 46.5), Vector3(9, 0, 53.5)]:
@@ -556,7 +618,7 @@ func _mirny() -> void:
 		_junk(trash, j[0], j[1], j[2])
 	_clutter(vil, [["burn_barrel", 56.0, 58.0], ["burn_barrel", 84.0, 76.0], ["car_wreck", 112.0, 86.0, 0.4], ["car_wreck", 40.0, 84.5, 2.0],
 		["paz_wreck", 76.0, 104.0, 0.3], ["rubble", 100.0, 108.0]])
-	for b in [[Vector3(64.0, 0, 86.0), PI / 2.0], [Vector3(84.0, 0, 92.0), -PI / 2.0]]:
+	for b in [[Vector3(64.0, 0, 86.0), PI / 2.0], [Vector3(76.0, 0, 92.0), -PI / 2.0]]:
 		put(P.nr_bench, vil, b[0], b[1])
 	for p in [Vector3(66.5, 0, 46.0), Vector3(73.5, 0, 60.0), Vector3(66.5, 0, 92.0), Vector3(30, 0, 76.5), Vector3(110, 0, 83.5), Vector3(73.5, 0, 108.0)]:
 		_lamp_post(vil, p)
@@ -759,6 +821,208 @@ func _war_dress(vil: Node, craters: Array, hogs: Array, nests: Array, fires: Arr
 	for f in fires:
 		put(P.fire, w, f, 0.0)
 
+# ---------------- после бойни: большие руины, осколки, скелеты, сгоревшая техника ----------------
+## Деталь в общий меш: части копятся по материалам, потом склеиваются (_merged)
+func _pb(parts: Dictionary, mat: String, size: Vector3, pos: Vector3, rot := Vector3.ZERO) -> void:
+	var b := BoxMesh.new()
+	b.size = size
+	if not parts.has(mat):
+		parts[mat] = []
+	parts[mat].append([b, Transform3D(Basis.from_euler(rot), pos)])
+
+
+func _ps(parts: Dictionary, mat: String, r: float, pos: Vector3, scl := Vector3.ONE) -> void:
+	var s := SphereMesh.new()
+	s.radius = r
+	s.height = r * 2.0
+	s.radial_segments = 8
+	s.rings = 4
+	if not parts.has(mat):
+		parts[mat] = []
+	parts[mat].append([s, Transform3D(Basis.from_scale(scl), pos)])
+
+
+func _pc(parts: Dictionary, mat: String, r: float, h: float, pos: Vector3, rot := Vector3.ZERO) -> void:
+	var c := CylinderMesh.new()
+	c.top_radius = r
+	c.bottom_radius = r
+	c.height = h
+	c.radial_segments = 10
+	if not parts.has(mat):
+		parts[mat] = []
+	parts[mat].append([c, Transform3D(Basis.from_euler(rot), pos)])
+
+
+func _flush(g: Node3D, parts: Dictionary) -> void:
+	for mat in parts:
+		var st := SurfaceTool.new()
+		st.begin(Mesh.PRIMITIVE_TRIANGLES)
+		for pr in parts[mat]:
+			st.append_from(pr[0], 0, pr[1])
+		var mi := MeshInstance3D.new()
+		mi.mesh = st.commit()
+		mi.material_override = M[mat]
+		g.add_child(mi, true)
+		mi.owner = root
+
+
+func _bone_mat() -> void:
+	if M.has("bone"):
+		return
+	var m := StandardMaterial3D.new()
+	m.albedo_color = Color("d6ccb2")
+	m.roughness = 0.9
+	M["bone"] = m
+
+
+## Многоэтажка после боя: стены с проёмами окон по всем этажам, вырванный снарядом кусок
+## (V-образный обвал с одной стороны), перекрытия торчат, плита висит на арматуре,
+## внизу — конус обломков на улицу. floors этажей по 3 м. Зайти нельзя
+func _big_ruin(parent: Node, nm: String, pos: Vector3, rot: float, w: float, d: float, floors: int, mat := "concrete") -> void:
+	var g := Node3D.new()
+	g.name = nm
+	g.position = pos
+	g.rotation.y = rot
+	parent.add_child(g)
+	g.owner = root
+	var parts := {}
+	var fh := 3.0
+	var h := floors * fh
+	var side := 1.0 if randf() < 0.5 else -1.0
+	var xc := side * w * randf_range(0.1, 0.3)
+	var cw := w * randf_range(0.28, 0.4)
+	var hfrac := func(x: float) -> float:
+		return clampf(absf(x - xc) / cw, 0.08, 1.0)
+	var seg := 1.5
+	var t := 0.35
+	# длинные стены: фасад (+z) и двор (−z)
+	for face in [1.0, -1.0]:
+		var x := -w / 2.0
+		while x < w / 2.0 - 0.01:
+			var sl := minf(seg, w / 2.0 - x)
+			var c := x + sl / 2.0
+			var ch: float = maxf(0.6, h * float(hfrac.call(c)) - randf_range(0.0, 1.8) * (0.0 if float(hfrac.call(c)) >= 1.0 else 1.0))
+			_pb(parts, mat, Vector3(sl + 0.02, ch, t), Vector3(c, ch / 2.0, face * d / 2.0))
+			# окна по этажам — тёмные проёмы, там где стена уцелела
+			for f in floors:
+				var wy := f * fh + 1.7
+				if wy + 0.8 < ch and int((c + w) / seg) % 2 == 0:
+					_pb(parts, "coal", Vector3(1.0, 1.3, 0.06), Vector3(c, wy, face * (d / 2.0 + t / 2.0 + 0.01)))
+					if randf() < 0.15:
+						_pb(parts, "soot", Vector3(1.0, 1.8, 0.03), Vector3(c, wy + 1.4, face * (d / 2.0 + t / 2.0 + 0.02)))
+				# межэтажный шов панелей
+				if f > 0 and f * fh < ch:
+					_pb(parts, "concrete", Vector3(sl + 0.04, 0.1, 0.06), Vector3(c, f * fh, face * (d / 2.0 + t / 2.0 + 0.01)))
+			x += sl
+	# торцы
+	for sx in [-1.0, 1.0]:
+		var eh: float = maxf(0.6, h * float(hfrac.call(sx * w / 2.0)))
+		_pb(parts, mat, Vector3(t, eh, d), Vector3(sx * w / 2.0, eh / 2.0, 0))
+	# перекрытия: где обвал — обрываются, крайняя плита висит наискось
+	for f in range(1, floors + 1):
+		var y := f * fh
+		var x := -w / 2.0 + 0.2
+		var prev_ok := true
+		while x < w / 2.0 - 0.2:
+			var c := x + seg / 2.0
+			var ok: bool = h * float(hfrac.call(c)) > y + 0.4
+			if ok:
+				_pb(parts, "concrete", Vector3(seg + 0.02, 0.22, d - 0.3), Vector3(c, y - 0.11, 0))
+			elif prev_ok and randf() < 0.7:
+				var dir := -1.0 if c > xc else 1.0
+				_pb(parts, "concrete", Vector3(seg * 1.6, 0.22, d * 0.7), Vector3(c - dir * 0.2, y - 1.0, randf_range(-1.0, 1.0)), Vector3(randf_range(-0.2, 0.2), 0, dir * randf_range(0.5, 0.9)))
+				for k in 4:
+					_pb(parts, "metal_dark", Vector3(0.04, 0.04, 1.2), Vector3(c, y - 0.1, -d / 2.0 + 1.0 + k * (d - 2.0) / 3.0), Vector3(randf_range(-0.6, 0.6), 0, randf_range(-0.4, 0.4)))
+			prev_ok = ok
+			x += seg
+	# конус обломков на улицу и внутрь пролома
+	for k in 34:
+		var a := randf() * TAU
+		var rr := sqrt(randf()) * 4.6
+		var hy := (1.0 - rr / 4.6) * 2.6
+		var p := Vector3(xc + cos(a) * rr * 1.2, randf_range(0.1, maxf(0.2, hy)), d / 2.0 + 0.8 + sin(a) * rr * 0.8)
+		var m: String = [mat, "concrete", "brick", "plaster_white", mat, "coal"][k % 6]
+		_pb(parts, m, Vector3(randf_range(0.5, 1.8), randf_range(0.3, 1.0), randf_range(0.5, 1.6)), p, Vector3(randf(), randf() * TAU, randf()))
+	for k in 6:
+		_pb(parts, "metal_dark", Vector3(0.05, 0.05, randf_range(1.0, 2.5)), Vector3(xc + randf_range(-3, 3), randf_range(0.4, 1.6), d / 2.0 + randf_range(0.0, 2.5)), Vector3(randf() * 1.2, randf() * TAU, 0))
+	_flush(g, parts)
+	_own(collider(g, Vector3(w, 3.0, d), Vector3(0, 1.5, 0)), root)
+	_own(collider(g, Vector3(6.5, 2.0, 3.0), Vector3(xc, 1.0, d / 2.0 + 1.8)), root)
+
+
+## Осколки: мелкие куски бетона, кирпича и стекла россыпью вокруг точки (сквозь них ходят)
+func _debris(parent: Node, c: Vector3, radius: float, n: int) -> void:
+	var g := Node3D.new()
+	g.name = "Debris"
+	parent.add_child(g, true)
+	g.owner = root
+	var parts := {}
+	for k in n:
+		var a := randf() * TAU
+		var rr := sqrt(randf()) * radius
+		var p := c + Vector3(cos(a) * rr, 0.03, sin(a) * rr)
+		var m: String = ["concrete", "brick", "glass", "concrete", "coal", "plaster_white", "rust"][k % 7]
+		var big := randf() < 0.15
+		_pb(parts, m, Vector3(randf_range(0.1, 0.5), randf_range(0.03, 0.12), randf_range(0.1, 0.4)) * (2.2 if big else 1.0), p + Vector3(0, 0.04 if big else 0.0, 0), Vector3(randf() * 0.4, randf() * TAU, randf() * 0.4))
+	_flush(g, parts)
+
+
+## Скелет лежит на земле (вдоль локальной Z — голова вперёд); с противогазом — gasmask
+func _skeleton(parent: Node, pos: Vector3, yaw: float, gasmask := false) -> void:
+	_bone_mat()
+	var g := Node3D.new()
+	g.name = "Skeleton"
+	g.position = pos
+	g.rotation.y = yaw
+	parent.add_child(g, true)
+	g.owner = root
+	var p := {}
+	_ps(p, "bone", 0.11, Vector3(0.0, 0.1, 0.78), Vector3(1.0, 0.9, 1.1))
+	_pb(p, "bone", Vector3(0.12, 0.05, 0.08), Vector3(0.0, 0.04, 0.88))
+	for k in 6:
+		_pb(p, "bone", Vector3(0.05, 0.05, 0.08), Vector3(0, 0.05, 0.1 + k * 0.09))
+	for k in 5:
+		for sx in [-1.0, 1.0]:
+			_pb(p, "bone", Vector3(0.18, 0.025, 0.025), Vector3(sx * 0.1, 0.07, 0.3 + k * 0.07), Vector3(0, sx * 0.25, sx * 0.5))
+	_pb(p, "bone", Vector3(0.28, 0.07, 0.14), Vector3(0, 0.05, 0.0))
+	var la := randf_range(-0.6, 0.6)
+	for sx in [-1.0, 1.0]:
+		_pb(p, "bone", Vector3(0.04, 0.04, 0.3), Vector3(sx * 0.22, 0.04, 0.45), Vector3(0, sx * 0.3 + la, 0))
+		_pb(p, "bone", Vector3(0.035, 0.035, 0.26), Vector3(sx * 0.3, 0.04, 0.2), Vector3(0, sx * 0.6 - la, 0))
+		_pb(p, "bone", Vector3(0.05, 0.05, 0.42), Vector3(sx * 0.1, 0.05, -0.25), Vector3(0, sx * 0.08, 0))
+		_pb(p, "bone", Vector3(0.04, 0.04, 0.4), Vector3(sx * 0.13, 0.04, -0.66), Vector3(0, sx * 0.12, 0))
+	if randf() < 0.6:
+		_pb(p, "cloth_sack", Vector3(0.45, 0.03, 0.4), Vector3(0.05, 0.1, 0.35), Vector3(0.1, randf(), 0.05))
+	if gasmask:
+		_pc(p, "metal_dark", 0.06, 0.12, Vector3(0.18, 0.06, 0.95), Vector3(PI / 2.0, 0, 0.6))
+		_ps(p, "tar", 0.1, Vector3(0.12, 0.08, 0.9), Vector3(1.0, 0.7, 1.0))
+	_flush(g, p)
+
+
+## Сгоревший БТР: корпус с клювом, башенка, колёса (часть сорвана), копоть
+func _btr(parent: Node, pos: Vector3, yaw: float) -> void:
+	var g := Node3D.new()
+	g.name = "BtrWreck"
+	g.position = pos
+	g.rotation.y = yaw
+	parent.add_child(g, true)
+	g.owner = root
+	var p := {}
+	_pb(p, "metal_green", Vector3(2.8, 1.2, 7.0), Vector3(0, 1.3, 0))
+	_pb(p, "metal_green", Vector3(2.6, 0.9, 1.6), Vector3(0, 1.2, 3.9), Vector3(0.55, 0, 0))
+	_pb(p, "soot", Vector3(2.9, 1.0, 3.0), Vector3(0, 1.45, -1.0))
+	_pc(p, "metal_dark", 0.6, 0.5, Vector3(0, 2.15, 0.6))
+	_pc(p, "metal_dark", 0.07, 2.2, Vector3(0, 2.25, 1.9), Vector3(PI / 2.0 - 0.15, 0, 0))
+	for k in 4:
+		for sx in [-1.0, 1.0]:
+			if randf() < 0.2:
+				continue
+			_pc(p, "tire", 0.55, 0.4, Vector3(sx * 1.45, 0.55, -2.4 + k * 1.6), Vector3(0, 0, PI / 2.0))
+	_pb(p, "coal", Vector3(1.0, 0.8, 0.05), Vector3(0.6, 1.4, 3.51))
+	_pb(p, "rust", Vector3(1.4, 0.05, 1.0), Vector3(-0.4, 1.92, -2.0))
+	_flush(g, p)
+	_own(collider(g, Vector3(3.0, 2.2, 7.6), Vector3(0, 1.1, 0.2)), root)
+
 # ---------------- районы Мирного: квадрат 84 м, проспект z = 42 и улица x = 42 ----------------
 const MD := 84.0
 
@@ -816,12 +1080,15 @@ func _mr_kim() -> void:
 	_war_bld(vil, "nr_stalin4", "KimHouse1", Vector3(64.0, 0, 27.0))
 	_war_bld(vil, "nr_stalin3", "KimHouse2", Vector3(20.0, 0, 54.0), PI, true)
 	_war_bld(vil, "nr_stalin4b", "KimHouse3", Vector3(64.0, 0, 54.5), PI)
-	_war_bld(vil, "st_res4", "KimHouse4", Vector3(20.0, 0, 6.5))
-	_war_bld(vil, "st_block3a", "KimHouse5", Vector3(64.0, 0, 77.0), PI, true)
+	_big_ruin(vil, "KimHouse4", Vector3(20.0, 0, 7.0), 0.0, 16.0, 9.0, 5, "plaster_cream")
+	_big_ruin(vil, "KimHouse5", Vector3(64.0, 0, 77.0), PI, 14.0, 8.0, 4, "plaster_white")
 	# остовы — дома, по которым уже прошлась война
 	_ruin_shell(vil, "Ruin1", Vector3(78.5, 0, 27.0), 0.0, 6.0, 10.0, 7.5, "plaster_white")
 	_ruin_shell(vil, "Ruin2", Vector3(77.5, 0, 57.0), 0.0, 7.0, 10.0, 6.0)
 	_ruin_shell(vil, "Ruin3", Vector3(6.5, 0, 57.0), 0.0, 7.0, 10.0, 8.0, "plaster_white")
+	_btr(vil, Vector3(34.0, 0, 58.0), 0.2)
+	for dp in [Vector3(20, 0, 18), Vector3(64, 0, 66), Vector3(30, 0, 42), Vector3(58, 0, 42), Vector3(42, 0, 30), Vector3(76, 0, 42)]:
+		_debris(vil, dp, randf_range(3.0, 5.0), 60)
 	_war_dress(vil, [Vector3(30, 0, 43), Vector3(58, 0, 40.5), Vector3(42, 0, 20), Vector3(42.5, 0, 64)],
 		[Vector3(81, 0, 33.5), Vector3(81, 0, 50.5), Vector3(46, 0, 33.5)], [[Vector3(73.5, 0, 49.5), PI], [Vector3(36.5, 0, 34.5), 0.0]], [Vector3(6.5, 0, 57.0)])
 	# плац у перекрёстка: трибуна, флаги, плакаты
@@ -863,12 +1130,14 @@ func _mr_rep() -> void:
 	var jhq := _bld(vil, "st_office", "JaegerHQ", Vector3(64.0, 0, 51.5), PI)
 	_signboard(vil, "JAEGER CORP · ХАХАЙ", _slot(jhq, "sign"), PI, 4.6, Color("e8c060"))
 	_war_bld(vil, "nr_stalin3", "RepHouse", Vector3(20.0, 0, 54.0), PI, true)
-	_war_bld(vil, "st_block3b", "RepHouse2", Vector3(64.0, 0, 8.0))
-	_war_bld(vil, "st_block2", "RepHouse3", Vector3(20.0, 0, 77.0), PI, true)
+	_big_ruin(vil, "RepHouse2", Vector3(64.0, 0, 8.0), 0.0, 12.0, 8.0, 4, "concrete")
+	_big_ruin(vil, "RepHouse3", Vector3(20.0, 0, 77.0), PI, 10.0, 7.0, 3, "brick")
 	_war_bld(vil, "st_police", "JaegerPost", Vector3(64.0, 0, 76.0), PI)
 	_ruin_shell(vil, "Ruin1", Vector3(77.5, 0, 27.0), 0.0, 7.0, 10.0, 7.0)
 	_ruin_shell(vil, "Ruin2", Vector3(77.5, 0, 57.0), 0.0, 7.0, 10.0, 8.0, "plaster_white")
 	_ruin_shell(vil, "Ruin3", Vector3(6.5, 0, 57.0), 0.0, 7.0, 10.0, 6.5)
+	for dp in [Vector3(64, 0, 17), Vector3(20, 0, 67), Vector3(40, 0, 42), Vector3(60, 0, 42), Vector3(42, 0, 56), Vector3(10, 0, 42)]:
+		_debris(vil, dp, randf_range(3.0, 5.0), 60)
 	_war_dress(vil, [Vector3(34, 0, 42.5), Vector3(52, 0, 44), Vector3(42, 0, 62), Vector3(42.5, 0, 14)],
 		[Vector3(2.5, 0, 33.5), Vector3(2.5, 0, 50.5), Vector3(36, 0, 33.5)], [[Vector3(7.0, 0, 48.5), 0.0], [Vector3(47.0, 0, 50.0), PI]], [Vector3(77.5, 0, 57.0)])
 	# площадь суда: помост, столб, ступени
@@ -919,12 +1188,15 @@ func _mr_work() -> void:
 	_sign_on(vil, union, "ПРОФКОМ «КАРЬЕР»", 3.8, Color("f0e0c0"))
 	_war_bld(vil, "nr_factory_b", "Workshop", Vector3(22.0, 0, 55.0), PI)
 	_war_bld(vil, "st_barrack2", "Barrack1", Vector3(62.0, 0, 32.5))
-	_war_bld(vil, "st_obshaga", "Obshaga", Vector3(64.0, 0, 52.5), PI, true)
-	_war_bld(vil, "st_barrack2", "Barrack2", Vector3(20.0, 0, 8.5), 0.0, true)
+	_big_ruin(vil, "Obshaga", Vector3(64.0, 0, 53.0), PI, 12.0, 8.5, 5, "concrete")
+	_big_ruin(vil, "Barrack2", Vector3(20.0, 0, 8.5), 0.0, 14.0, 7.0, 3, "brick")
 	_war_bld(vil, "st_barrack2", "Barrack3", Vector3(64.0, 0, 8.5))
 	_ruin_shell(vil, "Ruin1", Vector3(77.5, 0, 26.0), 0.0, 7.0, 10.0, 6.0)
 	_ruin_shell(vil, "Ruin2", Vector3(77.5, 0, 57.0), 0.0, 7.0, 10.0, 7.0)
 	_ruin_shell(vil, "Ruin3", Vector3(6.5, 0, 24.0), 0.0, 7.0, 10.0, 6.5, "plaster_white")
+	_btr(vil, Vector3(52.0, 0, 58.0), -0.3)
+	for dp in [Vector3(64, 0, 45), Vector3(20, 0, 17), Vector3(30, 0, 44), Vector3(76, 0, 42), Vector3(42, 0, 60), Vector3(42, 0, 28)]:
+		_debris(vil, dp, randf_range(3.0, 5.0), 60)
 	_war_dress(vil, [Vector3(30, 0, 42), Vector3(56, 0, 44), Vector3(42, 0, 24), Vector3(41.5, 0, 70)],
 		[Vector3(81, 0, 33.5), Vector3(81, 0, 50.5)], [[Vector3(70.0, 0, 48.5), PI], [Vector3(30.0, 0, 35.0), 0.0]], [Vector3(77.5, 0, 26.0)])
 	_bld(vil, "garages", "Garages", Vector3(20.0, 0, 76.0), PI)
@@ -941,7 +1213,7 @@ func _mr_work() -> void:
 			for k in 5:
 				box(vil, Vector3(0.6, 0.7, 0.02), Vector3(x + 1.0 + k * 1.5, 1.8, z + 2.6), ["cloth", "cloth_red", "paint_white", "cloth_sack", "paint_blue"][k]).owner = root
 	_clutter(vil, [["burn_barrel", 46.0, 50.0], ["burn_barrel", 36.0, 36.0], ["trash_pile", 34.0, 72.0]])
-	for b in [[Vector3(12.0, 0, 47.6), PI], [Vector3(56.0, 0, 47.6), PI]]:
+	for b in [[Vector3(12.0, 0, 47.6), PI], [Vector3(50.0, 0, 47.6), PI]]:
 		put(P.nr_bench, vil, b[0], b[1])
 	var chars := group(root, "Characters")
 	character(chars, "Ivanov", "mr_ivanov", _slot(union, "t1"), PI, {"dialog": "mr_ivanov"})
@@ -950,7 +1222,7 @@ func _mr_work() -> void:
 	character(chars, "Worker2", "nr_worker", Vector3(36.0, 0, 38.0), PI, {"display_name": "Пикетчик"})
 	character(chars, "Worker3", "nr_worker", Vector3(38.0, 0, 38.6), -2.4, {"display_name": "Пикетчик"})
 	character(chars, "Worker4", "town_worker", Vector3(24.0, 0, 46.2), 0.0, {"display_name": "Слесарь со смены"})
-	character(chars, "Worker5", "town_f1", Vector3(60.0, 0, 46.8), PI, {"display_name": "Прачка"})
+	character(chars, "Worker5", "town_f1", Vector3(48.0, 0, 47.0), PI, {"display_name": "Прачка"})
 	character(chars, "Kid1", "kid", Vector3(44.0, 0, 50.0), 1.0, {"display_name": "Чумазый пацан",
 		"patrol": PackedVector3Array([Vector3(44.0, 0, 50.0), Vector3(20, 0, 44.0), Vector3(66, 0, 44.0)]), "patrol_wait": 3.0})
 	marker(root, "MarkUnion", Vector3(20, 0, 31), "Профком «Карьер»")
@@ -972,10 +1244,13 @@ func _mr_raid() -> void:
 	_junk_fence(bar, Vector3(10.0, 0, 42.0), PI / 2.0, true)
 	var shk := group(vil, "Shacks")
 	for spec in [[Vector3(20, 0, 30), 0.1, 0], [Vector3(30, 0, 29), -0.2, 1], [Vector3(60, 0, 54), 3.0, 1], [Vector3(72, 0, 55), 3.1, 0],
-			[Vector3(20, 0, 10), 0.0, 1], [Vector3(64, 0, 10), 0.2, 0], [Vector3(20, 0, 76), 3.0, 0], [Vector3(64, 0, 76), 3.2, 1], [Vector3(74, 0, 31), -0.1, 0]]:
+			[Vector3(20, 0, 10), 0.0, 1], [Vector3(64, 0, 10), 0.2, 0], [Vector3(20, 0, 76), 3.0, 0], [Vector3(74, 0, 31), -0.1, 0]]:
 		put(P.nr_shack if spec[2] == 0 else P.nr_shack_b, shk, spec[0], spec[1])
 	_graffiti(vil, "ШРАМ — ХОЗЯИН", Vector3(56.97, 1.5, 33.0), -PI / 2.0)
 	_ruin_shell(vil, "Ruin1", Vector3(52.0, 0, 10.0), 0.0, 8.0, 9.0, 6.0)
+	_big_ruin(vil, "BigRuin", Vector3(66.0, 0, 77.0), PI, 14.0, 8.0, 4, "brick")
+	for dp in [Vector3(40, 0, 42), Vector3(66, 0, 66), Vector3(20, 0, 42), Vector3(52, 0, 20), Vector3(42, 0, 60), Vector3(70, 0, 42)]:
+		_debris(vil, dp, randf_range(3.0, 5.0), 60)
 	_ruin_shell(vil, "Ruin2", Vector3(78.0, 0, 64.0), 0.0, 6.0, 8.0, 5.0)
 	_ruin_shell(vil, "Ruin3", Vector3(32.0, 0, 77.0), 0.0, 8.0, 8.0, 6.5, "plaster_white")
 	_war_dress(vil, [Vector3(40, 0, 58), Vector3(60, 0, 42.5), Vector3(24, 0, 42), Vector3(42, 0, 24)],

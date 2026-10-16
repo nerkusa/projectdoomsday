@@ -136,7 +136,7 @@ Project Doomsday — 1–4
 - **act2** «Нью-Рба»: scripts/locations/markun.gd, scripts/locations/nyurba_black.gd, scripts/locations/nyurba_district.gd, tools/smoke_test.gd, data/dialogs/nr_apovich.json, data/dialogs/nr_artur.json, data/dialogs/nr_bootur.json, data/dialogs/nr_buyer.json, data/dialogs/nr_kesha.json
 - **act3** «Ток»: scripts/locations/ges.gd, scripts/locations/mirny_district.gd, tools/smoke_test.gd, data/dialogs/ges_chief.json, data/dialogs/ges_watch.json, data/dialogs/mr_belsky.json, data/dialogs/mr_ivanov.json, data/dialogs/mr_scar.json, data/dialogs/mr_slepcova.json
 - **mr_trial** «Суд йегерей»: scripts/locations/mirny_district.gd, tools/smoke_test.gd, data/dialogs/mr_denouncer.json, data/dialogs/mr_judge.json
-- **mr_quarry** «Спуститься первым»: scripts/locations/mirny_district.gd, scripts/locations/mirny_quarry.gd, tools/smoke_test.gd, data/dialogs/mr_belsky.json, data/dialogs/mr_ivanov.json, data/dialogs/mr_scar.json, data/dialogs/mr_slepcova.json
+- **mr_quarry** «Спуститься первым»: scripts/locations/mirny_quarry.gd, tools/smoke_test.gd, data/dialogs/mr_belsky.json, data/dialogs/mr_ivanov.json, data/dialogs/mr_scar.json, data/dialogs/mr_slepcova.json
 - **act4** «Мерзлота»: scripts/locations/complex.gd, scripts/locations/gorny.gd, scripts/locations/rubikon.gd, scripts/locations/yakutsk.gd, tools/smoke_test.gd
 - **gr_feeder** «Кто кормит мутантов»: scripts/locations/gorny.gd, tools/smoke_test.gd, data/dialogs/gr_elder.json, data/dialogs/gr_mother.json
 
@@ -185,12 +185,12 @@ Project Doomsday — 1–4
 - friend: tools/build_nakharro.gd:475, tools/build_nakharro.gd:476
 - friend_dying: tools/build_nakharro.gd:540, tools/build_nakharro.gd:541
 - gambler: tools/build_nakharro.gd:504
-- ges_announcer: tools/build_east.gd:1187
-- ges_chief: tools/build_east.gd:1186
-- ges_watch: tools/build_east.gd:1185
+- ges_announcer: tools/build_east.gd:1462
+- ges_chief: tools/build_east.gd:1461
+- ges_watch: tools/build_east.gd:1460
 - girl: tools/build_nakharro.gd:503
-- gr_elder: tools/build_east.gd:1372
-- gr_mother: tools/build_east.gd:1373
+- gr_elder: tools/build_east.gd:1647
+- gr_mother: tools/build_east.gd:1648
 - guard: tools/build_nakharro.gd:482
 - hay_quarrel: tools/build_nakharro.gd:1197, tools/build_nakharro.gd:1198
 - hermit: tools/build_act1.gd:803
@@ -198,9 +198,9 @@ Project Doomsday — 1–4
 - hs_kid2: tools/build_nakharro.gd:1195
 - hs_kid3: tools/build_act1.gd:1440
 - hunter: tools/build_nakharro.gd:506
-- hz_kirk: tools/build_east.gd:1542
-- hz_kirsh: tools/build_east.gd:1544
-- hz_viktor: tools/build_east.gd:1543
+- hz_kirk: tools/build_east.gd:1817
+- hz_kirsh: tools/build_east.gd:1819
+- hz_viktor: tools/build_east.gd:1818
 - kid: tools/build_nakharro.gd:478, tools/build_scenes.gd:720
 - kr_banya: tools/build_act1.gd:589
 - kr_brewer: tools/build_act1.gd:572
@@ -217,14 +217,14 @@ Project Doomsday — 1–4
 - kr_trader: tools/build_act1.gd:573
 - mk_chief: tools/build_east.gd:236
 - mk_instructor: tools/build_east.gd:237
-- mr_belsky: tools/build_east.gd:842
-- mr_buyer: tools/build_east.gd:843
-- mr_denouncer: tools/build_east.gd:900
-- mr_gokwatch: tools/build_east.gd:573
-- mr_ivanov: tools/build_east.gd:947
-- mr_judge: tools/build_east.gd:896
-- mr_scar: tools/build_east.gd:989
-- mr_slepcova: tools/build_east.gd:894
+- mr_belsky: tools/build_east.gd:1109
+- mr_buyer: tools/build_east.gd:1110
+- mr_denouncer: tools/build_east.gd:1169
+- mr_gokwatch: tools/build_east.gd:635
+- mr_ivanov: tools/build_east.gd:1219
+- mr_judge: tools/build_east.gd:1165
+- mr_scar: tools/build_east.gd:1264
+- mr_slepcova: tools/build_east.gd:1163
 - nr_apovich: tools/build_nyurba.gd:770
 - nr_artur: tools/build_nyurba.gd:768
 - nr_bootur: tools/build_nyurba.gd:788, tools/build_nyurba.gd:1009
@@ -348,7 +348,7 @@ Project Doomsday — 1–4
 ### scripts/locations/mirny.gd (60)
 Мирный · центр — ничейная земля. Посреди города мёртвый карьер трубки «Мир», вокруг —
 
-### scripts/locations/mirny_district.gd (93) · class MirnyDistrict
+### scripts/locations/mirny_district.gd (92) · class MirnyDistrict
 Мирный (Акт III) — город контрастов из пяти частей: в середине ничейная земля с мёртвым
 
 ### scripts/locations/mirny_kimberlit.gd (12)
@@ -554,9 +554,9 @@ Project Doomsday — 1–4
 Каменный Сунгар (бывший посёлок городского типа): дома в 2–4 этажа из штукатурки
 `_ready:18` `_city_materials:126` `_glow_mat:193` `swin:208` `balcony:249` `entry:284` `open_door:299` `roof:309` `stone_block:354` `sandrik:489` `arch_win:502` `_stalin_decor:534` `_labaz_decor:577` `_balustrade:606` `_spire:623` `nyurba_props:641` `_wkind:850` `_wear:869` `_shop_window:927` `_portico:939` `_colonnade:956` `_shell:1005` `_lining:1029` `stair_flight:1044` `partition_z:1058` `_table:1070` `_bed:1087` `_wardrobe:1098` `_counter:1104` `_shelf_goods:1110` `_stove:1124` `_rug:1130` `_plant:1134` `_interior:1142` `heat_pipes:1496` `boiler_house:1534` `water_tower:1560` `garages:1573` `kiosk:1588` `bus_stop:1604` `conc_fence:1624` `paz_wreck:1635` `bins:1652` `furniture:1664` `_stair_piece:1728` `_crt:1741` `cassette_props:1750` `ruin_props:1836`
 
-### tools/build_east.gd (1562)
+### tools/build_east.gd (1837)
 Локации востока по сюжету: Мар-Кун (финал Акта I), Мирный (центр с промзоной ГОК «Мир» и 4 района) и ГЭС (Акт III),
-`_build:9` `_container:45` `_dugout:72` `_alas_lake:93` `_homestead:119` `_markun:137` `_pit_band:288` `_ground_with_hole:314` `_belaz:359` `_mir_pit:373` `_mirny:452` `_flagpole:609` `_poster:623` `_war_bld:636` `_ruin_shell:672` `_crater:709` `_hedgehog:719` `_nest:732` `_wire_line:738` `_war_dress:750` `_mr_frame:768` `_mr_close:796` `_mr_kim:812` `_mr_rep:859` `_mr_work:916` `_mr_raid:962` `_quarry:1000` `_ges:1089` `_ruin_block:1214` `_rubikon:1223` `_env_dim:1286` `_harat:1296` `_gorny:1333` `_yakutsk:1395` `_complex:1443`
+`_build:9` `_container:45` `_dugout:72` `_alas_lake:93` `_homestead:119` `_markun:137` `_pit_band:288` `_ground_with_hole:314` `_belaz:359` `_mir_pit:373` `_mirny:508` `_flagpole:671` `_poster:685` `_war_bld:698` `_ruin_shell:734` `_crater:771` `_hedgehog:781` `_nest:794` `_wire_line:800` `_war_dress:812` `_pb:826` `_ps:834` `_pc:845` `_flush:856` `_bone_mat:869` `_big_ruin:881` `_debris:954` `_skeleton:971` `_btr:1003` `_mr_frame:1032` `_mr_close:1060` `_mr_kim:1076` `_mr_rep:1126` `_mr_work:1185` `_mr_raid:1234` `_quarry:1275` `_ges:1364` `_ruin_block:1489` `_rubikon:1498` `_env_dim:1561` `_harat:1571` `_gorny:1608` `_yakutsk:1670` `_complex:1718`
 
 ### tools/build_hero_skin.gd (78)
 Собирает сетку героя с новой развёрткой из assets/models/hero_skin_mesh.bin
@@ -608,9 +608,9 @@ Project Doomsday — 1–4
 ### tools/screenshots.gd (107)
 Снимки экрана для проверки интерфейса (нужен рендер, не --headless).
 
-### tools/smoke_test.gd (3397)
+### tools/smoke_test.gd (3379)
 Автотест пролога: проходит всю цепочку без участия человека и печатает, что сломалось.
-`new_enc:12` `ok:17` `wait:25` `frames:29` `close_dialogs:34` `shut:43` `choose:48` `opt_texts:54` `find_opt:61` `tp:79` `fight:86` `wait_loading:128` `unreachable:137` `go_upstairs:166` `go_downstairs:176` `nakharro_life_tests:187` `kresty_life_tests:365` `encounter_lore_tests:444` `city_tests:512` `admin_tests:705` `weather_tests:783` `social_tests:850` `markun_tests:946` `mirny_tests:996` `ges_tests:1074` `act4_tests:1110` `nr_go:1204` `nyurba_tests:1218` `sungar_tests:1351` `_ready:1499`
+`new_enc:12` `ok:17` `wait:25` `frames:29` `close_dialogs:34` `shut:43` `choose:48` `opt_texts:54` `find_opt:61` `tp:79` `fight:86` `wait_loading:128` `unreachable:137` `go_upstairs:166` `go_downstairs:176` `nakharro_life_tests:187` `kresty_life_tests:365` `encounter_lore_tests:444` `city_tests:512` `admin_tests:705` `weather_tests:783` `social_tests:850` `markun_tests:946` `mirny_tests:996` `ges_tests:1056` `act4_tests:1092` `nr_go:1186` `nyurba_tests:1200` `sungar_tests:1333` `_ready:1481`
 
 ## Данные (data/)
 
@@ -676,7 +676,7 @@ Project Doomsday — 1–4
 - data/dialogs/mr_belsky.json (128 строк)
 - data/dialogs/mr_buyer.json (46 строк)
 - data/dialogs/mr_denouncer.json (63 строк)
-- data/dialogs/mr_gokwatch.json (111 строк)
+- data/dialogs/mr_gokwatch.json (45 строк)
 - data/dialogs/mr_ivanov.json (115 строк)
 - data/dialogs/mr_judge.json (81 строк)
 - data/dialogs/mr_scar.json (115 строк)

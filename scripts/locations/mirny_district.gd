@@ -20,8 +20,7 @@ func on_enter() -> void:
 	super.on_enter()
 	if Game.quest_stage("act3") <= 1:
 		Game.set_quest("act3", 2)
-	if Game.quest_stage("mr_quarry") == 0:
-		Game.set_quest("mr_quarry", 1)
+	# «Спуститься первым» откроется, когда в игре появится защитный костюм
 	if Game.quest_stage("mr_trial") == 0:
 		Game.set_quest("mr_trial", 1)
 		Game.world["mr_arrived"] = Clock.hours()
