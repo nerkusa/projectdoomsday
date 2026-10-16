@@ -299,7 +299,7 @@ Project Doomsday — 1–4
 Автозагрузка Game: состояние героя и мира, журнал, сохранения.
 `_ready:20` `new_hero:27` `gtext:51` `hero_max:62` `effective_stats:67` `hero_hp:75` `set_hero_hp:80` `rep:85` `change_rep:90` `stat_pool:106` `skill_pool:110` `stat_cap:114` `grant_xp:118` `log_line:134` `flag:139` `flag_value:143` `set_flag:147` `quest_stage:153` `set_quest:159` `add_note:183` `item_count:191` `add_item:201` `remove_item:222` `hero_wkey:250` `hero_weapon:254` `auto_reload:259` `wstate:275` `check_chance:290` `skill_check:296` `knows_sakha:315` `hero_stat:323` `cas_working:333` `cas_info:337` `is_cassette:341` `cas_active:346` `cas_has_tag:351` `cas_insert:358` `cas_eject:372` `stat_bonus:385` `skill_bonus:394` `worn:409` `effective_skills:418` `save_game:427` `has_save:437` `save_info:441` `load_game:451` `_fix_numbers:477` `_load_settings:493` `save_settings:504`
 
-### scripts/core/graphics.gd (116) · class Graphics
+### scripts/core/graphics.gd (148) · class Graphics
 Настройки графики: хранятся в Game.settings (user://settings.json),
 
 ### scripts/core/radiation.gd (118)

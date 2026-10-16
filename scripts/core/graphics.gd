@@ -13,6 +13,7 @@ const OPTIONS := [
 	{"id": "gfx_scale", "name": "Масштаб картинки", "values": ["0.5", "0.75", "1.0"],
 		"names": {"0.5": "50%", "0.75": "75%", "1.0": "100%"}},
 	{"id": "gfx_glow", "name": "Свечение огня", "values": ["off", "on"], "names": {"off": "нет", "on": "да"}},
+	{"id": "gfx_gi", "name": "Живой свет (отражённый свет, тени в углах)", "values": ["off", "on"], "names": {"off": "нет", "on": "да"}},
 	{"id": "gfx_filter", "name": "Фильтр картинки", "values": ["off", "film", "bleak"],
 		"names": {"off": "нет", "film": "кино", "bleak": "выцветшая плёнка"}},
 	{"id": "gfx_particles", "name": "Частицы (пепел, листья, искры)", "values": ["on", "off"], "names": {"on": "да", "off": "нет"}},
@@ -23,13 +24,13 @@ const OPTIONS := [
 
 ## Что меняет выбор «Качества»
 const PRESETS := {
-	"fast": {"gfx_shadows": "off", "gfx_aa": "off", "gfx_scale": "0.75", "gfx_glow": "off"},
-	"normal": {"gfx_shadows": "low", "gfx_aa": "fxaa", "gfx_scale": "1.0", "gfx_glow": "on"},
-	"pretty": {"gfx_shadows": "high", "gfx_aa": "msaa4", "gfx_scale": "1.0", "gfx_glow": "on"},
+	"fast": {"gfx_shadows": "off", "gfx_aa": "off", "gfx_scale": "0.75", "gfx_glow": "off", "gfx_gi": "off"},
+	"normal": {"gfx_shadows": "low", "gfx_aa": "fxaa", "gfx_scale": "1.0", "gfx_glow": "on", "gfx_gi": "off"},
+	"pretty": {"gfx_shadows": "high", "gfx_aa": "msaa4", "gfx_scale": "1.0", "gfx_glow": "on", "gfx_gi": "on"},
 }
 
 const DEFAULTS := {"gfx_preset": "normal", "gfx_shadows": "high", "gfx_aa": "fxaa", "gfx_scale": "1.0",
-	"gfx_glow": "on", "gfx_window": "window", "gfx_vsync": "on", "gfx_filter": "off", "gfx_particles": "on"}
+	"gfx_glow": "on", "gfx_window": "window", "gfx_vsync": "on", "gfx_filter": "off", "gfx_particles": "on", "gfx_gi": "off"}
 
 
 static func value(id: String) -> String:
@@ -99,6 +100,7 @@ static func apply(tree: SceneTree) -> void:
 		var we := loc.get_node_or_null("Env/WorldEnvironment") as WorldEnvironment
 		if we and we.environment:
 			we.environment.glow_enabled = value("gfx_glow") == "on"
+			_apply_gi(we.environment, value("gfx_gi") == "on")
 	# фильтр картинки и атмосферные частицы
 	for n in tree.get_nodes_in_group("post_fx"):
 		n.set_mode(value("gfx_filter"))
@@ -113,3 +115,33 @@ static func apply(tree: SceneTree) -> void:
 		elif not fs and cur == DisplayServer.WINDOW_MODE_FULLSCREEN:
 			DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)
 		DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_ENABLED if value("gfx_vsync") == "on" else DisplayServer.VSYNC_DISABLED)
+
+
+
+## «Живой свет» — аналог Lumen: SDFGI (отражённый свет от земли и стен), SSIL (подсветка
+## от соседних поверхностей), SSAO (тени в углах и щелях) и лёгкий объёмный туман (лучи у
+## фонарей и костров). Работает только на основном рендере (Vulkan / DirectX); на простом
+## GL-рендере эти настройки игнорируются.
+static func _apply_gi(env: Environment, on: bool) -> void:
+	env.sdfgi_enabled = on
+	if on:
+		env.sdfgi_use_occlusion = true
+		env.sdfgi_bounce_feedback = 0.5
+		env.sdfgi_energy = 1.0
+		env.sdfgi_cascades = 4
+		env.sdfgi_min_cell_size = 0.2
+	env.ssil_enabled = on
+	if on:
+		env.ssil_radius = 6.0
+		env.ssil_intensity = 1.2
+	env.ssao_enabled = on
+	if on:
+		env.ssao_radius = 1.4
+		env.ssao_intensity = 2.2
+		env.ssao_power = 1.6
+	env.volumetric_fog_enabled = on
+	if on:
+		env.volumetric_fog_density = 0.006
+		env.volumetric_fog_albedo = Color(0.85, 0.82, 0.78)
+		env.volumetric_fog_gi_inject = 0.5
+		env.volumetric_fog_length = 80.0
