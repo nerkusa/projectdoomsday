@@ -174,6 +174,8 @@ Project Doomsday — 1–4
 - enc_carter: —
 - enc_deserter: —
 - enc_jaeger: —
+- enc_jaeger_elite: —
+- enc_jaeger_escort: —
 - enc_lost_kid: —
 - enc_pilgrim: —
 - enc_postman: —
@@ -502,16 +504,16 @@ Project Doomsday — 1–4
 Атмосферные частицы вокруг героя (узел едет вместе с ним, его создаёт Weather.attach):
 `_ready:20` `_make:53` `refresh:100` `_process:121` `_dot:129` `_leaf:142`
 
-### scripts/world/anim_body.gd (162) · class AnimBody
+### scripts/world/anim_body.gd (251) · class AnimBody
 Манекен из Universal Animation Library (Quaternius, CC0) с готовыми анимациями.
-`build:23` `_skin:60` `_tint:79` `hand:94` `hand_l:98` `grip:106` `has:118` `length:122` `play:128` `_find:145` `_meshes:155`
+`build:36` `_build_model:75` `humanoid_library:114` `bone:143` `_skin:149` `_tint:168` `hand:183` `hand_l:187` `grip:195` `has:207` `length:211` `play:217` `_find:234` `_meshes:244`
 
 ### scripts/world/arm_length.gd (23) · class ArmLength
 Укорачивает (или удлиняет) руки скелета UAL для модели с другими пропорциями:
 
-### scripts/world/character.gd (1286) · class Character
+### scripts/world/character.gd (1288) · class Character
 Персонаж на локации: герой, жители, враги, звери.
-`_ready:108` `uid:145` `_rebuild_preview:149` `_build_visual:181` `move_along:221` `stop:239` `bark:251` `barking:272` `_hero_tpl:279` `rebuild_hero_body:292` `apply_hero_skin:310` `fov:332` `in_view:342` `show_cone:358` `face_towards:394` `_process:400` `_patrol:444` `act:459` `set_held:467` `_chest_attach:511` `_low_ready:532` `_two_handed:539` `_setup_two_hands:543` `_update_two_hands:585` `_make_weapon_mesh:637` `muzzle_flash:676` `_animate:688` `_animate_clips:825` `_act_clip:870` `_clip_act:887` `_fire_cb_once:933` `_end_act:942` `show_bracelet:956` `_plain:990` `_plug_tick:1000` `_sound:1027` `_plug_build:1033` `_plug_update:1082` `_seg:1104` `_plug_clear:1113` `_collect_meshes:1129` `_mark_kind:1136` `_update_marks:1158` `_set_ghost:1201` `_stencil_write:1226` `_stencil_mat:1246` `_sil_mat:1261` `_ring_mat:1272` `_sound_bolt:1284`
+`_ready:108` `uid:145` `_rebuild_preview:149` `_build_visual:181` `move_along:221` `stop:239` `bark:251` `barking:272` `_hero_tpl:279` `rebuild_hero_body:292` `apply_hero_skin:310` `fov:332` `in_view:342` `show_cone:358` `face_towards:394` `_process:400` `_patrol:444` `act:459` `set_held:467` `_chest_attach:511` `_low_ready:533` `_two_handed:540` `_setup_two_hands:544` `_update_two_hands:587` `_make_weapon_mesh:639` `muzzle_flash:678` `_animate:690` `_animate_clips:827` `_act_clip:872` `_clip_act:889` `_fire_cb_once:935` `_end_act:944` `show_bracelet:958` `_plain:992` `_plug_tick:1002` `_sound:1029` `_plug_build:1035` `_plug_update:1084` `_seg:1106` `_plug_clear:1115` `_collect_meshes:1131` `_mark_kind:1138` `_update_marks:1160` `_set_ghost:1203` `_stencil_write:1228` `_stencil_mat:1248` `_sil_mat:1263` `_ring_mat:1274` `_sound_bolt:1286`
 
 ### scripts/world/fire_fx.gd (138) · class FireFX
 Огонь: мерцающий свет, языки пламени и столб дыма.
@@ -605,6 +607,12 @@ Project Doomsday — 1–4
 ### tools/decimate_mesh.gd (62)
 Упрощает тяжёлую модель: берёт первую сетку из .glb/.fbx, строит уровни детализации
 
+### tools/make_bonemaps.gd (50)
+Карты костей для переноса анимаций (retarget) на «человеческий» скелет Godot:
+
+### tools/preview_char.gd (66)
+Превью персонажей по шаблонам (data/characters.json): стоят в ряд, каждый со своей анимацией.
+
 ### tools/preview_prop.gd (26)
 Превью одного пропа: тот же свет, что в деревне, изометрическая камера.
 
@@ -615,14 +623,14 @@ Project Doomsday — 1–4
 ### tools/screenshots.gd (107)
 Снимки экрана для проверки интерфейса (нужен рендер, не --headless).
 
-### tools/smoke_test.gd (3411)
+### tools/smoke_test.gd (3452)
 Автотест пролога: проходит всю цепочку без участия человека и печатает, что сломалось.
-`new_enc:12` `ok:17` `wait:25` `frames:29` `close_dialogs:34` `shut:43` `choose:48` `opt_texts:54` `find_opt:61` `tp:79` `fight:86` `wait_loading:128` `unreachable:137` `go_upstairs:166` `go_downstairs:176` `nakharro_life_tests:187` `kresty_life_tests:365` `encounter_lore_tests:444` `city_tests:512` `admin_tests:705` `weather_tests:783` `social_tests:850` `markun_tests:946` `mirny_tests:996` `ges_tests:1056` `act4_tests:1092` `armor_tests:1187` `nr_go:1216` `nyurba_tests:1230` `sungar_tests:1363` `_ready:1511`
+`new_enc:12` `ok:17` `wait:25` `frames:29` `close_dialogs:34` `shut:43` `choose:48` `opt_texts:54` `find_opt:61` `tp:79` `fight:86` `wait_loading:128` `unreachable:137` `go_upstairs:166` `go_downstairs:176` `nakharro_life_tests:187` `kresty_life_tests:365` `encounter_lore_tests:444` `city_tests:512` `admin_tests:705` `weather_tests:783` `social_tests:850` `markun_tests:946` `mirny_tests:996` `ges_tests:1056` `act4_tests:1092` `armor_tests:1187` `horsun_tests:1217` `nr_go:1253` `nyurba_tests:1267` `sungar_tests:1400` `_ready:1548`
 
 ## Данные (data/)
 
 - data/barks.json (723 строк)
-- data/characters.json (183 строк)
+- data/characters.json (184 строк)
 - data/dialogs/camp_boss.json (385 строк)
 - data/dialogs/camp_nyurgun.json (194 строк)
 - data/dialogs/camp_rumors.json (127 строк)
@@ -637,6 +645,8 @@ Project Doomsday — 1–4
 - data/dialogs/enc_carter.json (131 строк)
 - data/dialogs/enc_deserter.json (179 строк)
 - data/dialogs/enc_jaeger.json (119 строк)
+- data/dialogs/enc_jaeger_elite.json (164 строк)
+- data/dialogs/enc_jaeger_escort.json (15 строк)
 - data/dialogs/enc_lost_kid.json (104 строк)
 - data/dialogs/enc_pilgrim.json (68 строк)
 - data/dialogs/enc_postman.json (101 строк)
@@ -735,7 +745,7 @@ Project Doomsday — 1–4
 - data/dialogs/water.json (114 строк)
 - data/elley.json (15 строк)
 - data/intro.json (40 строк)
-- data/items.json (116 строк)
+- data/items.json (118 строк)
 - data/lore.json (115 строк)
 - data/observations.json (81 строк)
 - data/presets.json (22 строк)
@@ -743,4 +753,4 @@ Project Doomsday — 1–4
 - data/rep_greet.json (34 строк)
 - data/schedules.json (749 строк)
 - data/weapons.json (20 строк)
-- data/world.json (2965 строк)
+- data/world.json (2990 строк)

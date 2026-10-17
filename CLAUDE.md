@@ -59,6 +59,11 @@
 `xvfb-run -a -s "-screen 0 1600x900x24" $G --rendering-driver opengl3 --resolution 1600x900 --path . res://tools/render_shots.tscn -- "кадры" префикс`
 Формат кадров — в шапке `tools/render_shots.gd` (локация|x|z|zoom|час|флаги, MAP, WAIT). Один проп: `tools/preview_prop.tscn`.
 
+## Свои модели персонажей (Tripo / Mixamo)
+- Модель `.glb` со скелетом Mixamo — в `assets/models/<имя>/`; в её `.import` прописать перенос (`_subresources` → `PATH:Armature/Skeleton3D`: `retarget/bone_map` = `bonemap_mixamo.tres`, `make_unique` → `GeneralSkeleton`), как у `jaeger_elite.glb.import`. Карты костей — `tools/make_bonemaps.gd`.
+- Анимации — общая библиотека `assets/models/anim_humanoid.glb` (копия манекена на «человеческом» скелете). В шаблоне персонажа: `look.model`, `look.model_scale` (Tripo ≈ 1 м → ~1,9), `look.anim_mask`: `"upright"` — без наклонов спины (у Tripo-моделей иначе сутулость), `"legs"` — только ноги; `look.own_weapon` — оружие вылеплено в модели, в руку не вешать. Проверка: `tools/preview_char.tscn -- out.png "res://модель.glb@Idle@1.95@upright"`.
+- Превью: `tools/preview_char.tscn -- out.png "шаблон@клип,res://модель.glb@клип@масштаб" размер`.
+
 Надписи на вывесках/экранах (Label3D) — через `fit_label(label, ширина, высота)` из build_scenes.gd: подгоняет масштаб под доску; «ВНИМАНИЕ: мелкая надпись» при сборке — сократить текст.
 
 ## Сборка Windows

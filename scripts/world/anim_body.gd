@@ -12,8 +12,21 @@ const MODEL := "res://assets/models/AnimationLibrary_Godot_Standard.glb"
 const HAND_BONE := "DEF-hand.R"
 const HAND_BONE_L := "DEF-hand.L"
 
+## Своя модель (look.model, напр. из Tripo + Mixamo): скелет приведён к «человеческому»
+## скелету Godot (GeneralSkeleton), анимации — общая библиотека anim_humanoid.glb
+const HUMANOID_ANIMS := "res://assets/models/anim_humanoid.glb"
+## Кости манекена → «человеческие» имена (для своих моделей)
+const HUMANOID_BONES := {"DEF-hand.R": "RightHand", "DEF-hand.L": "LeftHand", "DEF-spine.003": "UpperChest",
+	"DEF-upper_arm.L": "LeftUpperArm", "DEF-upper_arm.R": "RightUpperArm", "DEF-forearm.L": "LeftLowerArm", "DEF-forearm.R": "RightLowerArm"}
+static var _humanoid_lib: AnimationLibrary
+static var _masked_libs := {}
+const SPINE_BONES := ["Hips", "Spine", "Chest", "UpperChest", "Neck"]
+const LEG_BONES := ["LeftUpperLeg", "LeftLowerLeg", "LeftFoot", "LeftToes", "RightUpperLeg", "RightLowerLeg", "RightFoot", "RightToes"]
+
 var skel: Skeleton3D
 var anim: AnimationPlayer
+## Своя модель на «человеческом» скелете
+var humanoid := false
 var current := ""
 var _hand: Node3D
 var _hand_l: Node3D
@@ -21,6 +34,8 @@ var _hand_l: Node3D
 
 ## look — цвета из шаблона персонажа: top красит тело манекена, pants — суставы.
 func build(look := {}) -> bool:
+	if look.has("model"):
+		return _build_model(look)
 	if not ResourceLoader.exists(MODEL):
 		return false
 	var ps: PackedScene = load(MODEL)
@@ -53,6 +68,80 @@ func build(look := {}) -> bool:
 		else:
 			_tint(mi, look)
 	return true
+
+
+## Своя модель с собственными текстурами: look.model — путь к .glb, look.model_scale — масштаб
+## (Tripo отдаёт модели высотой около метра)
+func _build_model(look: Dictionary) -> bool:
+	var path := str(look.model)
+	if not ResourceLoader.exists(path) or not ResourceLoader.exists(HUMANOID_ANIMS):
+		return false
+	var inst: Node3D = (load(path) as PackedScene).instantiate()
+	inst.scale = Vector3.ONE * float(look.get("model_scale", 1.0))
+	add_child(inst)
+	skel = _find(inst, "Skeleton3D")
+	if skel == null:
+		return false
+	humanoid = true
+	anim = AnimationPlayer.new()
+	anim.name = "AnimationPlayer"
+	inst.add_child(anim)
+	anim.root_node = NodePath("..")
+	# look.anim_mask: "legs" — двигаются только ноги, "upright" — всё, кроме наклонов спины
+	anim.add_animation_library("", humanoid_library(str(look.get("anim_mask", ""))))
+	# look.own_weapon — оружие вылеплено в модели: в кисть ничего не вешаем
+	for pair in [[bone(HAND_BONE), "Hand"], [bone(HAND_BONE_L), "HandL"]]:
+		if skel.find_bone(pair[0]) >= 0 and not look.get("own_weapon", false):
+			var att := BoneAttachment3D.new()
+			skel.add_child(att)
+			att.bone_name = pair[0]
+			var h := Node3D.new()
+			h.name = pair[1]
+			att.add_child(h)
+			if pair[1] == "Hand":
+				_hand = h
+			else:
+				_hand_l = h
+	for mi in _meshes(inst):
+		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
+	return true
+
+
+## Общая библиотека анимаций на «человеческом» скелете (грузится один раз).
+## mask = "legs" — копия, где оставлены только ноги и таз;
+## mask = "upright" — без наклонов таза, спины и шеи (модель с сутулой осанкой стоит прямо).
+## Смерть всегда целиком.
+static func humanoid_library(mask := "") -> AnimationLibrary:
+	if _humanoid_lib == null:
+		var a: Node = (load(HUMANOID_ANIMS) as PackedScene).instantiate()
+		_humanoid_lib = (a.get_node("AnimationPlayer") as AnimationPlayer).get_animation_library("")
+		a.free()
+	if mask != "legs" and mask != "upright":
+		return _humanoid_lib
+	if _masked_libs.has(mask):
+		return _masked_libs[mask]
+	var lib := AnimationLibrary.new()
+	for nm in _humanoid_lib.get_animation_list():
+		var an: Animation = _humanoid_lib.get_animation(nm).duplicate(true)
+		if not str(nm).begins_with("Death"):
+			for t in range(an.get_track_count() - 1, -1, -1):
+				var bone := str(an.track_get_path(t)).get_slice(":", 1)
+				var pos := an.track_get_type(t) == Animation.TYPE_POSITION_3D
+				var keep: bool
+				if mask == "legs":
+					keep = bone in LEG_BONES or (bone == "Hips" and pos)
+				else:
+					keep = not (bone in SPINE_BONES) or (bone == "Hips" and pos)
+				if not keep:
+					an.remove_track(t)
+		lib.add_animation(nm, an)
+	_masked_libs[mask] = lib
+	return lib
+
+
+## Имя кости для этого скелета: у своих моделей — «человеческое»
+func bone(rigify_name: String) -> String:
+	return str(HUMANOID_BONES.get(rigify_name, rigify_name)) if humanoid else rigify_name
 
 
 ## Своя сетка с развёрткой и запечённой текстурой (герой: tools/bake_hero_skin.py).

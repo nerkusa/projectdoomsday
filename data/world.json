@@ -549,6 +549,31 @@
         "forest",
         "dead"
       ]
+    },
+    "jaeger_elite": {
+      "weight": 2,
+      "npcs": [
+        [
+          "jaeger_elite",
+          1,
+          {
+            "armed": true,
+            "dialog": "enc_jaeger_elite"
+          }
+        ],
+        [
+          "jaeger",
+          2,
+          {
+            "armed": true,
+            "dialog": "enc_jaeger_escort"
+          }
+        ]
+      ],
+      "desc": "Старший йегерь Хорсун",
+      "once": true,
+      "flag": "act2",
+      "min_level": 3
     }
   },
   "zones": [

@@ -1212,6 +1212,43 @@ func armor_tests() -> void:
 	ok(str(tpl.get("armor", {}).get("item", "")) == "suit_cleaner", "с чистильщика можно снять серую броню")
 
 
+## Встреча со старшим йегерем Хорсуном: своя модель (Tripo + Mixamo) на общих анимациях,
+## разговор про браслет (убеждение) и броня элитного йегеря, которую можно снять с тела
+func horsun_tests() -> void:
+	Game.hero.flags["enc"] = "jaeger_elite"
+	Game.hero.flags["enc_mode"] = "peace"
+	Game.hero.flags["enc_biome"] = "field"
+	new_enc()
+	await main.load_location("encounter", "Start")
+	await frames(3)
+	var loc: Node = main.location
+	var h: Character = null
+	for c in loc.characters():
+		if c.char_id == "jaeger_elite":
+			h = c
+	ok(h != null and h.body is AnimBody and (h.body as AnimBody).humanoid and (h.body as AnimBody).anim.is_playing(), "Хорсун на дороге: своя модель с анимациями")
+	if h == null:
+		return
+	await tp(h.global_position + Vector3(1.5, 0, 1.5))
+	main.talk_to(h)
+	for i in 60:
+		if main.dialog.visible and find_opt("Нахарро") >= 0:
+			break
+		await frames(2)
+	await choose(find_opt("Нахарро"))
+	Game.force_check = 1
+	await choose(find_opt("Убеждение"))
+	Game.force_check = 0
+	await choose(0)
+	await close_dialogs()
+	ok(Game.flag("horsun_ok") and Game.item_count("lion_token") == 1, "Хорсуна убедил рассказ про Нахарро — пропустил и дал жетон со львом")
+	var got := false
+	for e in main._body_entries(h):
+		if str(e.id) == "suit_jaeger_elite":
+			got = true
+	ok(got, "с Хорсуна можно снять броню элитного йегеря")
+
+
 ## Перейти по улице в соседний район Нью-Рбы
 func nr_go(exit: String, to: String) -> void:
 	var it: Interactable = main.location.item(exit)
@@ -1535,6 +1572,9 @@ func _ready() -> void:
 		main.load_location("markun", "Road")
 		await wait_loading()
 		await armor_tests()
+		await horsun_tests()
+		main.load_location("markun", "Road")
+		await wait_loading()
 		await markun_tests()
 		print("=== ИТОГ: ошибок ", fails, " ===")
 		get_tree().quit(1 if fails else 0)
@@ -3401,6 +3441,7 @@ func _ready() -> void:
 	await weather_tests()
 	await social_tests()
 	await armor_tests()
+	await horsun_tests()
 	await nyurba_tests()
 	await mirny_tests()
 	await ges_tests()

@@ -514,11 +514,12 @@ func _chest_attach() -> BoneAttachment3D:
 	var sk: Skeleton3D = (body as AnimBody).skel if body is AnimBody else null
 	if sk == null:
 		return null
-	var bi := sk.find_bone("DEF-spine.003")
+	var chest_bone := (body as AnimBody).bone("DEF-spine.003")
+	var bi := sk.find_bone(chest_bone)
 	if bi < 0:
 		return null
 	_chest = BoneAttachment3D.new()
-	_chest.bone_name = "DEF-spine.003"
+	_chest.bone_name = chest_bone
 	sk.add_child(_chest)
 	_chest_offset = rig.global_transform.affine_inverse() * sk.global_transform * sk.get_bone_global_rest(bi)
 	return _chest
@@ -571,9 +572,10 @@ func _setup_two_hands() -> void:
 		_ik.setting_count = 2
 		for i in 2:
 			var side := "L" if i == 0 else "R"
-			_ik.set_root_bone_name(i, "DEF-upper_arm." + side)
-			_ik.set_middle_bone_name(i, "DEF-forearm." + side)
-			_ik.set_end_bone_name(i, "DEF-hand." + side)
+			var ab := body as AnimBody
+			_ik.set_root_bone_name(i, ab.bone("DEF-upper_arm." + side))
+			_ik.set_middle_bone_name(i, ab.bone("DEF-forearm." + side))
+			_ik.set_end_bone_name(i, ab.bone("DEF-hand." + side))
 		_ik.set_target_node(0, _ik.get_path_to(_ik_left))
 		_ik.set_pole_node(0, _ik.get_path_to(pole_l))
 		_ik.set_target_node(1, _ik.get_path_to(_ik_right))
