@@ -448,9 +448,9 @@ Project Doomsday — 1–4
 ### scripts/locations/zaimka.gd (140)
 Заимка охотника Дьаакыпа. Задание «Капканы»: на севере что-то ломает капканы —
 
-### scripts/main.gd (1599)
+### scripts/main.gd (1601)
 Главный узел игры: камера, загрузка локаций, ввод мышью, окна интерфейса.
-`_ready:98` `_on_level_up:127` `_build_ui:138` `space:211` `ui_blocked:215` `sfx:220` `think:245` `_on_menu:250` `_load_slot:278` `_on_sheet_closed:293` `_on_slides_done:304` `_unload:314` `load_location:332` `autosave:377` `quicksave:384` `show_game_over:393` `show_end:397` `status_text:403` `objective_text:409` `_on_hud_action:422` `open_kpk:467` `use_item:493` `_swap_hands:591` `_open_pause:603` `_move_speed:611` `_sneak_radius:622` `on_combat_start:631` `is_filler:647` `filler_bark:652` `talk_to:693` `say:718` `_on_dialog_action:728` `open_trade:767` `_on_dialog_closed:773` `start_fight:778` `_unhandled_input:799` `wait_time:861` `begin_cutscene:866` `end_cutscene:874` `_enemies_near:879` `open_wait:887` `wait_hours:897` `_pick:914` `_click:955` `_may_attack:998` `_near_edge:1008` `_can_leave:1013` `_walk_to_hex:1025` `_walk_clear:1068` `_smooth_path:1083` `_go_then:1097` `_do_pending:1129` `interact:1157` `loot:1181` `_body_entries:1199` `open_loot:1224` `pickpocket:1245` `examine:1280` `_open_actions:1296` `_on_action_picked:1342` `_process:1361` `_update_xray:1427` `_set_alpha:1493` `_update_glow:1505` `_check_aggro:1513` `_look_around:1548` `_look_text:1570`
+`_ready:98` `_on_level_up:127` `_build_ui:138` `space:211` `ui_blocked:215` `sfx:220` `think:245` `_on_menu:250` `_load_slot:278` `_on_sheet_closed:293` `_on_slides_done:304` `_unload:314` `load_location:332` `autosave:379` `quicksave:386` `show_game_over:395` `show_end:399` `status_text:405` `objective_text:411` `_on_hud_action:424` `open_kpk:469` `use_item:495` `_swap_hands:593` `_open_pause:605` `_move_speed:613` `_sneak_radius:624` `on_combat_start:633` `is_filler:649` `filler_bark:654` `talk_to:695` `say:720` `_on_dialog_action:730` `open_trade:769` `_on_dialog_closed:775` `start_fight:780` `_unhandled_input:801` `wait_time:863` `begin_cutscene:868` `end_cutscene:876` `_enemies_near:881` `open_wait:889` `wait_hours:899` `_pick:916` `_click:957` `_may_attack:1000` `_near_edge:1010` `_can_leave:1015` `_walk_to_hex:1027` `_walk_clear:1070` `_smooth_path:1085` `_go_then:1099` `_do_pending:1131` `interact:1159` `loot:1183` `_body_entries:1201` `open_loot:1226` `pickpocket:1247` `examine:1282` `_open_actions:1298` `_on_action_picked:1344` `_process:1363` `_update_xray:1429` `_set_alpha:1495` `_update_glow:1507` `_check_aggro:1515` `_look_around:1550` `_look_text:1572`
 
 ### scripts/ui/char_sheet.gd (376) · class CharSheet
 «Дело» — лист персонажа. Новая игра начинается с выбора одного из четырёх готовых
@@ -627,6 +627,9 @@ Project Doomsday — 1–4
 ### tools/smoke_test.gd (3452)
 Автотест пролога: проходит всю цепочку без участия человека и печатает, что сломалось.
 `new_enc:12` `ok:17` `wait:25` `frames:29` `close_dialogs:34` `shut:43` `choose:48` `opt_texts:54` `find_opt:61` `tp:79` `fight:86` `wait_loading:128` `unreachable:137` `go_upstairs:166` `go_downstairs:176` `nakharro_life_tests:187` `kresty_life_tests:365` `encounter_lore_tests:444` `city_tests:512` `admin_tests:705` `weather_tests:783` `social_tests:850` `markun_tests:946` `mirny_tests:996` `ges_tests:1056` `act4_tests:1092` `armor_tests:1187` `horsun_tests:1217` `nr_go:1253` `nyurba_tests:1267` `sungar_tests:1400` `_ready:1548`
+
+### tools/stairs_test.gd (96)
+Проверка лестниц «как игрок»: герой идёт к лестнице кликом издалека, поднимается, спускается.
 
 ## Данные (data/)
 

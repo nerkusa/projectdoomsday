@@ -353,6 +353,8 @@ func load_location(id: String, spawn := "Start", pos = null) -> void:
 	player.display_name = Game.hero.name
 	player.apply_hero_skin()
 	player.pose = ""
+	# старый маршрут остался в прошлой локации: иначе герой дойдёт «туда же» уже здесь, сквозь стены
+	player.stop()
 	var p: Vector3 = pos if pos != null else location.spawn_point(spawn)
 	player.global_position = Vector3(p.x, 0, p.z)
 	player.set_held(Game.hero_wkey())
