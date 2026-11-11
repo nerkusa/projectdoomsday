@@ -316,12 +316,12 @@ func _village() -> void:
 	put(P.woodpile, vil, Vector3(40.8, 0, 37.8), -0.2)
 	put(P.table, vil, Vector3(41.5, 0, 44.2), 0.0, "TableDed")
 	# огороды за домами и поле на юге
-	for p in [Vector3(36, 0, 37), Vector3(88, 0, 36.8), Vector3(42.5, 0, 55), Vector3(92, 0, 56), Vector3(50, 0, 65),
+	for p in [Vector3(36, 0, 37), Vector3(89.6, 0, 36.2), Vector3(42.5, 0, 55), Vector3(92, 0, 56), Vector3(50, 0, 65),
 			Vector3(89.5, 0, 66.5), Vector3(46, 0, 88)]:
 		put(P.garden, vil, p, 0.0)
 	for gx in range(4):
 		for gz in range(2):
-			put(P.garden, vil, Vector3(72 + gx * 5.5, 0, 84.5 + gz * 3.8), 0.0)
+			put(P.garden, vil, Vector3(72 + gx * 5.5, 0, 86.0 + gz * 3.4), 0.0)
 	# забор Степана вдоль улицы перед его двором: целые пролёты и дыра
 	# (перед дверью избы, x ≈ 73.9, — проход)
 	put(P.fence, vil, Vector3(70.4, 0, 44.1), 0.0, "Fence1")

@@ -165,19 +165,151 @@ func _skin(mi: MeshInstance3D, look: Dictionary) -> void:
 	mi.set_surface_override_material(0, m)
 
 
+## Одежда манекена: тело разбито на зоны (кожа, рубаха, жилет, штаны, сапоги, волосы…),
+## каждая — своя поверхность со своим цветом из look. Материалы обычные (StandardMaterial3D),
+## поэтому силуэт сквозь стены и полупрозрачность в стелсе работают как раньше.
+const ZONES := ["skin", "top", "torso", "forearm", "pants", "boots", "hair", "jaw", "belt"]
+static var _dressed: ArrayMesh
+static var _zone_mats := {}
+
+
 func _tint(mi: MeshInstance3D, look: Dictionary) -> void:
 	if mi.mesh == null:
 		return
-	for i in mi.mesh.get_surface_count():
-		var src := mi.mesh.surface_get_material(i)
-		var joints := src != null and src.resource_name.contains("Joints")
-		var key := "pants" if joints else "top"
-		if not look.has(key):
+	if _dressed == null and mi.skin != null and mi.mesh is ArrayMesh:
+		_dressed = _dress_mesh(mi.mesh as ArrayMesh, mi.skin)
+	if _dressed == null:
+		return
+	mi.mesh = _dressed
+	var top := _col(look, ["top"], "#6b5a2e")
+	var skin := _col(look, ["skin"], "#c49a74")
+	var cols := {
+		"skin": skin, "top": top, "torso": _col(look, ["vest", "top"], "#6b5a2e"),
+		"forearm": skin if str(look.get("sleeves", "")) == "short" else top.darkened(0.06),
+		"pants": _col(look, ["pants"], "#3a3a2e"), "boots": _col(look, ["boots"], "#2b2622"),
+		"hair": _col(look, ["helmet", "cap", "hair"], "#1c1612"),
+		"jaw": _col(look, ["mask", "beard", "skin"], "#c49a74"),
+		"belt": Color("#2a2018"),
+	}
+	for i in _dressed.get_surface_count():
+		var z := _dressed.surface_get_name(i)
+		mi.set_surface_override_material(i, _zone_mat(cols.get(z, top), z))
+
+
+## Цвет детали: первый из ключей, что есть в look. В данных встречается и просто «есть»
+## (true) без цвета — тогда берётся обычный цвет такой вещи.
+const ITEM_COLS := {"helmet": "#3a3f38", "cap": "#3b3226", "mask": "#26282a", "beard": "#3a2c20", "vest": "#4a4436", "boots": "#2b2622"}
+
+
+static func _col(look: Dictionary, keys: Array, def: String) -> Color:
+	for k in keys:
+		if not look.has(k):
 			continue
+		var v = look[k]
+		if v is String and Color.html_is_valid(v):
+			return Color(v)
+		if v is bool and v:
+			return Color(str(ITEM_COLS.get(k, def)))
+	return Color(def)
+
+
+static func _zone_mat(c: Color, zone: String) -> StandardMaterial3D:
+	var key := zone.left(1) + c.to_html(false) if zone in ["skin", "boots"] else c.to_html(false)
+	if not _zone_mats.has(key):
 		var m := StandardMaterial3D.new()
-		m.albedo_color = Color(look[key])
-		m.roughness = 0.8
-		mi.set_surface_override_material(i, m)
+		m.albedo_color = c
+		m.roughness = 0.6 if zone == "skin" else (0.5 if zone == "boots" else 0.92)
+		_zone_mats[key] = m
+	return _zone_mats[key]
+
+
+## Зона вершины: по главной кости и месту в Т-позе (рост манекена 1,83 м, лицо смотрит в +Z)
+static func _zone_of(bone: String, p: Vector3) -> String:
+	if bone.contains("foot") or bone.contains("toe"):
+		return "boots"
+	if bone.contains("shin"):
+		return "boots" if p.y < 0.34 else "pants"
+	if bone.contains("thigh"):
+		return "pants"
+	if bone.contains("hips") or bone.contains("spine"):
+		if p.y > 0.96 and p.y < 1.03:
+			return "belt"
+		return "torso" if p.y >= 1.03 else "pants"
+	if bone.contains("shoulder"):
+		return "torso"
+	if bone.contains("upper_arm"):
+		return "top"
+	if bone.contains("forearm"):
+		return "forearm"
+	if bone.contains("head"):
+		if p.y > 1.775 or (p.z < 0.015 and p.y > 1.63) or (p.z < 0.07 and p.y > 1.74):
+			return "hair"
+		if p.y < 1.64 and p.z > 0.03:
+			return "jaw"
+		return "skin"
+	return "skin"
+
+
+static func _dress_mesh(src: ArrayMesh, skin: Skin) -> ArrayMesh:
+	var lists := {}
+	for s in src.get_surface_count():
+		var a := src.surface_get_arrays(s)
+		var vs: PackedVector3Array = a[Mesh.ARRAY_VERTEX]
+		var bones: PackedInt32Array = a[Mesh.ARRAY_BONES]
+		var wts: PackedFloat32Array = a[Mesh.ARRAY_WEIGHTS]
+		var idx: PackedInt32Array = a[Mesh.ARRAY_INDEX]
+		var per := bones.size() / vs.size()
+		var vz := PackedStringArray()
+		vz.resize(vs.size())
+		for v in vs.size():
+			var best := 0
+			for k in per:
+				if wts[v * per + k] > wts[v * per + best]:
+					best = k
+			vz[v] = _zone_of(str(skin.get_bind_name(bones[v * per + best])), vs[v])
+		# треугольник целиком уходит в зону большинства своих вершин
+		for t in range(0, idx.size(), 3):
+			var z := vz[idx[t]]
+			if vz[idx[t + 1]] == vz[idx[t + 2]]:
+				z = vz[idx[t + 1]]
+			if not lists.has(z):
+				lists[z] = []
+			(lists[z] as Array).append([a, idx[t], idx[t + 1], idx[t + 2]])
+	var out := ArrayMesh.new()
+	for z in ZONES:
+		if not lists.has(z):
+			continue
+		var st := {}  # (поверхность-источник, старая вершина) → новая
+		var nv := PackedVector3Array()
+		var nn := PackedVector3Array()
+		var nb := PackedInt32Array()
+		var nw := PackedFloat32Array()
+		var ni := PackedInt32Array()
+		for tri in lists[z]:
+			var a: Array = tri[0]
+			var vs: PackedVector3Array = a[Mesh.ARRAY_VERTEX]
+			var per: int = (a[Mesh.ARRAY_BONES] as PackedInt32Array).size() / vs.size()
+			for c in 3:
+				var o: int = tri[c + 1]
+				var key := [vs.size(), o]
+				if not st.has(key):
+					st[key] = nv.size()
+					nv.append(vs[o])
+					nn.append((a[Mesh.ARRAY_NORMAL] as PackedVector3Array)[o])
+					for k in per:
+						nb.append((a[Mesh.ARRAY_BONES] as PackedInt32Array)[o * per + k])
+						nw.append((a[Mesh.ARRAY_WEIGHTS] as PackedFloat32Array)[o * per + k])
+				ni.append(st[key])
+		var arr := []
+		arr.resize(Mesh.ARRAY_MAX)
+		arr[Mesh.ARRAY_VERTEX] = nv
+		arr[Mesh.ARRAY_NORMAL] = nn
+		arr[Mesh.ARRAY_BONES] = nb
+		arr[Mesh.ARRAY_WEIGHTS] = nw
+		arr[Mesh.ARRAY_INDEX] = ni
+		out.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arr)
+		out.surface_set_name(out.get_surface_count() - 1, z)
+	return out
 
 
 func hand() -> Node3D:

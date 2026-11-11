@@ -166,7 +166,7 @@ Project Doomsday — 1–4
 - camp_thug: tools/build_act1.gd:692
 - camp_trader: tools/build_act1.gd:697
 - camp_wounded: tools/build_act1.gd:698
-- ded: tools/build_nakharro.gd:472, tools/build_nakharro.gd:530, tools/build_scenes.gd:717, tools/build_scenes.gd:722
+- ded: tools/build_nakharro.gd:472, tools/build_nakharro.gd:530, tools/build_scenes.gd:751, tools/build_scenes.gd:756
 - defender: tools/build_nakharro.gd:536
 - ebee: tools/build_nakharro.gd:1050
 - elder: tools/build_nakharro.gd:492
@@ -203,7 +203,7 @@ Project Doomsday — 1–4
 - hz_kirk: tools/build_east.gd:1817
 - hz_kirsh: tools/build_east.gd:1819
 - hz_viktor: tools/build_east.gd:1818
-- kid: tools/build_nakharro.gd:478, tools/build_scenes.gd:720
+- kid: tools/build_nakharro.gd:478, tools/build_scenes.gd:754
 - kr_banya: tools/build_act1.gd:589
 - kr_brewer: tools/build_act1.gd:572
 - kr_drunk: tools/build_act1.gd:579
@@ -267,10 +267,10 @@ Project Doomsday — 1–4
 - shooter: tools/build_nakharro.gd:507
 - sick: tools/build_nakharro.gd:524
 - smith: tools/build_nakharro.gd:486
-- stepan: tools/build_nakharro.gd:473, tools/build_scenes.gd:718
+- stepan: tools/build_nakharro.gd:473, tools/build_scenes.gd:752
 - teacher: tools/build_act1.gd:1480
 - thoughts: —
-- varvara: tools/build_nakharro.gd:477, tools/build_scenes.gd:719
+- varvara: tools/build_nakharro.gd:477, tools/build_scenes.gd:753
 - water: —
 
 ## Скрипты и сборщики
@@ -505,9 +505,9 @@ Project Doomsday — 1–4
 Атмосферные частицы вокруг героя (узел едет вместе с ним, его создаёт Weather.attach):
 `_ready:20` `_make:53` `refresh:100` `_process:121` `_dot:129` `_leaf:142`
 
-### scripts/world/anim_body.gd (251) · class AnimBody
+### scripts/world/anim_body.gd (383) · class AnimBody
 Манекен из Universal Animation Library (Quaternius, CC0) с готовыми анимациями.
-`build:36` `_build_model:75` `humanoid_library:114` `bone:143` `_skin:149` `_tint:168` `hand:183` `hand_l:187` `grip:195` `has:207` `length:211` `play:217` `_find:234` `_meshes:244`
+`build:36` `_build_model:75` `humanoid_library:114` `bone:143` `_skin:149` `_tint:176` `_col:204` `_zone_mat:216` `_zone_of:227` `_dress_mesh:253` `hand:315` `hand_l:319` `grip:327` `has:339` `length:343` `play:349` `_find:366` `_meshes:376`
 
 ### scripts/world/arm_length.gd (23) · class ArmLength
 Укорачивает (или удлиняет) руки скелета UAL для модели с другими пропорциями:
@@ -579,6 +579,9 @@ Project Doomsday — 1–4
 Нью-Рба — большой алмазный город на месте Нюрбы (Акт II). Город квадратный,
 `_build:16` `_load_all:26` `_finish:48` `_wall:58` `_junk:80` `_junk_items:85` `_city_wall:95` `_city_gate:113` `_walk:141` `_fest_mats:147` `_merged:167` `_garland:185` `_fest_pole:222` `_banner:227` `_festive:255` `_proxod:278` `_sewer:514` `_grid_streets:618` `_walks:636` `_street_dress:643` `_center:662` `_prom:840` `add_rocks:939` `_black:948`
 
+### tools/build_one.gd (19)
+Пересобрать один-два базовых пропса из build_scenes.gd, не трогая остальное:
+
 ### tools/build_props.gd (1551)
 Генератор построек и растительности в стиле референса «Нахарра».
 `_ready:31` `_houses:67` `_tex_mat:81` `_card_mat:100` `_decal_mat:117` `_plain_mat:133` `_materials:145` `begin:214` `add:230` `rough:239` `rsphere:263` `rcone:272` `save_mesh:283` `box:299` `cyl:305` `prism:315` `solid:321` `finish:325` `_merge:397` `log_walls:425` `gable_roof:447` `window:491` `_window:497` `door:520` `wall_colliders:537` `plinth:551` `izba_interior:561` `porch:606` `chimney:621` `house:628` `hall:733` `tower:795` `barn:837` `shed:897` `workshop:912` `gate:937` `barricade:954` `greenhouse:970` `wind_turbine:995` `card:1021` `leaf:1039` `spruce:1046` `pine:1085` `birch:1119` `bush:1142` `dead_tree:1156` `rocks:1170` `tractor:1191` `palisades:1248` `small_props:1291` `scatter_meshes:1422` `travel_items:1469` `_item:1521` `junk:1529` `locked_box:1542`
@@ -587,9 +590,9 @@ Project Doomsday — 1–4
 Деревня и дорога: постройки и вещи для Крестов (баня, часовня, коптильня, нужник,
 `_ready:10` `village_props:49` `personal_items:171` `wreck_props:243` `_an2:359` `_cwing:458` `_rivets:477` `_mi8:485` `_scorch:581` `_grime:589` `_bb:599` `_rbox_mesh:614` `_rotor:639` `_vtol:653` `_drone:737` `_duct:788` `_ring_mesh:808` `_jet:822` `_tw:897` `beam:903` `markun_props:912`
 
-### tools/build_scenes.gd (775)
+### tools/build_scenes.gd (809)
 Генератор стартовых сцен: материалы, пропсы (избы, амбар, деревья…),
-`_ready:17` `_mat:30` `_materials:44` `_own:74` `box:80` `cyl:94` `sphere:110` `prism:125` `collider:137` `save_prop:153` `_props:167` `_izba:193` `_barn:214` `_shed:231` `_fence:244` `_well:261` `_woodpile:274` `_birch:285` `_larch:295` `_dead_tree:305` `_bush:315` `_border_post:323` `_sign:332` `_tractor:361` `_table:375` `_garden:387` `_fire:397` `_item_base:404` `_mushroom:411` `_berries:421` `_planks_item:432` `_basket:441` `_bandage:451` `_rock:458` `_main_scene:467` `fit_label:484` `_label_fits:504` `put:513` `group:526` `character:534` `item:552` `marker:559` `strip:569` `_nakharro:575`
+`_ready:17` `_mat:30` `_materials:44` `_own:74` `box:80` `cyl:94` `sphere:110` `prism:125` `collider:137` `save_prop:153` `_props:167` `_izba:193` `_barn:214` `_shed:231` `_fence:244` `_well:261` `_woodpile:274` `_birch:285` `_larch:295` `_dead_tree:305` `_bush:315` `_border_post:323` `_sign:332` `_tractor:361` `_table:375` `_garden:387` `_fire:431` `_item_base:438` `_mushroom:445` `_berries:455` `_planks_item:466` `_basket:475` `_bandage:485` `_rock:492` `_main_scene:501` `fit_label:518` `_label_fits:538` `put:547` `group:560` `character:568` `item:586` `marker:593` `strip:603` `_nakharro:609`
 
 ### tools/build_sungar.gd (1397)
 Сунгар — бывший посёлок городского типа: три района (ворота и рынок, центр,

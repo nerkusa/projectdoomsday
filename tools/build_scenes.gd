@@ -387,10 +387,44 @@ func _table() -> PackedScene:
 func _garden() -> PackedScene:
 	var r := Node3D.new()
 	r.name = "Garden"
-	box(r, Vector3(5, 0.06, 3), Vector3(0, 0.03, 0), "field")
+	# вскопанная земля в дощатой раме, четыре окученные гряды с разной посадкой
+	box(r, Vector3(5, 0.05, 3), Vector3(0, 0.025, 0), "earth")
+	for sx in [-1, 1]:
+		box(r, Vector3(0.06, 0.2, 3.1), Vector3(sx * 2.5, 0.1, 0), "plank")
+	for sz in [-1, 1]:
+		box(r, Vector3(5.1, 0.2, 0.06), Vector3(0, 0.1, sz * 1.5), "plank")
+	for sx in [-1, 1]:
+		for sz in [-1, 1]:
+			box(r, Vector3(0.09, 0.34, 0.09), Vector3(sx * 2.5, 0.17, sz * 1.5), "log_dark")
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 77
 	for i in 4:
-		for j in 6:
-			sphere(r, 0.22, Vector3(-2.0 + j * 0.8, 0.18, -1.0 + i * 0.66), "cabbage", Vector3(1, 0.7, 1))
+		var z := -1.05 + i * 0.7
+		# гряда — вытянутый земляной валик
+		sphere(r, 0.5, Vector3(0, 0.05, z), "field", Vector3(4.6, 0.3, 0.5))
+		for j in 7:
+			var x := -2.0 + j * 0.66 + rng.randf_range(-0.07, 0.07)
+			var zz := z + rng.randf_range(-0.05, 0.05)
+			match i:
+				0:  # капуста: кочан в розетке листьев
+					sphere(r, 0.25, Vector3(x, 0.17, zz), "grass_green", Vector3(1.25, 0.32, 1.25))
+					sphere(r, 0.17, Vector3(x, 0.25, zz), "cabbage", Vector3(1, 0.85, 1))
+				1:  # картошка: тёмная ботва кустиком
+					for k in 3:
+						sphere(r, 0.13, Vector3(x + rng.randf_range(-0.1, 0.1), 0.24 + k * 0.05, zz + rng.randf_range(-0.1, 0.1)), "grass_green", Vector3(1, 1.2, 1))
+				2:  # лук: перья пучком
+					for k in 3:
+						cyl(r, 0.0, 0.025, rng.randf_range(0.3, 0.42), Vector3(x + (k - 1) * 0.05, 0.3, zz + rng.randf_range(-0.04, 0.04)),
+							"grass_blade", Vector3(rng.randf_range(-0.2, 0.2), 0, rng.randf_range(-0.2, 0.2)), 5)
+				3:  # морковь и свёкла: низкая ботва
+					sphere(r, 0.11, Vector3(x, 0.2, zz), "cabbage", Vector3(1.2, 0.8, 1.2))
+					sphere(r, 0.08, Vector3(x + 0.12, 0.19, zz + 0.05), "grass_green", Vector3(1, 0.9, 1))
+	# колышек с бечёвкой и забытая тяпка
+	cyl(r, 0.02, 0.02, 0.7, Vector3(-2.3, 0.35, -1.3), "log_dark")
+	cyl(r, 0.02, 0.02, 0.7, Vector3(2.3, 0.35, -1.3), "log_dark")
+	box(r, Vector3(4.6, 0.012, 0.012), Vector3(0, 0.62, -1.3), "cloth_sack")
+	box(r, Vector3(0.03, 0.03, 1.2), Vector3(2.1, 0.42, 1.2), "log_dark", Vector3(0.6, 0.3, 0))
+	box(r, Vector3(0.16, 0.02, 0.08), Vector3(2.27, 0.1, 0.72), "metal_dark")
 	return save_prop(r, "garden")
 
 

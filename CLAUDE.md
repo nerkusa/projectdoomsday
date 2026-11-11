@@ -45,6 +45,9 @@
 | Нью-Рба (4 района + коллектор) | `build_nyurba.tscn` |
 | Мар-Кун, Мирный (центр + 4 района + карьер), ГЭС, Рубикон, Горный, ГРЭС-2 и комплекс | `build_east.tscn -- markun\|mirny\|ges\|rubikon\|gorny\|complex` |
 
+Один базовый пропс из build_scenes.gd (огород, стол…): `build_one.tscn -- garden`.
+Жители-манекены одеты по зонам тела (`AnimBody._tint`): цвета из `look` — skin, top, vest, pants, boots, hair/cap/helmet, beard/mask.
+
 После сборки: `tools/revert_churn.sh` — откатывает сцены, где изменились только `unique_id`.
 Новая локация — добавить путь в `LOCATIONS` в `scripts/main.gd`.
 
