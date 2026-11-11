@@ -7,7 +7,7 @@
 - Ветка — **`beta`** (не main). Push: `git push -u origin beta`.
 - Подпись коммита в конце сообщения:
   ```
-  Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+  Co-Authored-By: <как в служебном напоминании сессии> <noreply@anthropic.com>
   Claude-Session: <ссылка на текущую сессию>
   ```
   Идентификатор модели в коммиты и код не писать.
@@ -51,6 +51,7 @@
 ## Тесты
 - Смоук-тест всей игры (~10 мин, запускать в фоне, оба варианта):
   `timeout 1700 $G --headless --path . res://tools/smoke_test.tscn > sm1.log` и то же с `-- stealth`. Итог: `=== ИТОГ: ошибок 0 ===`.
+- Лестницы «как игрок» (подъём/спуск кликом издалека): `res://tools/stairs_test.tscn`. Скриншоты интерфейса (диалог, КПК): `tools/ui_shots.tscn -- префикс`.
 - Аудит откликов: `res://tools/audit_interact.tscn` → «молчаливых: 0».
 - В тестах `Clock.force_day = true` (все на работе). Хелпер проходимости `unreachable(loc, start, only)` в `tools/smoke_test.gd`. Проёмы — не уже 1,9 м.
 - Новое содержимое — сразу дописывать проверки в smoke_test.gd.

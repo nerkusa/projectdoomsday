@@ -67,8 +67,8 @@ func setup() -> void:
 	_text.bbcode_enabled = false
 	_text.fit_content = false
 	_text.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	_text.add_theme_font_override("normal_font", UITheme.mono())
-	_text.add_theme_font_size_override("normal_font_size", 16)
+	_text.add_theme_font_override("normal_font", UITheme.text())
+	_text.add_theme_font_size_override("normal_font_size", 18)
 	_text.add_theme_color_override("default_color", UITheme.AMBER)
 	_text.gui_input.connect(_on_text_click)
 	rv.add_child(_text)
@@ -294,7 +294,8 @@ func _build_options(opts: Array) -> void:
 		b.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		b.focus_mode = Control.FOCUS_NONE
 		b.add_theme_font_override("font", UITheme.mono())
-		b.add_theme_font_size_override("font_size", 15)
+		b.add_theme_font_override("font", UITheme.text())
+		b.add_theme_font_size_override("font_size", 16)
 		var e := StyleBoxEmpty.new()
 		e.set_content_margin_all(5)
 		var hv := StyleBoxFlat.new()

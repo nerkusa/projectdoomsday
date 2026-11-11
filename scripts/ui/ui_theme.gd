@@ -27,12 +27,25 @@ const MISS := Color("d8e89a")
 
 static var _mono: FontFile
 static var _head: FontFile
+static var _text: FontFile
 
 
 static func mono() -> Font:
 	if _mono == null:
-		_mono = _font("pt-mono", ["latin", "latin-ext", "cyrillic", "cyrillic-ext"])
+		_mono = _font("ibm-plex-mono", ["latin", "latin-ext", "cyrillic", "cyrillic-ext"], 500)
+		if _mono == null:
+			_mono = _font("pt-mono", ["latin", "latin-ext", "cyrillic", "cyrillic-ext"])
 	return _mono
+
+
+## Шрифт живой речи — диалоги, мысли, реплики над головой: машина пишет моноширинным,
+## люди говорят обычным
+static func text() -> Font:
+	if _text == null:
+		_text = _font("golos-text", ["cyrillic", "latin", "latin-ext", "cyrillic-ext"], 500)
+		if _text == null:
+			return mono()
+	return _text
 
 
 static func head() -> Font:
@@ -43,10 +56,10 @@ static func head() -> Font:
 	return _head
 
 
-static func _font(fam: String, subsets: Array) -> FontFile:
+static func _font(fam: String, subsets: Array, weight := 400) -> FontFile:
 	var files := []
 	for s in subsets:
-		var p := "res://assets/fonts/%s-%s-400-normal.woff2" % [fam, s]
+		var p := "res://assets/fonts/%s-%s-%d-normal.woff2" % [fam, s, weight]
 		if ResourceLoader.exists(p):
 			files.append(load(p))
 	if files.is_empty():
@@ -144,7 +157,8 @@ static func label(text: String, size := 15, color := AMBER, heading := false) ->
 	var l := Label.new()
 	l.text = text
 	l.add_theme_font_override("font", head() if heading else mono())
-	l.add_theme_font_size_override("font_size", size)
+	# мельче 12 не читается
+	l.add_theme_font_size_override("font_size", maxi(size, 12))
 	l.add_theme_color_override("font_color", color)
 	return l
 

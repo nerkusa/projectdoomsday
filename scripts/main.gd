@@ -439,7 +439,7 @@ func _on_hud_action(a: String) -> void:
 		"kpk":
 			open_kpk()
 		"sheet":
-			if not combat.on and Game.flag("kpk"):
+			if not combat.on:
 				open_kpk("stat")
 		"reload":
 			combat.reload()
@@ -463,32 +463,15 @@ func _on_hud_action(a: String) -> void:
 				hud.refresh()
 
 
-## КПК открывается только когда он есть: каждый раз герой пристёгивает
-## компьютер кабелем к браслету на руке (анимация на самом персонаже,
-## камера на это время приближается). Первый раз — медленнее.
+## КПК — экран браслета: открывается и закрывается сразу, без задержек.
 func open_kpk(t := "") -> void:
 	if combat.on and not combat.my_turn():
 		return
-	if plugging:
+	if kpk.visible:
+		kpk.close()
 		return
-	# до браслета КПК нет — открывается просто сумка, без подключения кабеля
-	if not Game.flag("kpk"):
-		if kpk.visible:
-			kpk.close()
-		else:
-			kpk.open("inv")
-		return
-	var first := not Game.flag("kpk_plugged")
-	Game.set_flag("kpk_plugged")
-	plugging = true
 	player.stop()
-	var z := zoom
-	zoom = minf(zoom, 6.5 if first else 9.0)
-	var done := func():
-		plugging = false
-		zoom = z
-		kpk.open(t)
-	player.act("plug", done, {"dur": 3.2 if first else 1.3})
+	kpk.open(t if t != "" else "inv")
 
 
 ## «Использовать» из КПК: лечит, читается, надевается, меряет, ориентирует
@@ -535,23 +518,20 @@ func use_item(id: String) -> void:
 				Game.hero_changed.emit()
 			return
 		"plug":
-			# модуль «Связь»: вставить в браслет и прослушать запись
-			if not Game.flag("kpk"):
-				think("Вставить некуда — браслет ещё не собран.")
-				return
+			# кассета «Связь»: браслет читает её сам, как только она попала в руки
 			if Game.remove_item(id):
 				var mods: Dictionary = Game.hero.flags.get("modules", {})
 				mods["radio"] = true
 				Game.hero.flags["modules"] = mods
 				sfx("plug", -6.0)
-				Game.log_line("Модуль вставлен: %s" % DB.item_name(id), "", "hit")
-				Game.add_note("Обрывок переговоров (модуль «Связь»): «…Кирк — второму: проводник сказал, их там человек сорок. Старшего взять живым, остальных — по списку. Всё довоенное — в контейнер…» Кирк. Так зовут того, кто командовал.")
+				Game.log_line("Браслет прочитал: %s" % DB.item_name(id), "", "hit")
+				Game.add_note("Обрывок переговоров (кассета «Связь»): «…Кирк — второму: проводник сказал, их там человек сорок. Старшего взять живым, остальных — по списку. Всё довоенное — в контейнер…» Кирк. Так зовут того, кто командовал.")
 				Game.set_flag("knows_kirk")
 				if Game.quest_stage("who") == 1:
 					Game.set_quest("who", 2)
 				Game.hero_changed.emit()
 				kpk.close()
-				think("Щелчок — браслет ожил шипением. «…Кирк — второму: проводник сказал, их там человек сорок. Старшего взять живым, остальных — по списку…» Кирк. Вот как его зовут.")
+				think("Кассета сама встала в паз — браслет ожил шипением. «…Кирк — второму: проводник сказал, их там человек сорок. Старшего взять живым, остальных — по списку…» Кирк. Вот как его зовут.")
 				hud.refresh_objective()
 			return
 		"antirad":

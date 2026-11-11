@@ -8,7 +8,7 @@ extends Location
 ## с третьей темнеет, лесные жители уходят домой) → последняя находка: выстрелы в деревне
 ## и засада нападавшего с монтировкой (проверка Внимательности: удар сзади или шорох и
 ## укрытие в кустах) → казнь на улице → дед у амбара (бой вместе с ним или ждать в тени)
-## → дед отдаёт браслет и компьютер → модули на телах → раненый у черты → черта.
+## → последний разговор с дедом (браслет подарен ещё утром) → раненый у ворот с кассетой «Связь» → черта.
 
 const NEED_FOOD := 5
 ## С какой находки вечереет и лесные жители уходят домой
@@ -362,14 +362,12 @@ func objective() -> String:
 			return "Нахарро горит. Найти деда."
 		return "Дед ранен — подойти к нему." if Game.flag("ded_shot") else "Дед у амбара!"
 	var pack := pack_line()
-	if Game.flag("kpk") and _exit_guard_alive():
+	if _exit_guard_alive():
 		if not Game.flag("friend_scene"):
 			return "Выстрелы у центральных (западных) ворот — бежать туда." + pack
 		return "Убить чужака у центральных ворот." + pack
 	if Game.flag("friend_scene") and not Game.flag("friend_dead"):
 		return "%s у ворот — подойти." % friend(true).display_name + pack
-	if Game.item_count("module_radio") > 0:
-		return "Модуль «Связь» в кармане — вставить в браслет (КПК → вещи) и послушать." + pack
 	return "Идти на запад по старой просеке, к старой черте." + pack
 
 
@@ -1309,6 +1307,9 @@ func on_interact(it: Interactable) -> bool:
 
 func on_dialog_action(a: String, _sp: Character) -> bool:
 	match a:
+		"gift_bracelet":
+			_gift_bracelet()
+			return true
 		"tut_start":
 			tutor.setup(self)
 			tutor.start()
@@ -1362,7 +1363,7 @@ func on_dialog_action(a: String, _sp: Character) -> bool:
 			Game.set_quest("pack", 1)
 			_check_pack()
 			Game.log_line("Дед Уйбаан умер.", "", "miss")
-			main.dialog.closed.connect(_assemble_kpk, CONNECT_ONE_SHOT)
+			main.dialog.closed.connect(_after_ded, CONNECT_ONE_SHOT)
 			return true
 		"hunter_spar":
 			var hunter := character("Hunter")
@@ -1818,64 +1819,51 @@ func _on_hero_changed() -> void:
 		Game.set_quest("chores", 2)
 		Game.set_flag("chores_done")
 		main.hud.refresh_objective()
-	if Game.flag("kpk"):
+	if Game.item_count("module_radio") > 0:
 		_kpk_busy = true
-		_absorb_modules()
+		main.use_item("module_radio")
 		_kpk_busy = false
 
 
-## После смерти деда: надеть браслет и подключить компьютер кабелем
-func _assemble_kpk() -> void:
-	if Game.flag("kpk") or Game.item_count("bracelet") <= 0 or Game.item_count("minicomputer") <= 0:
+## Утро дня рождения: дед дарит отцовский браслет. На руке героя он оживает —
+## с этой минуты КПК работает целиком (вещи, состояние, карта, эфир, кассеты).
+func _gift_bracelet() -> void:
+	if Game.flag("kpk"):
 		return
-	_kpk_busy = true
-	Game.remove_item("bracelet")
-	Game.remove_item("minicomputer")
 	Game.set_flag("kpk")
-	Game.add_note("На браслете деда — знак: треугольник в круге. Такой же был на нашивках нападавших. Отец деда работал на них?")
-	# «Носитель» (состояние владельца) встроен в сам компьютер
-	var mods: Dictionary = Game.hero.flags.get("modules", {})
-	for m in ["carrier", "inventory", "map"]:
-		mods[m] = true
-	Game.hero.flags["modules"] = mods
-	_absorb_modules()
-	_update_exit_guard()
-	_kpk_busy = false
+	Game.hero.flags["modules"] = {"carrier": true, "inventory": true, "map": true}
+	Game.add_note("День рождения. Дед подарил браслет прадеда Эллэя — тот не снимал его до смерти. У деда браслет молчал пятьдесят лет, а на моей руке ожил: «CT14 inc. Носитель опознан».")
+	Game.log_line("Получен браслет Эллэя. КПК — клавиша I.", "", "hit")
+	main.sfx("plug", -6.0)
 	main.player.show_bracelet(true)
+	main.hud.refresh()
+	main.dialog.closed.connect(func(): main.say("thoughts", "bracelet_gift"), CONNECT_ONE_SHOT)
+
+
+## После смерти деда: знак на браслете — тот же, что на нашивках нападавших
+func _after_ded() -> void:
+	# старые сохранения и быстрые старты: браслет всё равно на руке
+	if not Game.flag("kpk"):
+		Game.set_flag("kpk")
+		Game.hero.flags["modules"] = {"carrier": true, "inventory": true, "map": true}
+		main.player.show_bracelet(true)
+	Game.add_note("На браслете — знак: треугольник в круге. Такой же был на нашивках нападавших. Они приходили за ним. Прадед работал на них?")
+	_update_exit_guard()
 	main.hud.refresh()
 	main.hud.refresh_objective()
 	main.say("thoughts", "kpk_on")
 	main.autosave()
 
 
-func _absorb_modules() -> void:
-	var mods: Dictionary = Game.hero.flags.get("modules", {})
-	# «Связь» сама не встаёт — её вставляют вручную (КПК → вещи → «Вставить в браслет»)
-	var names := {"module_carrier": "carrier", "module_inventory": "inventory", "module_map": "map"}
-	var changed := false
-	for k in names:
-		if Game.item_count(k) > 0:
-			Game.remove_item(k)
-			mods[names[k]] = true
-			changed = true
-			Game.log_line("Модуль вставлен: %s" % DB.item_name(k), "", "hit")
-			main.sfx("plug", -6.0)
-	if changed:
-		Game.hero.flags["modules"] = mods
-		Game.hero_changed.emit()
-		_update_exit_guard()
-		main.hud.refresh_objective()
-
-
 # ---------------- раненый у старой черты ----------------
-## Появляется, когда в компьютере есть «Инвентарь» и «Карта». При нём — модуль «Связь».
+## Появляется после смерти деда. При нём — кассета «Связь» с обрывком переговоров.
 func _update_exit_guard() -> void:
 	var g := character("ExitRaider")
 	if g == null:
 		return
 	var mods: Dictionary = Game.hero.flags.get("modules", {})
 	var dead: bool = ws().dead.has(g.uid())
-	var on: bool = Game.flag("kpk") and mods.get("inventory", false) and mods.get("map", false)
+	var on: bool = Game.flag("ded_dead")
 	g.visible = on or dead
 	g.process_mode = Node.PROCESS_MODE_INHERIT if g.visible else Node.PROCESS_MODE_DISABLED
 	if on and not dead:

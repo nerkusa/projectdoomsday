@@ -9,7 +9,7 @@ const STEPS := [
 	["walk", "Дед у своей избы — топай за мной!", "ЛКМ по земле — идти.  Далеко — герой сам перейдёт на бег."],
 	["ded", "Вот он. Поговори с ним — кликни по деду.", "ЛКМ по человеку — поговорить.  Цифры 1–9 — выбрать ответ."],
 	["pick", "Степан доски просил — вон, у его забора. Бери!", "ЛКМ по вещи — взять.  Зажми Alt — слабо подсветятся вещи, которые можно взять."],
-	["bag", "Глянь, что в сумке.", "I — сумка: вещи, оружие в руках, что можно съесть или надеть."],
+	["bag", "Ух ты, дедов браслет светится! Глянь, что он показывает.", "I — КПК на браслете: вещи, состояние героя, карта, задания и записи."],
 	["sneak", "Мелкие в прятки играют. Пригнись — подкрадёмся!", "Z — красться: тише и медленнее.  Жёлтые конусы — куда смотрят люди."],
 	["stalk", "Спорим, не подкрадёшься к {who} со спины?", "Крадучись (Z) подойди к {who} сзади — ближе двух шагов, не попадая в жёлтый конус."],
 	["alt", "Глянь — у Тимира на верстаке отвёртка. Зажми Alt — видно, что тут можно взять. Только она чужая!", "Alt (зажать) — подсветить вещи.  Наведи курсор: «· чужое» — значит, взять = украсть.  Заметят — молва упадёт."],
@@ -21,6 +21,8 @@ const STEPS := [
 const FOLLOW_DIST := 3.2
 ## Сколько держится карточка с подсказкой
 const CARD_SEC := 10.0
+## Меньше этого урок на экране не держится — иначе подсказка мелькает
+static var min_step_sec := 2.5
 
 var loc: Node
 var main: Node
@@ -33,6 +35,7 @@ var _card_t := 0.0
 var _call_t := 0.0
 var _say_t := 0.0
 var _caught_t := 0.0
+var _shown_t := 0.0
 
 
 func setup(l: Node) -> void:
@@ -106,6 +109,7 @@ func _process(delta: float) -> void:
 	if _shown != i:
 		_shown = i
 		_step_t = 0.0
+		_shown_t = 0.0
 		var f := friend()
 		if STEPS[i][0] == "stalk":
 			_who = _pick_target()
@@ -116,7 +120,9 @@ func _process(delta: float) -> void:
 		Game.set_quest("lessons", i + 1)
 		if STEPS[i][0] == "spar":
 			Game.set_flag("tut_spar_ready")
-	if _done(str(STEPS[i][0])):
+	# подсказку надо успеть прочитать: урок не засчитывается раньше min_step_sec
+	_shown_t += 0.25
+	if _done(str(STEPS[i][0])) and _shown_t >= min_step_sec:
 		Game.world["_tut"] = i + 1
 		return
 	_follow(str(STEPS[i][0]))
@@ -128,7 +134,7 @@ func _done(id: String) -> bool:
 	match id:
 		"walk":
 			var ded: Character = loc.character("Ded")
-			return p.distance_to(_start_pos) > 5.0 or (ded != null and p.distance_to(ded.global_position) < 5.0)
+			return p.distance_to(_start_pos) > 3.0 or (ded != null and p.distance_to(ded.global_position) < 2.5)
 		"ded":
 			return Game.quest_stage("chores") >= 1
 		"pick":
@@ -219,19 +225,31 @@ func _follow(id: String) -> void:
 	if lead != null:
 		# ведёт «за ручку»: идёт к цели урока, ждёт там и зовёт, если отстали
 		tgt = (lead as Vector3) + Vector3(1.4, 0, 1.0)
-		if f.global_position.distance_to(tgt) <= 1.5:
-			_call_t -= 0.25
-			if p.distance_to(tgt) > 7.0 and _call_t <= 0.0:
-				_call_t = 8.0
-				f.face_towards(p)
-				f.bark(main.dialog._subst(["Сюда, сюда!", "Ну, чего отстал{g:|а}? Сюда!", "Я тут! Иди за мной!"][randi() % 3]))
+		if f.global_position.distance_to(tgt) <= 2.4:
+			_call(f, p)
 			return
 	elif f.global_position.distance_to(tgt) <= FOLLOW_DIST:
 		return
 	var back := (f.global_position - tgt)
 	back.y = 0.0
 	var to: Vector3 = tgt + back.normalized() * 1.8
-	f.move_along(Clock._route(loc, f.global_position, to), Callable(), 3.8 if id != "walk" else 3.0)
+	# уже почти на месте (или ближе не подойти) — стоит спокойно, а не переминается
+	var route: Array = Clock._route(loc, f.global_position, to)
+	if route.is_empty() or f.global_position.distance_to(route[route.size() - 1]) < 1.0:
+		if lead != null:
+			f.face_towards(p)
+			_call(f, p)
+		return
+	f.move_along(route, Callable(), 3.8 if id != "walk" else 3.0)
+
+
+## Друг дошёл до места урока и ждёт: зовёт, если герой отстал
+func _call(f: Character, p: Vector3) -> void:
+	_call_t -= 0.25
+	if p.distance_to(f.global_position) > 7.0 and _call_t <= 0.0:
+		_call_t = 14.0
+		f.face_towards(p)
+		f.bark(main.dialog._subst(["Сюда, сюда!", "Ну, чего отстал{g:|а}? Сюда!", "Я тут! Иди за мной!"][randi() % 3]))
 
 
 ## Куда друг ведёт на этом уроке (null — просто держится рядом)

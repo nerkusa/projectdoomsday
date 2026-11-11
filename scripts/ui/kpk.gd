@@ -14,6 +14,13 @@ var _tabs: VBoxContainer
 var _title: Label
 var _brand: Label
 var _map: Control
+var _sys: Label
+var _foot: Label
+var _blink := 0.0
+var _dirty := false
+
+const TABS := ["inv", "stat", "cas", "map", "ether", "quests", "notes"]
+const NAMES := {"inv": "Инвентарь", "stat": "Дело", "cas": "Кассеты", "map": "Карта", "ether": "Эфир", "quests": "Задания", "notes": "Записи"}
 
 
 func setup(m: Node) -> void:
@@ -59,7 +66,12 @@ func setup(m: Node) -> void:
 	hb.add_child(scr)
 	var sv := VBoxContainer.new()
 	scr.add_child(sv)
-	_title = UITheme.label("", 12, UITheme.GREEN_DIM, true)
+	# системная строка: кто носитель, сколько памяти открыто, который час
+	_sys = UITheme.label("", 12, UITheme.GREEN_DIM)
+	_sys.clip_text = true
+	sv.add_child(_sys)
+	sv.add_child(_rule())
+	_title = UITheme.label("", 13, UITheme.GREEN_HI, true)
 	sv.add_child(_title)
 	var scroll := ScrollContainer.new()
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -69,8 +81,55 @@ func setup(m: Node) -> void:
 	_screen.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_screen.add_theme_constant_override("separation", 4)
 	scroll.add_child(_screen)
+	sv.add_child(_rule())
+	# строка состояния: фон, заряд, подсказка по клавишам, мигающий курсор
+	_foot = UITheme.label("", 12, UITheme.GREEN_DIM)
+	_foot.clip_text = true
+	sv.add_child(_foot)
+	# строчная развёртка поверх экрана
+	var crt := ColorRect.new()
+	crt.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var cm := ShaderMaterial.new()
+	cm.shader = load("res://assets/shaders/crt_lines.gdshader")
+	crt.material = cm
+	scr.add_child(crt)
 	visible = false
-	Game.hero_changed.connect(func(): if visible: render())
+	# несколько изменений подряд (взял пять вещей) — одна перерисовка в конце кадра
+	Game.hero_changed.connect(func():
+		if visible and not _dirty:
+			_dirty = true
+			_redraw.call_deferred())
+
+
+func _redraw() -> void:
+	_dirty = false
+	if visible:
+		render()
+
+
+func _rule() -> ColorRect:
+	var r := ColorRect.new()
+	r.color = Color(UITheme.GREEN_DIM, 0.45)
+	r.custom_minimum_size = Vector2(0, 1)
+	r.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	return r
+
+
+func _process(delta: float) -> void:
+	if not visible or _foot == null:
+		return
+	_blink += delta
+	if _blink >= 0.5:
+		_blink = 0.0
+		_status()
+
+
+## Нижняя строка экрана; курсор мигает раз в полсекунды
+func _status() -> void:
+	var rad := Rad.level()
+	var fon := "ФОН норма" if rad < 1.0 else "ДОЗА %d рад" % int(rad)
+	var cur := "█" if _foot.text.ends_with(" ") else " "
+	_foot.text = "%s · ЗАРЯД %d%% · [1–7] разделы · [Esc] закрыть  >%s" % [fon, 96 - (Clock.day() * 7) % 23, cur]
 
 
 func open(t := "") -> void:
@@ -86,30 +145,29 @@ func close() -> void:
 
 
 func has_tab(t: String) -> bool:
-	if Game.flag("kpk"):
-		return t in ["inv", "stat", "cas", "map", "quests", "notes"]
-	return t in ["inv", "quests"]
+	return t in TABS
 
 
 func render() -> void:
-	var kpk := Game.flag("kpk")
-	_brand.text = "CT14 INC. · КПК НА БРАСЛЕТЕ" if kpk else "СУМКА"
+	_brand.text = "CT14 INC. · КПК НА БРАСЛЕТЕ"
 	for c in _tabs.get_children():
 		c.queue_free()
-	var names := {"inv": "Инвентарь", "stat": "Дело", "cas": "Кассеты", "map": "Карта", "quests": "Задания", "notes": "Записи"}
 	if not has_tab(tab):
-		tab = "inv" if has_tab("inv") else ("stat" if has_tab("stat") else "quests")
-	for t in ["inv", "stat", "cas", "map", "quests", "notes"]:
-		if not has_tab(t):
-			continue
-		var b := UITheme.key(names[t], "sel" if t == tab else "normal", 12)
+		tab = "inv"
+	var n := 1
+	for t in TABS:
+		var b := UITheme.key("%d  %s" % [n, NAMES[t]], "sel" if t == tab else "normal", 12)
+		b.alignment = HORIZONTAL_ALIGNMENT_LEFT
 		b.pressed.connect(func():
 			tab = t
 			render())
 		_tabs.add_child(b)
+		n += 1
+	_sys.text = "CT14-OS 2.11 · НОСИТЕЛЬ: %s · ПАМЯТЬ %d/%d · %s" % [str(Game.hero.name).to_upper(), Game.cas_working(), Game.CAS_SLOTS, Clock.text().to_upper()]
+	_status()
 	for c in _screen.get_children():
 		c.queue_free()
-	_title.text = names[tab].to_upper()
+	_title.text = "> " + str(NAMES[tab]).to_upper()
 	match tab:
 		"inv":
 			_render_inv()
@@ -119,6 +177,8 @@ func render() -> void:
 			_render_cas()
 		"map":
 			_render_map()
+		"ether":
+			_render_ether()
 		"quests":
 			_render_quests()
 		"notes":
@@ -376,7 +436,7 @@ func _render_cas() -> void:
 		if i < c.size():
 			txt += DB.item_name(c[i]) + ("   [память закрыта]" if locked else "")
 		else:
-			txt += "ЗАБЛОКИРОВАНО" if locked else "— пусто —"
+			txt += "░░ ПАМЯТЬ ЗАКРЫТА ░░" if locked else "[ СЛОТ ПУСТ ]"
 		var l := _g(txt, 14, UITheme.GREEN_DIM if locked else UITheme.GREEN)
 		l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		if i < c.size():
@@ -421,6 +481,30 @@ func _render_map() -> void:
 	_screen.add_child(_g("Жёлтый квадрат — ты, точки — люди (красные — враги), ромбы — отметки", 12, UITheme.GREEN_DIM))
 
 
+## Эфир: что браслет слышит. Без кассеты «Эфир» — только треск и прочитанные ленты.
+func _render_ether() -> void:
+	var has: bool = "cas_ether" in Game.cas_active()
+	var mods: Dictionary = Game.hero.flags.get("modules", {})
+	if has:
+		_screen.add_child(_g("ПРИЁМНИК: ВКЛ · кассета «Эфир» в памяти", 13, UITheme.GREEN_HI))
+	else:
+		_screen.add_child(_g("НЕТ НЕСУЩЕЙ ЧАСТОТЫ", 15, UITheme.GREEN_HI))
+		_screen.add_child(_g("▁▂▁▁▃▁▂▁▁▁▂▁▃▁▁▂▁▁▁▂▁▁▃▁▂▁▁▁▂▁", 13, UITheme.GREEN_DIM))
+		_screen.add_child(_g("Приёмник молчит. Вставьте кассету «Эфир» (раздел 3) — браслет начнёт ловить станции.", 13, UITheme.GREEN_DIM))
+	var heard := []
+	for n in Game.hero.notes:
+		var t := str(n)
+		if t.contains("ереговор") or t.contains("эфир") or t.contains("Эфир") or t.contains("сводк"):
+			heard.append(t)
+	_screen.add_child(_g("ЗАПИСАНО С ЛЕНТ И ИЗ ЭФИРА", 12, UITheme.GREEN_DIM))
+	if heard.is_empty():
+		_screen.add_child(_g("[ НЕТ ЗАПИСЕЙ ]" if not mods.get("radio", false) else "[ ЛЕНТА «СВЯЗЬ» ПРОЧИТАНА ]", 13, UITheme.GREEN_DIM))
+	for t in heard:
+		var p := UITheme.panel(UITheme.screen(true, 8))
+		p.add_child(_g(t, 13))
+		_screen.add_child(p)
+
+
 func _render_quests() -> void:
 	var any := false
 	for id in Game.hero.q:
@@ -437,12 +521,12 @@ func _render_quests() -> void:
 		if txt != "":
 			_screen.add_child(_g("   " + txt, 13, UITheme.GREEN_DIM if done else UITheme.GREEN))
 	if not any:
-		_screen.add_child(_g("Заданий нет.", 13, UITheme.GREEN_DIM))
+		_screen.add_child(_g("[ НЕТ ОТКРЫТЫХ ДЕЛ ]", 13, UITheme.GREEN_DIM))
 
 
 func _render_notes() -> void:
 	if Game.hero.notes.is_empty():
-		_screen.add_child(_g("Лента пуста.", 13, UITheme.GREEN_DIM))
+		_screen.add_child(_g("[ ЛЕНТА ПУСТА ] Сюда браслет пишет всё, что стоит запомнить.", 13, UITheme.GREEN_DIM))
 	for n in Game.hero.notes:
 		var p := UITheme.panel(UITheme.screen(true, 8))
 		p.add_child(_g(n, 13))
@@ -450,6 +534,12 @@ func _render_notes() -> void:
 
 
 func _unhandled_key_input(e: InputEvent) -> void:
-	if visible and e is InputEventKey and e.pressed and not e.echo and (e.keycode == KEY_ESCAPE or e.keycode == KEY_I):
+	if not visible or not (e is InputEventKey) or not e.pressed or e.echo:
+		return
+	if e.keycode == KEY_ESCAPE or e.keycode == KEY_I:
 		close()
+		get_viewport().set_input_as_handled()
+	elif e.keycode >= KEY_1 and e.keycode < KEY_1 + TABS.size():
+		tab = TABS[e.keycode - KEY_1]
+		render()
 		get_viewport().set_input_as_handled()

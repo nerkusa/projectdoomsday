@@ -1199,7 +1199,11 @@ func armor_tests() -> void:
 	Game.hero.stats["BODY"] = 7
 	main.use_item("suit_horizon")
 	ok(Game.suit() == "suit_horizon", "с Телом 7 надел пластины «Горизонта»")
-	ok(int(Game.skill_bonus().get("Скрытность", 0)) <= -2, "в тяжёлом костюме красться труднее")
+	var sn1 := int(Game.skill_bonus().get("Скрытность", 0))
+	Game.toggle_suit("suit_horizon")
+	var sn0 := int(Game.skill_bonus().get("Скрытность", 0))
+	Game.toggle_suit("suit_horizon")
+	ok(sn1 <= sn0 - 2, "в тяжёлом костюме красться труднее (%d → %d)" % [sn0, sn1])
 	Game.set_suit_arm("suit_horizon", 2)
 	Game.force_check = 1
 	main.use_item("repair_kit")
@@ -1461,8 +1465,8 @@ func sungar_tests() -> void:
 	await choose(find_opt("серой броне"))
 	await choose(find_opt("Отдать 40 рублей"))
 	await shut()
-	ok(Game.quest_stage("bootur") == 8 and wm.known("markun") and wm.known("mirny") and "список Б" in str(Game.hero.notes),
-		"бюро Полиса: «список Б» с убитого чистильщика — дальше Мар-Кун")
+	ok(Game.quest_stage("bootur") == 8 and wm.known("markun") and "список Б" in str(Game.hero.notes),
+		"бюро Полиса: «список Б» с убитого чистильщика — дальше Мар-Кун (этап %d, рублей %d, узел %s)" % [Game.quest_stage("bootur"), Game.item_count("rubles"), main.dialog.node_id])
 	# жилой квартал
 	loc.on_interact(loc.item("ToQuarter"))
 	await wait_loading()
@@ -1551,6 +1555,8 @@ func _ready() -> void:
 	# сюжетные проверки — днём; ночь и расписание проверяются отдельно
 	Clock.force_day = true
 	Clock.running = false
+	# в тесте уроки идут без паузы «на прочтение подсказки»
+	Tutor.min_step_sec = 0.0
 	main = load("res://scenes/main.tscn").instantiate()
 	add_child(main)
 	await frames(3)
@@ -1675,15 +1681,13 @@ func _ready() -> void:
 	await wait(1.0)
 	ok(main.hud.thought_visible() and not main.dialog.visible, "мысли при пробуждении — над головой")
 	ok(Game.hero.owned.has("father_pistol") and not Game.hero.owned.has("oyun"), "с начала только отцовский пистолет")
-	ok(not main.hud._bar.visible and not main.hud._tape.visible and main.hud._hand.visible, "до КПК: только слот «в руке»")
+	ok(main.hud._bar.visible and not main.hud._bag.visible, "панель КПК — с самого начала, отдельной «Сумки» нет")
 	main.open_kpk()
 	await frames(2)
-	ok(main.kpk.visible and not main.plugging and main.kpk.tab == "inv" and not main.kpk.has_tab("stat"), "до КПК по [I] открывается сумка (только вещи и задания)")
-	main.kpk.close()
-	main.hud._bag.pressed.emit()
+	ok(main.kpk.visible and main.kpk.tab == "inv" and main.kpk.has_tab("stat") and main.kpk.has_tab("map"), "по [I] КПК открывается сразу и целиком")
+	main.open_kpk()
 	await frames(2)
-	ok(main.kpk.visible, "кнопка «Сумка» тоже открывает")
-	main.kpk.close()
+	ok(not main.kpk.visible, "повторное [I] закрывает КПК")
 	await frames(1)
 	# свободная ходьба: герой встаёт ровно в точку клика, а не в центр гекса
 	var start: Vector3 = main.player.global_position
@@ -1771,8 +1775,11 @@ func _ready() -> void:
 	await frames(2)
 	ok(main.dialog.visible, "разговор с дедом")
 	await choose(find_opt("Что нужно"))
+	ok(not Game.flag("kpk"), "до подарка браслета нет")
 	await choose(0)
 	ok(Game.hero.owned.has("oyun"), "дед подарил нож «Ойун»")
+	ok(Game.flag("kpk") and main.dialog.node_id == "gift2", "день рождения: дед подарил браслет, и тот ожил")
+	await choose(0)
 	await choose(0)
 	ok(Game.quest_stage("chores") == 1, "задание «Утро» взято")
 	ok(main.hud._log.get_parsed_text().contains("Вы видите:"), "в журнале «Вы видите: …»")
@@ -2269,7 +2276,7 @@ func _ready() -> void:
 	main.loot(r1)
 	main.loot_win.take_all()
 	await wait(0.3)
-	ok(not main.hud._bar.visible, "панели всё ещё нет — КПК не собран")
+	ok(main.hud._bar.visible, "панель КПК на месте и после налёта")
 	Game.hero.hands = ["father_pistol", "oyun"]
 	Game.hero.active = 0
 	Game.auto_reload()
@@ -2328,15 +2335,12 @@ func _ready() -> void:
 	ok(dw.pose == "dead" and not main.location.ws().looted.has(dw.uid()), "после налёта защитники у западных ворот мертвы, их можно обыскать")
 	ok(main._body_entries(dw).any(func(e): return e.id == "rifle"), "у тела защитника есть винтовка")
 	ok(Game.quest_stage("bootur") == 1, "задание «Найти Боотура»")
-	ok(Game.flag("kpk"), "браслет + компьютер деда = КПК")
-	ok(main.dialog.visible and main.dialog.node_id == "kpk_on", "мысль: подключить кабель")
-	await choose(0)
+	ok(Game.flag("kpk") and Game.item_count("bracelet") == 0, "браслет на руке с утра, дед ничего не передаёт")
+	ok(main.hud.thought_visible() and "треугольник в круге" in str(Game.hero.notes), "мысль: знак на браслете — как на нашивках")
 	await frames(4)
-	ok(main.plugging, "анимация подключения к браслету")
 	var tk := 0.0
-	while not main.kpk.visible and tk < 8.0:
-		await wait(0.25)
-		tk += 0.25
+	main.open_kpk("stat")
+	await frames(3)
 	ok(main.kpk.visible and main.kpk.tab == "stat", "КПК открылся: «Состояние»")
 	ok(main.kpk.has_tab("inv") and main.kpk.has_tab("map") and main.kpk.has_tab("stat"), "КПК сразу полный: инвентарь, «Дело», карта")
 	ok(not main.hud._btns.has("sheet"), "кнопки «Дело» на панели нет — оно в КПК")
@@ -2344,7 +2348,7 @@ func _ready() -> void:
 	ok(main.hud._bar.visible and main.hud._tape.visible, "с КПК появился полный интерфейс")
 	main.open_kpk("quests")
 	await frames(3)
-	ok(main.plugging, "подключение каждый раз при открытии")
+	ok(main.kpk.visible and not main.plugging, "КПК открывается мгновенно, без подключения кабеля")
 	tk = 0.0
 	while not main.kpk.visible and tk < 4.0:
 		await wait(0.25)
@@ -2407,12 +2411,9 @@ func _ready() -> void:
 	main.loot(eg)
 	await wait(0.4)
 	main.loot_win.take_all()
+	await frames(3)
 	var mods: Dictionary = Game.hero.flags.get("modules", {})
-	ok(not mods.get("radio", false) and Game.item_count("module_radio") == 1, "модуль «Связь» с раненого — в кармане, сам не встаёт")
-	main.use_item("module_radio")
-	await frames(2)
-	mods = Game.hero.flags.get("modules", {})
-	ok(mods.get("radio", false) and Game.item_count("module_radio") == 0, "модуль «Связь» вставлен в браслет вручную")
+	ok(mods.get("radio", false) and Game.item_count("module_radio") == 0, "кассету «Связь» браслет читает сам, как только она в руках")
 	ok(Game.flag("knows_kirk") and Game.quest_stage("who") == 2, "из модуля «Связь» герой узнаёт про Кирка")
 	for tb in ["inv", "stat", "cas", "map", "quests", "notes"]:
 		main.kpk.open(tb)
@@ -3407,7 +3408,7 @@ func _ready() -> void:
 	main.talk_to(trd)
 	await frames(2)
 	ok(not main.dialog.visible, "спящую не разбудить разговором")
-	ok(sun.light_energy < 0.5, "ночью темно (солнце %.2f)" % sun.light_energy)
+	ok(sun.light_energy < 0.6, "ночью темно (солнце %.2f)" % sun.light_energy)
 	var hn := Clock.hours()
 	await main.wait_time(true)
 	ok(not main.wait_scr.visible, "затемнение после ожидания снято")

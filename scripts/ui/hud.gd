@@ -179,8 +179,8 @@ func _build() -> void:
 	_mini_log.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_mini_log)
 	_thought = Label.new()
-	_thought.add_theme_font_override("font", UITheme.mono())
-	_thought.add_theme_font_size_override("font_size", 14)
+	_thought.add_theme_font_override("font", UITheme.text())
+	_thought.add_theme_font_size_override("font_size", 17)
 	_thought.add_theme_color_override("font_color", Color("e8eef2"))
 	_thought.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.95))
 	_thought.add_theme_constant_override("shadow_offset_y", 2)
@@ -239,7 +239,7 @@ func _build() -> void:
 	_log.scroll_following = true
 	_log.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	_log.add_theme_font_override("normal_font", UITheme.mono())
-	_log.add_theme_font_size_override("normal_font_size", 12)
+	_log.add_theme_font_size_override("normal_font_size", 13)
 	_log.add_theme_color_override("default_color", UITheme.GREEN)
 	lv.add_child(_log)
 
@@ -376,9 +376,8 @@ func refresh() -> void:
 	_hp_bar.value = Game.hero_hp()
 	_hp_lbl.text = "%d/%d" % [Game.hero_hp(), Game.hero_max()]
 	var on := _combat.on
-	# полная панель — только с КПК; до него — рука, сумка и в бою конец хода
-	_bar.visible = Game.flag("kpk")
-	_tape.visible = Game.flag("kpk")
+	_bar.visible = true
+	_tape.visible = true
 	_hand.visible = not _bar.visible
 	_bag.visible = not _bar.visible
 	_end_small.visible = not _bar.visible and on
@@ -427,7 +426,7 @@ func refresh() -> void:
 	UITheme.style_key(_btns.sneak, "sel" if h.get("sneak", false) else "normal")
 	# «Дело» (лист персонажа) живёт в КПК; точка — есть нераспределённые очки
 	var pts := int(h.stat_pts) + int(h.skill_pts)
-	_btns.kpk.text = ("КПК  [I]" + (" •" if pts > 0 else "")) if Game.flag("kpk") else "Сумка  [I]"
+	_btns.kpk.text = "КПК  [I]" + (" •" if pts > 0 else "")
 	_status.text = main.status_text() if main.has_method("status_text") else ""
 
 
