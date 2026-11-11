@@ -126,6 +126,7 @@ func apply_light(loc: Node) -> void:
 		sun.set_meta("base_rot", sun.rotation)
 		if we and we.environment:
 			var e := we.environment
+			Graphics.tune_env(e)
 			we.set_meta("amb", e.ambient_light_energy)
 			we.set_meta("amb_col", e.ambient_light_color)
 			we.set_meta("bg", e.background_color)
@@ -138,7 +139,7 @@ func apply_light(loc: Node) -> void:
 		wl.emission_energy_multiplier = lerpf(1.6, 0.0, clampf(k * 1.4, 0.0, 1.0))
 	var wi := load("res://assets/materials/window.tres") as StandardMaterial3D  # окна изб
 	if wi:
-		wi.emission_energy_multiplier = lerpf(0.9, 0.1, clampf(k * 1.4, 0.0, 1.0))
+		wi.emission_energy_multiplier = lerpf(0.9, 0.0, clampf(k * 1.4, 0.0, 1.0))
 	var base_rot: Vector3 = sun.get_meta("base_rot")
 	var h := hour_of_day()
 	# солнце идёт с востока на запад; ночью вместо него — луна, холодная и слабая
@@ -148,10 +149,10 @@ func apply_light(loc: Node) -> void:
 	var moon := Color(0.55, 0.65, 0.95)
 	var day_col: Color = sun.get_meta("base_color")
 	sun.light_color = moon.lerp(day_col.lerp(Color("ffb27a"), t * 0.8), k)
-	sun.light_energy = lerpf(0.38, float(sun.get_meta("base_energy")), k)
+	sun.light_energy = lerpf(0.55, float(sun.get_meta("base_energy")), k)
 	if we and we.environment and we.has_meta("amb"):
 		var e := we.environment
-		e.ambient_light_energy = float(we.get_meta("amb")) * lerpf(0.7, 1.0, k)
+		e.ambient_light_energy = float(we.get_meta("amb")) * lerpf(0.85, 1.0, k)
 		e.ambient_light_color = Color(0.42, 0.48, 0.72).lerp(we.get_meta("amb_col"), k)
 		e.background_color = Color(0.04, 0.05, 0.09).lerp(we.get_meta("bg"), k)
 		e.fog_light_color = Color(0.12, 0.14, 0.22).lerp((we.get_meta("fog") as Color).lerp(Color("c08a5a"), t * 0.5), k)

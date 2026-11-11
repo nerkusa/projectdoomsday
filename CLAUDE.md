@@ -57,6 +57,7 @@
 
 ## Скриншоты
 `xvfb-run -a -s "-screen 0 1600x900x24" $G --rendering-driver opengl3 --resolution 1600x900 --path . res://tools/render_shots.tscn -- "кадры" префикс`
+**Игрок видит основной рендер (Forward+), он темнее GL.** Итоговую картинку проверять им: `apt-get install -y mesa-vulkan-drivers`, `export VK_ICD_FILENAMES=/usr/share/vulkan/icd.d/lvp_icd.json`, та же команда с `--rendering-driver vulkan` (медленно, ~1,5 мин на кадр). Общий свет/цвет — `Graphics.tune_env`.
 Формат кадров — в шапке `tools/render_shots.gd` (локация|x|z|zoom|час|флаги, MAP, WAIT). Один проп: `tools/preview_prop.tscn`.
 
 ## Свои модели персонажей (Tripo / Mixamo)

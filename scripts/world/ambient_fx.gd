@@ -22,7 +22,7 @@ func _ready() -> void:
 	_motes = _make(220, 7.0, Vector3(18, 4, 18), Vector3(0, 2.5, 0), Color(1.0, 0.92, 0.7, 0.6), 0.09, 0.25, Vector3(0, 0.05, 0), true)
 	_leaves = _make(140, 9.0, Vector3(22, 2, 22), Vector3(0, 9, 0), Color(0.85, 0.6, 0.18, 1.0), 0.32, 0.6, Vector3(0.4, -0.9, 0.2), false)
 	_flies = _make(90, 6.0, Vector3(16, 1.6, 16), Vector3(0, 1.4, 0), Color(0.8, 1.0, 0.35, 1.0), 0.14, 0.6, Vector3.ZERO, true)
-	_ash = _make(700, 9.0, Vector3(24, 2, 24), Vector3(0, 10, 0), Color(0.42, 0.4, 0.38, 0.85), 0.13, 0.3, Vector3(0.2, -0.7, 0.1), false)
+	_ash = _make(700, 9.0, Vector3(24, 2, 24), Vector3(0, 10, 0), Color(0.2, 0.19, 0.18, 0.6), 0.1, 0.3, Vector3(0.2, -0.7, 0.1), false)
 	_embers = _make(110, 6.0, Vector3(20, 4, 20), Vector3(0, 3, 0), Color(1.0, 0.45, 0.1, 1.0), 0.1, 0.9, Vector3(0.1, 0.25, 0.05), true)
 	# листья разных оттенков и кувыркаются
 	var lm := _leaves.process_material as ParticleProcessMaterial

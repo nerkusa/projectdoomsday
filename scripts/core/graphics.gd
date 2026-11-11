@@ -118,8 +118,36 @@ static func apply(tree: SceneTree) -> void:
 
 
 
+## Общий «проявитель» картинки для всех уличных локаций (вызывается один раз на локацию,
+## до того как часы запомнят дневной свет). На основном рендере (Vulkan / DirectX) сцена
+## выходит темнее и грязнее, чем на простом GL, поэтому там поднимаем экспозицию.
+static func tune_env(env: Environment) -> void:
+	var main_renderer := RenderingServer.get_current_rendering_method() != "gl_compatibility"
+	# тени — холодные от неба, а не чёрно-бурые: тёплое солнце против прохладной тени
+	env.ambient_light_color = Color(0.66, 0.69, 0.76)
+	env.ambient_light_energy = TUNE.amb
+	env.tonemap_mode = Environment.TONE_MAPPER_FILMIC
+	env.tonemap_exposure = TUNE.exp if main_renderer else 1.0
+	env.tonemap_white = TUNE.white
+	env.adjustment_enabled = true
+	env.adjustment_saturation = TUNE.sat
+	env.adjustment_contrast = TUNE.con
+	env.glow_intensity = 0.5
+	env.glow_bloom = 0.02
+	env.glow_hdr_threshold = 1.1
+	# тени в углах и под стенами — дёшево и сразу «сажает» предметы на землю
+	env.ssao_enabled = main_renderer
+	env.ssao_radius = 1.2
+	env.ssao_intensity = TUNE.ao
+	env.ssao_power = 1.5
+	env.ssao_light_affect = 0.25
+
+
+static var TUNE := {"amb": 0.55, "exp": 1.65, "white": 1.3, "sat": 1.2, "con": 1.06, "ao": 2.0}
+
+
 ## «Живой свет» — аналог Lumen: SDFGI (отражённый свет от земли и стен), SSIL (подсветка
-## от соседних поверхностей), SSAO (тени в углах и щелях) и лёгкий объёмный туман (лучи у
+## от соседних поверхностей) и лёгкий объёмный туман (лучи у
 ## фонарей и костров). Работает только на основном рендере (Vulkan / DirectX); на простом
 ## GL-рендере эти настройки игнорируются.
 static func _apply_gi(env: Environment, on: bool) -> void:
@@ -134,11 +162,6 @@ static func _apply_gi(env: Environment, on: bool) -> void:
 	if on:
 		env.ssil_radius = 6.0
 		env.ssil_intensity = 1.2
-	env.ssao_enabled = on
-	if on:
-		env.ssao_radius = 1.4
-		env.ssao_intensity = 2.2
-		env.ssao_power = 1.6
 	env.volumetric_fog_enabled = on
 	if on:
 		env.volumetric_fog_density = 0.006

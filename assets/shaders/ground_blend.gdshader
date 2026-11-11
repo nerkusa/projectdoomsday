@@ -34,17 +34,27 @@ float lum(vec3 c) {
 // Переход «по высоте»: вес подмешивается сначала там, где текстура светлее/выше,
 // поэтому граница получается рваной, а не размытой полосой.
 float blend_w(float w, float h, float n) {
-	return smoothstep(0.0, 1.0, clamp((w - 0.5) * 3.0 + 0.5 + (h - 0.5) * 0.9 + (n - 0.5) * 0.8, 0.0, 1.0));
+	return smoothstep(0.0, 1.0, clamp((w - 0.5) * 2.2 + 0.5 + (h - 0.5) * 1.0 + (n - 0.5) * 1.1, 0.0, 1.0));
 }
 
 void fragment() {
 	vec2 p = wpos.xz;
 	vec3 s = texture(splat, (p - splat_rect.xy) / splat_rect.zw).rgb;
 	float n = lum(texture(meadow_tex, p * 0.021).rgb) * 1.4 - 0.2;
+	// мелкая рваность границ и крупные пятна (светлее/темнее, суше/сочнее) — чтобы не было
+	// ровных «камуфляжных» клякс и заметного повтора текстур
+	n = mix(n, lum(texture(dirt_tex, p.yx * 0.083 + 0.31).rgb) * 1.6 - 0.1, 0.45);
+	float mac = lum(texture(meadow_tex, p.yx * 0.0063 + 0.17).rgb) * 1.5 - 0.15;
+	float mac2 = lum(texture(dirt_tex, p * 0.0117 + 0.53).rgb) * 1.6 - 0.1;
 
-	vec3 cg = texture(grass_tex, p * 0.18).rgb;
-	vec3 cm = texture(meadow_tex, p * 0.15).rgb * meadow_tint;
-	vec3 cd = texture(dirt_tex, p * 0.3).rgb;
+	// каждая текстура — в двух масштабах: вблизи детали, издали нет «плитки»
+	vec3 cg = mix(texture(grass_tex, p * 0.18).rgb, texture(grass_tex, p.yx * 0.043 + 0.2).rgb, 0.45);
+	vec3 cm = mix(texture(meadow_tex, p * 0.15).rgb, texture(meadow_tex, p.yx * 0.037 + 0.4).rgb, 0.45) * meadow_tint;
+	vec3 cd = mix(texture(dirt_tex, p * 0.3).rgb, texture(dirt_tex, p.yx * 0.061 + 0.7).rgb, 0.45);
+	// трава пятнами: где суше — желтее, где сочнее — темнее
+	cg = mix(cg, cg * vec3(1.16, 1.08, 0.72), clamp(mac * 1.3 - 0.35, 0.0, 0.6));
+	cg *= mix(0.84, 1.08, clamp(mac2, 0.0, 1.0));
+	cd *= mix(0.86, 1.1, clamp(mac, 0.0, 1.0));
 	vec3 cu = texture(mud_tex, p * 0.35).rgb * mud_tint;
 	vec3 ng = texture(grass_n, p * 0.18).rgb;
 	vec3 nm = texture(meadow_n, p * 0.15).rgb;
@@ -63,6 +73,8 @@ void fragment() {
 	nn = mix(nn, nd, wd);
 	c = mix(c, cu, wu);
 	nn = mix(nn, nu, wu);
+	// кромка дороги и грязи чуть темнее: притоптанная сырая земля
+	c *= 1.0 - (wd * (1.0 - wd) + wu * (1.0 - wu)) * 0.55;
 	r = mix(r, 0.8, wu);
 
 	ALBEDO = c;

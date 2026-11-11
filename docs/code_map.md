@@ -290,9 +290,9 @@ Project Doomsday — 1–4
 ### scripts/core/audio.gd (38) · class Audio
 Громкость: шины Master («Общая»), SFX («Эффекты» — выстрелы, удары, щелчки)
 
-### scripts/core/clock.gd (411)
+### scripts/core/clock.gd (412)
 Часы игры и смена дня и ночи.
-`hours:24` `set_hours:30` `advance:35` `hour_of_day:42` `day:48` `is_night:53` `text:58` `until:64` `_process:72` `_tick_hour:86` `daylight:95` `dusk_tint:107` `apply_light:114` `on_duty:169` `schedule_for:181` `wanted_state:187` `update_schedules:204` `_home_of:251` `_house_at:278` `_near_hero:286` `_bed_spot:291` `_go_sleep:310` `_go_to:335` `_send_home:372` `_hide:385` `_route:396`
+`hours:24` `set_hours:30` `advance:35` `hour_of_day:42` `day:48` `is_night:53` `text:58` `until:64` `_process:72` `_tick_hour:86` `daylight:95` `dusk_tint:107` `apply_light:114` `on_duty:170` `schedule_for:182` `wanted_state:188` `update_schedules:205` `_home_of:252` `_house_at:279` `_near_hero:287` `_bed_spot:292` `_go_sleep:311` `_go_to:336` `_send_home:373` `_hide:386` `_route:397`
 
 ### scripts/core/db.gd (89)
 Автозагрузка DB: читает все данные игры из папки data/.
@@ -301,8 +301,9 @@ Project Doomsday — 1–4
 Автозагрузка Game: состояние героя и мира, журнал, сохранения.
 `_ready:20` `new_hero:27` `gtext:51` `hero_max:62` `effective_stats:67` `hero_hp:75` `set_hero_hp:80` `rep:85` `change_rep:90` `stat_pool:106` `skill_pool:110` `stat_cap:114` `grant_xp:118` `log_line:134` `flag:139` `flag_value:143` `set_flag:147` `quest_stage:153` `set_quest:159` `add_note:183` `item_count:191` `add_item:201` `remove_item:222` `hero_wkey:250` `hero_weapon:254` `auto_reload:259` `wstate:275` `check_chance:290` `skill_check:296` `knows_sakha:315` `hero_stat:323` `cas_working:333` `cas_info:337` `is_cassette:341` `cas_active:346` `cas_has_tag:351` `cas_insert:358` `cas_eject:372` `stat_bonus:385` `skill_bonus:394` `suit:413` `suit_info:419` `suit_arm:429` `set_suit_arm:438` `toggle_suit:445` `worn:462` `effective_skills:471` `save_game:480` `has_save:490` `save_info:494` `load_game:504` `_fix_numbers:530` `_load_settings:546` `save_settings:557`
 
-### scripts/core/graphics.gd (148) · class Graphics
+### scripts/core/graphics.gd (171) · class Graphics
 Настройки графики: хранятся в Game.settings (user://settings.json),
+`value:36` `value_name:40` `cycle:48` `apply:62` `tune_env:124` `_apply_gi:153`
 
 ### scripts/core/radiation.gd (118)
 Радиация (автозагрузка Rad). Накопленная доза — Game.hero.rad (рады).
