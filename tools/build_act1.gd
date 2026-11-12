@@ -58,7 +58,67 @@ func _begin(id: String, title: String, rect: Rect2, script: String) -> void:
 	_env()
 
 
+## Положение узла относительно корня сцены (сцена при сборке ещё не в дереве)
+func _xf_root(n: Node) -> Transform3D:
+	var t := Transform3D.IDENTITY
+	var c := n
+	while c != null and c != root:
+		if c is Node3D:
+			t = (c as Node3D).transform * t
+		c = c.get_parent()
+	return t
+
+
+## Габарит узла со всеми деталями в координатах сцены
+func _box_root(n: Node) -> AABB:
+	var out := AABB()
+	var first := true
+	var all: Array = n.find_children("*", "MeshInstance3D", true, false)
+	if n is MeshInstance3D:
+		all.append(n)
+	for m in all:
+		var b: AABB = _xf_root(m) * (m as MeshInstance3D).get_aabb()
+		out = b if first else out.merge(b)
+		first = false
+	return out
+
+
+## Вывески, которые ни к чему не прибиты, получают два столба до земли — чтобы не висели в воздухе
+func _plant_signs() -> void:
+	if _signs.is_empty():
+		return
+	var boxes := []
+	for m in root.find_children("*", "MeshInstance3D", true, false):
+		var o: AABB = _xf_root(m) * (m as MeshInstance3D).get_aabb()
+		if o.size.x * o.size.z < 900.0:
+			boxes.append([m, o])
+	for sg in _signs:
+		var b: Node3D = sg[0]
+		var w: float = sg[1]
+		if not is_instance_valid(b):
+			continue
+		var bb := _box_root(b).grow(0.12)
+		var h: float = _xf_root(b).origin.y
+		if h > 4.6 or h < 0.8:
+			continue
+		var held := false
+		for pr in boxes:
+			var o: AABB = pr[1]
+			if not b.is_ancestor_of(pr[0]) and bb.intersects(o) and o.position.y < bb.position.y and o.end.y > bb.position.y:
+				held = true
+				break
+		if held:
+			continue
+		for sx in [-1.0, 1.0]:
+			cyl(b, 0.05, 0.065, h + 0.3, Vector3(sx * (w / 2.0 - 0.18), -h / 2.0 + 0.15, -0.09), "log_dark").owner = root
+	_signs.clear()
+
+
+var _signs: Array = []
+
+
 func _finish(id: String) -> void:
+	_plant_signs()
 	var ps := PackedScene.new()
 	var err := ps.pack(root)
 	if err != OK:
@@ -1956,6 +2016,7 @@ func _signboard(parent: Node, text: String, pos: Vector3, rot: float, w := 3.4, 
 	fit_label(l, w, 0.7)
 	b.add_child(l)
 	l.owner = root
+	_signs.append([b, w])
 
 
 func _lamp_post(parent: Node, pos: Vector3, col := Color("ffc06a")) -> void:

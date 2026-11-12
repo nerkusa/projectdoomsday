@@ -210,8 +210,15 @@ func _markun() -> void:
 	put(P.smokehouse, vil, Vector3(60, 0, 46), -0.8)
 	put(P.firewood, vil, Vector3(40, 0, 44), 0.3)
 	put(P.kennel, vil, Vector3(55, 0, 52), 2.0)
+	# шкуры сушатся на жердях
 	for p in [Vector3(48, 0, 37), Vector3(57, 0, 49)]:
-		box(vil, Vector3(1.4, 1.1, 0.04), p + Vector3(0, 0.9, 0), "cloth_sack", Vector3(0, randf() * PI, 0.08)).owner = root
+		var rack := group(vil, "HideRack")
+		rack.position = p
+		rack.rotation.y = randf() * PI
+		box(rack, Vector3(1.4, 1.1, 0.04), Vector3(0, 0.95, 0), "cloth_sack", Vector3(0, 0, 0.04)).owner = root
+		box(rack, Vector3(2.0, 0.06, 0.06), Vector3(0, 1.55, 0), "log_dark").owner = root
+		for sx in [-1, 1]:
+			box(rack, Vector3(0.08, 1.7, 0.08), Vector3(sx * 0.95, 0.85, 0), "log_dark", Vector3(0, 0, sx * -0.06)).owner = root
 	# скудная земля: валуны и сухостой по краям аласов
 	for p in [Vector3(10, 0, 20), Vector3(88, 0, 70), Vector3(118, 0, 50), Vector3(8, 0, 50), Vector3(76, 0, 14), Vector3(40, 0, 86)]:
 		put(P.rock_big, vil, p, randf() * TAU, "", randf_range(0.8, 1.3))
@@ -1325,6 +1332,9 @@ func _quarry() -> void:
 	tr.rotation.y = 0.5
 	box(tr, Vector3(4.2, 2.4, 7.0), Vector3(0, 2.0, 0), "paint_orange").owner = root
 	box(tr, Vector3(3.6, 1.2, 5.0), Vector3(0, 3.6, -0.8), "rust", Vector3(0.3, 0, 0)).owner = root
+	for sx in [-1, 1]:
+		for sz in [-2.2, 2.4]:
+			cyl(tr, 1.0, 1.0, 0.9, Vector3(sx * 2.2, 1.0, sz), "tire", Vector3(0, 0, PI / 2.0), 14).owner = root
 	_own(collider(tr, Vector3(4.6, 3.0, 7.4), Vector3(0, 1.5, 0)), root)
 	# вход в лабораторию обогащения: бетонный портал в стене, внутри — комната
 	var lab := Rect2(40, 2, 16, 12)
@@ -1488,9 +1498,15 @@ func _ges() -> void:
 # ======================================================================
 func _ruin_block(parent: Node, prop: String, pos: Vector3, rot: float, nm: String) -> void:
 	var b := _bld(parent, prop, nm, pos, rot)
-	# копоть и провалы — дом выгорел
+	# копоть и провалы — дом выгорел; пятна ложатся точно на фасад, а не висят перед ним
+	var bb := _box_root(b)
+	var fz: float = bb.end.z + 0.03 if rot == 0.0 else bb.position.z - 0.03
 	for k in 4:
-		box(parent, Vector3(randf_range(2.0, 4.0), randf_range(1.5, 3.0), 0.05), pos + Vector3(randf_range(-5, 5), randf_range(2.0, 6.0), 5.6 if rot == 0.0 else -5.6), "coal").owner = root
+		var sw := minf(randf_range(2.0, 4.0), bb.size.x * 0.4)
+		var sh := minf(randf_range(1.5, 3.0), bb.size.y * 0.35)
+		var sx := randf_range(bb.position.x + sw / 2.0 + 0.3, bb.end.x - sw / 2.0 - 0.3)
+		var sy := randf_range(sh / 2.0 + 0.8, maxf(sh / 2.0 + 0.9, bb.size.y * 0.75 - sh / 2.0))
+		box(parent, Vector3(sw, sh, 0.05), Vector3(sx, sy, fz), "coal").owner = root
 	for k in 6:
 		box(parent, Vector3(randf_range(0.6, 1.4), randf_range(0.3, 0.7), randf_range(0.6, 1.2)), pos + Vector3(randf_range(-6, 6), 0.3, randf_range(5.5, 8.0) * (1.0 if rot == 0.0 else -1.0)), "concrete", Vector3(randf(), randf() * TAU, randf())).owner = root
 

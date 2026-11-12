@@ -296,6 +296,8 @@ func _honor_board(parent: Node, pos: Vector3, rot: float) -> void:
 	s.rotation.y = rot
 	box(s, Vector3(4.6, 2.4, 0.25), Vector3(0, 1.6, 0), "plaster_white").owner = root
 	box(s, Vector3(4.8, 0.2, 0.4), Vector3(0, 2.9, 0), "concrete").owner = root
+	# цоколь: доска стоит на бетонном основании, а не висит
+	box(s, Vector3(5.0, 0.42, 0.6), Vector3(0, 0.21, 0), "concrete").owner = root
 	for i in 6:
 		var x := -1.75 + (i % 3) * 1.75 - 0.0
 		var y := 1.95 - int(i / 3) * 0.85

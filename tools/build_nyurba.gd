@@ -879,6 +879,10 @@ func _prom() -> void:
 	var cart := group(vil, "Cart")
 	cart.position = Vector3(50, 0, 34.6)
 	box(cart, Vector3(1.6, 0.8, 1.0), Vector3(0, 0.7, 0), "rust").owner = root
+	box(cart, Vector3(1.4, 0.1, 0.9), Vector3(0, 0.27, 0), "metal_dark").owner = root
+	for sx in [-0.5, 0.5]:
+		for sz in [-0.6, 0.6]:
+			cyl(cart, 0.16, 0.16, 0.08, Vector3(sx, 0.2, sz), "metal_dark", Vector3(PI / 2.0, 0, 0), 10).owner = root
 	add_rocks(cart)
 	_own(collider(cart, Vector3(1.6, 1.0, 1.0), Vector3(0, 0.5, 0)), root)
 	_street_dress(vil)
