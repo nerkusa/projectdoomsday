@@ -1442,6 +1442,8 @@ func sungar_tests() -> void:
 	await wait_loading()
 	loc = main.location
 	ok(loc.location_id == "sungar_center", "перешёл в центр города")
+	var amb_s: Array = main.social._barks().get("ambient", {}).get("worker", [])
+	ok(amb_s.any(func(t): return "барж" in str(t).to_lower()), "в Сунгаре у прохожих свои реплики (про баржи и подёнщину)")
 	ok(loc.character("Hostess") == null and loc.character("Dealer") == null and loc.item("Wheel") == null,
 		"в Сунгаре нет ни баржи-казино, ни банкомёта, ни колеса фортуны")
 	var mr: Character = loc.character("Merchant")

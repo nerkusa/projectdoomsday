@@ -15,33 +15,56 @@ func _ready() -> void:
 	if listing:
 		locs.remove_at(0)
 	if locs.is_empty():
-		locs = PackedStringArray(["sungar", "sungar_center", "sungar_quarter"])
+		# без аргументов — все локации из scripts/main.gd
+		var re := RegEx.new()
+		re.compile("scenes/locations/([a-z0-9_]+)[.]tscn")
+		for m in re.search_all(FileAccess.get_file_as_string("res://scripts/main.gd")):
+			if not m.get_string(1) in locs:
+				locs.append(m.get_string(1))
 	var total := 0
 	for l in locs:
 		var ps: PackedScene = load("res://scenes/locations/%s.tscn" % l)
 		var root: Node3D = ps.instantiate()
 		add_child(root)
 		var boxes := []
+		# предметы — готовые пропсы и узлы с деталями; группы («Мусор», «Война», «Праздник») разбираются на части
+		var units := []
 		for gname in ["Village", "Yard"]:
 			var g := root.get_node_or_null(gname)
-			if g == null:
+			if g != null:
+				for c in g.get_children():
+					_collect(c, units)
+		for c in units:
+			if _skip(String(c.name)) or (c.get_parent() and _skip(String(c.get_parent().name))):
 				continue
-			for c in g.get_children():
-				if not c is Node3D or _skip(String(c.name)):
-					continue
-				var bb := _aabb(c)
-				if bb.size.length() < 0.5:
-					continue
-				boxes.append([String(c.name), bb])
-				if listing:
-					print("%s: %s  x %.1f..%.1f  z %.1f..%.1f  h %.1f" % [l, c.name, bb.position.x, bb.end.x, bb.position.z, bb.end.z, bb.end.y])
+			var bb := _aabb(c)
+			if bb.size.length() < 0.5 or bb.size.x * bb.size.z > 2500.0:
+				continue
+			# у дома считаем сруб по стенам, без свесов крыши и крыльца: под свесом вещи стоять могут
+			var inn = c.get("inner")
+			if inn is Vector2 and inn != Vector2.ZERO:
+				bb = (c as Node3D).global_transform * AABB(Vector3(-inn.x / 2.0 - 0.2, 0, -inn.y / 2.0 - 0.2), Vector3(inn.x + 0.4, bb.size.y, inn.y + 0.4))
+			elif c.scene_file_path != "" and bb.size.y > 2.4:
+				bb = bb.grow(-0.3)
+			# сравниваем только с постройками: крупный готовый пропс выше 2,4 м
+			var bld: bool = c.scene_file_path != "" and bb.size.y > 2.4 and bb.size.x * bb.size.z > 12.0
+			boxes.append([String(root.get_path_to(c)), bb, bld])
+			if listing:
+				print("%s: %s  x %.1f..%.1f  z %.1f..%.1f  h %.1f" % [l, c.name, bb.position.x, bb.end.x, bb.position.z, bb.end.z, bb.end.y])
 		for i in boxes.size():
 			for j in range(i + 1, boxes.size()):
+				if not boxes[i][2] and not boxes[j][2]:
+					continue
 				var a: AABB = boxes[i][1]
 				var b: AABB = boxes[j][1]
 				var x := a.intersection(b)
 				# лёгкое касание — не беда; считаем, если залезли больше чем на 0,4 м по обеим осям
-				if x.size.x > 0.4 and x.size.z > 0.4 and x.size.y > 0.2:
+				# вещь целиком внутри постройки (мебель, утварь в избе) — не пересечение
+				var inner := a.grow(-0.25)
+				var inner_b := b.grow(-0.25)
+				var inside := (inner.position.x <= b.position.x and inner.end.x >= b.end.x and inner.position.z <= b.position.z and inner.end.z >= b.end.z) \
+					or (inner_b.position.x <= a.position.x and inner_b.end.x >= a.end.x and inner_b.position.z <= a.position.z and inner_b.end.z >= a.end.z)
+				if not inside and x.size.x > 0.4 and x.size.z > 0.4 and x.size.y > 0.2:
 					print("%s: %s ⟷ %s  (%.1f × %.1f м, у %s)" % [l, boxes[i][0], boxes[j][0], x.size.x, x.size.z, str(Vector2(x.get_center().x, x.get_center().z).snapped(Vector2(0.1, 0.1)))])
 					total += 1
 		root.queue_free()
@@ -54,6 +77,23 @@ func _skip(n: String) -> bool:
 		if n.contains(s):
 			return true
 	return false
+
+
+func _collect(n: Node, out: Array) -> void:
+	if not (n is Node3D) or not (n as Node3D).visible:
+		return
+	var geo := 0
+	var other := 0
+	for c in n.get_children():
+		if c is GeometryInstance3D or c is CollisionObject3D or c is Light3D:
+			geo += 1
+		elif c is Node3D:
+			other += 1
+	if n is GeometryInstance3D or n.scene_file_path != "" or (geo > 0 and other == 0):
+		out.append(n)
+		return
+	for c in n.get_children():
+		_collect(c, out)
 
 
 func _aabb(n: Node) -> AABB:

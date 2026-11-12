@@ -549,7 +549,7 @@ func _kresty() -> void:
 	put(P.izba_long, vil, Vector3(96.5, 0, 44.6), PI - 0.02, "Izba11")
 	put(P.workshop, vil, Vector3(108.5, 0, 45.2), PI, "Smithy")
 	put(P.well_crane, vil, Vector3(103.0, 0, 40.6), 0.3, "WellCrane")
-	put(P.woodpile, vil, Vector3(112.5, 0, 42.5), 1.5)
+	put(P.woodpile, vil, Vector3(113.5, 0, 42.2), 1.5)
 	# баня у реки, часовня у погоста, коптильня у рыбака
 	put(P.banya, vil, Vector3(24.5, 0, 59.0), 0.0, "Banya")
 	put(P.chapel, vil, Vector3(14.5, 0, 24.0), 0.0, "Chapel")

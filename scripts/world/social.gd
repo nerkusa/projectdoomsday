@@ -79,6 +79,28 @@ func _barks() -> Dictionary:
 	if main and main.location and str(main.location.location_id).begins_with("nakharro") and b.has("nakharro"):
 		b = b.duplicate()
 		b.merge(b.nakharro, true)
+		return b
+	# у каждого места — свой говор: places.<локация>.ambient дополняет общие фоновые реплики
+	# (самое длинное совпадение по началу имени: mirny_workers важнее, чем mirny)
+	if main and main.location:
+		var lid := str(main.location.location_id)
+		var best := ""
+		for k in b.get("places", {}):
+			if lid.begins_with(str(k)) and str(k).length() > best.length():
+				best = str(k)
+		if best != "":
+			b = b.duplicate()
+			var amb: Dictionary = (b.get("ambient", {}) as Dictionary).duplicate()
+			var own: Dictionary = b.places[best].get("ambient", {})
+			for arch in own:
+				# свои реплики идут чаще общих: общие остаются для разнообразия, но в меньшинстве
+				var mixed: Array = (own[arch] as Array).duplicate()
+				mixed.append_array(own[arch])
+				var common: Array = amb.get(arch, [])
+				for i in mini(2, common.size()):
+					mixed.append(common[(i * 3 + lid.length()) % common.size()])
+				amb[arch] = mixed
+			b["ambient"] = amb
 	return b
 
 

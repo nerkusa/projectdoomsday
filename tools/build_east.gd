@@ -1094,7 +1094,7 @@ func _mr_kim() -> void:
 	_ruin_shell(vil, "Ruin2", Vector3(77.5, 0, 57.0), 0.0, 7.0, 10.0, 6.0)
 	_ruin_shell(vil, "Ruin3", Vector3(6.5, 0, 57.0), 0.0, 7.0, 10.0, 8.0, "plaster_white")
 	_btr(vil, Vector3(34.0, 0, 58.0), 0.2)
-	for dp in [Vector3(20, 0, 18), Vector3(64, 0, 66), Vector3(30, 0, 42), Vector3(58, 0, 42), Vector3(42, 0, 30), Vector3(76, 0, 42)]:
+	for dp in [Vector3(20, 0, 13.5), Vector3(64, 0, 66), Vector3(30, 0, 42), Vector3(58, 0, 42), Vector3(42, 0, 30), Vector3(76, 0, 42)]:
 		_debris(vil, dp, randf_range(3.0, 5.0), 60)
 	_war_dress(vil, [Vector3(30, 0, 43), Vector3(58, 0, 40.5), Vector3(42, 0, 20), Vector3(42.5, 0, 64)],
 		[Vector3(81, 0, 33.5), Vector3(81, 0, 50.5), Vector3(46, 0, 33.5)], [[Vector3(73.5, 0, 49.5), PI], [Vector3(36.5, 0, 34.5), 0.0]], [Vector3(6.5, 0, 57.0)])
@@ -1507,8 +1507,11 @@ func _ruin_block(parent: Node, prop: String, pos: Vector3, rot: float, nm: Strin
 		var sx := randf_range(bb.position.x + sw / 2.0 + 0.3, bb.end.x - sw / 2.0 - 0.3)
 		var sy := randf_range(sh / 2.0 + 0.8, maxf(sh / 2.0 + 0.9, bb.size.y * 0.75 - sh / 2.0))
 		box(parent, Vector3(sw, sh, 0.05), Vector3(sx, sy, fz), "coal").owner = root
+	# обломки стены — кучей под фасадом, а не внутри дома
+	var sgn := 1.0 if rot == 0.0 else -1.0
 	for k in 6:
-		box(parent, Vector3(randf_range(0.6, 1.4), randf_range(0.3, 0.7), randf_range(0.6, 1.2)), pos + Vector3(randf_range(-6, 6), 0.3, randf_range(5.5, 8.0) * (1.0 if rot == 0.0 else -1.0)), "concrete", Vector3(randf(), randf() * TAU, randf())).owner = root
+		var rs := Vector3(randf_range(0.6, 1.4), randf_range(0.3, 0.7), randf_range(0.6, 1.2))
+		box(parent, rs, Vector3(randf_range(bb.position.x + 0.5, bb.end.x - 0.5), rs.y / 2.0, fz + sgn * randf_range(0.8, 2.8)), "concrete", Vector3(0, randf() * PI, 0)).owner = root
 
 
 func _rubikon() -> void:
@@ -1540,7 +1543,7 @@ func _rubikon() -> void:
 		_ruin_block(vil, spec[0], spec[1], spec[2], "Ruin%d" % k)
 		k += 1
 	_clutter(vil, [["car_wreck", 24, 36.0, 0.3], ["car_wreck", 48, 40.0, 2.4], ["paz_wreck", 72, 36.5, 0.1], ["car_wreck", 92, 40.0, 1.0],
-		["rubble", 30, 34], ["rubble", 54, 42], ["rubble", 78, 34], ["burnt_shed", 46, 30, 0.6], ["rubble", 66, 46], ["rubble", 8, 44]])
+		["rubble", 30, 34], ["rubble", 54, 42], ["rubble", 78, 34], ["burnt_shed", 49, 33.5, 0.6], ["rubble", 66, 46], ["rubble", 8, 44]])
 	for p in [Vector3(6, 0, 30), Vector3(44, 0, 46), Vector3(70, 0, 30), Vector3(96, 0, 46), Vector3(28, 0, 60), Vector3(80, 0, 62)]:
 		put(P.dead_tree, vil, p, randf() * TAU)
 	# кости и черепа у дороги
@@ -1640,7 +1643,7 @@ func _gorny() -> void:
 	_wall(vil, Vector2(66, 6), Vector2(66, 26))
 	_wall(vil, Vector2(66, 34), Vector2(66, 52))
 	# дома: аккуратные, побелённые, с горящими окнами
-	var houses := [["st_block2b", Vector3(16, 0, 18), 0.0], ["st_block2b", Vector3(54, 0, 18), 0.0], ["st_block2", Vector3(16, 0, 42), PI],
+	var houses := [["st_block2b", Vector3(15, 0, 18), 0.0], ["st_block2b", Vector3(57.5, 0, 18), 0.0], ["st_block2", Vector3(16, 0, 42), PI],
 		["st_block3b", Vector3(56, 0, 43), PI], ["st_store", Vector3(26, 0, 18.5), 0.0]]
 	var k := 0
 	for h in houses:

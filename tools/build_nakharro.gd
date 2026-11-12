@@ -306,7 +306,7 @@ func _village() -> void:
 	# хозяйство
 	put(P.barn, vil, Vector3(80, 0, 61), -PI / 2.0, "Barn")
 	put(P.workshop, vil, Vector3(32, 0, 64), PI / 2.0, "Workshop")
-	put(P.tractor, vil, Vector3(34, 0, 70), 0.6, "Tractor")
+	put(P.tractor, vil, Vector3(34.6, 0, 70.9), 0.6, "Tractor")
 	put(P.greenhouse, vil, Vector3(56, 0, 86), 0.0, "Greenhouse1")
 	put(P.greenhouse, vil, Vector3(63.5, 0, 86), 0.0, "Greenhouse2")
 	put(P.wind_turbine, vil, Vector3(96, 0, 62), 0.4, "WindTurbine")
