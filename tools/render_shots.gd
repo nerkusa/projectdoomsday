@@ -6,7 +6,7 @@ extends Node
 ##       encounter|x|z|zoom|час|enc_id|ориентиры(plane,heli,…)
 ##       Флаги кадра: alt — зажат Alt (подсветка); call=метод — вызвать метод локации (сцену) и подождать;
 ##       fx=off|film|bleak — фильтр картинки; up — герой на втором уровне (этаж).
-##       MAP — карта мира с тропами (MAP|all — все места);  WAIT|часов|через_сколько_сек — экран ожидания.
+##       MAP — карта мира с тропами (MAP|all — все места, MAP|open|масштаб — вся карта без тумана);  WAIT|часов|через_сколько_сек — экран ожидания.
 var main: Node
 
 func _ready() -> void:
@@ -38,6 +38,13 @@ func _ready() -> void:
 				main.world_map.open("nakharro")
 				for k in 12:
 					wm0.explore(a.lerp(b, k / 22.0))
+				main.world_map._build_fog()
+			if p.size() > 1 and p[1] == "open":
+				# вся карта без тумана и все места — обзорный кадр
+				ids = main.world_map.nodes().keys()
+				for gx in range(0, 3300, 60):
+					for gy in range(0, 1800, 60):
+						main.world_map.explore(Vector2(gx, gy))
 				main.world_map._build_fog()
 			for id in ids:
 				WorldMap.reveal(id)

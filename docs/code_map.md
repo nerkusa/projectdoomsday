@@ -626,7 +626,7 @@ Project Doomsday — 1–4
 ### tools/prop_sheet.gd (65)
 Лист превью: несколько пропсов в ряд, два кадра — спереди и сзади (поворот на 180°).
 
-### tools/render_shots.gd (177)
+### tools/render_shots.gd (184)
 Скриншоты для проверки (нужен рендер, не --headless):
 `_ready:12`
 
