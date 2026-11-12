@@ -56,6 +56,7 @@
   `timeout 1700 $G --headless --path . res://tools/smoke_test.tscn > sm1.log` и то же с `-- stealth`. Итог: `=== ИТОГ: ошибок 0 ===`.
 - Лестницы «как игрок» (подъём/спуск кликом издалека): `res://tools/stairs_test.tscn`. Скриншоты интерфейса (диалог, КПК): `tools/ui_shots.tscn -- префикс`.
 - «Летающие» объекты (висят в воздухе без опоры): `res://tools/audit_float.tscn [-- локация]`. В остатке допустимы бельё на верёвках, полосы шлагбаумов, камеры на стенах. Вывески `_signboard` без опоры сами получают столбы при сборке.
+- Расстановка: `res://tools/check_overlap.tscn` (без аргументов — все локации; дом считается по стенам, тюки в избах Крестов — ложные срабатывания). Лист превью построек: `tools/prop_sheet.tscn -- префикс имя имя…`.
 - Аудит откликов: `res://tools/audit_interact.tscn` → «молчаливых: 0».
 - В тестах `Clock.force_day = true` (все на работе). Хелпер проходимости `unreachable(loc, start, only)` в `tools/smoke_test.gd`. Проёмы — не уже 1,9 м.
 - Новое содержимое — сразу дописывать проверки в smoke_test.gd.
@@ -84,7 +85,7 @@ cd build && zip -q -9 -r -s 25m Nakharro_split.zip windows   # → .zip .z01 .z0
 - Диалоги `data/dialogs/*.json`: условия `if` (flag, not_flag, flags, quest+stage/stage_min/stage_max, item, cond → `dialog_cond` локации, rep_min/max), эффекты (take, give, xp, quest, set_flags, note, rep, action, check/success/fail), `text_if`.
 - **Без метагейминга:** реплика, где герой отдаёт вещь и задание идёт дальше 1-го этапа, обязана проверять это задание (`"quest": id, "stage"…`). `check.tscn` ловит нарушения («МЕТАГЕЙМИНГ: …»). Деньги (rubles, salt) — оплата, не сдача. `Game.set_quest` этап назад не откатывает.
 - Расписание жителей — `schedules.json` (from/to, home_node, sleep, plan [[с,до,x,z,поза,поворот]]).
-- Карта мира, встречи, тропы, реки, переправы, места взрывов (`blasts`) — `world.json` (картинку 6400×3486 и `world_biome.png` перерисовывает `python3 tools/gen_world_map.py`, ~2 мин; реки непроходимы, места не должны стоять в воде); клочки лора — `lore.json`; реплики — `barks.json`.
+- Карта мира, встречи, тропы, реки, переправы, места взрывов (`blasts`) — `world.json` (картинку 6400×3486 и `world_biome.png` перерисовывает `python3 tools/gen_world_map.py`, ~2 мин; реки непроходимы, места не должны стоять в воде); клочки лора — `lore.json`; реплики — `barks.json` (свой говор места — `places.<локация>.ambient`, по началу имени локации).
 
 ## Устройство кода
 - `scripts/main.gd` — загрузка локаций, ввод, разговоры, ожидание (`wait_hours`).

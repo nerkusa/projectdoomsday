@@ -20,7 +20,7 @@ func _ready() -> void:
 	for n in ["trim", "metal_roof", "planks_old", "stone_wall", "metal_dark", "log_weathered", "cloth_sack", "cloth_red",
 			"tin", "paper", "rope_mat", "glass", "whitewash", "brass", "tire", "hay", "bread", "fish", "herb", "paint_faded", "paint_white"]:
 		M[n] = load(MAT_DIR + n + ".tres")
-	for n in ["metal", "stone", "paint_orange", "wire", "tarp_blue", "ribbon_blue", "ribbon_white"]:
+	for n in ["metal", "stone", "paint_orange", "wire", "tarp_blue", "ribbon_blue", "ribbon_white", "moss"]:
 		M[n] = load(MAT_DIR + n + ".tres")
 	M["window"] = load(MAT_DIR + "window.tres")
 	M["rust"] = load(MAT_DIR + "rust.tres")
@@ -434,8 +434,8 @@ func stone_block(n: String, o: Dictionary) -> void:
 				else:
 					swin(Vector3(x, y, hz + 0.01), 0.0, "bars" if o.get("bars", false) else _wkind())
 			elif near_door:
-				# окно лестничной клетки между этажами
-				swin(Vector3(x, y - fh * 0.5 + 0.1, hz + 0.01), 0.0, _wkind())
+				# окно лестничной клетки — в общем ряду, а не между этажами поперёк пояска
+				swin(Vector3(x, y, hz + 0.01), 0.0, _wkind())
 			else:
 				swin(Vector3(x, y, hz + 0.01), 0.0, _wkind())
 				if o.get("stalin", false):
@@ -462,7 +462,7 @@ func stone_block(n: String, o: Dictionary) -> void:
 		_colonnade(w, d, base, fh, int(o.get("cols_fl", mini(floors, 2))), ent_x, int(o.cols))
 	if o.get("labaz", false):
 		_labaz_decor(w, d, top, base, floors, fh, bays, step, o)
-	_wear(n, w, d, top, base, mat, enter, o.get("roof", "flat"))
+	_wear(n, w, d, top, base, mat, enter, o.get("roof", "flat"), floors, fh)
 	roof(w, d, top, o.get("roof", "flat"))
 	if o.get("balustrade", false):
 		_balustrade(w, d, top)
@@ -866,7 +866,7 @@ func _wkind() -> String:
 
 ## Разруха и ремонт: трещины, заплаты другим кирпичом, потёки, брезент на крыше;
 ## у части глухих жилых домов — обрушенный угол с завалом у стены
-func _wear(n: String, w: float, d: float, top: float, base: float, mat: String, enter: String, roof_kind: String) -> void:
+func _wear(n: String, w: float, d: float, top: float, base: float, mat: String, enter: String, roof_kind: String, floors := 0, fh := 0.0) -> void:
 	var hx := w / 2.0
 	var hz := d / 2.0
 	var patch := "concrete" if mat.begins_with("brick") else "brick"
@@ -901,6 +901,30 @@ func _wear(n: String, w: float, d: float, top: float, base: float, mat: String, 
 			box("tarp_blue" if _rng.randf() < 0.6 else "rust", Vector3(_rng.randf_range(2.0, 3.5), 0.05, _rng.randf_range(1.5, 3.0)), Vector3(rx, top + 0.06, _rng.randf_range(-hz + 1.5, hz - 1.5)))
 			for k in 3:
 				box("tire", Vector3(0.5, 0.15, 0.5), Vector3(rx + _rng.randf_range(-1.0, 1.0), top + 0.14, _rng.randf_range(-1.0, 1.0)))
+	# быт после конца света: трубы буржуек из окон двора с копотью над ними,
+	# бочка под водостоком, мох по цоколю с северной стороны
+	if floors > 0 and fh > 0.0:
+		var bays := maxi(2, int((w - 1.0) / 2.6))
+		var step := (w - 1.6) / float(bays - 1)
+		for f in range(1 if floors > 1 else 0, floors):
+			for i in bays:
+				if _rng.randf() > 0.22:
+					continue
+				var wx := -hx + 0.8 + i * step + 0.3
+				var wy := base + f * fh + fh * 0.55 + 0.25
+				# колено трубы: из форточки наружу и вверх
+				cyl("tin", 0.07, 0.07, 0.5, Vector3(wx, wy, -hz - 0.25), Vector3(PI / 2.0, 0, 0), 6)
+				cyl("tin", 0.07, 0.07, 1.1, Vector3(wx, wy + 0.5, -hz - 0.5), Vector3.ZERO, 6)
+				cyl("rust", 0.11, 0.11, 0.06, Vector3(wx, wy + 1.08, -hz - 0.5), Vector3.ZERO, 6)
+				box("soot_city", Vector3(0.5, minf(1.6, top - wy - 1.3), 0.02), Vector3(wx, wy + 1.2 + minf(1.6, top - wy - 1.3) / 2.0, -hz - 0.025))
+	for sx2 in [-1.0, 1.0]:
+		if _rng.randf() < 0.6:
+			cyl("rust", 0.32, 0.3, 0.8, Vector3(sx2 * (hx - 0.1), 0.4, hz + 0.55), Vector3.ZERO, 10)
+			cyl("tar", 0.29, 0.29, 0.02, Vector3(sx2 * (hx - 0.1), 0.79, hz + 0.55), Vector3.ZERO, 10)
+	for k in int(w / 2.5):
+		if _rng.randf() < 0.55:
+			var mw := _rng.randf_range(0.8, 2.0)
+			box("moss", Vector3(mw, _rng.randf_range(0.25, 0.7), 0.03), Vector3(_rng.randf_range(-hx + mw / 2.0, hx - mw / 2.0), base + 0.2, -hz - 0.045))
 	# обрушенный угол: только глухие жилые дома, примерно каждый третий
 	if enter == "" and (n.begins_with("st_block") or n.begins_with("st_barrack")) and hash(n + "ruin") % 3 == 0:
 		var sx := 1.0 if hash(n) % 2 == 0 else -1.0
