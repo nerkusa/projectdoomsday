@@ -168,6 +168,117 @@ func _build() -> void:
 		ex.position = e[1]
 		items.add_child(ex)
 	_spawn_people()
+	_apply_relief()
+
+
+# ---------------- рельеф ----------------
+## Холмы и ложбины. Высоты считаются один раз в сетку с шагом 1 м (по ней же строится
+## земля), между узлами — плавно. Под дорогой, техникой, руинами и водой земля ровная.
+const RELIEF := {"field": 1.3, "forest": 2.2, "swamp": 0.45, "dead": 1.7}
+const HM_PAD := 20.0
+var _hmap := PackedFloat32Array()
+var _hm_n := 0
+
+
+func has_relief() -> bool:
+	return _hm_n > 0
+
+
+func ground_y(x: float, z: float) -> float:
+	if _hm_n == 0:
+		return 0.0
+	var fx := clampf(x + HM_PAD, 0.0, _hm_n - 1.001)
+	var fz := clampf(z + HM_PAD, 0.0, _hm_n - 1.001)
+	var ix := int(fx)
+	var iz := int(fz)
+	var tx := fx - ix
+	var tz := fz - iz
+	var a := lerpf(_hmap[iz * _hm_n + ix], _hmap[iz * _hm_n + ix + 1], tx)
+	var b := lerpf(_hmap[(iz + 1) * _hm_n + ix], _hmap[(iz + 1) * _hm_n + ix + 1], tx)
+	return lerpf(a, b, tz)
+
+
+func _apply_relief() -> void:
+	var amp: float = RELIEF.get(biome, 0.0)
+	if amp <= 0.0:
+		return
+	var terrain := get_node("Terrain")
+	# ровные площадки: всё, что построено на месте (дорога, техника, руины, вода), а не готовый пропс
+	var flats: Array[Rect2] = []
+	for c in terrain.get_children():
+		if c is MultiMeshInstance3D or c.name == "Ground" or c.name == "GroundFar" or c.scene_file_path != "":
+			continue
+		var bb := _foot(c)
+		if bb.size.length() > 1.5:
+			flats.append(bb.grow(1.0))
+	flats.append(Rect2(_center - Vector2(3, 3), Vector2(6, 6)))
+	var hn := FastNoiseLite.new()
+	hn.seed = int(Game.hero.flags.get("enc_seed", 1)) + 77
+	hn.frequency = 0.03
+	hn.fractal_octaves = 3
+	var n := int(SIZE + HM_PAD * 2.0) + 1
+	var hm := PackedFloat32Array()
+	hm.resize(n * n)
+	for j in n:
+		for i in n:
+			var p := Vector2(i - HM_PAD, j - HM_PAD)
+			var k := 1.0
+			for f in flats:
+				var dx := maxf(maxf(f.position.x - p.x, p.x - f.end.x), 0.0)
+				var dz := maxf(maxf(f.position.y - p.y, p.y - f.end.y), 0.0)
+				k = minf(k, smoothstep(0.0, 7.0, sqrt(dx * dx + dz * dz)))
+			# к краям сетки земля сходит в ноль — там её продолжает дальняя плоскость
+			var e := minf(minf(i, n - 1 - i), minf(j, n - 1 - j))
+			k *= smoothstep(0.0, 9.0, e)
+			hm[j * n + i] = hn.get_noise_2d(p.x, p.y) * amp * 2.0 * k
+	_hmap = hm
+	_hm_n = n
+	# земля — сетка с высотами вместо плоскости
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	for j in n - 1:
+		for i in n - 1:
+			var x0 := i - HM_PAD
+			var z0 := j - HM_PAD
+			var a := Vector3(x0, hm[j * n + i], z0)
+			var b := Vector3(x0 + 1, hm[j * n + i + 1], z0)
+			var c2 := Vector3(x0, hm[(j + 1) * n + i], z0 + 1)
+			var d := Vector3(x0 + 1, hm[(j + 1) * n + i + 1], z0 + 1)
+			for v in [a, b, c2, b, d, c2]:
+				st.add_vertex(v)
+	st.index()
+	st.generate_normals()
+	var gp := terrain.get_node("Ground") as MeshInstance3D
+	gp.mesh = st.commit()
+	gp.position = Vector3.ZERO
+	# всё расставленное — на землю
+	for grp in [terrain, get_node_or_null("ForestEdge"), get_node_or_null("Items"), get_node_or_null("Characters")]:
+		if grp == null:
+			continue
+		for c in grp.get_children():
+			if c is Scatter:
+				var mm: MultiMesh = (c as Scatter).multimesh
+				for i in mm.instance_count:
+					var t := mm.get_instance_transform(i)
+					t.origin.y += ground_y(t.origin.x, t.origin.z)
+					mm.set_instance_transform(i, t)
+			elif c is Node3D and c.name != "Ground" and c.name != "GroundFar":
+				(c as Node3D).position.y += ground_y((c as Node3D).position.x, (c as Node3D).position.z)
+
+
+## След узла на земле (по всем его деталям)
+func _foot(n: Node) -> Rect2:
+	var out := Rect2()
+	var first := true
+	var all: Array = n.find_children("*", "MeshInstance3D", true, false)
+	if n is MeshInstance3D:
+		all.append(n)
+	for m in all:
+		var b: AABB = (m as MeshInstance3D).global_transform * (m as MeshInstance3D).get_aabb()
+		var r := Rect2(b.position.x, b.position.z, b.size.x, b.size.z)
+		out = r if first else out.merge(r)
+		first = false
+	return out
 
 
 # ---------------- следы старого мира ----------------
@@ -582,6 +693,7 @@ func _ground(nz: FastNoiseLite, nf: FastNoiseLite, t0: Vector2, t1: Vector2) -> 
 	far.mesh = fpm
 	far.material_override = mat
 	far.position = Vector3(_center.x, -0.03, _center.y)
+	far.name = "GroundFar"
 	get_node("Terrain").add_child(far)
 
 

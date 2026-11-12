@@ -32,7 +32,226 @@ var _ded_round := -1
 var _exec_round := -1
 
 
+# ---------------- светёлки: второй этаж прямо в избе, без перехода ----------------
+## Комнаты второго этажа собирает tools/build_act1.gd (_upper) в сцене nakharro_upper.tscn;
+## здесь они ставятся над своими избами на высоте UP_Y. Видна только та, где стоит герой.
+## Izba5 — Туйгун с приёмником («Эфир»), Izba9 — бабушкина со станком («Прятки»),
+## Izba13 — учительница Айыына и книги («Четвёртый том»).
+const UP_Y := 2.9
+const UP_ROOMS := {"Izba5": Rect2(0, 0, 5.4, 4.6), "Izba9": Rect2(12, 0, 5.4, 4.6), "Izba13": Rect2(24, 0, 7.4, 4.4)}
+const UP_NAMES := {"Izba5": "светёлка Туйгуна", "Izba9": "бабушкина светёлка", "Izba13": "светёлка учительницы"}
+## дом → {node: держатель комнаты, inv: мир → координаты комнаты, rect, bottom, top, items, chars}
+var _up := {}
+## В какой светёлке сейчас герой ("" — не наверху)
+var up_cur := ""
+var _up_t := 0.0
+
+
+func has_upper() -> bool:
+	return not _up.is_empty()
+
+
+func upper_y(x: float, z: float) -> float:
+	for h in _up:
+		var l: Vector3 = (_up[h].inv as Transform3D) * Vector3(x, UP_Y, z)
+		if (_up[h].rect as Rect2).grow(0.1).has_point(Vector2(l.x, l.z)):
+			return UP_Y
+	return NAN
+
+
+func level_links() -> Array:
+	var out := []
+	for h in _up:
+		out.append([_up[h].bottom, _up[h].top])
+	return out
+
+
+## В какой светёлке точка (по высоте и месту); "" — ни в какой
+func up_room_at(p: Vector3) -> String:
+	if p.y < UP_Y * 0.5:
+		return ""
+	for h in _up:
+		var l: Vector3 = (_up[h].inv as Transform3D) * p
+		if (_up[h].rect as Rect2).grow(0.6).has_point(Vector2(l.x, l.z)):
+			return h
+	return ""
+
+
+func _graft_upper() -> void:
+	var path := "res://scenes/locations/nakharro_upper.tscn"
+	if not ResourceLoader.exists(path):
+		return
+	var src: Node = (load(path) as PackedScene).instantiate()
+	for h in UP_ROOMS:
+		var house := get_node_or_null("Village/" + h) as Node3D
+		var room := src.get_node_or_null("Village/Room_" + h) as Node3D
+		if house == null or room == null:
+			continue
+		var r: Rect2 = UP_ROOMS[h]
+		var c := r.get_center()
+		# комната смотрит на камеру как построена (низкие стены — к зрителю), даже если изба развёрнута
+		var yaw := house.rotation.y
+		if absf(wrapf(yaw, -PI, PI)) > PI / 2.0:
+			yaw -= PI
+		var xf := Transform3D(Basis(Vector3.UP, yaw), house.position + Vector3(0, UP_Y, 0)) * Transform3D(Basis.IDENTITY, Vector3(-c.x, 0, -c.y))
+		var holder := Node3D.new()
+		holder.name = "Upper_" + h
+		holder.transform = xf
+		add_child(holder)
+		room.get_parent().remove_child(room)
+		holder.add_child(room)
+		# перекрытие: сквозь пол не видно и не слышно
+		var sb := StaticBody3D.new()
+		var cs := CollisionShape3D.new()
+		var bs := BoxShape3D.new()
+		bs.size = Vector3(r.size.x, 0.1, r.size.y)
+		cs.shape = bs
+		sb.add_child(cs)
+		sb.position = Vector3(c.x, -0.06, c.y)
+		holder.add_child(sb)
+		# стены первого этажа под светёлкой — в полный рост, чтобы она не висела над срезом
+		var skirt_h := UP_Y - 1.0
+		var logm: Material = load("res://assets/materials/log_weathered.tres")
+		for w in [[Vector3(r.size.x + 0.3, skirt_h, 0.3), Vector3(c.x, -skirt_h / 2.0 - 0.02, r.position.y)],
+				[Vector3(0.3, skirt_h, r.size.y + 0.3), Vector3(r.position.x, -skirt_h / 2.0 - 0.02, c.y)],
+				[Vector3(r.size.x + 0.3, skirt_h, 0.3), Vector3(c.x, -skirt_h / 2.0 - 0.02, r.end.y)],
+				[Vector3(0.3, skirt_h, r.size.y + 0.3), Vector3(r.end.x, -skirt_h / 2.0 - 0.02, c.y)]]:
+			var wm := MeshInstance3D.new()
+			var bm := BoxMesh.new()
+			bm.size = w[0]
+			wm.mesh = bm
+			wm.material_override = logm
+			wm.position = w[1]
+			holder.add_child(wm)
+		var rec := {"node": holder, "inv": xf.affine_inverse(), "rect": r, "items": [], "chars": []}
+		for pair in [["Items", "items"], ["Characters", "chars"]]:
+			for n in src.get_node(pair[0]).get_children():
+				var n3 := n as Node3D
+				if n3 == null or not r.grow(1.0).has_point(Vector2(n3.position.x, n3.position.z)):
+					continue
+				n3.get_parent().remove_child(n3)
+				n3.transform = xf * n3.transform
+				get_node(pair[0]).add_child(n3)
+				(rec[pair[1]] as Array).append(n3)
+				# комната повёрнута вместе с избой, гексы легли иначе: до вещи у стены тянемся на два шага
+				if n3 is Interactable:
+					(n3 as Interactable).reach = maxi((n3 as Interactable).reach, 2)
+		# стремянка: низ — у лестницы первого этажа, верх — прямо над ним
+		var st := house.get_node_or_null("Slot_stairs") as Node3D
+		var foot: Vector3 = house.transform * ((st.position if st else Vector3.ZERO) + Vector3(0, 0, 0.5))
+		rec["bottom"] = Vector3(foot.x, 0, foot.z)
+		rec["top"] = Vector3(foot.x, UP_Y, foot.z)
+		_up[h] = rec
+	src.free()
+	_up_show("")
+
+
+## Показать светёлку h (её стены, вещи и людей), остальные спрятать
+func _up_show(h: String) -> void:
+	up_cur = h
+	for k in _up:
+		var on: bool = k == h
+		(_up[k].node as Node3D).visible = on
+		for it in _up[k].items:
+			if is_instance_valid(it):
+				var show_it: bool = on and not ws().picked.has((it as Interactable).uid())
+				(it as Interactable).set_active(show_it)
+		for ch in _up[k].chars:
+			if is_instance_valid(ch):
+				var c := ch as Character
+				var vis: bool = on and _up_allowed(c)
+				c.visible = vis
+				c.process_mode = Node.PROCESS_MODE_INHERIT if vis else Node.PROCESS_MODE_DISABLED
+	if main and main.hud:
+		main.hud._status.text = main.status_text()
+
+
+## Кюннэй сидит за станком, только пока идут прятки и её не нашли; после налёта наверху никого
+func _up_allowed(ch: Character) -> bool:
+	if phase() != "morning" or ws().misc.has("gone_" + ch.uid()):
+		return false
+	if ch.name == "HideKid3":
+		return Game.quest_stage("hide_seek") == 1 and not Game.flag("hs_3")
+	return true
+
+
+func _up_tick(delta: float) -> void:
+	if _up.is_empty() or main == null or main.player == null:
+		return
+	_up_t -= delta
+	if _up_t > 0.0:
+		return
+	_up_t = 0.1
+	var now := up_room_at(main.player.global_position)
+	if now != up_cur:
+		_up_show(now)
+
+
+## Вещи второго этажа
+func _up_interact(n: String) -> bool:
+	match n:
+		"RoofWindow":
+			_antenna()
+		"Receiver":
+			if Game.flag("radio_fixed"):
+				main.think("Лампы светятся зелёным. В наушниках — шип и далёкий треск, как дождь по крыше.")
+			else:
+				main.think("Три приёмника в одном ящике, лампы, катушки, батарея от трактора. Без антенны — только шип.")
+		"Loom":
+			main.think("Ткацкий станок. На нём — недотканый половик: красные, белые, синие полосы, как на сэлэ.")
+		"Dowry":
+			main.think("Сундук, окованный медью. Приданое — бабушка копит внучкам. Не моё.")
+		"HerbRack":
+			if Game.flag("upper_herbs"):
+				main.think("Травы сохнут дальше. Больше брать не стану.")
+			else:
+				Game.set_flag("upper_herbs")
+				Game.add_item("herbs")
+				Game.log_line("Взял: Сушёные травы", "", "hit")
+				main.think("Пучок тысячелистника и иван-чая. Бабушка не обеднеет — у неё тут на всю деревню.")
+		"Globe":
+			main.think("Глобус, выцветший до бежевого. Якутия — жёлтое пятно, исчерканное карандашом. Нахарро на нём нет. Моря — много.")
+		"Blackboard":
+			main.think("«2062. Август. Жи — ши пиши с буквой и». Ниже — детские каракули: самолёт и человечек с ружьём.")
+		"Shelves":
+			main.think("Книги до потолка: учебники, «Справочник фельдшера», «Тракторы ДТ-75», сказки, Пушкин без обложки. На одной полке — пустое место для четвёртого тома.")
+		_:
+			return false
+	return true
+
+
+## Слуховое окно: поправить мачту антенны (нужна проволока от мастера Тимира)
+func _antenna() -> void:
+	if Game.flag("radio_fixed"):
+		main.think("Мачта стоит прямо. Ветер гудит в растяжках.")
+		return
+	if Game.quest_stage("radio") < 1:
+		main.think("Слуховое окно. За ним — скат крыши и мачта антенны, завалившаяся набок.")
+		return
+	if Game.item_count("copper_wire") == 0:
+		main.think("Мачта висит на одной растяжке. Без проволоки не закрепить — у мастера Тимира был моток.")
+		return
+	if not Game.flag("antenna_try") and not Game.skill_check("Механика", "INT", "Механика", 10):
+		Game.set_flag("antenna_try")
+		main.think("Проволока соскользнула с крюка, чуть не уехал с крыши сам. Ещё раз — аккуратнее.")
+		return
+	Game.remove_item("copper_wire")
+	Game.set_flag("radio_fixed")
+	Game.set_quest("radio", 2)
+	Game.grant_xp(30)
+	main.think("Вылез на скат, поднял мачту, притянул растяжками к коньку. Туйгун внизу орёт: «Есть! Есть сигнал!»")
+	main.hud.refresh_objective()
+
+
+const UP_DESC := {"RoofWindow": "Слуховое окно. Через него — на крышу, к мачте антенны.",
+	"Receiver": "Самодельный приёмник Туйгуна: ящик, лампы, шкала со стрелкой.", "Loom": "Ткацкий станок бабушки.",
+	"Dowry": "Сундук с приданым.", "HerbRack": "Пучки трав на верёвке под потолком.",
+	"Globe": "Довоенный глобус на латунной ножке.", "Blackboard": "Школьная доска, исписанная мелом.",
+	"Shelves": "Полки с книгами основателей."}
+
+
 func _ready() -> void:
+	_graft_upper()
 	location_id = "nakharro"
 	title = "Нахарро"
 	Game.hero_changed.connect(_on_hero_changed)
@@ -130,6 +349,7 @@ func on_new_game() -> void:
 func on_world_state_applied() -> void:
 	_apply_phase()
 	_apply_sacred()
+	_up_show(up_room_at(main.player.global_position) if main and main.player else "")
 
 
 ## на лиственнице — новая сэлэ с лентами, если герой её повесил
@@ -325,7 +545,7 @@ func _set_on(n: Node, on: bool) -> void:
 
 func status_line() -> String:
 	if phase() == "morning":
-		return "2062 · конец лета · вечер" if Game.flag("dusk") else "2062 · конец лета"
+		return ("2062 · конец лета · вечер" if Game.flag("dusk") else "2062 · конец лета") + (" · " + str(UP_NAMES[up_cur]) if up_cur != "" else "")
 	return "2062 · пожар"
 
 
@@ -422,6 +642,7 @@ func _check_pack() -> void:
 ## Пока идёт налёт, из деревни слышны выстрелы и крики: чем ближе герой, тем громче.
 ## Защитники у ворот отстреливаются от остатков нападавших.
 func _process(delta: float) -> void:
+	_up_tick(delta)
 	_mark_t -= delta
 	if _mark_t <= 0.0:
 		_mark_t = 0.4
@@ -1220,10 +1441,19 @@ func _tower() -> void:
 
 func on_interact(it: Interactable) -> bool:
 	if String(it.name).begins_with("Stairs_"):
+		var hs := String(it.name).substr(7)
 		if phase() != "morning":
 			main.think("Не до светёлок. Деревня горит.")
-		else:
-			main.load_location("nakharro_upper", "From_" + String(it.name).substr(7))
+		elif _up.has(hs):
+			# наверх — ногами по стремянке, без перехода
+			main._walk_to_hex(grid.nearest_free(_up[hs].top))
+		return true
+	if String(it.name).begins_with("Down_"):
+		var hd := String(it.name).substr(5)
+		if _up.has(hd):
+			main._walk_to_hex(grid.nearest_free(_up[hd].bottom))
+		return true
+	if UP_DESC.has(String(it.name)) and _up_interact(String(it.name)):
 		return true
 	if it.name == "Bonfire":
 		_bonfire()
@@ -1332,6 +1562,13 @@ func on_dialog_action(a: String, _sp: Character) -> bool:
 			Game.log_line("%s умер%s." % [fr.display_name if fr else "Друг", "ла" if Game.hero.get("female", false) else ""], "", "miss")
 			main.think("Я держу руку, пока она не становится чужой. За черту — за двоих. Обещаю.")
 			return true
+	if a == "hs_leave" and _sp and _sp.name == "HideKid3":
+		# та, что пряталась наверху: вниз по стремянке — и нет её
+		ws().misc["gone_" + _sp.uid()] = true
+		_sp.visible = false
+		_sp.process_mode = Node.PROCESS_MODE_DISABLED
+		main.think("Кюннэй шмыгает мимо и топочет вниз по стремянке.")
+		return true
 	if a == "hs_leave" and _sp:
 		ws().misc["gone_" + _sp.uid()] = true
 		_sp.start_pose = ""
@@ -1683,6 +1920,16 @@ func _open_chest(it: Interactable) -> void:
 ## Действия по правой кнопке для вещей и мест этой локации
 func item_actions(it: Interactable) -> Array:
 	var n := String(it.name)
+	if n.begins_with("Down_"):
+		return [["Спуститься вниз", "use"]]
+	if n == "RoofWindow":
+		if Game.quest_stage("radio") >= 1 and not Game.flag("radio_fixed"):
+			return [["Починить антенну (проволока)" if Game.item_count("copper_wire") > 0 else "Починить антенну (нужна проволока)", "use"]]
+		return [["Выглянуть", "use"]]
+	if n == "HerbRack":
+		return [["Взять пучок", "use"]] if not Game.flag("upper_herbs") else [["Осмотреть", "use"]]
+	if UP_DESC.has(n):
+		return [["Осмотреть", "use"]]
 	if n == "SacredTree":
 		if Game.quest_stage("salama") == 1 and Game.item_count("salama") > 0:
 			return [["Повесить сэлэ", "use"]]
@@ -1726,6 +1973,10 @@ func item_actions(it: Interactable) -> Array:
 
 func describe(it: Interactable) -> String:
 	var n := String(it.name)
+	if UP_DESC.has(n):
+		return UP_DESC[n]
+	if n.begins_with("Down_"):
+		return "Люк вниз. Стремянка скрипит."
 	if n == "SacredTree":
 		return "Аар Луук Мас — так старики зовут эту лиственницу. Самая старая у опушки." + (" На ней — новая сэлэ с лентами." if Game.flag("salama_tied") else "")
 	if n == "LockedBox":
@@ -1800,7 +2051,7 @@ func _apply_fence() -> void:
 	if not rebuild and not done:
 		return
 	await get_tree().physics_frame
-	grid.build(get_world_3d().direct_space_state, map_rect, 1)
+	rebuild_grid()
 
 
 func _set_solid(n: Node3D, on: bool) -> void:

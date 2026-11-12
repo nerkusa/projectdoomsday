@@ -67,16 +67,33 @@ func _ready() -> void:
 	main.load_location("nakharro", "Start")
 	await settle(1.0)
 	for h in ["Izba5", "Izba9", "Izba13"]:
-		var st = main.location.item("Stairs_" + h)
-		await click("Stairs_" + h, st.global_position + Vector3(4, 0, 5))
-		ok(main.location.location_id == "nakharro_upper", h + ": поднялся в светёлку")
+		var nk = main.location
+		var st = nk.item("Stairs_" + h)
+		main.player.stop()
+		main.player.global_position = st.global_position + Vector3(4, 0, 5) if h != "Izba13" else st.global_position + Vector3(-4, 0, 5)
+		await frames(3)
+		main._walk_to_hex(nk.grid.from_world(main.player.global_position + Vector3(6, 0, 6)))
+		await frames(4)
+		main._go_then(st, "use")
+		var t := 0.0
+		while nk.up_cur != h and t < 40.0:
+			await frames(2)
+			t += 0.1
+		await get_tree().create_timer(1.5).timeout
+		ok(main.location.location_id == "nakharro" and nk.up_cur == h, h + ": поднялся в светёлку без перехода (высота %.1f)" % main.player.global_position.y)
 		await sane(h + " наверху")
+		ok(nk.get_node("Upper_" + h).visible, h + ": светёлка видна")
 		await get_tree().create_timer(3.0).timeout
 		await sane(h + " наверху, спустя время")
-		var dn = main.location.item("Down_" + h)
-		await click("Down_" + h, main.player.global_position)
-		ok(main.location.location_id == "nakharro", h + ": спустился")
+		main._go_then(nk.item("Down_" + h), "use")
+		t = 0.0
+		while nk.up_cur != "" and t < 40.0:
+			await frames(2)
+			t += 0.1
+		await get_tree().create_timer(1.5).timeout
+		ok(nk.up_cur == "" and main.player.global_position.y < 0.3, h + ": спустился (высота %.1f)" % main.player.global_position.y)
 		await sane(h + " внизу")
+		ok(not nk.get_node("Upper_" + h).visible, h + ": светёлка спрятана")
 	for f in ["sg_entered", "sg_permit", "seen_sungar"]:
 		Game.set_flag(f)
 	for pair in [["sungar", "HotelStairs"], ["sungar_center", "DomStairs"], ["sungar_center", "AdminStairs"], ["sungar_quarter", "ObshagaStairs"]]:

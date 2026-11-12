@@ -70,7 +70,7 @@ func _set_gate(open: bool, animate := true) -> void:
 func _rebuild_grid() -> void:
 	await get_tree().physics_frame
 	await get_tree().physics_frame
-	grid.build(get_world_3d().direct_space_state, map_rect, 1)
+	rebuild_grid()
 
 
 func on_hero_moved(pos: Vector3) -> void:

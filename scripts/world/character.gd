@@ -232,6 +232,36 @@ func move_along(points: Array, cb := Callable(), spd := 3.2) -> void:
 		cb.call()
 
 
+## Локация, в которой стоит персонаж (у героя меняется при переходах)
+func _loc() -> Location:
+	var n := get_parent()
+	while n != null and not (n is Location):
+		n = n.get_parent()
+	return n as Location
+
+
+## На какой высоте стоять в точке p: земля с рельефом или пол второго уровня.
+## hint_y — примерная высота (по ней понятно, какой уровень имеется в виду).
+func _stand_y(p: Vector3, hint_y: float) -> float:
+	var l := _loc()
+	if l == null or not (l.has_relief() or l.has_upper()):
+		return 0.0
+	return l.surface_y(Vector3(p.x, hint_y, p.z))
+
+
+## Отрезок пути ведёт с уровня на уровень (лестница)
+func _on_stairs(a: Vector3, b: Vector3) -> bool:
+	var l := _loc()
+	if l == null or not l.has_upper():
+		return false
+	return absf(l.surface_y(a) - l.surface_y(b)) > 1.2
+
+
+## Поставить на землю (или пол) там, где стоит: после расстановки и телепортов
+func snap_to_ground() -> void:
+	global_position.y = _stand_y(global_position, global_position.y)
+
+
 ## Сколько ещё вставать перед ходьбой (с)
 var _rise_t := 0.0
 
@@ -416,7 +446,7 @@ func _process(delta: float) -> void:
 		var d := Vector2(tgt.x - g.x, tgt.z - g.z)
 		var st := speed * delta
 		if d.length() <= st:
-			global_position = Vector3(tgt.x, 0, tgt.z)
+			global_position = Vector3(tgt.x, _stand_y(tgt, tgt.y), tgt.z)
 			path.pop_front()
 			if path.is_empty():
 				moving = false
@@ -427,7 +457,12 @@ func _process(delta: float) -> void:
 					cb.call()
 		else:
 			var dn := d.normalized()
-			global_position += Vector3(dn.x, 0, dn.y) * st
+			var np := g + Vector3(dn.x, 0, dn.y) * st
+			# по лестнице высота меняется плавно от точки к точке; по земле — идём по рельефу
+			var ty := _stand_y(tgt, tgt.y)
+			var k := st / d.length()
+			np.y = _stand_y(np, lerpf(g.y, ty, k)) if absf(ty - g.y) < 1.2 and not _on_stairs(g, tgt) else lerpf(g.y, ty, k)
+			global_position = np
 			rotation.y = lerp_angle(rotation.y, atan2(dn.x, dn.y), 0.3)
 	_patrol(delta)
 	_mark_t -= delta

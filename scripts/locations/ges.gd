@@ -101,7 +101,7 @@ func _open_turnstile() -> void:
 		t.queue_free()
 	await get_tree().physics_frame
 	await get_tree().physics_frame
-	grid.build(get_world_3d().direct_space_state, map_rect, 1)
+	rebuild_grid()
 
 
 ## Конец Акта III: ток решён, впереди — Рубикон и Якутск

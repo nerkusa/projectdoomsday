@@ -93,8 +93,8 @@ func _rebuild_outline(grid: HexGrid, hs: Array) -> void:
 			for i in 6:
 				var a1 := PI / 6.0 + i * PI / 3.0
 				var a2 := a1 + PI / 3.0
-				im.surface_add_vertex(Vector3(w.x + HexGrid.HEX * cos(a1), 0.035, w.z + HexGrid.HEX * sin(a1)))
-				im.surface_add_vertex(Vector3(w.x + HexGrid.HEX * cos(a2), 0.035, w.z + HexGrid.HEX * sin(a2)))
+				im.surface_add_vertex(Vector3(w.x + HexGrid.HEX * cos(a1), w.y + 0.035, w.z + HexGrid.HEX * sin(a1)))
+				im.surface_add_vertex(Vector3(w.x + HexGrid.HEX * cos(a2), w.y + 0.035, w.z + HexGrid.HEX * sin(a2)))
 	im.surface_end()
 	_lines.mesh = im
 

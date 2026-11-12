@@ -18,12 +18,58 @@ var grid := HexGrid.new()
 var main: Node = null
 
 
+## Рельеф: высота земли в точке. По умолчанию земля плоская; место с холмами,
+## уступами и террасами переопределяет ground_y и возвращает true из has_relief.
+func has_relief() -> bool:
+	return false
+
+
+func ground_y(_x: float, _z: float) -> float:
+	return 0.0
+
+
+## Второй уровень (этаж дома, помост): высота пола над точкой или NAN, если его там нет
+func has_upper() -> bool:
+	return false
+
+
+func upper_y(_x: float, _z: float) -> float:
+	return NAN
+
+
+## Лестницы между уровнями: пары [низ, верх] в координатах мира
+func level_links() -> Array:
+	return []
+
+
+## Высота, на которой стоит тот, кто находится в точке p (по его нынешней высоте
+## понятно, на земле он или на втором уровне)
+func surface_y(p: Vector3) -> float:
+	var gy := ground_y(p.x, p.z)
+	if has_upper():
+		var uy := upper_y(p.x, p.z)
+		if not is_nan(uy) and p.y > (gy + uy) * 0.5:
+			return uy
+	return gy
+
+
+## Пересобрать сетку ходьбы (после загрузки и когда что-то открылось или рухнуло)
+func rebuild_grid() -> void:
+	grid.build(get_world_3d().direct_space_state, map_rect, 1)
+	for l in level_links():
+		grid.add_link(l[0], l[1])
+
+
 ## Вызывается из main.gd после загрузки
 func setup(m: Node) -> void:
 	main = m
 	await get_tree().physics_frame
 	await get_tree().physics_frame
-	grid.build(get_world_3d().direct_space_state, map_rect, 1)
+	if has_relief():
+		grid.height = ground_y
+	if has_upper():
+		grid.upper = upper_y
+	rebuild_grid()
 	_scatter_loot()
 	_apply_world_state()
 

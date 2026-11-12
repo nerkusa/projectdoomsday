@@ -78,7 +78,7 @@ func _open_door() -> void:
 		d.queue_free()
 	await get_tree().physics_frame
 	await get_tree().physics_frame
-	grid.build(get_world_3d().direct_space_state, map_rect, 1)
+	rebuild_grid()
 
 
 func on_interact(it: Interactable) -> bool:

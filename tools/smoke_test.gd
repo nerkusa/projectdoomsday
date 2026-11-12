@@ -165,10 +165,14 @@ func unreachable(loc, start: Vector3, only := Callable()) -> Array:
 ## Подняться / спуститься по лестнице в двухэтажной избе Нахарро
 func go_upstairs(house: String) -> Node:
 	var nk = main.location
+	await tp(nk._up[house].bottom)
 	nk.on_interact(nk.item("Stairs_" + house))
-	while main._loading:
+	var t := 0.0
+	while nk.up_cur != house and t < 30.0:
 		await frames(2)
-	await frames(3)
+		t += 0.1
+	await frames(6)
+	main.player.stop()
 	main.dialog.close()
 	return main.location
 
@@ -176,9 +180,11 @@ func go_upstairs(house: String) -> Node:
 func go_downstairs(house: String) -> Node:
 	var up = main.location
 	up.on_interact(up.item("Down_" + house))
-	while main._loading:
+	var t := 0.0
+	while up.up_cur != "" and t < 30.0:
 		await frames(2)
-	await frames(3)
+		t += 0.1
+	await frames(6)
 	main.dialog.close()
 	return main.location
 
@@ -196,13 +202,14 @@ func nakharro_life_tests() -> void:
 	ok((nak.get_node("Village/Izba13") as Node3D).get_node_or_null("Slot_stairs") != null, "терем двухэтажный: лестница наверх")
 	# --- эфир: Туйгун на втором этаже ---
 	var up: Node = await go_upstairs("Izba5")
-	ok(up.location_id == "nakharro_upper" and up.cur == "Izba5", "поднялся в светёлку Туйгуна")
+	ok(up.location_id == "nakharro" and up.up_cur == "Izba5" and main.player.global_position.y > 2.0, "поднялся в светёлку Туйгуна ногами, без перехода")
 	ok(not up.character("Teacher").visible and up.character("Tuygun").visible, "видна только своя светёлка")
 	for hn in ["Izba5", "Izba9", "Izba13"]:
-		up._show(hn)
-		var uu := unreachable(up, up.spawn_point("From_" + hn))
+		up._up_show(hn)
+		var mine: Array = up._up[hn].items + up._up[hn].chars
+		var uu := unreachable(up, up._up[hn].top, func(nd): return nd in mine)
 		ok(uu.is_empty(), "светёлка %s: до всего можно дойти (%s)" % [hn, ", ".join(uu)])
-	up._show("Izba5")
+	up._up_show("Izba5")
 	main.talk_to(up.character("Tuygun"))
 	await frames(2)
 	await choose(find_opt("помогу с антенной"))
@@ -213,7 +220,7 @@ func nakharro_life_tests() -> void:
 	main.dialog.close()
 	ok(not Game.flag("radio_fixed"), "без проволоки антенну не закрепить")
 	var nk: Node = await go_downstairs("Izba5")
-	ok(nk.location_id == "nakharro" and main.player.global_position.distance_to(nk.spawn_point("FromUp_Izba5")) < 1.0, "спустился по стремянке в избу")
+	ok(nk.location_id == "nakharro" and main.player.global_position.y < 0.3 and main.player.global_position.distance_to(nk._up["Izba5"].bottom) < 1.6, "спустился по стремянке в избу")
 	var sm: Character = nk.character("Smith")
 	await tp(sm.global_position + Vector3(1.2, 0, 0))
 	main.talk_to(sm)
@@ -257,7 +264,7 @@ func nakharro_life_tests() -> void:
 	ok(not nk.character("HideKid1").visible, "найденный убежал к Мичилу")
 	up = await go_upstairs("Izba9")
 	var k3: Character = up.character("HideKid3")
-	ok(up.cur == "Izba9" and k3.visible, "Кюннэй — в бабушкиной светёлке за станком")
+	ok(up.up_cur == "Izba9" and k3.visible, "Кюннэй — в бабушкиной светёлке за станком")
 	main.talk_to(k3)
 	await frames(2)
 	await choose(find_opt("Беги к Мичилу"))
@@ -298,7 +305,7 @@ func nakharro_life_tests() -> void:
 	await close_dialogs()
 	# --- книга учительницы ---
 	up = await go_upstairs("Izba13")
-	ok(up.cur == "Izba13" and up.character("Teacher").visible, "светёлка учительницы в тереме")
+	ok(up.up_cur == "Izba13" and up.character("Teacher").visible, "светёлка учительницы в тереме")
 	main.talk_to(up.character("Teacher"))
 	await frames(2)
 	await choose(find_opt("помочь"))

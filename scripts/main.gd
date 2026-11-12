@@ -356,7 +356,7 @@ func load_location(id: String, spawn := "Start", pos = null) -> void:
 	# старый маршрут остался в прошлой локации: иначе герой дойдёт «туда же» уже здесь, сквозь стены
 	player.stop()
 	var p: Vector3 = pos if pos != null else location.spawn_point(spawn)
-	player.global_position = Vector3(p.x, 0, p.z)
+	player.global_position = Vector3(p.x, location.surface_y(p), p.z)
 	player.set_held(Game.hero_wkey())
 	player.show_bracelet(Game.flag("kpk"))
 	cam_target = player.global_position
@@ -926,12 +926,49 @@ func _pick(screen_pos: Vector2) -> Dictionary:
 				res.erase("character")
 				res.item = it
 			break
-	var plane := Plane(Vector3.UP, 0.0)
-	var g = plane.intersects_ray(from, dir)
+	var g = _ground_hit(from, dir)
 	if g != null:
 		res.ground = g
 		res.hex = location.grid.from_world(g)
 	return res
+
+
+## Куда на земле указывает луч из камеры. Плоская локация — пересечение с плоскостью;
+## с рельефом — идём вдоль луча до первой точки под землёй; герой на втором уровне —
+## сначала пробуем пол его этажа.
+func _ground_hit(from: Vector3, dir: Vector3) -> Variant:
+	if location.has_upper() and player:
+		var py := player.global_position.y
+		var uy: float = location.upper_y(player.global_position.x, player.global_position.z)
+		if not is_nan(uy) and absf(py - uy) < 0.6:
+			var up = Plane(Vector3.UP, uy).intersects_ray(from, dir)
+			if up != null and not is_nan(location.upper_y(up.x, up.z)) and absf(location.upper_y(up.x, up.z) - uy) < 0.6:
+				return up
+	if not location.has_relief():
+		return Plane(Vector3.UP, 0.0).intersects_ray(from, dir)
+	if dir.y >= -0.01:
+		return null
+	# от высоты +12 м до −12 м шагами по полметра, потом уточнение делением пополам
+	var t0 := (12.0 - from.y) / dir.y
+	var t1 := (-12.0 - from.y) / dir.y
+	var prev := t0
+	var t := t0
+	while t <= t1:
+		var p := from + dir * t
+		if p.y <= location.ground_y(p.x, p.z):
+			var lo := prev
+			var hi := t
+			for i in 8:
+				var mid := (lo + hi) * 0.5
+				var pm := from + dir * mid
+				if pm.y <= location.ground_y(pm.x, pm.z):
+					hi = mid
+				else:
+					lo = mid
+			return from + dir * hi
+		prev = t
+		t += 0.5
+	return null
 
 
 func _click(sp: Vector2) -> void:
@@ -1024,7 +1061,8 @@ func _walk_to_hex(h: Vector2i, cb := Callable(), exact = null) -> bool:
 		exact = null
 	var goal: Vector3 = g.to_world(target)
 	if exact != null:
-		goal = Vector3(exact.x, 0, exact.z)
+		# высота — как у гекса цели: земля с рельефом или пол этажа
+		goal = Vector3(exact.x, location.surface_y(Vector3(exact.x, goal.y, exact.z)), exact.z)
 	if _walk_clear(player.global_position, goal):
 		player.move_along([goal], cb, _move_speed([goal]))
 		return true
@@ -1051,6 +1089,9 @@ func _walk_clear(a: Vector3, b: Vector3) -> bool:
 	var d := Vector3(b.x - a.x, 0, b.z - a.z)
 	if d.length() < 0.01:
 		return true
+	# с уровня на уровень напрямик нельзя — только по точкам пути (лестница)
+	if location.has_upper() and absf(location.surface_y(a) - location.surface_y(b)) > 1.2:
+		return false
 	var side := Vector3(-d.z, 0, d.x).normalized() * 0.35
 	var sp := space()
 	for off in [Vector3.ZERO, side, -side]:

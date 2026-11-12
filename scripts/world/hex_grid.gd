@@ -15,10 +15,42 @@ var _ids: Dictionary = {}
 ## Разрезанные связи между соседними свободными гексами: между их центрами тонкая
 ## стена, которую не задел пробник в центре гекса. Ключ — пара гексов.
 var _cut: Dictionary = {}
+## Рельеф: высота земли в точке, Callable(x, z) -> float. Пусто — земля плоская.
+var height := Callable()
+## Второй уровень (этаж, помост): высота пола над точкой, Callable(x, z) -> float;
+## NAN — над этой точкой второго уровня нет. Гексы второго уровня — те же (q, r),
+## но q сдвинут на LVL: вся остальная игра по-прежнему работает с Vector2i.
+var upper := Callable()
+const LVL := 100000
+## Лестницы и сходни: связь гекса с гексом другого уровня (в обе стороны)
+var _links: Dictionary = {}
+var _hex_of: Dictionary = {}
+
+
+## Уровень гекса: 0 — земля, 1 — второй уровень
+static func level(h: Vector2i) -> int:
+	return 1 if h.x > LVL / 2 else 0
+
+
+## Высота земли в точке
+func ground_y(x: float, z: float) -> float:
+	return float(height.call(x, z)) if height.is_valid() else 0.0
+
+
+## Высота пола второго уровня над точкой или NAN
+func upper_y(x: float, z: float) -> float:
+	return float(upper.call(x, z)) if upper.is_valid() else NAN
 
 
 func to_world(h: Vector2i) -> Vector3:
-	return Vector3(HEX * SQ3 * (h.x + h.y / 2.0), 0.0, HEX * 1.5 * h.y)
+	var lv := level(h)
+	var q := h.x - lv * LVL
+	var x := HEX * SQ3 * (q + h.y / 2.0)
+	var z := HEX * 1.5 * h.y
+	if lv == 1:
+		var uy := upper_y(x, z)
+		return Vector3(x, 0.0 if is_nan(uy) else uy, z)
+	return Vector3(x, ground_y(x, z), z)
 
 
 func from_world(p: Vector3) -> Vector2i:
@@ -37,6 +69,11 @@ func from_world(p: Vector3) -> Vector2i:
 		rq = -rr - rs
 	elif dr > ds:
 		rr = -rq - rs
+	# точка заметно выше земли и под ней есть пол второго уровня — это он
+	if upper.is_valid():
+		var uy := upper_y(p.x, p.z)
+		if not is_nan(uy) and p.y > (ground_y(p.x, p.z) + uy) * 0.5:
+			rq += LVL
 	return Vector2i(rq, rr)
 
 
@@ -45,6 +82,9 @@ func is_free(h: Vector2i) -> bool:
 
 
 func distance(a: Vector2i, b: Vector2i) -> int:
+	# с этажа на этаж «рядом» не бывает: только по лестнице
+	if level(a) != level(b):
+		return 999
 	return (absi(a.x - b.x) + absi(a.x + a.y - b.x - b.y) + absi(a.y - b.y)) / 2
 
 
@@ -53,6 +93,9 @@ func neighbors(h: Vector2i) -> Array:
 	for d in DIRS:
 		var n: Vector2i = h + d
 		if is_free(n) and not _cut.has(_edge(h, n)):
+			out.append(n)
+	for n in _links.get(h, []):
+		if is_free(n):
 			out.append(n)
 	return out
 
@@ -63,6 +106,8 @@ func build(space: PhysicsDirectSpaceState3D, rect: Rect2, mask := 1) -> void:
 	free.clear()
 	_cut.clear()
 	_ids.clear()
+	_hex_of.clear()
+	_links.clear()
 	_astar.clear()
 	var shape := BoxShape3D.new()
 	shape.size = Vector3(0.6, 1.2, 0.6)
@@ -84,12 +129,18 @@ func build(space: PhysicsDirectSpaceState3D, rect: Rect2, mask := 1) -> void:
 			q.transform = Transform3D(Basis.IDENTITY, w + Vector3(0, 0.65, 0))
 			var hit := space.intersect_shape(q, 1)
 			free[h] = hit.is_empty()
+			# второй уровень над этой точкой
+			if upper.is_valid() and not is_nan(upper_y(w.x, w.z)):
+				var h1 := Vector2i(qq + LVL, r)
+				q.transform = Transform3D(Basis.IDENTITY, to_world(h1) + Vector3(0, 0.75, 0))
+				free[h1] = space.intersect_shape(q, 1).is_empty()
 	var i := 0
 	for h in free:
 		if free[h]:
 			var w2 := to_world(h)
 			_astar.add_point(i, Vector2(w2.x, w2.z))
 			_ids[h] = i
+			_hex_of[i] = h
 			i += 1
 	for h in _ids:
 		for d in DIRS:
@@ -100,6 +151,23 @@ func build(space: PhysicsDirectSpaceState3D, rect: Rect2, mask := 1) -> void:
 				_cut[_edge(h, n)] = true
 			else:
 				_astar.connect_points(_ids[h], _ids[n])
+
+
+## Лестница между уровнями: связывает ближайшие свободные гексы у нижнего и верхнего конца.
+## Вызывать после build(). Точки — в мире, с настоящей высотой.
+func add_link(bottom: Vector3, top: Vector3) -> bool:
+	var a := nearest_free(bottom)
+	var b := nearest_free(top)
+	if not _ids.has(a) or not _ids.has(b) or a == b:
+		return false
+	for pair in [[a, b], [b, a]]:
+		if not _links.has(pair[0]):
+			_links[pair[0]] = []
+		if not pair[1] in _links[pair[0]]:
+			(_links[pair[0]] as Array).append(pair[1])
+	if not _astar.are_points_connected(_ids[a], _ids[b]):
+		_astar.connect_points(_ids[a], _ids[b])
+	return true
 
 
 func _edge(a: Vector2i, b: Vector2i) -> Vector4i:
@@ -129,8 +197,7 @@ func explore_path(from: Vector2i, to: Vector2i, blocked := {}) -> Array:
 			_astar.set_point_disabled(_ids[h], false)
 	var out := []
 	for id in ids:
-		var p := _astar.get_point_position(id)
-		out.append(from_world(Vector3(p.x, 0, p.y)))
+		out.append(_hex_of[id])
 	if not out.is_empty():
 		out.remove_at(0)
 	return out

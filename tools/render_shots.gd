@@ -5,7 +5,7 @@ extends Node
 ## Кадр: loc|x|z|zoom|час|флаги — флаги через запятую, «квест=этап» ставит этап, «weather=rain» — погоду.
 ##       encounter|x|z|zoom|час|enc_id|ориентиры(plane,heli,…)
 ##       Флаги кадра: alt — зажат Alt (подсветка); call=метод — вызвать метод локации (сцену) и подождать;
-##       fx=off|film|bleak — фильтр картинки.
+##       fx=off|film|bleak — фильтр картинки; up — герой на втором уровне (этаж).
 ##       MAP — карта мира с тропами (MAP|all — все места);  WAIT|часов|через_сколько_сек — экран ожидания.
 var main: Node
 
@@ -82,6 +82,8 @@ func _ready() -> void:
 					keep_hud = true
 				elif f == "mods":
 					Game.hero.flags["modules"] = {"carrier": true, "inventory": true, "map": true}
+				elif f == "up":
+					pass  # герой на втором уровне — см. ниже, где он ставится
 				elif f == "alt":
 					# зажат Alt — подсветка вещей
 					Input.action_press("highlight")
@@ -127,6 +129,9 @@ func _ready() -> void:
 		Clock.apply_light(main.location)
 		Clock.update_schedules(true)
 		var pos := Vector3(float(p[1]), 0, float(p[2]))
+		# флаг up — герой на втором уровне (этаж, помост), иначе на земле с учётом рельефа
+		var uy: float = main.location.upper_y(pos.x, pos.z)
+		pos.y = uy if (p.size() > 5 and "up" in str(p[5]).split(",")) and not is_nan(uy) else main.location.ground_y(pos.x, pos.z)
 		main.player.global_position = pos
 		main.cam_target = pos
 		main.zoom = float(p[3])
